@@ -73,6 +73,9 @@ def test_the_ball_moves_continuously_between_actions():
         for e in MatchSim(M01, seed=seed).run():
             if e.type == "set_piece":
                 owner, ball, taker = e.team, e.start, e.player_id
+            elif e.type in ("pressure", "foul"):  # by the defending team, at the mirrored ball
+                assert e.team != owner, e.event_id
+                assert _close(e.start, Point(x=105 - ball.x, y=68 - ball.y)), e.event_id
             elif e.type in ("tackle", "interception"):
                 assert _close(e.start, Point(x=105 - ball.x, y=68 - ball.y)), e.event_id
                 owner, ball, taker = e.team, e.start, None

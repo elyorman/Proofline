@@ -1,5 +1,6 @@
 from pathlib import Path
 
+from contracts.event import Point
 from engine.script import load_script
 from engine.sim import MatchSim
 
@@ -41,10 +42,41 @@ def test_every_player_is_on_a_roster():
     assert {e.team for e in events} == {"Harbour City", "Northvale"}
 
 
-def test_intervention_leaves_the_match_before_it_untouched():
-    without_s1 = M01.model_copy(update={"scripts": [s for s in M01.scripts if s.id != "s1"]})
+def test_interventions_leave_the_match_before_them_untouched():
+    for sid, start_minute in (("s1", 60), ("s2", 62)):
+        without = M01.model_copy(update={"scripts": [s for s in M01.scripts if s.id != sid]})
 
-    def before_60(events):
-        return _dump([e for e in events if e.clock.minute < 60])
+        def before(events, cutoff=start_minute):
+            return _dump([e for e in events if e.clock.minute < cutoff])
 
-    assert before_60(MatchSim(M01, seed=3).run()) == before_60(MatchSim(without_s1, seed=3).run())
+        assert before(MatchSim(M01, seed=3).run()) == before(MatchSim(without, seed=3).run())
+
+
+def test_each_player_acts_for_their_own_team():
+    code = {team.name: team.code for team in M01.teams.values()}
+    for seed in (3, 4, 5):
+        for e in MatchSim(M01, seed=seed).run():
+            assert e.player_id is None or e.player_id.startswith(code[e.team] + "-"), e.event_id
+
+
+def _close(p, q):
+    return abs(p.x - q.x) <= 0.11 and abs(p.y - q.y) <= 0.11
+
+
+def test_the_ball_moves_continuously_between_actions():
+    """Each action starts where the ball is: kept, won (mirrored) or restarted.
+
+    A set-piece taker is also the player who then plays the ball.
+    """
+    for seed in (3, 4, 5):
+        owner, ball, taker = None, None, None
+        for e in MatchSim(M01, seed=seed).run():
+            if e.type == "set_piece":
+                owner, ball, taker = e.team, e.start, e.player_id
+            elif e.type in ("tackle", "interception"):
+                assert _close(e.start, Point(x=105 - ball.x, y=68 - ball.y)), e.event_id
+                owner, ball, taker = e.team, e.start, None
+            elif e.type in ("pass", "carry", "dribble", "shot"):
+                assert e.team == owner and _close(e.start, ball), e.event_id
+                assert taker is None or e.player_id == taker, e.event_id
+                ball, taker = e.end, None

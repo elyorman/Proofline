@@ -21,8 +21,7 @@ PITCH_X, PITCH_Y = 105.0, 68.0
 HALF = 45 * 60
 HALF_TIME_BREAK_S = 15 * 60
 KICKOFF_MS = 1_800_000_000_000
-MAX_ACTIONS = 40
-OPEN_PLAY_MAX_X = 97.0  # open play rarely reaches the six-yard box
+OPEN_PLAY_MAX_X = 97.0  # open play bounces back off the six-yard line
 FATIGUE_PER_MIN = 0.25 / 90
 
 
@@ -43,8 +42,14 @@ def on_pitch(x: float, y: float) -> tuple[float, float]:
 
 
 def ahead(x: float, y: float, dist: float, angle: float) -> tuple[float, float]:
-    """A point `dist` metres away at `angle` radians, kept out of the six-yard box."""
-    return on_pitch(min(x + dist * math.cos(angle), OPEN_PLAY_MAX_X), y + dist * math.sin(angle))
+    """A point `dist` metres away at `angle` radians, reflected off the six-yard line.
+
+    Reflecting rather than clamping keeps play from piling up on one line at x = 97.
+    """
+    tx = x + dist * math.cos(angle)
+    if tx > OPEN_PLAY_MAX_X:
+        tx = 2 * OPEN_PLAY_MAX_X - tx
+    return on_pitch(tx, y + dist * math.sin(angle))
 
 
 def clock_at(period: int, s: float) -> MatchClock:
@@ -137,6 +142,7 @@ class MatchSim:
         self._emit(EventType.PERIOD_START, "home", None, start=None)
         att: Side = "home" if period == 1 else "away"
         ball = (52.5, 34.0)
+        self.att, self.ball = att, ball
         self._emit(
             EventType.SET_PIECE,
             att,
@@ -152,9 +158,7 @@ class MatchSim:
         deff = other(att)
         self.att, self.ball = att, ball
         carrier = self._nearest(att, ball)
-        for _ in range(MAX_ACTIONS):
-            if self.t >= end:
-                break
+        while self.t < end:  # every action takes time, so the period end bounds a possession
             m = self.bucket
             tp = self.params.team(att, self.period, self.t)
             press = self.params.team(deff, self.period, self.t)["press_height"]
@@ -290,7 +294,7 @@ class MatchSim:
         dist = math.hypot(dx, dy)
         angle = math.degrees(math.atan2(7.32 * dx, dx * dx + dy * dy - 3.66**2))
         defenders = max(0, round(self.rng.normal("shot_defenders", m, 1.2 + (x - 85) / 15, 0.9)))
-        xg = 1 / (1 + math.exp(-(-1.15 - 0.10 * dist + 0.03 * angle - 0.30 * defenders)))
+        xg = 1 / (1 + math.exp(-(-0.65 - 0.10 * dist + 0.03 * angle - 0.30 * defenders)))
         r = self.rng.uniform("shot_outcome", m)
         if r < xg:
             outcome = Outcome.GOAL
@@ -328,6 +332,7 @@ class MatchSim:
 
     def _restart(self, side: Side, spot: tuple[float, float], kind: str, pause: float) -> None:
         self._advance(pause)
+        self.att, self.ball = side, spot  # the taker is chosen from the restart's shape
         self._emit(
             EventType.SET_PIECE,
             side,

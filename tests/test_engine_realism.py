@@ -1,6 +1,10 @@
-"""Match totals stay within typical top-flight ranges (spec §7.3 realism controls)."""
+"""Match totals stay within typical top-flight ranges (spec §7.3 realism controls).
+
+Seeds 100-139 are held out: none of them were used to tune the engine's constants.
+"""
 
 import statistics
+from collections import Counter
 from pathlib import Path
 
 from engine.script import load_script
@@ -11,9 +15,12 @@ BASE = load_script(M01_PATH).model_copy(update={"scripts": []})
 
 
 def test_totals_per_team_are_realistic():
-    passes, completion, shots, goals = [], [], [], []
-    for seed in range(10):
+    passes, completion, shots, goals, shot_x, shot_dist = [], [], [], [], [], []
+    for seed in range(100, 140):
         events = MatchSim(BASE, seed=seed).run()
+        match_shots = [e for e in events if e.type == "shot"]
+        shot_x += [round(e.start.x) for e in match_shots]
+        shot_dist += [e.shot_q.distance_m for e in match_shots]
         for team in ("Harbour City", "Northvale"):
             team_passes = [e for e in events if e.type == "pass" and e.team == team]
             passes.append(len(team_passes))
@@ -21,6 +28,9 @@ def test_totals_per_team_are_realistic():
             shots.append(sum(e.type == "shot" and e.team == team for e in events))
             goals.append(sum(e.type == "goal" and e.team == team for e in events))
     assert 400 <= statistics.mean(passes) <= 600
-    assert 0.74 <= statistics.mean(completion) <= 0.86
-    assert 9 <= statistics.mean(shots) <= 18
-    assert 1.8 <= 2 * statistics.mean(goals) <= 3.8
+    assert 0.75 <= statistics.mean(completion) <= 0.86
+    assert 10 <= statistics.mean(shots) <= 17
+    assert 2.4 <= 2 * statistics.mean(goals) <= 3.3
+    assert 15 <= statistics.mean(shot_dist) <= 21
+    # Open play must not pile up on one line: no single metre of x holds 15% of shots.
+    assert Counter(shot_x).most_common(1)[0][1] / len(shot_x) < 0.15

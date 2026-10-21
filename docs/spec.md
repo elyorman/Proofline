@@ -222,10 +222,10 @@ A stochastic possession-chain simulator for two fictional teams, with a lightwei
 
 **Event types:** pass, carry, dribble, shot, tackle, interception, clearance, pressure, duel, foul, card, substitution, possession change, set piece, goal, sprint, period start/end, event amendment.
 
-**Every event carries:** `event_id`, `version`, `clock` (period, minute, second; first-half stoppage prints as `45+2:10`), `wall_clock`, `team`, `player_id`, `position`, start and end x/y on a 105×68 pitch, `outcome`, `body_part`, qualifiers. **Coordinates are the truth:** pitch zones are derived from x/y by the State Builder and never stored as input. Coordinates are in the acting team's attacking frame: x=0 its own goal line, x=105 the opponent's; y=0 the left touchline and y=68 the right, looking towards the opponent's goal.
+**Every event carries:** `event_id`, `version`, `clock` (period, minute, second; first-half stoppage prints as `45+2:10`), `wall_clock`, `team`, `player_id`, `position`, start and end x/y on a 105×68 pitch, `outcome`, `body_part`, qualifiers. **Coordinates are the truth:** pitch zones are derived from x/y by the State Builder and never stored as input. Coordinates are in the attacking frame of the event's `team`: x=0 its own goal line, x=105 the opponent's; y=0 the left touchline and y=68 the right, looking towards the opponent's goal. A point in the other team's frame is (105 − x, 68 − y).
 - Passes add `distance_m`, `ball_speed_kmh`, `pressure_on_passer` (0–1), `receiver_id`.
 - Shots add `shot_speed_kmh`, `distance_m`, `angle_deg`, `defenders_in_cone`.
-- Tracking samples at 5–10 Hz: position, speed, cumulative distance. Tracking is **not written to Cosmos** (it would exceed the free tier at Studio speed); it lives in Blob or in memory per match and the State Builder reduces it to per-window `player_load` aggregates, which are what the ledger stores.
+- Tracking samples at 5–10 Hz, in the player's own team frame: position, speed, cumulative distance. Tracking is **not written to Cosmos** (it would exceed the free tier at Studio speed); it lives in Blob or in memory per match and the State Builder reduces it to per-window `player_load` aggregates, which are what the ledger stores.
 
 **Tactical scripts declare mechanisms, not labels.** Each change ramps in over a few minutes and every probability carries noise:
 
@@ -256,7 +256,7 @@ amendments:
   - id: a1
     at: "68:00"   # after the 63' press card, so the demo shows a published card withdrawn
     batch:
-      # Selects carries by their true position; the v1 feed shows them 18 m to the right.
+      # Selects carries whose true start and end both lie in y 32-50; v1 shows them 18 m right.
       filter: { type: carry, team: away, window: "48:00-55:00", y_min: 32, y_max: 50 }
       shift: { dy_m: -18 }
     reason: "provider coordinate recalibration"

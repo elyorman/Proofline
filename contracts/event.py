@@ -1,9 +1,10 @@
 """Match event contract. Every event is versioned; amendments bump `version`.
 
-Coordinates are the truth, in the acting team's attacking frame: x=0 is its own
-goal line and x=105 the opponent's; y=0 is the left touchline and y=68 the right,
-looking towards the opponent's goal. Tracking samples use the player's own team
-frame. Pitch zones are derived from x/y by the State Builder; an amendment that
+Coordinates are the truth, in the attacking frame of the event's `team`: x=0 is
+its own goal line and x=105 the opponent's; y=0 is the left touchline and y=68 the
+right, looking towards the opponent's goal. A point in the other team's frame is
+(105 - x, 68 - y). Tracking samples use the player's own team frame.
+Pitch zones are derived from x/y by the State Builder; an amendment that
 relocates events changes x/y.
 """
 

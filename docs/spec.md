@@ -663,13 +663,15 @@ Every row leaves evidence a judge can see; use that leaves no trace is not claim
 
 | Role | Model |
 |---|---|
-| Hypothesis agents, synthesis, recap | gpt-5.6-terra |
-| Verifier semantic check | A non-OpenAI model available in Foundry in the chosen region (fallback: a second OpenAI model with a distinct verifier prompt, stated as a limitation) |
-| Narrator variants | gpt-5.6-luna |
+| Hypothesis agents, synthesis, recap | gpt-5-mini |
+| Verifier semantic check | A non-OpenAI model with quota on the subscription (candidates: grok-4-fast-reasoning, DeepSeek-V3.2, Mistral Medium), chosen at the Verifier step by catch rate on seeded false claims (fallback: a second OpenAI model with a distinct verifier prompt, stated as a limitation) |
+| Narrator variants | gpt-5-mini |
 | Fast lane | Templates |
-| Development runs | gpt-5.6-luna for all roles |
+| Development runs | gpt-5-mini for all roles |
 
-**Cost control:** develop on Luna; final evaluation and ablation on Terra over a bounded number of matches; prompt caching for role prompts and tool schemas; budget alert at 60% of credit; replay mode for the public link so judging costs nothing by default. Confirm prices in the Azure portal before the first paid run.
+The subscription is a Free Trial whose only gpt-5 quota is gpt-5-mini; gpt-5.6-terra and gpt-5.6-luna have zero quota (checked 21 October). If gpt-5-mini proves too weak, upgrade to pay-as-you-go, request quota for a larger model, and switch with `PROOFLINE_MODEL_TIER=final`. Both ablation variants always run on the same model.
+
+**Cost control:** every role on gpt-5-mini; a larger model only after an upgrade, for a bounded final evaluation; prompt caching for role prompts and tool schemas; budget alert at 60% of credit; replay mode for the public link so judging costs nothing by default. Confirm prices in the Azure portal before the first paid run.
 
 ---
 
@@ -741,7 +743,7 @@ Every row leaves evidence a judge can see; use that leaves no trace is not claim
 10. Narrator, Director, change-feed triggers.
 11. Fan Companion with Ambient Layer and Studio mode.
 12. Analyst Console (incl. Ops panel via Azure MCP), Broadcast Cue Feed and overlay renderer.
-13. Dataset release; replay mode and public link; final evaluation on Terra.
+13. Dataset release; replay mode and public link; final evaluation on the final-tier model.
 14. Frontend design pass; video; README; submission.
 
 ### Freeze order
@@ -814,7 +816,7 @@ No beat relies on a live model call during recording; everything replays from th
 | Three surfaces not all demo-ready | Broadcast controls unfinished | Broadcast becomes overlay plus cue log; correction cues apply automatically |
 | Non-OpenAI verifier model unavailable | Foundry catalog check | Second OpenAI model with a distinct prompt, stated as a limitation |
 | Fabric blocked by trial or cost | Access or price check | Drop; keep a match-totals panel in the console |
-| Model spend outruns credit | 60% budget alert | Freeze Terra; final eval on Luna over fewer matches; state it |
+| Model spend outruns credit | 60% budget alert | Stop development runs; final eval over fewer matches; state it |
 | Public link fails during judging | Health alert | Replay path is static-first; reserved credit to 10 November |
 | Video over two minutes | Final review against the rubric | Cut the proof beat to one number and architecture to five seconds before anything the rubric names |
 | Scope creep | Any time | Nothing in the out-of-scope list is started; free time goes to the fan view and the README |
@@ -871,7 +873,8 @@ proofline/
 
 - [ ] Public GitHub repo created; CI with the engine-import guard
 - [ ] azd skeleton deployed: Container Apps, Cosmos (free tier), Event Hubs, Web PubSub, Static Web Apps, App Insights, Key Vault with managed identity
-- [ ] gpt-5.6-terra and gpt-5.6-luna deployed in Foundry; quota checked in region
+- [x] Quota checked in region (Free Trial: gpt-5-mini has quota; gpt-5.6-terra and gpt-5.6-luna have none)
+- [ ] gpt-5-mini deployed in Foundry
 - [ ] Non-OpenAI model confirmed in Foundry in region and covered by credit
 - [ ] Model prices confirmed in the Azure portal; budget alert at 60%
 - [ ] Azure MCP Server connected to the development agent; transcript capture started

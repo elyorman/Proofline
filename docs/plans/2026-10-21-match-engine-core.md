@@ -2,11 +2,13 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
+> **Status:** executed on branch `match-engine-core` in October 2026, with a spec review and a code-quality review after every task. The code blocks are the code as built, after review fixes. Do not re-run it; later plans pick up the follow-ups at the end.
+
 **Goal:** A deterministic match simulator that turns a tactical script and a seed into a realistic, versioned event stream in which each scripted mechanism (a raised press, a tiring player) measurably moves the metrics that later layers detect.
 
-**Architecture:** A possession-chain simulator (`engine/sim.py`) drives a lightweight positional model (`engine/teams.py`) with parameters that ramp in over time (`engine/params.py`) from a YAML script (`engine/script.py`). Every random draw comes from a stream keyed by decision type and match minute (`engine/rng.py`), so a run and its counterfactual without one intervention stay aligned. Output is `events.jsonl` (one `contracts.Event` per line) plus `meta.json`, written by a `proofline-engine generate` CLI.
+**Architecture:** A possession-chain simulator (`engine/sim.py`) drives a lightweight positional model (`engine/teams.py`) with parameters that ramp in over time (`engine/params.py`) from a YAML script (`engine/script.py`). Every random draw comes from a stream keyed by decision type and a half-and-minute bucket (`engine/rng.py`), so a run and its counterfactual without one intervention stay aligned. Output is `events.jsonl` (one `contracts.Event` per line) plus `meta.json`, written by a `proofline-engine generate` CLI.
 
-**Tech Stack:** Python 3.12, pydantic v2 (existing contracts), PyYAML (**new dependency; CLAUDE.md requires approval before adding it**), stdlib `random`/`hashlib`/`argparse`, pytest, ruff, uv.
+**Tech Stack:** Python 3.12, pydantic v2 (existing contracts), PyYAML (new dependency, approved with this plan), stdlib `random`/`hashlib`/`argparse`, pytest, ruff, uv.
 
 ---
 
@@ -41,7 +43,7 @@ Gate 2 is: *a scripted match streams through Event Hubs into Cosmos and the dete
 | Pass completion | 80.0% | 75–88% |
 | Shots | 13.3 | 10–16 |
 | Goals per match | 2.83 | 2.6–2.9 |
-| Mean shot distance | 18.3 m; no single metre of x holds more than 11% of shots | ~16–18 m |
+| Mean shot distance | 18.3 m; the busiest metre of x holds about 11% of shots | ~16–18 m |
 | Sprints (>24.5 km/h) | ~325 | 250–400 |
 | Events per match | ~3,000 | n/a |
 | Time per match | ~0.14 s | n/a |
@@ -53,7 +55,7 @@ Paired runs on the same 40 seeds (with intervention minus without, 95% CI):
 | Harbour City pressures per Northvale action in Northvale's first 60%, 62–68' (s1) | 0.327 | +0.209 [+0.175, +0.244] |
 | Northvale long-ball share, 62–68' (s1) | 11.6% | +9.1 pts [+6.4, +11.7] |
 | NV-03 sprints, 66–90' (s2) | 5.9 | −0.9 [−1.2, −0.6] |
-| Harbour City pressures 30–36' (control, before s1) | 8.0 | exactly 0 |
+| Harbour City pressures in Northvale's first 60%, 30–36' (control, before s1) | 8.0 | exactly 0 |
 
 The press is measured as a rate, not a count: a heavier press also shortens the opponent's time on the ball where pressing happens, so the raw count of pressures is noisy. PPDA over a 6-minute window is noisy for the same reason; plan 4 should keep that in mind when sizing windows.
 
@@ -1944,15 +1946,20 @@ git commit -m "List the Match Engine in the README"
 Found by the per-task reviews while executing this plan; each belongs to the plan named.
 
 **Plan 2: engine proof tooling**
+- **Demo seed (important, decide before gate 2).** On m01's seed 4417 the planted press barely shows: Harbour City's pressure rate goes from 0.41 (54–60') to 0.44 (62–68') and Northvale's long-ball share stays flat (9.3% to 9.1%), although 30 of 40 held-out seeds show both rising. Gate 2 needs the detector to fire on the planted moment and the demo needs a verified 63' card. Either strengthen the mechanism, or choose the demo seed by a stated rule (for example, the first seed from 4417 up whose effect on both observables exceeds the held-out median) recorded in the script and `DATASET.md`, never quietly. The scoreboard keeps using held-out suites.
+- **`MatchSim.run()` is single-use.** A second call on the same instance appends a second match (5,641 events and a wrong score). Paired and batch runs must build a new `MatchSim` per run, or `run()` should refuse a second call.
+- **Pin the demo match** with a golden test (event count and score, or the sha256 of `events.jsonl`) once its seed and the calibration are final, so a constant change cannot silently change the video's match.
+- **Shot and dribble geometry.** Every shot ends at (105, 34) whatever its outcome, dribbles always go straight ahead, and sprint start positions use the ball at the minute tick. Record these in the realism report or fix them.
 - **Touchline pile-up (important).** About 16% of on-ball actions sit exactly on a touchline (y = 0.5 or 67.5) because `on_pitch()` clamps y; about 18.5% of passes end there. It needs a ball-out-of-play rule (a target off the pitch goes out for a throw-in) and a recalibration; plain reflection cuts throw-ins from 43 to 18.5 a match and lifts goals to 3.6. It inflates flank bands by about 10%, so fix it before trusting the 55' flank card.
 - **55' flank card.** The amendment filter now needs both the true start and end of a carry in y 32–50; confirm the card still reaches moderate support in v1.
 - **Goal kicks and corners.** Every non-goal shot is followed by a goal kick (about 27 a match against 15–18) and there are no corners; record this in the realism report or add corners with a recalibration.
 - **First-half stoppage starts.** An intervention `at` beyond the played first-half stoppage (1–3 min) only applies as a step at the second-half kick-off; reject first-half `at` after 45+1:00 or document it.
 - **Sealed ground truth.** Keep `engine/suites/**/ground_truth*.yaml` out of product images (wheel exclude or `.dockerignore`), and extend the isolation guard to flag product references to `engine/scripts/`, since a script reveals the planted moment as plainly as ground truth.
-- **Optional hardening.** Reject a NaN `dy_m` in `AmendmentSpec`; derive the parameter sets and `PARAM_RANGES` from one table; list the `EDGES` interventions out of time order in `tests/test_engine_params.py` so removing the sort fails a test; catch `UnicodeDecodeError` in the CLI's load step.
+- **Optional hardening.** Reject a NaN `dy_m` in `AmendmentSpec`; derive the parameter sets and `PARAM_RANGES` from one table; list the `EDGES` interventions out of time order in `tests/test_engine_params.py` so removing the sort fails a test; catch `UnicodeDecodeError` in the CLI's load step; rename `Streams`' `minute` argument to `bucket`; import the pitch and half constants from `contracts`; give `--seed` a metavar so a bad value does not print `invalid _seed value`.
 
 **Plan 3: streaming and ledger**
 - **First task: a `meta.json` contract** in `contracts/` (match, teams, roster players; `period_lengths_s` typed with integer keys; consider `event_count`), written through the model and exported for `DATASET.md`, before any product code reads the file.
+- **Qualifier keys.** The engine writes untyped qualifiers no contract defines: set-piece `kind` (kick_off, throw_in, free_kick, goal_kick) and sprint `speed_kmh` and `distance_m`. Define them in `contracts/` (an enum for `kind`) in the same first task. `period_lengths_s` is the scheduled length; the `period_end` event can come up to about 45 s later, so record the actual end or call it scheduled.
 - **Truncated output.** Have the Match Clock check the event count against `meta.json`, or write both files atomically.
 
 **Plan 4: State Builder**

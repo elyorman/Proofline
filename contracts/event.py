@@ -1,7 +1,10 @@
 """Match event contract. Every event is versioned; amendments bump `version`.
 
-Coordinates are the truth: `zone` is derived from start/end x/y by the State
-Builder and is only a cache. An amendment that relocates events changes x/y.
+Coordinates are the truth, in the acting team's attacking frame: x=0 is its own
+goal line and x=105 the opponent's; y=0 is the left touchline and y=68 the right,
+looking towards the opponent's goal. Tracking samples use the player's own team
+frame. Pitch zones are derived from x/y by the State Builder; an amendment that
+relocates events changes x/y.
 """
 
 from enum import StrEnum

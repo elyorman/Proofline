@@ -1,0 +1,7 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/Azure/azure-dev/main/schemas/v1.0/azure.yaml.json
+
+# Infrastructure only for now. Services (api, web) are added here as their code lands.
+name: proofline
+infra:
+  provider: bicep
+  path: infra

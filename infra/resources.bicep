@@ -1,0 +1,334 @@
+// Everything inside the environment's resource group. No keys: local auth is
+// disabled wherever the service allows it, and access is by role for the app's
+// managed identity and for the developer running azd.
+
+param location string
+param tags object
+
+@minLength(13)
+@maxLength(13)
+@description('uniqueString() output; suffixes every resource name')
+param resourceToken string
+
+@description('Developer object id for local-dev data-plane roles; empty skips them')
+param principalId string = ''
+
+@allowed(['User', 'ServicePrincipal'])
+param principalType string = 'User'
+
+@description('gpt-5-mini capacity in thousands of tokens per minute (trial quota is 500)')
+param modelCapacity int = 100
+
+// Built-in role definition ids
+var roles = {
+  acrPull: '7f951dda-4ed3-4680-a7ca-43fe172d538d'
+  keyVaultSecretsUser: '4633458b-17de-408a-b874-0445c86b69e6'
+  keyVaultSecretsOfficer: 'b86a8fe4-44ce-4948-aee5-eccb2c155cd7'
+  eventHubsDataOwner: 'f526a384-b230-433a-b45c-95f59c4a2dec'
+  webPubSubServiceOwner: '12cf5a90-567b-43ae-8102-96cf46c7d9b4'
+  openAiUser: '5e0bd9bd-7b93-4f28-af87-19fc36ad61bd'
+  foundryUser: '53ca6127-db72-4b80-b1b0-d745d6d5456d'
+}
+var cosmosDataContributor = '00000000-0000-0000-0000-000000000002'
+
+// Ledger containers (spec §11.3). Partitioned by match, except the dependency
+// index (by event) and match-independent records (by id).
+var ledgerContainers = [
+  { name: 'events', partitionKey: '/match_id' }
+  { name: 'metrics', partitionKey: '/match_id' }
+  { name: 'cases', partitionKey: '/match_id' }
+  { name: 'hypotheses', partitionKey: '/match_id' }
+  { name: 'evidence_sets', partitionKey: '/match_id' }
+  { name: 'dependencies', partitionKey: '/event_id' }
+  { name: 'cards', partitionKey: '/match_id' }
+  { name: 'cues', partitionKey: '/match_id' }
+  { name: 'audit', partitionKey: '/match_id' }
+  { name: 'eval_runs', partitionKey: '/id' }
+  { name: 'leases', partitionKey: '/id' }
+]
+
+// --- identity and observability ----------------------------------------------
+
+resource identity 'Microsoft.ManagedIdentity/userAssignedIdentities@2024-11-30' = {
+  name: 'id-${resourceToken}'
+  location: location
+  tags: tags
+}
+
+resource logs 'Microsoft.OperationalInsights/workspaces@2025-02-01' = {
+  name: 'log-${resourceToken}'
+  location: location
+  tags: tags
+  properties: {
+    sku: { name: 'PerGB2018' }
+    retentionInDays: 30
+  }
+}
+
+resource appInsights 'Microsoft.Insights/components@2020-02-02' = {
+  name: 'appi-${resourceToken}'
+  location: location
+  tags: tags
+  kind: 'web'
+  properties: {
+    Application_Type: 'web'
+    WorkspaceResourceId: logs.id
+  }
+}
+
+resource keyVault 'Microsoft.KeyVault/vaults@2024-11-01' = {
+  name: 'kv-${resourceToken}'
+  location: location
+  tags: tags
+  properties: {
+    tenantId: subscription().tenantId
+    sku: { family: 'A', name: 'standard' }
+    enableRbacAuthorization: true
+  }
+}
+
+// --- compute -------------------------------------------------------------------
+
+resource registry 'Microsoft.ContainerRegistry/registries@2025-04-01' = {
+  name: 'cr${resourceToken}'
+  location: location
+  tags: tags
+  sku: { name: 'Basic' }
+  properties: { adminUserEnabled: false }
+}
+
+resource containerEnv 'Microsoft.App/managedEnvironments@2025-01-01' = {
+  name: 'cae-${resourceToken}'
+  location: location
+  tags: tags
+  properties: {
+    appLogsConfiguration: {
+      destination: 'log-analytics'
+      logAnalyticsConfiguration: {
+        customerId: logs.properties.customerId
+        sharedKey: logs.listKeys().primarySharedKey
+      }
+    }
+  }
+}
+
+// Placeholder image until surfaces/api exists; azd swaps it on first deploy.
+resource api 'Microsoft.App/containerApps@2025-01-01' = {
+  name: 'ca-api-${resourceToken}'
+  location: location
+  tags: tags
+  identity: {
+    type: 'UserAssigned'
+    userAssignedIdentities: { '${identity.id}': {} }
+  }
+  properties: {
+    managedEnvironmentId: containerEnv.id
+    configuration: {
+      ingress: { external: true, targetPort: 80 }
+    }
+    template: {
+      containers: [
+        {
+          name: 'api'
+          image: 'mcr.microsoft.com/azuredocs/containerapps-helloworld:latest'
+          resources: { cpu: json('0.25'), memory: '0.5Gi' }
+          env: [
+            { name: 'AZURE_CLIENT_ID', value: identity.properties.clientId }
+            { name: 'APPLICATIONINSIGHTS_CONNECTION_STRING', value: appInsights.properties.ConnectionString }
+          ]
+        }
+      ]
+      scale: { minReplicas: 0, maxReplicas: 1 }
+    }
+  }
+}
+
+resource web 'Microsoft.Web/staticSites@2024-04-01' = {
+  name: 'stapp-${resourceToken}'
+  location: location
+  tags: tags
+  sku: { name: 'Free', tier: 'Free' }
+  properties: {}
+}
+
+// --- data and messaging ------------------------------------------------------
+
+resource cosmos 'Microsoft.DocumentDB/databaseAccounts@2025-04-15' = {
+  name: 'cosmos-${resourceToken}'
+  location: location
+  tags: tags
+  kind: 'GlobalDocumentDB'
+  properties: {
+    databaseAccountOfferType: 'Standard'
+    enableFreeTier: true
+    disableLocalAuth: true
+    consistencyPolicy: { defaultConsistencyLevel: 'Session' }
+    locations: [{ locationName: location, failoverPriority: 0, isZoneRedundant: false }]
+  }
+}
+
+// 1000 RU/s shared across the ledger: exactly the free-tier allowance.
+resource ledger 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases@2025-04-15' = {
+  parent: cosmos
+  name: 'proofline'
+  properties: {
+    resource: { id: 'proofline' }
+    options: { throughput: 1000 }
+  }
+}
+
+resource ledgerContainer 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers@2025-04-15' = [
+  for c in ledgerContainers: {
+    parent: ledger
+    name: c.name
+    properties: {
+      resource: {
+        id: c.name
+        partitionKey: { paths: [c.partitionKey], kind: 'Hash' }
+      }
+    }
+  }
+]
+
+resource eventHubs 'Microsoft.EventHub/namespaces@2024-01-01' = {
+  name: 'evhns-${resourceToken}'
+  location: location
+  tags: tags
+  sku: { name: 'Basic', tier: 'Basic', capacity: 1 }
+  properties: {
+    disableLocalAuth: true
+    minimumTlsVersion: '1.2'
+  }
+}
+
+resource matchEvents 'Microsoft.EventHub/namespaces/eventhubs@2024-01-01' = {
+  parent: eventHubs
+  name: 'match-events'
+  properties: {
+    partitionCount: 2
+    messageRetentionInDays: 1
+  }
+}
+
+resource webPubSub 'Microsoft.SignalRService/webPubSub@2024-03-01' = {
+  name: 'wps-${resourceToken}'
+  location: location
+  tags: tags
+  sku: { name: 'Free_F1', tier: 'Free', capacity: 1 }
+  properties: { disableLocalAuth: true }
+}
+
+// --- Microsoft Foundry -------------------------------------------------------
+
+resource foundry 'Microsoft.CognitiveServices/accounts@2025-06-01' = {
+  name: 'ais-${resourceToken}'
+  location: location
+  tags: tags
+  kind: 'AIServices'
+  sku: { name: 'S0' }
+  identity: { type: 'SystemAssigned' }
+  properties: {
+    customSubDomainName: 'ais-${resourceToken}'
+    allowProjectManagement: true
+    disableLocalAuth: true
+    publicNetworkAccess: 'Enabled'
+  }
+}
+
+resource foundryProject 'Microsoft.CognitiveServices/accounts/projects@2025-06-01' = {
+  parent: foundry
+  name: 'proofline'
+  location: location
+  tags: tags
+  identity: { type: 'SystemAssigned' }
+  properties: {}
+}
+
+// The only gpt-5 model with Free Trial quota. The verifier's non-OpenAI model
+// is added at the Verifier step, chosen by catch rate on seeded false claims.
+resource modelDeployment 'Microsoft.CognitiveServices/accounts/deployments@2025-06-01' = {
+  parent: foundry
+  name: 'gpt-5-mini'
+  sku: { name: 'GlobalStandard', capacity: modelCapacity }
+  properties: {
+    model: { format: 'OpenAI', name: 'gpt-5-mini', version: '2025-08-07' }
+  }
+  dependsOn: [foundryProject] // the account accepts one change at a time
+}
+
+// --- access --------------------------------------------------------------------
+
+var appRoles = [
+  roles.acrPull
+  roles.keyVaultSecretsUser
+  roles.eventHubsDataOwner
+  roles.webPubSubServiceOwner
+  roles.openAiUser
+  roles.foundryUser
+]
+var developerRoles = [
+  roles.keyVaultSecretsOfficer
+  roles.eventHubsDataOwner
+  roles.webPubSubServiceOwner
+  roles.openAiUser
+  roles.foundryUser
+]
+
+// Scoped to the resource group, which holds exactly one of each resource.
+resource appRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = [
+  for role in appRoles: {
+    name: guid(resourceGroup().id, identity.id, role)
+    properties: {
+      principalId: identity.properties.principalId
+      principalType: 'ServicePrincipal'
+      roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', role)
+    }
+  }
+]
+
+resource developerRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = [
+  for role in (empty(principalId) ? [] : developerRoles): {
+    name: guid(resourceGroup().id, principalId, role)
+    properties: {
+      principalId: principalId
+      principalType: principalType
+      roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', role)
+    }
+  }
+]
+
+// Cosmos data-plane access uses Cosmos's own role assignments, not Azure RBAC.
+resource cosmosAppAccess 'Microsoft.DocumentDB/databaseAccounts/sqlRoleAssignments@2025-04-15' = {
+  parent: cosmos
+  name: guid(cosmos.id, identity.id, cosmosDataContributor)
+  properties: {
+    principalId: identity.properties.principalId
+    roleDefinitionId: '${cosmos.id}/sqlRoleDefinitions/${cosmosDataContributor}'
+    scope: cosmos.id
+  }
+}
+
+resource cosmosDeveloperAccess 'Microsoft.DocumentDB/databaseAccounts/sqlRoleAssignments@2025-04-15' = if (!empty(principalId)) {
+  parent: cosmos
+  name: guid(cosmos.id, principalId, cosmosDataContributor)
+  properties: {
+    principalId: principalId
+    roleDefinitionId: '${cosmos.id}/sqlRoleDefinitions/${cosmosDataContributor}'
+    scope: cosmos.id
+  }
+}
+
+output identityClientId string = identity.properties.clientId
+output registryLoginServer string = registry.properties.loginServer
+output cosmosEndpoint string = cosmos.properties.documentEndpoint
+output cosmosDatabase string = ledger.name
+output eventHubsHost string = '${eventHubs.name}.servicebus.windows.net'
+output eventHubName string = matchEvents.name
+output webPubSubEndpoint string = 'https://${webPubSub.properties.hostName}'
+output keyVaultEndpoint string = keyVault.properties.vaultUri
+output foundryEndpoint string = foundry.properties.endpoint
+output foundryProjectEndpoint string = 'https://${foundry.properties.customSubDomainName}.services.ai.azure.com/api/projects/${foundryProject.name}'
+output modelDeployment string = modelDeployment.name
+output appInsightsConnectionString string = appInsights.properties.ConnectionString
+output apiUrl string = 'https://${api.properties.configuration.ingress.fqdn}'
+output webUrl string = 'https://${web.properties.defaultHostname}'

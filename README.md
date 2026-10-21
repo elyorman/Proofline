@@ -11,7 +11,7 @@ Built for the Microsoft × Premier League "Inside the Game" Developer Hackathon.
 ## Quickstart
 
 ```bash
-uv sync --extra dev
+uv sync
 uv run pytest
 uv run python scripts/check_engine_isolation.py
 ```

@@ -1,0 +1,874 @@
+{
+  "$defs": {
+    "AgentRole": {
+      "enum": [
+        "tactics",
+        "physical",
+        "game_state"
+      ],
+      "title": "AgentRole",
+      "type": "string"
+    },
+    "AttributionProposition": {
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "type": {
+          "const": "attribution",
+          "default": "attribution",
+          "title": "Type",
+          "type": "string"
+        },
+        "cause": {
+          "$ref": "#/$defs/Cause"
+        },
+        "effect": {
+          "description": "id of the change proposition this cause explains",
+          "title": "Effect",
+          "type": "string"
+        },
+        "role": {
+          "enum": [
+            "primary",
+            "secondary"
+          ],
+          "title": "Role",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "cause",
+        "effect",
+        "role"
+      ],
+      "title": "AttributionProposition",
+      "type": "object"
+    },
+    "Baseline": {
+      "properties": {
+        "window": {
+          "$ref": "#/$defs/BaselineScope"
+        },
+        "value": {
+          "title": "Value",
+          "type": "number"
+        }
+      },
+      "required": [
+        "window",
+        "value"
+      ],
+      "title": "Baseline",
+      "type": "object"
+    },
+    "BaselineScope": {
+      "enum": [
+        "first_half",
+        "match_so_far",
+        "season_average"
+      ],
+      "title": "BaselineScope",
+      "type": "string"
+    },
+    "BroadcastCueSpec": {
+      "properties": {
+        "template": {
+          "title": "Template",
+          "type": "string"
+        },
+        "priority": {
+          "default": "normal",
+          "enum": [
+            "low",
+            "normal",
+            "high"
+          ],
+          "title": "Priority",
+          "type": "string"
+        },
+        "show_at": {
+          "default": "next_dead_ball",
+          "enum": [
+            "immediate",
+            "next_dead_ball"
+          ],
+          "title": "Show At",
+          "type": "string"
+        },
+        "max_delay_s": {
+          "default": 45,
+          "minimum": 0,
+          "title": "Max Delay S",
+          "type": "integer"
+        },
+        "duration_s": {
+          "default": 8,
+          "minimum": 1,
+          "title": "Duration S",
+          "type": "integer"
+        },
+        "fields": {
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "integer"
+              }
+            ]
+          },
+          "title": "Fields",
+          "type": "object"
+        }
+      },
+      "required": [
+        "template",
+        "fields"
+      ],
+      "title": "BroadcastCueSpec",
+      "type": "object"
+    },
+    "CardStatus": {
+      "enum": [
+        "proposed",
+        "investigating",
+        "cross_examined",
+        "verified",
+        "rejected",
+        "scheduled",
+        "shown",
+        "expired",
+        "killed",
+        "revised",
+        "withdrawn"
+      ],
+      "title": "CardStatus",
+      "type": "string"
+    },
+    "Cause": {
+      "enum": [
+        "tactical.press_intensity_up",
+        "tactical.press_intensity_down",
+        "tactical.block_deeper",
+        "tactical.block_higher",
+        "tactical.formation_change",
+        "tactical.flank_overload",
+        "physical.unit_fatigue",
+        "physical.player_fatigue",
+        "physical.fresh_legs_substitution",
+        "game_state.protecting_lead",
+        "game_state.chasing_result",
+        "game_state.numerical_change",
+        "other",
+        "none"
+      ],
+      "title": "Cause",
+      "type": "string"
+    },
+    "CauseRef": {
+      "properties": {
+        "hypothesis_id": {
+          "title": "Hypothesis Id",
+          "type": "string"
+        },
+        "taxonomy": {
+          "$ref": "#/$defs/Cause"
+        },
+        "agent": {
+          "$ref": "#/$defs/AgentRole"
+        },
+        "role": {
+          "enum": [
+            "primary",
+            "secondary"
+          ],
+          "title": "Role",
+          "type": "string"
+        }
+      },
+      "required": [
+        "hypothesis_id",
+        "taxonomy",
+        "agent",
+        "role"
+      ],
+      "title": "CauseRef",
+      "type": "object"
+    },
+    "ChangeProposition": {
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "type": {
+          "const": "change",
+          "default": "change",
+          "title": "Type",
+          "type": "string"
+        },
+        "metric": {
+          "$ref": "#/$defs/Metric"
+        },
+        "subject": {
+          "title": "Subject",
+          "type": "string"
+        },
+        "direction": {
+          "$ref": "#/$defs/Direction"
+        },
+        "window": {
+          "$ref": "#/$defs/Window"
+        },
+        "baseline": {
+          "$ref": "#/$defs/BaselineScope"
+        }
+      },
+      "required": [
+        "id",
+        "metric",
+        "subject",
+        "direction",
+        "window",
+        "baseline"
+      ],
+      "title": "ChangeProposition",
+      "type": "object"
+    },
+    "CheckResult": {
+      "enum": [
+        "passed",
+        "corrected",
+        "failed",
+        "skipped"
+      ],
+      "title": "CheckResult",
+      "type": "string"
+    },
+    "DependsOn": {
+      "properties": {
+        "evidence_sets": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Evidence Sets",
+          "type": "array"
+        },
+        "data_version": {
+          "title": "Data Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "evidence_sets",
+        "data_version"
+      ],
+      "title": "DependsOn",
+      "type": "object"
+    },
+    "Direction": {
+      "enum": [
+        "up",
+        "down"
+      ],
+      "title": "Direction",
+      "type": "string"
+    },
+    "Evidence": {
+      "properties": {
+        "metric": {
+          "$ref": "#/$defs/Metric"
+        },
+        "subject": {
+          "title": "Subject",
+          "type": "string"
+        },
+        "window": {
+          "$ref": "#/$defs/Window"
+        },
+        "value": {
+          "title": "Value",
+          "type": "number"
+        },
+        "baseline": {
+          "$ref": "#/$defs/Baseline"
+        },
+        "n_events": {
+          "minimum": 0,
+          "title": "N Events",
+          "type": "integer"
+        },
+        "tool_call_id": {
+          "title": "Tool Call Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "metric",
+        "subject",
+        "window",
+        "value",
+        "baseline",
+        "n_events",
+        "tool_call_id"
+      ],
+      "title": "Evidence",
+      "type": "object"
+    },
+    "Investigation": {
+      "properties": {
+        "agents": {
+          "items": {
+            "$ref": "#/$defs/AgentRole"
+          },
+          "title": "Agents",
+          "type": "array"
+        },
+        "preregistered_predictions": {
+          "minimum": 0,
+          "title": "Preregistered Predictions",
+          "type": "integer"
+        },
+        "tool_calls": {
+          "minimum": 0,
+          "title": "Tool Calls",
+          "type": "integer"
+        },
+        "budget": {
+          "minimum": 0,
+          "title": "Budget",
+          "type": "integer"
+        },
+        "cross_examination": {
+          "default": "",
+          "title": "Cross Examination",
+          "type": "string"
+        },
+        "recovered_from_checkpoint": {
+          "default": false,
+          "title": "Recovered From Checkpoint",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "agents",
+        "preregistered_predictions",
+        "tool_calls",
+        "budget"
+      ],
+      "title": "Investigation",
+      "type": "object"
+    },
+    "LanguageLevel": {
+      "enum": [
+        "assertive",
+        "measured",
+        "tentative"
+      ],
+      "title": "LanguageLevel",
+      "type": "string"
+    },
+    "Metric": {
+      "enum": [
+        "ppda",
+        "press_intensity",
+        "long_ball_share",
+        "field_tilt",
+        "pass_accuracy",
+        "pass_accuracy_under_pressure",
+        "pass_difficulty",
+        "xg",
+        "sprint_count",
+        "high_intensity_run_rate",
+        "momentum",
+        "control_chaos",
+        "rhythm",
+        "line_height",
+        "ball_speed",
+        "shot_speed",
+        "possession_share",
+        "distance_covered"
+      ],
+      "title": "Metric",
+      "type": "string"
+    },
+    "MomentType": {
+      "enum": [
+        "pressure_shift",
+        "momentum_swing",
+        "control_to_chaos",
+        "chaos_to_control",
+        "shape_change",
+        "fatigue_signal",
+        "individual_spike",
+        "milestone",
+        "key_event"
+      ],
+      "title": "MomentType",
+      "type": "string"
+    },
+    "Provenance": {
+      "properties": {
+        "trace_id": {
+          "title": "Trace Id",
+          "type": "string"
+        },
+        "foundry_eval_run": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Foundry Eval Run"
+        }
+      },
+      "required": [
+        "trace_id"
+      ],
+      "title": "Provenance",
+      "type": "object"
+    },
+    "RejectedAlternative": {
+      "properties": {
+        "hypothesis_id": {
+          "title": "Hypothesis Id",
+          "type": "string"
+        },
+        "taxonomy": {
+          "$ref": "#/$defs/Cause"
+        },
+        "reason": {
+          "title": "Reason",
+          "type": "string"
+        },
+        "rejected_by": {
+          "enum": [
+            "test",
+            "cross_examination",
+            "verifier"
+          ],
+          "title": "Rejected By",
+          "type": "string"
+        },
+        "tool_call_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Tool Call Id"
+        }
+      },
+      "required": [
+        "hypothesis_id",
+        "taxonomy",
+        "reason",
+        "rejected_by"
+      ],
+      "title": "RejectedAlternative",
+      "type": "object"
+    },
+    "Revision": {
+      "properties": {
+        "revision": {
+          "title": "Revision",
+          "type": "integer"
+        },
+        "at": {
+          "title": "At",
+          "type": "string"
+        },
+        "reason": {
+          "title": "Reason",
+          "type": "string"
+        },
+        "amendment_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Amendment Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "revision",
+        "at",
+        "reason"
+      ],
+      "title": "Revision",
+      "type": "object"
+    },
+    "Subject": {
+      "properties": {
+        "team": {
+          "title": "Team",
+          "type": "string"
+        },
+        "players": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Players",
+          "type": "array"
+        }
+      },
+      "required": [
+        "team"
+      ],
+      "title": "Subject",
+      "type": "object"
+    },
+    "SupportLevel": {
+      "enum": [
+        "strong",
+        "moderate",
+        "weak"
+      ],
+      "title": "SupportLevel",
+      "type": "string"
+    },
+    "Timing": {
+      "properties": {
+        "change_window": {
+          "$ref": "#/$defs/Window"
+        },
+        "detected_at": {
+          "title": "Detected At",
+          "type": "string"
+        },
+        "verified_at": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Verified At"
+        },
+        "published_at": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Published At"
+        }
+      },
+      "required": [
+        "change_window",
+        "detected_at"
+      ],
+      "title": "Timing",
+      "type": "object"
+    },
+    "Verification": {
+      "properties": {
+        "status": {
+          "enum": [
+            "passed",
+            "corrected",
+            "rejected"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "recompute": {
+          "enum": [
+            "match",
+            "mismatch"
+          ],
+          "title": "Recompute",
+          "type": "string"
+        },
+        "baseline_check": {
+          "$ref": "#/$defs/CheckResult"
+        },
+        "sample_size_check": {
+          "$ref": "#/$defs/CheckResult"
+        },
+        "contradiction_check": {
+          "$ref": "#/$defs/CheckResult"
+        },
+        "semantic_check": {
+          "$ref": "#/$defs/CheckResult"
+        },
+        "verifier_model_family": {
+          "title": "Verifier Model Family",
+          "type": "string"
+        },
+        "support_level": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SupportLevel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "language_level": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/LanguageLevel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "status",
+        "recompute",
+        "baseline_check",
+        "sample_size_check",
+        "contradiction_check",
+        "semantic_check",
+        "verifier_model_family"
+      ],
+      "title": "Verification",
+      "type": "object"
+    },
+    "Window": {
+      "description": "Inclusive match-clock window as mm:ss strings, e.g. 58:00-63:00.",
+      "properties": {
+        "start": {
+          "pattern": "^\\d{2,3}:\\d{2}$",
+          "title": "Start",
+          "type": "string"
+        },
+        "end": {
+          "pattern": "^\\d{2,3}:\\d{2}$",
+          "title": "End",
+          "type": "string"
+        }
+      },
+      "required": [
+        "start",
+        "end"
+      ],
+      "title": "Window",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "id": {
+      "title": "Id",
+      "type": "string"
+    },
+    "revision": {
+      "default": 1,
+      "minimum": 1,
+      "title": "Revision",
+      "type": "integer"
+    },
+    "match_id": {
+      "title": "Match Id",
+      "type": "string"
+    },
+    "case_id": {
+      "title": "Case Id",
+      "type": "string"
+    },
+    "origin": {
+      "default": "auto",
+      "enum": [
+        "auto",
+        "on_demand"
+      ],
+      "title": "Origin",
+      "type": "string"
+    },
+    "lane": {
+      "default": "full",
+      "enum": [
+        "fast",
+        "full"
+      ],
+      "title": "Lane",
+      "type": "string"
+    },
+    "status": {
+      "$ref": "#/$defs/CardStatus",
+      "default": "proposed"
+    },
+    "moment_type": {
+      "$ref": "#/$defs/MomentType"
+    },
+    "subject": {
+      "$ref": "#/$defs/Subject"
+    },
+    "timing": {
+      "$ref": "#/$defs/Timing"
+    },
+    "propositions": {
+      "items": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/ChangeProposition"
+          },
+          {
+            "$ref": "#/$defs/AttributionProposition"
+          }
+        ]
+      },
+      "minItems": 1,
+      "title": "Propositions",
+      "type": "array"
+    },
+    "claim": {
+      "title": "Claim",
+      "type": "string"
+    },
+    "causes": {
+      "items": {
+        "$ref": "#/$defs/CauseRef"
+      },
+      "title": "Causes",
+      "type": "array"
+    },
+    "evidence": {
+      "items": {
+        "$ref": "#/$defs/Evidence"
+      },
+      "title": "Evidence",
+      "type": "array"
+    },
+    "depends_on": {
+      "$ref": "#/$defs/DependsOn"
+    },
+    "rejected_alternatives": {
+      "items": {
+        "$ref": "#/$defs/RejectedAlternative"
+      },
+      "title": "Rejected Alternatives",
+      "type": "array"
+    },
+    "investigation": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Investigation"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "verification": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Verification"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "salience": {
+      "default": "medium",
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "title": "Salience",
+      "type": "string"
+    },
+    "variants": {
+      "additionalProperties": {
+        "additionalProperties": {
+          "type": "string"
+        },
+        "type": "object"
+      },
+      "description": "audience -> locale -> text",
+      "title": "Variants",
+      "type": "object"
+    },
+    "broadcast_cue": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/BroadcastCueSpec"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "revisions": {
+      "items": {
+        "$ref": "#/$defs/Revision"
+      },
+      "title": "Revisions",
+      "type": "array"
+    },
+    "supersedes": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Supersedes"
+    },
+    "superseded_by": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Superseded By"
+    },
+    "provenance": {
+      "$ref": "#/$defs/Provenance"
+    }
+  },
+  "required": [
+    "id",
+    "match_id",
+    "case_id",
+    "moment_type",
+    "subject",
+    "timing",
+    "propositions",
+    "claim",
+    "depends_on",
+    "provenance"
+  ],
+  "title": "InsightCard",
+  "type": "object"
+}

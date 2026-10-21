@@ -1,0 +1,133 @@
+{
+  "$defs": {
+    "Expertise": {
+      "enum": [
+        "casual",
+        "core",
+        "analyst"
+      ],
+      "title": "Expertise",
+      "type": "string"
+    },
+    "LanguageLevel": {
+      "enum": [
+        "assertive",
+        "measured",
+        "tentative"
+      ],
+      "title": "LanguageLevel",
+      "type": "string"
+    },
+    "Metric": {
+      "enum": [
+        "ppda",
+        "press_intensity",
+        "long_ball_share",
+        "field_tilt",
+        "pass_accuracy",
+        "pass_accuracy_under_pressure",
+        "pass_difficulty",
+        "xg",
+        "sprint_count",
+        "high_intensity_run_rate",
+        "momentum",
+        "control_chaos",
+        "rhythm",
+        "line_height",
+        "ball_speed",
+        "shot_speed",
+        "possession_share",
+        "distance_covered"
+      ],
+      "title": "Metric",
+      "type": "string"
+    },
+    "ViewMode": {
+      "enum": [
+        "casual",
+        "data",
+        "player_focus",
+        "single_metric"
+      ],
+      "title": "ViewMode",
+      "type": "string"
+    }
+  },
+  "properties": {
+    "profile_id": {
+      "title": "Profile Id",
+      "type": "string"
+    },
+    "expertise": {
+      "$ref": "#/$defs/Expertise",
+      "default": "casual"
+    },
+    "language": {
+      "default": "en",
+      "pattern": "^[a-z]{2}$",
+      "title": "Language",
+      "type": "string"
+    },
+    "favorite_club": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Favorite Club"
+    },
+    "favorite_players": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Favorite Players",
+      "type": "array"
+    },
+    "mode": {
+      "$ref": "#/$defs/ViewMode",
+      "default": "casual"
+    },
+    "focus_metric": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Metric"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "attention_budget_per_half": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Attention Budget Per Half"
+    },
+    "min_language_level": {
+      "$ref": "#/$defs/LanguageLevel",
+      "default": "measured"
+    },
+    "tone": {
+      "default": "warm",
+      "title": "Tone",
+      "type": "string"
+    }
+  },
+  "required": [
+    "profile_id"
+  ],
+  "title": "Profile",
+  "type": "object"
+}

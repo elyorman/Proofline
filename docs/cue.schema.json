@@ -1,0 +1,203 @@
+{
+  "$defs": {
+    "CueKind": {
+      "enum": [
+        "insight",
+        "key_event",
+        "update",
+        "withdrawal"
+      ],
+      "title": "CueKind",
+      "type": "string"
+    },
+    "CueStatus": {
+      "enum": [
+        "pending",
+        "approved",
+        "held",
+        "killed",
+        "aired",
+        "expired",
+        "cancelled"
+      ],
+      "title": "CueStatus",
+      "type": "string"
+    },
+    "LanguageLevel": {
+      "enum": [
+        "assertive",
+        "measured",
+        "tentative"
+      ],
+      "title": "LanguageLevel",
+      "type": "string"
+    },
+    "OverlayTemplate": {
+      "enum": [
+        "player_name_tag",
+        "speed_distance_tag",
+        "shot_speed",
+        "pass_difficulty",
+        "pressure_shift_bar",
+        "momentum_strip",
+        "control_chaos_gauge",
+        "shape_change",
+        "fatigue_warning",
+        "milestone_badge",
+        "update_banner",
+        "withdrawal_banner"
+      ],
+      "title": "OverlayTemplate",
+      "type": "string"
+    },
+    "ShowAt": {
+      "properties": {
+        "mode": {
+          "enum": [
+            "immediate",
+            "next_dead_ball"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "not_before": {
+          "title": "Not Before",
+          "type": "string"
+        },
+        "not_after": {
+          "title": "Not After",
+          "type": "string"
+        }
+      },
+      "required": [
+        "mode",
+        "not_before",
+        "not_after"
+      ],
+      "title": "ShowAt",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "cue_id": {
+      "title": "Cue Id",
+      "type": "string"
+    },
+    "match_id": {
+      "title": "Match Id",
+      "type": "string"
+    },
+    "insight_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Insight Id"
+    },
+    "insight_revision": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Insight Revision"
+    },
+    "kind": {
+      "$ref": "#/$defs/CueKind"
+    },
+    "template": {
+      "$ref": "#/$defs/OverlayTemplate"
+    },
+    "priority": {
+      "default": "normal",
+      "enum": [
+        "low",
+        "normal",
+        "high"
+      ],
+      "title": "Priority",
+      "type": "string"
+    },
+    "show_at": {
+      "$ref": "#/$defs/ShowAt"
+    },
+    "duration_s": {
+      "minimum": 1,
+      "title": "Duration S",
+      "type": "integer"
+    },
+    "fields": {
+      "additionalProperties": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "number"
+          },
+          {
+            "type": "integer"
+          }
+        ]
+      },
+      "title": "Fields",
+      "type": "object"
+    },
+    "locale": {
+      "default": "en",
+      "title": "Locale",
+      "type": "string"
+    },
+    "language_level": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/LanguageLevel"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "status": {
+      "$ref": "#/$defs/CueStatus",
+      "default": "pending"
+    },
+    "decided_by": {
+      "anyOf": [
+        {
+          "enum": [
+            "auto",
+            "producer"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Decided By"
+    }
+  },
+  "required": [
+    "cue_id",
+    "match_id",
+    "kind",
+    "template",
+    "show_at",
+    "duration_s",
+    "fields"
+  ],
+  "title": "Cue",
+  "type": "object"
+}

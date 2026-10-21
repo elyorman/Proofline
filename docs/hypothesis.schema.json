@@ -1,0 +1,161 @@
+{
+  "$defs": {
+    "AgentRole": {
+      "enum": [
+        "tactics",
+        "physical",
+        "game_state"
+      ],
+      "title": "AgentRole",
+      "type": "string"
+    },
+    "BaselineScope": {
+      "enum": [
+        "first_half",
+        "match_so_far",
+        "season_average"
+      ],
+      "title": "BaselineScope",
+      "type": "string"
+    },
+    "Cause": {
+      "enum": [
+        "tactical.press_intensity_up",
+        "tactical.press_intensity_down",
+        "tactical.block_deeper",
+        "tactical.block_higher",
+        "tactical.formation_change",
+        "tactical.flank_overload",
+        "physical.unit_fatigue",
+        "physical.player_fatigue",
+        "physical.fresh_legs_substitution",
+        "game_state.protecting_lead",
+        "game_state.chasing_result",
+        "game_state.numerical_change",
+        "other",
+        "none"
+      ],
+      "title": "Cause",
+      "type": "string"
+    },
+    "Direction": {
+      "enum": [
+        "up",
+        "down"
+      ],
+      "title": "Direction",
+      "type": "string"
+    },
+    "Metric": {
+      "enum": [
+        "ppda",
+        "press_intensity",
+        "long_ball_share",
+        "field_tilt",
+        "pass_accuracy",
+        "pass_accuracy_under_pressure",
+        "pass_difficulty",
+        "xg",
+        "sprint_count",
+        "high_intensity_run_rate",
+        "momentum",
+        "control_chaos",
+        "rhythm",
+        "line_height",
+        "ball_speed",
+        "shot_speed",
+        "possession_share",
+        "distance_covered"
+      ],
+      "title": "Metric",
+      "type": "string"
+    },
+    "Prediction": {
+      "properties": {
+        "metric": {
+          "$ref": "#/$defs/Metric"
+        },
+        "subject": {
+          "description": "team, team.unit, or player id",
+          "minLength": 1,
+          "title": "Subject",
+          "type": "string"
+        },
+        "window": {
+          "$ref": "#/$defs/Window"
+        },
+        "compare_to": {
+          "$ref": "#/$defs/BaselineScope"
+        },
+        "direction": {
+          "$ref": "#/$defs/Direction"
+        },
+        "min_relative_change": {
+          "exclusiveMinimum": 0,
+          "maximum": 5,
+          "title": "Min Relative Change",
+          "type": "number"
+        }
+      },
+      "required": [
+        "metric",
+        "subject",
+        "window",
+        "compare_to",
+        "direction",
+        "min_relative_change"
+      ],
+      "title": "Prediction",
+      "type": "object"
+    },
+    "Window": {
+      "description": "Inclusive match-clock window as mm:ss strings, e.g. 58:00-63:00.",
+      "properties": {
+        "start": {
+          "pattern": "^\\d{2,3}:\\d{2}$",
+          "title": "Start",
+          "type": "string"
+        },
+        "end": {
+          "pattern": "^\\d{2,3}:\\d{2}$",
+          "title": "End",
+          "type": "string"
+        }
+      },
+      "required": [
+        "start",
+        "end"
+      ],
+      "title": "Window",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "hypothesis_id": {
+      "title": "Hypothesis Id",
+      "type": "string"
+    },
+    "case_id": {
+      "title": "Case Id",
+      "type": "string"
+    },
+    "agent": {
+      "$ref": "#/$defs/AgentRole"
+    },
+    "taxonomy": {
+      "$ref": "#/$defs/Cause"
+    },
+    "prediction": {
+      "$ref": "#/$defs/Prediction"
+    }
+  },
+  "required": [
+    "hypothesis_id",
+    "case_id",
+    "agent",
+    "taxonomy",
+    "prediction"
+  ],
+  "title": "Hypothesis",
+  "type": "object"
+}

@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+dist/
+build/
+
+# Env and secrets — never commit
+.env
+.env.*
+!.env.example
+.azure/
+*.pem
+*.key
+
+# Data and run artifacts
+data/
+runs/
+*.log
+
+# Node
+node_modules/
+surfaces/web/dist/
+
+# OS / editors
+.DS_Store
+.idea/
+.vscode/

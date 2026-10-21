@@ -9,7 +9,7 @@ Win Grand Prize and Best Multi-Agent by making every rubric clause visible in a 
 ## Non-negotiable rules
 
 1. **LLMs never compute statistics.** Every number comes from a deterministic tool in `state/` and is recomputed by the Verifier. If you find yourself asking a model for a value, stop and add a tool.
-2. **Product code never imports `engine/`** and never reads `engine/suites/**/ground_truth*.yaml`. CI enforces this (`scripts/check_engine_isolation.py`); do not weaken the check. Only `eval/` reads ground truth.
+2. **Product code never imports `engine/`** and never reads `engine/suites/**/ground_truth*.yaml`. CI enforces this (`scripts/check_engine_isolation.py`) across every package including `surfaces/api/`; do not weaken the check. Only `eval/` reads ground truth. The season-average baseline is a plain data file, `state/season_baselines.json`, generated once by the engine and committed.
 3. **No fabricated evidence.** No GitHub Copilot PRs made for show; Copilot is claimed only where it did real work. No scoreboard numbers typed by hand; every number in the README comes from an `eval_runs` record. Every evaluation suite that runs is reported, including ones where the single agent matched.
 4. **The video must match the product.** Any claim spoken in the demo must be supported by the scoreboard at recording time. The proof narration has two variants (`docs/demo-script.md`); pick after the ablation runs.
 5. **Fictional everything.** Clubs, players, competition, kits, logos. Never reference a real club, league, player or broadcaster in code, data, UI copy, tests or commits. "Premier League" appears only in `README.md` to name the hackathon.
@@ -24,7 +24,7 @@ contracts/      pydantic schemas: event, card, proposition, prediction, cue, pro
 engine/         Match Engine, scripts, suites, paired runs, clock. Never imported by product code.
 state/          State Builder metrics (pure functions over events) + windows
 ambient/        deterministic tags, momentum, gauge, ticker
-mcp/            MCP server exposing the State Builder catalog
+tools_server/   MCP server exposing the State Builder catalog (never name a package `mcp`: it shadows the SDK)
 detector/       Moment Detector (CUSUM-style change points)
 agents/         tactics, physical, game_state, synthesis, verifier, narrator, director
 orchestration/  Agent Framework workflows, pre-registration validation, budgets, checkpoints
@@ -60,8 +60,8 @@ Add a `Makefile` target for anything run more than twice.
 
 ## How to work
 
-- **Contracts first.** A new field goes into `contracts/` with a test before any producer or consumer uses it. Schemas are exported to `docs/*.schema.json` by `scripts/export_schemas.py`; run it and commit the output.
-- **Small, named commits.** One concern per commit, imperative subject, body says why. Commit messages must not reference real clubs or leagues.
+- **Contracts first.** A new field goes into `contracts/` with a test before any producer or consumer uses it. Coordinates are the truth and zones are derived; the primary cause lives only in the primary attribution proposition; tracking samples never go to Cosmos, only their per-window aggregates do. Schemas are exported to `docs/*.schema.json` by `scripts/export_schemas.py`; run it and commit the output.
+- **Small, named commits.** One concern per commit, imperative subject, body says why. Commit messages must not reference real clubs or leagues. Commits are authored by the repository owner only: no `Co-Authored-By` or AI attribution trailers.
 - **Tests for every deterministic layer.** `state/`, `detector/`, `corrections/`, the Verifier's deterministic checks and the Evaluator's matching rules get unit tests with hand-built event fixtures. Agents are tested with recorded tool results, never live model calls.
 - **No live model calls in tests or CI.** Record fixtures in `tests/fixtures/` and replay.
 - **Cost discipline.** Default model for development is the Luna SKU for every role; the Terra SKU is used only for the final bounded evaluation, set via `PROOFLINE_MODEL_TIER=final`. Role prompts and tool schemas are cached. Log tokens per case to App Insights; check `proofline cost --match <id>` after the first full match and update `docs/cost.md`.
@@ -91,7 +91,7 @@ Every Microsoft technology we use must leave something a judge can click or see.
 |---|---|---|
 | Microsoft Foundry | `agents/verifier/semantic.py` (hosted agent), `eval/foundry_evals.py`, tracing | eval run links on the console |
 | Agent Framework | `orchestration/` | workflow diagram, recovery beat |
-| Custom MCP server | `mcp/` | tool-call log per hypothesis |
+| Custom MCP server | `tools_server/` | tool-call log per hypothesis |
 | Azure MCP Server | console Ops panel, `docs/azure-mcp.md` transcripts | panel in video |
 | Event Hubs, Cosmos DB, Container Apps, Web PubSub, Static Web Apps, App Insights, Key Vault | `infra/`, `ledger/` | architecture diagram, ledger view, trace IDs |
 | azd + Bicep + GitHub Actions | `infra/`, `.github/workflows/` | README badge, CI guard |

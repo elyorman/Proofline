@@ -1,9 +1,14 @@
-"""Match event contract. Every event is versioned; amendments bump `version`."""
+"""Match event contract. Every event is versioned; amendments bump `version`.
+
+Coordinates are the truth: `zone` is derived from start/end x/y by the State
+Builder and is only a cache. An amendment that relocates events changes x/y.
+"""
 
 from enum import StrEnum
-from typing import Literal
 
 from pydantic import BaseModel, Field, model_validator
+
+from contracts.clock import MatchClock
 
 PITCH_LENGTH_M = 105.0
 PITCH_WIDTH_M = 68.0
@@ -47,31 +52,6 @@ class Point(BaseModel):
     y: float = Field(ge=0, le=PITCH_WIDTH_M)
 
 
-class MatchClock(BaseModel):
-    """Match time as period + seconds since period start, e.g. 2nd half 18:12."""
-
-    period: Literal[1, 2] = 1
-    seconds: float = Field(ge=0)
-
-    @property
-    def minute(self) -> int:
-        base = 0 if self.period == 1 else 45 * 60
-        return int((base + self.seconds) // 60)
-
-    def __str__(self) -> str:
-        base = 0 if self.period == 1 else 45 * 60
-        total = int(base + self.seconds)
-        return f"{total // 60:02d}:{total % 60:02d}"
-
-    @classmethod
-    def parse(cls, text: str) -> "MatchClock":
-        mm, ss = text.split(":")
-        total = int(mm) * 60 + int(ss)
-        if total >= 45 * 60:
-            return cls(period=2, seconds=total - 45 * 60)
-        return cls(period=1, seconds=total)
-
-
 class PassQualifiers(BaseModel):
     distance_m: float = Field(ge=0)
     ball_speed_kmh: float = Field(ge=0)
@@ -100,7 +80,6 @@ class Event(BaseModel):
     end: Point | None = None
     outcome: Outcome = Outcome.NA
     body_part: str | None = None
-    zone: str | None = None
     pass_q: PassQualifiers | None = None
     shot_q: ShotQualifiers | None = None
     qualifiers: dict[str, str | float | int | bool] = Field(default_factory=dict)
@@ -114,7 +93,19 @@ class Event(BaseModel):
         return self
 
 
+class EventRef(BaseModel):
+    """An event at a specific version, as read by a tool call."""
+
+    event_id: str
+    version: int = Field(ge=1)
+
+    model_config = {"frozen": True}
+
+
 class TrackingSample(BaseModel):
+    """Not stored in Cosmos: kept in Blob or in memory per match and reduced
+    to per-window aggregates by the State Builder."""
+
     match_id: str
     clock: MatchClock
     player_id: str
@@ -124,12 +115,30 @@ class TrackingSample(BaseModel):
     cumulative_distance_m: float = Field(ge=0)
 
 
+class CoordinateShift(BaseModel):
+    """Relocate events by a delta in metres; the usual provider re-sync."""
+
+    dx_m: float = 0.0
+    dy_m: float = 0.0
+
+
 class EventAmendment(BaseModel):
-    """A batch amendment: re-attribute or re-locate a block of events."""
+    """A batch amendment: re-attribute or re-locate a block of events.
+
+    Exactly one of `shift` or `set` applies to every event in `event_ids`,
+    and each affected event's `version` is incremented.
+    """
 
     amendment_id: str
     match_id: str
     at: MatchClock
     event_ids: list[str] = Field(min_length=1)
-    change: dict[str, str | float | int | bool]
+    shift: CoordinateShift | None = None
+    set: dict[str, str | float | int | bool] | None = None
     reason: str
+
+    @model_validator(mode="after")
+    def _one_change(self) -> "EventAmendment":
+        if (self.shift is None) == (self.set is None):
+            raise ValueError("amendment needs exactly one of shift or set")
+        return self

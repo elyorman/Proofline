@@ -4,16 +4,20 @@
 import json
 from pathlib import Path
 
-from contracts import Cue, Event, InsightCard, Profile
+from contracts import Case, Cue, EvalRun, Event, EventAmendment, InsightCard, Profile, ToolResult
 from contracts.prediction import Hypothesis
 
 DOCS = Path(__file__).resolve().parents[1] / "docs"
 SCHEMAS = {
     "event": Event,
+    "event-amendment": EventAmendment,
+    "tool-result": ToolResult,
+    "hypothesis": Hypothesis,
+    "case": Case,
     "insight-card": InsightCard,
     "cue": Cue,
     "profile": Profile,
-    "hypothesis": Hypothesis,
+    "eval-run": EvalRun,
 }
 
 

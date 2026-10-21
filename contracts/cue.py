@@ -5,7 +5,8 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
-from contracts.taxonomy import LanguageLevel
+from contracts.clock import MatchClock
+from contracts.taxonomy import LanguageLevel, OverlayTemplate
 
 
 class CueKind(StrEnum):
@@ -27,23 +28,8 @@ class CueStatus(StrEnum):
 
 class ShowAt(BaseModel):
     mode: Literal["immediate", "next_dead_ball"]
-    not_before: str
-    not_after: str
-
-
-class OverlayTemplate(StrEnum):
-    PLAYER_NAME_TAG = "player_name_tag"
-    SPEED_DISTANCE_TAG = "speed_distance_tag"
-    SHOT_SPEED = "shot_speed"
-    PASS_DIFFICULTY = "pass_difficulty"
-    PRESSURE_SHIFT_BAR = "pressure_shift_bar"
-    MOMENTUM_STRIP = "momentum_strip"
-    CONTROL_CHAOS_GAUGE = "control_chaos_gauge"
-    SHAPE_CHANGE = "shape_change"
-    FATIGUE_WARNING = "fatigue_warning"
-    MILESTONE_BADGE = "milestone_badge"
-    UPDATE_BANNER = "update_banner"
-    WITHDRAWAL_BANNER = "withdrawal_banner"
+    not_before: MatchClock
+    not_after: MatchClock
 
 
 class Cue(BaseModel):

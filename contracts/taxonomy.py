@@ -1,4 +1,4 @@
-"""Cause taxonomy, support and language levels, lifecycle states.
+"""Cause taxonomy, support and language levels, lifecycle states, shared enums.
 
 Scripts in `engine/` never use these names; only the sealed ground-truth
 mapping (readable by `eval/` alone) links a script to a cause class.
@@ -36,6 +36,7 @@ class AgentRole(StrEnum):
     TACTICS = "tactics"
     PHYSICAL = "physical"
     GAME_STATE = "game_state"
+    SYNTHESIS = "synthesis"
 
 
 DOMAIN_OF_AGENT: dict[AgentRole, str] = {
@@ -78,6 +79,14 @@ class CardStatus(StrEnum):
     WITHDRAWN = "withdrawn"
 
 
+class CaseOutcome(StrEnum):
+    """What the investigation concluded. Drives which card variant renders."""
+
+    EXPLAINED = "explained"  # at least one cause in the taxonomy survived
+    OTHER = "other"  # a real effect with no fitting class
+    NONE = "none"  # no clear cause; normal variation
+
+
 class MomentType(StrEnum):
     PRESSURE_SHIFT = "pressure_shift"
     MOMENTUM_SWING = "momentum_swing"
@@ -112,7 +121,59 @@ class Metric(StrEnum):
     DISTANCE_COVERED = "distance_covered"
 
 
+class ThresholdKind(StrEnum):
+    """How a predicted change is measured against its baseline.
+
+    RELATIVE: |value - baseline| / |baseline|; only for ratios and counts
+    with a baseline well above zero.
+    ABSOLUTE: |value - baseline| in the metric's own units.
+    SIGMA: |value - baseline| / std from the `distribution` tool; the default
+    for signed or near-zero metrics such as momentum.
+    """
+
+    RELATIVE = "relative"
+    ABSOLUTE = "absolute"
+    SIGMA = "sigma"
+
+
+DEFAULT_THRESHOLD_KIND: dict[Metric, ThresholdKind] = {
+    Metric.PPDA: ThresholdKind.RELATIVE,
+    Metric.PRESS_INTENSITY: ThresholdKind.RELATIVE,
+    Metric.LONG_BALL_SHARE: ThresholdKind.ABSOLUTE,
+    Metric.FIELD_TILT: ThresholdKind.ABSOLUTE,
+    Metric.PASS_ACCURACY: ThresholdKind.ABSOLUTE,
+    Metric.PASS_ACCURACY_UNDER_PRESSURE: ThresholdKind.ABSOLUTE,
+    Metric.PASS_DIFFICULTY: ThresholdKind.ABSOLUTE,
+    Metric.XG: ThresholdKind.SIGMA,
+    Metric.SPRINT_COUNT: ThresholdKind.RELATIVE,
+    Metric.HIGH_INTENSITY_RUN_RATE: ThresholdKind.RELATIVE,
+    Metric.MOMENTUM: ThresholdKind.SIGMA,
+    Metric.CONTROL_CHAOS: ThresholdKind.SIGMA,
+    Metric.RHYTHM: ThresholdKind.RELATIVE,
+    Metric.LINE_HEIGHT: ThresholdKind.ABSOLUTE,
+    Metric.BALL_SPEED: ThresholdKind.RELATIVE,
+    Metric.SHOT_SPEED: ThresholdKind.RELATIVE,
+    Metric.POSSESSION_SHARE: ThresholdKind.ABSOLUTE,
+    Metric.DISTANCE_COVERED: ThresholdKind.RELATIVE,
+}
+
+
 class BaselineScope(StrEnum):
     FIRST_HALF = "first_half"
     MATCH_SO_FAR = "match_so_far"
-    SEASON_AVERAGE = "season_average"
+    SEASON_AVERAGE = "season_average"  # read from state/season_baselines.json
+
+
+class OverlayTemplate(StrEnum):
+    PLAYER_NAME_TAG = "player_name_tag"
+    SPEED_DISTANCE_TAG = "speed_distance_tag"
+    SHOT_SPEED = "shot_speed"
+    PASS_DIFFICULTY = "pass_difficulty"
+    PRESSURE_SHIFT_BAR = "pressure_shift_bar"
+    MOMENTUM_STRIP = "momentum_strip"
+    CONTROL_CHAOS_GAUGE = "control_chaos_gauge"
+    SHAPE_CHANGE = "shape_change"
+    FATIGUE_WARNING = "fatigue_warning"
+    MILESTONE_BADGE = "milestone_badge"
+    UPDATE_BANNER = "update_banner"
+    WITHDRAWAL_BANNER = "withdrawal_banner"

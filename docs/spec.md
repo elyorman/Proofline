@@ -84,23 +84,20 @@ The Insight Card is the single unit of truth every surface renders.
     "published_at": "63:40"
   },
 
+  "case_outcome": "explained",
+
   "propositions": [
     { "id": "p1", "type": "change", "metric": "ppda", "subject": "Harbour City",
       "direction": "down", "window": "58:00-63:00", "baseline": "first_half" },
     { "id": "p2", "type": "change", "metric": "long_ball_share", "subject": "Northvale",
       "direction": "up", "window": "58:00-63:00", "baseline": "first_half" },
     { "id": "p3", "type": "attribution", "cause": "tactical.press_intensity_up",
-      "effect": "p2", "role": "primary" }
+      "effect": "p2", "role": "primary", "hypothesis_id": "hyp-tactics-02", "agent": "tactics" },
+    { "id": "p4", "type": "attribution", "cause": "game_state.chasing_result",
+      "effect": "p2", "role": "secondary", "hypothesis_id": "hyp-gamestate-01", "agent": "game_state" }
   ],
 
   "claim": "Harbour City have raised their press since around the hour, and Northvale have started going long far more often.",
-
-  "causes": [
-    { "hypothesis_id": "hyp-tactics-02", "taxonomy": "tactical.press_intensity_up",
-      "agent": "tactics", "role": "primary" },
-    { "hypothesis_id": "hyp-gamestate-01", "taxonomy": "game_state.chasing_result",
-      "agent": "game_state", "role": "secondary" }
-  ],
 
   "evidence": [
     { "metric": "ppda", "team": "Harbour City", "window": "58:00-63:00",
@@ -114,7 +111,7 @@ The Insight Card is the single unit of truth every surface renders.
   "depends_on": { "evidence_sets": ["es-tc-8841", "es-tc-8842"], "data_version": "feed-1" },
 
   "rejected_alternatives": [
-    { "hypothesis_id": "hyp-physical-01", "taxonomy": "physical.unit_fatigue",
+    { "hypothesis_id": "hyp-physical-01", "taxonomy": "physical.unit_fatigue", "agent": "physical",
       "reason": "Northvale sprint count flat versus first half (-2%).",
       "rejected_by": "cross_examination", "tool_call_id": "tc-8850" }
   ],
@@ -134,10 +131,12 @@ The Insight Card is the single unit of truth every surface renders.
     "baseline_check": "passed",
     "sample_size_check": "passed",
     "contradiction_check": "passed",
+    "number_check": "passed",
     "semantic_check": "passed",
     "verifier_model_family": "family-b",
     "support_level": "moderate",
-    "language_level": "measured"
+    "language_level": "measured",
+    "rejection_reason": null
   },
 
   "salience": "high",
@@ -168,8 +167,8 @@ The Insight Card is the single unit of truth every surface renders.
 ```
 
 **Key fields**
-- `propositions` — the structured claims. Semantic verification checks every sentence in every variant against these.
-- `causes[].role` — `primary` or `secondary`. No numeric shares.
+- `case_outcome` — `explained`, `other` (real effect, cause outside the taxonomy) or `none` (no clear cause). A `none` card carries only change propositions and a templated claim; the fan surface renders it as a "No clear cause — normal variation" card with no model call.
+- `propositions` — the structured claims. Semantic verification checks every sentence in every variant against these. The primary cause lives **only** here, as the attribution proposition with `role: primary`; the Evaluator, Verifier and Narrator all read it from the same place. No numeric shares.
 - `support_level` — `strong`, `moderate` or `weak`, from deterministic rules (§9.2). `language_level` derives from it.
 - `depends_on` — references to evidence sets. Each tool call stores the event IDs and versions it read once; a dependency index maps every event ID to the evidence sets and cards that used it, so the Correction Watcher finds dependents with one indexed lookup.
 - `investigation.recovered_from_checkpoint` — true when an agent failed and the case resumed; shown on the console.
@@ -223,10 +222,10 @@ A stochastic possession-chain simulator for two fictional teams, with a lightwei
 
 **Event types:** pass, carry, dribble, shot, tackle, interception, clearance, pressure, duel, foul, card, substitution, possession change, set piece, goal, sprint, period start/end, event amendment.
 
-**Every event carries:** `event_id`, `version`, `match_clock`, `wall_clock`, `period`, `team`, `player_id`, `position`, start and end x/y on a 105×68 pitch, `outcome`, `body_part`, qualifiers.
+**Every event carries:** `event_id`, `version`, `clock` (period, minute, second; first-half stoppage prints as `45+2:10`), `wall_clock`, `team`, `player_id`, `position`, start and end x/y on a 105×68 pitch, `outcome`, `body_part`, qualifiers. **Coordinates are the truth:** pitch zones are derived from x/y by the State Builder and never stored as input.
 - Passes add `distance_m`, `ball_speed_kmh`, `pressure_on_passer` (0–1), `receiver_id`.
 - Shots add `shot_speed_kmh`, `distance_m`, `angle_deg`, `defenders_in_cone`.
-- Tracking samples at 5–10 Hz: position, speed, cumulative distance.
+- Tracking samples at 5–10 Hz: position, speed, cumulative distance. Tracking is **not written to Cosmos** (it would exceed the free tier at Studio speed); it lives in Blob or in memory per match and the State Builder reduces it to per-window `player_load` aggregates, which are what the ledger stores.
 
 **Tactical scripts declare mechanisms, not labels.** Each change ramps in over a few minutes and every probability carries noise:
 
@@ -253,12 +252,14 @@ scripts:
 
 amendments:
   - id: a1
-    at: "57:30"
+    at: "68:00"                       # after the 63' press card, so the demo shows a published card withdrawn
     batch:
-      filter: { type: "carry", team: "Northvale", window: "48:00-55:00", zone: "right_flank" }
-      change: { zone: "centre" }      # tracking re-sync moves a block of carries off the flank
-    reason: "provider zone recalibration"
+      filter: { type: "carry", team: "Northvale", window: "48:00-55:00", y_min: 50 }
+      shift: { dy_m: -18 }            # tracking re-sync moves a block of carries off the right flank
+    reason: "provider coordinate recalibration"
 ```
+
+For the demo match the sequence is: a smaller card about Northvale attacking down the right (`tactical.flank_overload`, weak or moderate support) published around 55'; the press card at 63'; the amendment at 68' relocating the 48–55' carries; the 55' card withdrawn; the press card untouched.
 
 Amendments are **batches**, as real feed corrections usually are. A single amended event rarely moves a windowed metric enough to change a verdict, so the correction suite uses batch amendments and includes claims near their support boundary.
 
@@ -330,7 +331,7 @@ Pure analytics, exposed as MCP tools. Every call returns the value, window, even
 |---|---|
 | `metric(name, subject, window)` | Any metric for a team, unit or player over a window |
 | `compare(name, subject, window_a, window_b)` | Change between windows, with effect size and sample sizes |
-| `baseline(name, subject, scope)` | First half, match so far, or synthetic season average |
+| `baseline(name, subject, scope)` | First half, match so far, or synthetic season average (read from `state/season_baselines.json`, generated once by the engine in batch mode and committed as plain data; product code never reaches into `engine/`) |
 | `events(filter, window)` | Raw events, with versions, for drill-down |
 | `shape(team, window)` | Average positions, line height, width, compactness |
 | `player_load(player, window)` | Sprints, high-intensity runs, distance, involvement |
@@ -383,12 +384,13 @@ Every ambient element is tappable: "Why?" opens an on-demand case for that windo
     "window": "58:00-63:00",
     "compare_to": "first_half",
     "direction": "down",
-    "min_relative_change": 0.15
+    "threshold_kind": "relative",
+    "min_change": 0.15
   }
 }
 ```
 
-Validation: metric exists, subject resolves, window and baseline are standard scopes, direction and threshold present. The prediction is judged mechanically against the tool result, not by the agent.
+Validation: metric exists, subject resolves, window and baseline are standard scopes, direction and threshold present. `threshold_kind` is `relative` (ratios and counts with a baseline well above zero), `absolute` (the metric's own units) or `sigma` (standard deviations from the `distribution` tool, the default for signed or near-zero metrics such as momentum); each metric has a pinned default. The prediction is judged mechanically against the tool result, not by the agent.
 
 **Protocol:**
 1. **Open.** The case is written to the ledger with its trigger metrics and window.
@@ -410,7 +412,7 @@ An independent stage that sees only the propositions, claim text, variants and e
 | Baseline fairness | Comparison window must be a standard scope | Deterministic |
 | Sample size | Minimum `n_events` per metric and window | Deterministic |
 | Contradiction scan | Related metrics checked for an opposite-direction signal | Deterministic |
-| Number extraction | Every number in every variant matches the evidence | Deterministic |
+| Number check | Every number in every variant matches the evidence | Deterministic |
 | Semantic entailment | Each sentence, in every language and headline, is entailed by the propositions at the allowed language level; flags overstatement | LLM, Foundry-hosted, different model family from the agents; English at build, Spanish as stretch |
 
 **Support level** (deterministic rules):
@@ -424,7 +426,7 @@ An independent stage that sees only the propositions, claim text, variants and e
 
 Effect-size bands and minimum samples are pinned per metric in `docs/support-rules.md`, tuned on the dev split only.
 
-**Outcomes:** `passed`, `corrected` (fixed then re-checked) or `rejected` (reason shown on the console). The Evaluator injects seeded false claims to measure the catch rate. Groundedness and language quality also run as **Foundry evaluations**, linked from every card.
+**Outcomes:** `passed` (recompute matches and every check passed), `corrected` (no check failed; numbers or wording fixed then re-checked) or `rejected` (carries a `rejection_reason`, shown on the console). The contract refuses any other combination. The Evaluator injects seeded false claims to measure the catch rate. Groundedness and language quality also run as **Foundry evaluations**, linked from every card.
 
 ### 9.3 Narrator
 
@@ -514,15 +516,15 @@ One Cosmos DB store, partitioned by `match_id`.
 | Container | Holds |
 |---|---|
 | events | Events as received, every version kept |
-| metrics | Metric snapshots per window |
+| metrics | Metric snapshots per window, including `player_load` aggregates reduced from tracking |
 | cases | Cases, status and stage checkpoints |
 | hypotheses | Structured predictions, tests, cross-examination results |
-| evidence_sets | Per tool call: the event IDs and versions it read |
+| evidence_sets | Per tool call: the event IDs and versions it read; every tool returns a `ToolResult` that points at one |
 | dependencies | Index from event ID to evidence sets and cards (partition key `event_id`) |
 | cards | Insight Cards with all revisions |
 | cues | Director schedules, cue log, correction cues |
 | audit | Every agent action and human override |
-| eval_runs | Evaluation and ablation results |
+| eval_runs | Evaluation and ablation results; every README number comes from one of these records |
 
 Change feeds on `cards` trigger the Director; on `events` the Correction Watcher. Director output reaches surfaces through Web PubSub. The ledger is browsable on the Analyst Console.
 
@@ -639,7 +641,7 @@ Every row leaves evidence a judge can see; use that leaves no trace is not claim
 |---|---|---|---|
 | Microsoft Foundry | Hosts the Verifier semantic agent; runs groundedness and language evaluations; traces every case | Eval results and trace links on the console; portal in the video | Build |
 | Microsoft Agent Framework (Python) | Orchestration, fan-out, cross-examination round, checkpoints | Workflow diagram in README; recovery beat in the video | Build |
-| Custom MCP server | State Builder catalog for every agent | Tool-call log per hypothesis | Build |
+| Custom MCP server (`tools_server/`) | State Builder catalog for every agent | Tool-call log per hypothesis | Build |
 | Azure MCP Server | Ops panel on the console; provisioning during the build | Ops panel in the video; `docs/azure-mcp.md` transcripts | Build |
 | GitHub Copilot coding agent / Agent Mode | Only if genuinely used for real work (the primary build tool is Claude Code, stated in the README); never PRs created as evidence | Copilot-authored PRs in repo history where they exist; `docs/copilot.md` | Claim only if true |
 | GitHub CLI in Actions | Publishes the dataset and demo build as releases | Release assets; workflow file | Build |
@@ -727,7 +729,7 @@ Every row leaves evidence a judge can see; use that leaves no trace is not claim
 1. Contracts: pydantic schemas for event (with versions), card, proposition, prediction, cue, profile, taxonomy.
 2. Public repo with CI, engine-import guard and azd skeleton deployed; Foundry models deployed.
 3. Match Engine with the planted suite, paired runs and Batch mode; realism report.
-4. State Builder and MCP server.
+4. State Builder and MCP server (`tools_server/`); `state/season_baselines.json` generated by the engine in batch mode.
 5. Moment Detector.
 6. Why Engine as a single agent (becomes ablation B), then three agents, then cross-examination, then checkpoint recovery.
 7. Verifier and support rules; Foundry-hosted semantic check; Foundry evaluations.
@@ -777,9 +779,9 @@ Recorded in Studio mode at 1080p, narrated, captioned, licence-free music, ficti
 | 0:00–0:08 | The gap | A crowded stats overlay dissolves | "Every broadcast has the stats. Nobody can tell you why the game just changed, and stand behind it." |
 | 0:08–0:38 | A fan's match | Fan Companion: pitch, name tags, 32 km/h sprint tag, momentum strip, ticker. Northvale fan, Spanish, Player Focus on NV-10. At 63' a Spanish insight card lands. Tap "How we know" | "Proofline watches a live event feed. The screen is never empty, and it's shaped around your club, your player and your language. When the game shifts, you get one sentence, and the receipts behind it." |
 | 0:38–1:00 | The investigation | Analyst Console beside the fan view. Three agents pre-register; tool calls stream; Physical proposes fatigue; Tactics counter-tests; fatigue refuted; Verifier passes at "moderate"; the overlay bar fires at the next dead ball | "Three specialist agents investigate on a shared ledger, pre-register what they expect, test it with real tools, and cross-examine each other. An independent verifier on a different model recomputes every number before anything airs." |
-| 1:00–1:18 | It corrects itself | A batch amendment arrives. Watcher finds one dependent card, re-verifies, withdraws it. Fan Update card; analyst diff; producer correction cue approved. The press insight is untouched | "Live data gets corrected. Proofline tracks what every claim depends on, and when the data moves, it corrects itself on every screen that showed it. Nothing is silently erased." |
+| 1:00–1:18 | It corrects itself | At 68' a batch amendment relocates Northvale's 48–55' carries. Watcher finds the one dependent card (the 55' "attacking down the right" note), re-verifies, withdraws it. Fan Update card; analyst diff; producer correction cue approved. The 63' press insight is untouched | "Live data gets corrected. Proofline tracks what every claim depends on, and when the data moves, it corrects itself on every screen that showed it. Nothing is silently erased." |
 | 1:18–1:28 | It recovers | Physical agent killed mid-case. Console shows checkpoint, retry, case completing with two agents and a flag | "Agents fail. The workflow checkpoints every stage and finishes the case without starting over." |
-| 1:28–1:36 | Honest silence | "Why?" on a 74' momentum blip → "No clear cause — normal variation" | "And when there's no real explanation, it says so." |
+| 1:28–1:36 | Honest silence | "Why?" on a 74' momentum blip → a `none` card: "No clear cause — normal variation" | "And when there's no real explanation, it says so." |
 | 1:36–1:48 | The proof | Scoreboard: planted-cause recall with CI, and Proofline vs single agent. "Numbers match recomputation: 100%" | Written only after the ablation has run. If A beats B: "We score it against sealed synthetic ground truth. Three agents cross-examining beat one agent with the same tools, and every published number is recomputed." If B matches A: "We score it against sealed synthetic ground truth and publish the single-agent comparison as measured. Every published number is recomputed." |
 | 1:48–1:58 | How it's built | Architecture frame; tagline | "Built on Microsoft Foundry and Agent Framework, with Azure cloud-native services end to end. Proofline: match intelligence that shows its evidence, knows its limits, and corrects itself." |
 
@@ -831,7 +833,7 @@ proofline/
 │   └── clock/              # Replay, Studio, Batch + streamer
 ├── state/                  # State Builder metrics and windows
 ├── ambient/                # tags, momentum, gauge, ticker
-├── mcp/                    # MCP server exposing the tool catalog
+├── tools_server/           # MCP server exposing the tool catalog (not named `mcp`, which would shadow the SDK)
 ├── detector/               # Moment Detector
 ├── agents/
 │   ├── tactics/

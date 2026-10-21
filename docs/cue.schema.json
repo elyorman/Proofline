@@ -32,6 +32,38 @@
       "title": "LanguageLevel",
       "type": "string"
     },
+    "MatchClock": {
+      "description": "Period plus elapsed minute and second within that period's own numbering.\n\n`minute` is the on-screen minute: 0-45+ in the first half, 45-90+ in the second.",
+      "properties": {
+        "period": {
+          "enum": [
+            1,
+            2
+          ],
+          "title": "Period",
+          "type": "integer"
+        },
+        "minute": {
+          "maximum": 130,
+          "minimum": 0,
+          "title": "Minute",
+          "type": "integer"
+        },
+        "second": {
+          "maximum": 59,
+          "minimum": 0,
+          "title": "Second",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "period",
+        "minute",
+        "second"
+      ],
+      "title": "MatchClock",
+      "type": "object"
+    },
     "OverlayTemplate": {
       "enum": [
         "player_name_tag",
@@ -61,12 +93,10 @@
           "type": "string"
         },
         "not_before": {
-          "title": "Not Before",
-          "type": "string"
+          "$ref": "#/$defs/MatchClock"
         },
         "not_after": {
-          "title": "Not After",
-          "type": "string"
+          "$ref": "#/$defs/MatchClock"
         }
       },
       "required": [

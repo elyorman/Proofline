@@ -23,7 +23,7 @@ uv run python scripts/check_engine_isolation.py
 | `contracts/` | Pydantic schemas: event, card, proposition, prediction, cue, profile, taxonomy |
 | `docs/spec.md` | Product spec |
 | `docs/*.schema.json` | Exported JSON Schemas |
-| `scripts/check_engine_isolation.py` | CI guard: product code never imports the match engine or reads ground truth |
+| `scripts/check_engine_isolation.py` | CI guard: product code (including `surfaces/api/`) never imports the match engine or reads ground truth |
 
 ## Built with
 

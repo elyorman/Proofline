@@ -4,7 +4,8 @@
       "enum": [
         "tactics",
         "physical",
-        "game_state"
+        "game_state",
+        "synthesis"
       ],
       "title": "AgentRole",
       "type": "string"
@@ -45,6 +46,38 @@
       ],
       "title": "Direction",
       "type": "string"
+    },
+    "MatchClock": {
+      "description": "Period plus elapsed minute and second within that period's own numbering.\n\n`minute` is the on-screen minute: 0-45+ in the first half, 45-90+ in the second.",
+      "properties": {
+        "period": {
+          "enum": [
+            1,
+            2
+          ],
+          "title": "Period",
+          "type": "integer"
+        },
+        "minute": {
+          "maximum": 130,
+          "minimum": 0,
+          "title": "Minute",
+          "type": "integer"
+        },
+        "second": {
+          "maximum": 59,
+          "minimum": 0,
+          "title": "Second",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "period",
+        "minute",
+        "second"
+      ],
+      "title": "MatchClock",
+      "type": "object"
     },
     "Metric": {
       "enum": [
@@ -90,10 +123,22 @@
         "direction": {
           "$ref": "#/$defs/Direction"
         },
-        "min_relative_change": {
+        "threshold_kind": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ThresholdKind"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "defaults to the metric's pinned kind"
+        },
+        "min_change": {
+          "description": "relative fraction, absolute units, or sigmas",
           "exclusiveMinimum": 0,
-          "maximum": 5,
-          "title": "Min Relative Change",
+          "title": "Min Change",
           "type": "number"
         }
       },
@@ -103,23 +148,29 @@
         "window",
         "compare_to",
         "direction",
-        "min_relative_change"
+        "min_change"
       ],
       "title": "Prediction",
       "type": "object"
     },
+    "ThresholdKind": {
+      "description": "How a predicted change is measured against its baseline.\n\nRELATIVE: |value - baseline| / |baseline|; only for ratios and counts\nwith a baseline well above zero.\nABSOLUTE: |value - baseline| in the metric's own units.\nSIGMA: |value - baseline| / std from the `distribution` tool; the default\nfor signed or near-zero metrics such as momentum.",
+      "enum": [
+        "relative",
+        "absolute",
+        "sigma"
+      ],
+      "title": "ThresholdKind",
+      "type": "string"
+    },
     "Window": {
-      "description": "Inclusive match-clock window as mm:ss strings, e.g. 58:00-63:00.",
+      "description": "Half-open match-clock window [start, end). Accepts \"58:00-63:00\".",
       "properties": {
         "start": {
-          "pattern": "^\\d{2,3}:\\d{2}$",
-          "title": "Start",
-          "type": "string"
+          "$ref": "#/$defs/MatchClock"
         },
         "end": {
-          "pattern": "^\\d{2,3}:\\d{2}$",
-          "title": "End",
-          "type": "string"
+          "$ref": "#/$defs/MatchClock"
         }
       },
       "required": [

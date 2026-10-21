@@ -1,0 +1,295 @@
+{
+  "$defs": {
+    "AgentRole": {
+      "enum": [
+        "tactics",
+        "physical",
+        "game_state",
+        "synthesis"
+      ],
+      "title": "AgentRole",
+      "type": "string"
+    },
+    "CaseOutcome": {
+      "description": "What the investigation concluded. Drives which card variant renders.",
+      "enum": [
+        "explained",
+        "other",
+        "none"
+      ],
+      "title": "CaseOutcome",
+      "type": "string"
+    },
+    "CaseStage": {
+      "enum": [
+        "open",
+        "preregistered",
+        "tested",
+        "cross_examined",
+        "synthesized",
+        "proposed",
+        "closed"
+      ],
+      "title": "CaseStage",
+      "type": "string"
+    },
+    "Checkpoint": {
+      "properties": {
+        "stage": {
+          "$ref": "#/$defs/CaseStage"
+        },
+        "wall_clock_ms": {
+          "minimum": 0,
+          "title": "Wall Clock Ms",
+          "type": "integer"
+        },
+        "agents_completed": {
+          "items": {
+            "$ref": "#/$defs/AgentRole"
+          },
+          "title": "Agents Completed",
+          "type": "array"
+        },
+        "agents_failed": {
+          "items": {
+            "$ref": "#/$defs/AgentRole"
+          },
+          "title": "Agents Failed",
+          "type": "array"
+        },
+        "note": {
+          "default": "",
+          "title": "Note",
+          "type": "string"
+        }
+      },
+      "required": [
+        "stage",
+        "wall_clock_ms"
+      ],
+      "title": "Checkpoint",
+      "type": "object"
+    },
+    "MatchClock": {
+      "description": "Period plus elapsed minute and second within that period's own numbering.\n\n`minute` is the on-screen minute: 0-45+ in the first half, 45-90+ in the second.",
+      "properties": {
+        "period": {
+          "enum": [
+            1,
+            2
+          ],
+          "title": "Period",
+          "type": "integer"
+        },
+        "minute": {
+          "maximum": 130,
+          "minimum": 0,
+          "title": "Minute",
+          "type": "integer"
+        },
+        "second": {
+          "maximum": 59,
+          "minimum": 0,
+          "title": "Second",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "period",
+        "minute",
+        "second"
+      ],
+      "title": "MatchClock",
+      "type": "object"
+    },
+    "Metric": {
+      "enum": [
+        "ppda",
+        "press_intensity",
+        "long_ball_share",
+        "field_tilt",
+        "pass_accuracy",
+        "pass_accuracy_under_pressure",
+        "pass_difficulty",
+        "xg",
+        "sprint_count",
+        "high_intensity_run_rate",
+        "momentum",
+        "control_chaos",
+        "rhythm",
+        "line_height",
+        "ball_speed",
+        "shot_speed",
+        "possession_share",
+        "distance_covered"
+      ],
+      "title": "Metric",
+      "type": "string"
+    },
+    "MomentType": {
+      "enum": [
+        "pressure_shift",
+        "momentum_swing",
+        "control_to_chaos",
+        "chaos_to_control",
+        "shape_change",
+        "fatigue_signal",
+        "individual_spike",
+        "milestone",
+        "key_event"
+      ],
+      "title": "MomentType",
+      "type": "string"
+    },
+    "TriggerMetric": {
+      "properties": {
+        "metric": {
+          "$ref": "#/$defs/Metric"
+        },
+        "subject": {
+          "title": "Subject",
+          "type": "string"
+        },
+        "value": {
+          "title": "Value",
+          "type": "number"
+        },
+        "baseline_value": {
+          "title": "Baseline Value",
+          "type": "number"
+        },
+        "n_events": {
+          "minimum": 0,
+          "title": "N Events",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "metric",
+        "subject",
+        "value",
+        "baseline_value",
+        "n_events"
+      ],
+      "title": "TriggerMetric",
+      "type": "object"
+    },
+    "Window": {
+      "description": "Half-open match-clock window [start, end). Accepts \"58:00-63:00\".",
+      "properties": {
+        "start": {
+          "$ref": "#/$defs/MatchClock"
+        },
+        "end": {
+          "$ref": "#/$defs/MatchClock"
+        }
+      },
+      "required": [
+        "start",
+        "end"
+      ],
+      "title": "Window",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "case_id": {
+      "title": "Case Id",
+      "type": "string"
+    },
+    "match_id": {
+      "title": "Match Id",
+      "type": "string"
+    },
+    "moment_type": {
+      "$ref": "#/$defs/MomentType"
+    },
+    "origin": {
+      "default": "auto",
+      "enum": [
+        "auto",
+        "on_demand"
+      ],
+      "title": "Origin",
+      "type": "string"
+    },
+    "window": {
+      "$ref": "#/$defs/Window"
+    },
+    "triggers": {
+      "items": {
+        "$ref": "#/$defs/TriggerMetric"
+      },
+      "minItems": 1,
+      "title": "Triggers",
+      "type": "array"
+    },
+    "stage": {
+      "$ref": "#/$defs/CaseStage",
+      "default": "open"
+    },
+    "outcome": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/CaseOutcome"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "hypothesis_ids": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Hypothesis Ids",
+      "type": "array"
+    },
+    "checkpoints": {
+      "items": {
+        "$ref": "#/$defs/Checkpoint"
+      },
+      "title": "Checkpoints",
+      "type": "array"
+    },
+    "recovered_from_checkpoint": {
+      "default": false,
+      "title": "Recovered From Checkpoint",
+      "type": "boolean"
+    },
+    "tool_calls_used": {
+      "default": 0,
+      "minimum": 0,
+      "title": "Tool Calls Used",
+      "type": "integer"
+    },
+    "tool_call_budget": {
+      "default": 16,
+      "minimum": 1,
+      "title": "Tool Call Budget",
+      "type": "integer"
+    },
+    "card_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Card Id"
+    }
+  },
+  "required": [
+    "case_id",
+    "match_id",
+    "moment_type",
+    "window",
+    "triggers"
+  ],
+  "title": "Case",
+  "type": "object"
+}

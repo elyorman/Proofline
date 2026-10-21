@@ -1,29 +1,27 @@
 """Structured pre-registration: what an agent commits to before calling any tool.
 
 The orchestrator validates these mechanically and rejects vague predictions.
-The outcome is judged against the tool result by code, never by the agent.
+The outcome is judged against the ToolResult by code, never by the agent.
 """
 
 from enum import StrEnum
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
-from contracts.taxonomy import AgentRole, BaselineScope, Cause, Metric
+from contracts.clock import Window
+from contracts.taxonomy import (
+    DEFAULT_THRESHOLD_KIND,
+    AgentRole,
+    BaselineScope,
+    Cause,
+    Metric,
+    ThresholdKind,
+)
 
 
 class Direction(StrEnum):
     UP = "up"
     DOWN = "down"
-
-
-class Window(BaseModel):
-    """Inclusive match-clock window as mm:ss strings, e.g. 58:00-63:00."""
-
-    start: str = Field(pattern=r"^\d{2,3}:\d{2}$")
-    end: str = Field(pattern=r"^\d{2,3}:\d{2}$")
-
-    def __str__(self) -> str:
-        return f"{self.start}-{self.end}"
 
 
 class Prediction(BaseModel):
@@ -32,7 +30,18 @@ class Prediction(BaseModel):
     window: Window
     compare_to: BaselineScope
     direction: Direction
-    min_relative_change: float = Field(gt=0, le=5)
+    threshold_kind: ThresholdKind | None = Field(
+        default=None, description="defaults to the metric's pinned kind"
+    )
+    min_change: float = Field(gt=0, description="relative fraction, absolute units, or sigmas")
+
+    @model_validator(mode="after")
+    def _default_threshold(self) -> "Prediction":
+        if self.threshold_kind is None:
+            self.threshold_kind = DEFAULT_THRESHOLD_KIND[self.metric]
+        if self.threshold_kind == ThresholdKind.RELATIVE and self.min_change > 5:
+            raise ValueError("relative min_change above 500% is not a real prediction")
+        return self
 
 
 class Hypothesis(BaseModel):
@@ -51,7 +60,7 @@ class TestOutcome(StrEnum):
 class HypothesisTest(BaseModel):
     hypothesis_id: str
     tool_call_id: str
-    observed_relative_change: float
+    observed_change: float = Field(description="in the prediction's threshold units")
     outcome: TestOutcome
     reason: str
 

@@ -25,10 +25,9 @@
       "type": "string"
     },
     "MatchClock": {
-      "description": "Match time as period + seconds since period start, e.g. 2nd half 18:12.",
+      "description": "Period plus elapsed minute and second within that period's own numbering.\n\n`minute` is the on-screen minute: 0-45+ in the first half, 45-90+ in the second.",
       "properties": {
         "period": {
-          "default": 1,
           "enum": [
             1,
             2
@@ -36,14 +35,23 @@
           "title": "Period",
           "type": "integer"
         },
-        "seconds": {
+        "minute": {
+          "maximum": 130,
           "minimum": 0,
-          "title": "Seconds",
-          "type": "number"
+          "title": "Minute",
+          "type": "integer"
+        },
+        "second": {
+          "maximum": 59,
+          "minimum": 0,
+          "title": "Second",
+          "type": "integer"
         }
       },
       "required": [
-        "seconds"
+        "period",
+        "minute",
+        "second"
       ],
       "title": "MatchClock",
       "type": "object"
@@ -249,18 +257,6 @@
       ],
       "default": null,
       "title": "Body Part"
-    },
-    "zone": {
-      "anyOf": [
-        {
-          "type": "string"
-        },
-        {
-          "type": "null"
-        }
-      ],
-      "default": null,
-      "title": "Zone"
     },
     "pass_q": {
       "anyOf": [

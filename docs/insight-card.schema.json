@@ -4,7 +4,8 @@
       "enum": [
         "tactics",
         "physical",
-        "game_state"
+        "game_state",
+        "synthesis"
       ],
       "title": "AgentRole",
       "type": "string"
@@ -36,13 +37,22 @@
           ],
           "title": "Role",
           "type": "string"
+        },
+        "hypothesis_id": {
+          "title": "Hypothesis Id",
+          "type": "string"
+        },
+        "agent": {
+          "$ref": "#/$defs/AgentRole"
         }
       },
       "required": [
         "id",
         "cause",
         "effect",
-        "role"
+        "role",
+        "hypothesis_id",
+        "agent"
       ],
       "title": "AttributionProposition",
       "type": "object"
@@ -76,8 +86,7 @@
     "BroadcastCueSpec": {
       "properties": {
         "template": {
-          "title": "Template",
-          "type": "string"
+          "$ref": "#/$defs/OverlayTemplate"
         },
         "priority": {
           "default": "normal",
@@ -152,6 +161,16 @@
       "title": "CardStatus",
       "type": "string"
     },
+    "CaseOutcome": {
+      "description": "What the investigation concluded. Drives which card variant renders.",
+      "enum": [
+        "explained",
+        "other",
+        "none"
+      ],
+      "title": "CaseOutcome",
+      "type": "string"
+    },
     "Cause": {
       "enum": [
         "tactical.press_intensity_up",
@@ -171,36 +190,6 @@
       ],
       "title": "Cause",
       "type": "string"
-    },
-    "CauseRef": {
-      "properties": {
-        "hypothesis_id": {
-          "title": "Hypothesis Id",
-          "type": "string"
-        },
-        "taxonomy": {
-          "$ref": "#/$defs/Cause"
-        },
-        "agent": {
-          "$ref": "#/$defs/AgentRole"
-        },
-        "role": {
-          "enum": [
-            "primary",
-            "secondary"
-          ],
-          "title": "Role",
-          "type": "string"
-        }
-      },
-      "required": [
-        "hypothesis_id",
-        "taxonomy",
-        "agent",
-        "role"
-      ],
-      "title": "CauseRef",
-      "type": "object"
     },
     "ChangeProposition": {
       "properties": {
@@ -375,6 +364,38 @@
       "title": "LanguageLevel",
       "type": "string"
     },
+    "MatchClock": {
+      "description": "Period plus elapsed minute and second within that period's own numbering.\n\n`minute` is the on-screen minute: 0-45+ in the first half, 45-90+ in the second.",
+      "properties": {
+        "period": {
+          "enum": [
+            1,
+            2
+          ],
+          "title": "Period",
+          "type": "integer"
+        },
+        "minute": {
+          "maximum": 130,
+          "minimum": 0,
+          "title": "Minute",
+          "type": "integer"
+        },
+        "second": {
+          "maximum": 59,
+          "minimum": 0,
+          "title": "Second",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "period",
+        "minute",
+        "second"
+      ],
+      "title": "MatchClock",
+      "type": "object"
+    },
     "Metric": {
       "enum": [
         "ppda",
@@ -414,6 +435,24 @@
       "title": "MomentType",
       "type": "string"
     },
+    "OverlayTemplate": {
+      "enum": [
+        "player_name_tag",
+        "speed_distance_tag",
+        "shot_speed",
+        "pass_difficulty",
+        "pressure_shift_bar",
+        "momentum_strip",
+        "control_chaos_gauge",
+        "shape_change",
+        "fatigue_warning",
+        "milestone_badge",
+        "update_banner",
+        "withdrawal_banner"
+      ],
+      "title": "OverlayTemplate",
+      "type": "string"
+    },
     "Provenance": {
       "properties": {
         "trace_id": {
@@ -448,6 +487,9 @@
         "taxonomy": {
           "$ref": "#/$defs/Cause"
         },
+        "agent": {
+          "$ref": "#/$defs/AgentRole"
+        },
         "reason": {
           "title": "Reason",
           "type": "string"
@@ -477,6 +519,7 @@
       "required": [
         "hypothesis_id",
         "taxonomy",
+        "agent",
         "reason",
         "rejected_by"
       ],
@@ -490,8 +533,7 @@
           "type": "integer"
         },
         "at": {
-          "title": "At",
-          "type": "string"
+          "$ref": "#/$defs/MatchClock"
         },
         "reason": {
           "title": "Reason",
@@ -548,32 +590,29 @@
           "$ref": "#/$defs/Window"
         },
         "detected_at": {
-          "title": "Detected At",
-          "type": "string"
+          "$ref": "#/$defs/MatchClock"
         },
         "verified_at": {
           "anyOf": [
             {
-              "type": "string"
+              "$ref": "#/$defs/MatchClock"
             },
             {
               "type": "null"
             }
           ],
-          "default": null,
-          "title": "Verified At"
+          "default": null
         },
         "published_at": {
           "anyOf": [
             {
-              "type": "string"
+              "$ref": "#/$defs/MatchClock"
             },
             {
               "type": "null"
             }
           ],
-          "default": null,
-          "title": "Published At"
+          "default": null
         }
       },
       "required": [
@@ -611,6 +650,10 @@
         "contradiction_check": {
           "$ref": "#/$defs/CheckResult"
         },
+        "number_check": {
+          "$ref": "#/$defs/CheckResult",
+          "description": "every number in every variant matches evidence"
+        },
         "semantic_check": {
           "$ref": "#/$defs/CheckResult"
         },
@@ -639,6 +682,18 @@
             }
           ],
           "default": null
+        },
+        "rejection_reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Rejection Reason"
         }
       },
       "required": [
@@ -647,6 +702,7 @@
         "baseline_check",
         "sample_size_check",
         "contradiction_check",
+        "number_check",
         "semantic_check",
         "verifier_model_family"
       ],
@@ -654,17 +710,13 @@
       "type": "object"
     },
     "Window": {
-      "description": "Inclusive match-clock window as mm:ss strings, e.g. 58:00-63:00.",
+      "description": "Half-open match-clock window [start, end). Accepts \"58:00-63:00\".",
       "properties": {
         "start": {
-          "pattern": "^\\d{2,3}:\\d{2}$",
-          "title": "Start",
-          "type": "string"
+          "$ref": "#/$defs/MatchClock"
         },
         "end": {
-          "pattern": "^\\d{2,3}:\\d{2}$",
-          "title": "End",
-          "type": "string"
+          "$ref": "#/$defs/MatchClock"
         }
       },
       "required": [
@@ -716,6 +768,9 @@
       "$ref": "#/$defs/CardStatus",
       "default": "proposed"
     },
+    "case_outcome": {
+      "$ref": "#/$defs/CaseOutcome"
+    },
     "moment_type": {
       "$ref": "#/$defs/MomentType"
     },
@@ -743,13 +798,6 @@
     "claim": {
       "title": "Claim",
       "type": "string"
-    },
-    "causes": {
-      "items": {
-        "$ref": "#/$defs/CauseRef"
-      },
-      "title": "Causes",
-      "type": "array"
     },
     "evidence": {
       "items": {
@@ -861,6 +909,7 @@
     "id",
     "match_id",
     "case_id",
+    "case_outcome",
     "moment_type",
     "subject",
     "timing",

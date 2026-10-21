@@ -1,0 +1,225 @@
+{
+  "$defs": {
+    "BaselineScope": {
+      "enum": [
+        "first_half",
+        "match_so_far",
+        "season_average"
+      ],
+      "title": "BaselineScope",
+      "type": "string"
+    },
+    "BaselineValue": {
+      "properties": {
+        "scope": {
+          "$ref": "#/$defs/BaselineScope"
+        },
+        "value": {
+          "title": "Value",
+          "type": "number"
+        },
+        "n_events": {
+          "minimum": 0,
+          "title": "N Events",
+          "type": "integer"
+        },
+        "evidence_set_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "None for season_average, which comes from a static file",
+          "title": "Evidence Set Id"
+        }
+      },
+      "required": [
+        "scope",
+        "value",
+        "n_events"
+      ],
+      "title": "BaselineValue",
+      "type": "object"
+    },
+    "MatchClock": {
+      "description": "Period plus elapsed minute and second within that period's own numbering.\n\n`minute` is the on-screen minute: 0-45+ in the first half, 45-90+ in the second.",
+      "properties": {
+        "period": {
+          "enum": [
+            1,
+            2
+          ],
+          "title": "Period",
+          "type": "integer"
+        },
+        "minute": {
+          "maximum": 130,
+          "minimum": 0,
+          "title": "Minute",
+          "type": "integer"
+        },
+        "second": {
+          "maximum": 59,
+          "minimum": 0,
+          "title": "Second",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "period",
+        "minute",
+        "second"
+      ],
+      "title": "MatchClock",
+      "type": "object"
+    },
+    "Metric": {
+      "enum": [
+        "ppda",
+        "press_intensity",
+        "long_ball_share",
+        "field_tilt",
+        "pass_accuracy",
+        "pass_accuracy_under_pressure",
+        "pass_difficulty",
+        "xg",
+        "sprint_count",
+        "high_intensity_run_rate",
+        "momentum",
+        "control_chaos",
+        "rhythm",
+        "line_height",
+        "ball_speed",
+        "shot_speed",
+        "possession_share",
+        "distance_covered"
+      ],
+      "title": "Metric",
+      "type": "string"
+    },
+    "Window": {
+      "description": "Half-open match-clock window [start, end). Accepts \"58:00-63:00\".",
+      "properties": {
+        "start": {
+          "$ref": "#/$defs/MatchClock"
+        },
+        "end": {
+          "$ref": "#/$defs/MatchClock"
+        }
+      },
+      "required": [
+        "start",
+        "end"
+      ],
+      "title": "Window",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "tool_call_id": {
+      "title": "Tool Call Id",
+      "type": "string"
+    },
+    "tool": {
+      "description": "metric | compare | baseline | events | shape | ...",
+      "title": "Tool",
+      "type": "string"
+    },
+    "match_id": {
+      "title": "Match Id",
+      "type": "string"
+    },
+    "metric": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Metric"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "subject": {
+      "title": "Subject",
+      "type": "string"
+    },
+    "window": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Window"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "value": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Value"
+    },
+    "baseline": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/BaselineValue"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "std": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "from distribution, for sigma",
+      "title": "Std"
+    },
+    "n_events": {
+      "minimum": 0,
+      "title": "N Events",
+      "type": "integer"
+    },
+    "evidence_set_id": {
+      "title": "Evidence Set Id",
+      "type": "string"
+    },
+    "computed_at_ms": {
+      "minimum": 0,
+      "title": "Computed At Ms",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "tool_call_id",
+    "tool",
+    "match_id",
+    "subject",
+    "n_events",
+    "evidence_set_id",
+    "computed_at_ms"
+  ],
+  "title": "ToolResult",
+  "type": "object"
+}

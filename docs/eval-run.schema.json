@@ -1,0 +1,186 @@
+{
+  "$defs": {
+    "MetricEstimate": {
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "value": {
+          "title": "Value",
+          "type": "number"
+        },
+        "ci_low": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ci Low"
+        },
+        "ci_high": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ci High"
+        },
+        "n": {
+          "minimum": 0,
+          "title": "N",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "name",
+        "value",
+        "n"
+      ],
+      "title": "MetricEstimate",
+      "type": "object"
+    },
+    "Split": {
+      "enum": [
+        "dev",
+        "heldout"
+      ],
+      "title": "Split",
+      "type": "string"
+    },
+    "Suite": {
+      "enum": [
+        "planted",
+        "decoys",
+        "corrections",
+        "confounded",
+        "seeded_false_claims"
+      ],
+      "title": "Suite",
+      "type": "string"
+    },
+    "Variant": {
+      "enum": [
+        "A",
+        "B",
+        "C"
+      ],
+      "title": "Variant",
+      "type": "string"
+    }
+  },
+  "properties": {
+    "run_id": {
+      "title": "Run Id",
+      "type": "string"
+    },
+    "variant": {
+      "$ref": "#/$defs/Variant"
+    },
+    "suites": {
+      "items": {
+        "$ref": "#/$defs/Suite"
+      },
+      "minItems": 1,
+      "title": "Suites",
+      "type": "array"
+    },
+    "split": {
+      "$ref": "#/$defs/Split"
+    },
+    "model_tier": {
+      "description": "dev | final",
+      "title": "Model Tier",
+      "type": "string"
+    },
+    "match_ids": {
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Match Ids",
+      "type": "array"
+    },
+    "metrics": {
+      "items": {
+        "$ref": "#/$defs/MetricEstimate"
+      },
+      "minItems": 1,
+      "title": "Metrics",
+      "type": "array"
+    },
+    "started_at_ms": {
+      "minimum": 0,
+      "title": "Started At Ms",
+      "type": "integer"
+    },
+    "finished_at_ms": {
+      "minimum": 0,
+      "title": "Finished At Ms",
+      "type": "integer"
+    },
+    "input_tokens": {
+      "default": 0,
+      "minimum": 0,
+      "title": "Input Tokens",
+      "type": "integer"
+    },
+    "output_tokens": {
+      "default": 0,
+      "minimum": 0,
+      "title": "Output Tokens",
+      "type": "integer"
+    },
+    "cost_usd": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Cost Usd"
+    },
+    "foundry_eval_run": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Foundry Eval Run"
+    },
+    "notes": {
+      "default": "",
+      "title": "Notes",
+      "type": "string"
+    }
+  },
+  "required": [
+    "run_id",
+    "variant",
+    "suites",
+    "split",
+    "model_tier",
+    "match_ids",
+    "metrics",
+    "started_at_ms",
+    "finished_at_ms"
+  ],
+  "title": "EvalRun",
+  "type": "object"
+}

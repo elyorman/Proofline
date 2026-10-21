@@ -1,0 +1,127 @@
+{
+  "$defs": {
+    "CoordinateShift": {
+      "description": "Relocate events by a delta in metres; the usual provider re-sync.",
+      "properties": {
+        "dx_m": {
+          "default": 0.0,
+          "title": "Dx M",
+          "type": "number"
+        },
+        "dy_m": {
+          "default": 0.0,
+          "title": "Dy M",
+          "type": "number"
+        }
+      },
+      "title": "CoordinateShift",
+      "type": "object"
+    },
+    "MatchClock": {
+      "description": "Period plus elapsed minute and second within that period's own numbering.\n\n`minute` is the on-screen minute: 0-45+ in the first half, 45-90+ in the second.",
+      "properties": {
+        "period": {
+          "enum": [
+            1,
+            2
+          ],
+          "title": "Period",
+          "type": "integer"
+        },
+        "minute": {
+          "maximum": 130,
+          "minimum": 0,
+          "title": "Minute",
+          "type": "integer"
+        },
+        "second": {
+          "maximum": 59,
+          "minimum": 0,
+          "title": "Second",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "period",
+        "minute",
+        "second"
+      ],
+      "title": "MatchClock",
+      "type": "object"
+    }
+  },
+  "description": "A batch amendment: re-attribute or re-locate a block of events.\n\nExactly one of `shift` or `set` applies to every event in `event_ids`,\nand each affected event's `version` is incremented.",
+  "properties": {
+    "amendment_id": {
+      "title": "Amendment Id",
+      "type": "string"
+    },
+    "match_id": {
+      "title": "Match Id",
+      "type": "string"
+    },
+    "at": {
+      "$ref": "#/$defs/MatchClock"
+    },
+    "event_ids": {
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Event Ids",
+      "type": "array"
+    },
+    "shift": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/CoordinateShift"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "set": {
+      "anyOf": [
+        {
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "boolean"
+              }
+            ]
+          },
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Set"
+    },
+    "reason": {
+      "title": "Reason",
+      "type": "string"
+    }
+  },
+  "required": [
+    "amendment_id",
+    "match_id",
+    "at",
+    "event_ids",
+    "reason"
+  ],
+  "title": "EventAmendment",
+  "type": "object"
+}

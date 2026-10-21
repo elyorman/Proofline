@@ -130,7 +130,11 @@ def build_lineup(team: TeamSpec) -> list[Player]:
 def position(
     player: Player, *, attacking: bool, press_height: float, ball: tuple[float, float]
 ) -> tuple[float, float]:
-    """Where a player stands right now, in his own team's frame."""
+    """Where a player stands right now, in their own team's frame.
+
+    `ball` is in the same frame; only its y is used. Scaling x when defending is a
+    lightweight approximation: a higher press also stretches the team lengthways.
+    """
     if player.role == "GK":
         return (8.0 if attacking else 4.0), 34.0
     if attacking:

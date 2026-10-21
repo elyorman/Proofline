@@ -22,38 +22,42 @@ Gate 2 is: *a scripted match streams through Event Hubs into Cosmos and the dete
 
 ## Design decisions (review these)
 
-- **Coordinate frame.** Every event is in the acting team's attacking frame: x=0 its own goal line, x=105 the opponent's; y=0 the left touchline, y=68 the right, looking towards the opponent's goal. Pressing "in the opponent's first 60%" is therefore x > 42 in the pressing team's frame. Task 2 writes this into the event contract's docstring and the spec.
+- **Coordinate frame.** Every event is in the attacking frame of its `team`: x=0 its own goal line, x=105 the opponent's; y=0 the left touchline, y=68 the right, looking towards the opponent's goal. A point in the other team's frame is (105 − x, 68 − y). Pressing "in the opponent's first 60%" is therefore x > 42 in the pressing team's frame. Task 2 writes this into the event contract's docstring and the spec.
 - **Mechanisms, not labels.** Team parameters: `press_height`, `directness`, `quality`. Player parameter: `stamina_decay`. A raised `press_height` makes pressure events more frequent and more intense in the opponent's first 60%; pressure lowers pass completion and raises the chance the opponent goes long. `stamina_decay` drains a player's energy faster, and sprint probability scales with energy².
-- **Keyed randomness.** `Streams(seed).uniform("pass_length", minute)`: one generator per (decision, minute), seeded with BLAKE2b, never Python's salted `hash()`. Proven by a test that the match before an intervention is identical with and without it.
-- **Amendments are parsed now and applied in plan 2.** The script's amendment filter selects events by their *true* position; the v1 feed shows them displaced by the inverse shift, and the correction batch restores truth. This replaces the spec's v1-position filter (`y_min: 50`), which would also have caught genuine right-flank carries.
+- **Keyed randomness.** `Streams(seed).uniform("pass_length", bucket)`: one generator per (decision, bucket), seeded with BLAKE2b, never Python's salted `hash()`. The simulator's bucket is `period * 100 + minute`, so first-half stoppage (45+) and the second half's opening minutes never share a stream. A pinned value guards reproducibility across processes, and a test proves the match before an intervention is identical with and without it.
+- **Calibrate and test on different seeds.** The first calibration was tuned and tested on seeds 0–19 and looked right; on seeds 20–59 the same code scored 4.1 goals a match. Constants are now tuned on seeds 0–79 only; the numbers below and the realism test use seeds 100–139, which played no part in tuning.
+- **Open play bounces off the six-yard line.** Forward actions that would pass x = 97 reflect back rather than clamp there; clamping had put two-thirds of all shots on that one line. Possessions run until a turnover, a shot or the period end: an action cap would hand the ball over with no event. A set-piece taker is the player who then plays the ball.
+- **Amendments are parsed now and applied in plan 2.** The script's amendment filter selects a carry only when both its *true* start and end lie in the y-band; the v1 feed shows them displaced by the inverse shift, and the correction batch restores truth. This replaces the spec's v1-position filter (`y_min: 50`), which would also have caught genuine right-flank carries.
 - **No xG in the feed.** The engine uses its own chance-quality model to decide goals but never writes xG into events; the State Builder computes xG independently.
 - **Not in this plan:** tracking samples (plan 2); clearance, duel, card and substitution events; formation changes mid-match; forced events such as a scripted goal (later engine work, driven by the planted suite's needs).
 
 ## Calibration (measured on the prototype of exactly this code)
 
-20 seeds, m01 teams without interventions, per team per match unless noted:
+40 held-out seeds (100–139), m01 teams without interventions, per team per match unless noted:
 
 | Measure | Engine | Typical top flight |
 |---|---|---|
-| Passes | 490 (448–545) | 400–600 |
-| Pass completion | 78.4% | 75–88% |
-| Shots | 14.9 | 10–16 |
-| Goals per match | 2.9 | 2.6–2.9 |
-| Mean shot distance | ~15 m | ~16 m |
-| Sprints (>24.5 km/h) | ~330 | 250–400 |
+| Passes | 495 (407–574) | 400–600 |
+| Pass completion | 80.0% | 75–88% |
+| Shots | 13.3 | 10–16 |
+| Goals per match | 2.83 | 2.6–2.9 |
+| Mean shot distance | 18.3 m; no single metre of x holds more than 11% of shots | ~16–18 m |
+| Sprints (>24.5 km/h) | ~325 | 250–400 |
 | Events per match | ~3,000 | n/a |
-| Time per match | ~0.12 s | n/a |
+| Time per match | ~0.14 s | n/a |
 
-Paired runs, 25 seeds (with intervention minus without, 95% CI):
+Paired runs on the same 40 seeds (with intervention minus without, 95% CI):
 
 | Observable | Without | Effect |
 |---|---|---|
-| Harbour City pressures in Northvale's first 60%, 62–68' (s1) | 7.0 | +3.8 [+2.7, +5.0] |
-| Northvale long-ball share, 62–68' (s1) | 15.4% | +10.4 pts [+6.0, +14.7] |
-| NV-03 sprints, 66–90' (s2) | 6.3 | −0.9 [−1.3, −0.5] |
-| Harbour City pressures 30–36' (control, before s1) | 7.7 | exactly 0 |
+| Harbour City pressures per Northvale action in Northvale's first 60%, 62–68' (s1) | 0.327 | +0.209 [+0.175, +0.244] |
+| Northvale long-ball share, 62–68' (s1) | 11.6% | +9.1 pts [+6.4, +11.7] |
+| NV-03 sprints, 66–90' (s2) | 5.9 | −0.9 [−1.2, −0.6] |
+| Harbour City pressures 30–36' (control, before s1) | 8.0 | exactly 0 |
 
-`proofline-engine generate --script engine/scripts/planted/m01.yaml` prints `m01 seed 4417: 2949 events, Harbour City 2-2 Northvale`.
+The press is measured as a rate, not a count: a heavier press also shortens the opponent's time on the ball where pressing happens, so the raw count of pressures is noisy. PPDA over a 6-minute window is noisy for the same reason; plan 4 should keep that in mind when sizing windows.
+
+`proofline-engine generate --script engine/scripts/planted/m01.yaml` prints `m01 seed 4417: 3036 events, Harbour City 4-1 Northvale`.
 
 ## File structure
 
@@ -152,10 +156,11 @@ New:
 ```python
 """Match event contract. Every event is versioned; amendments bump `version`.
 
-Coordinates are the truth, in the acting team's attacking frame: x=0 is its own
-goal line and x=105 the opponent's; y=0 is the left touchline and y=68 the right,
-looking towards the opponent's goal. Tracking samples use the player's own team
-frame. Pitch zones are derived from x/y by the State Builder; an amendment that
+Coordinates are the truth, in the attacking frame of the event's `team`: x=0 is
+its own goal line and x=105 the opponent's; y=0 is the left touchline and y=68
+the right, looking towards the opponent's goal. A point in the other team's
+frame is (105 - x, 68 - y). Tracking samples use the player's own team frame.
+Pitch zones are derived from x/y by the State Builder; an amendment that
 relocates events changes x/y.
 """
 ```
@@ -170,8 +175,10 @@ Expected: exit code 0 (a module docstring is not part of any schema).
 In `docs/spec.md`, at the end of the line that starts `**Every event carries:**`, after `never stored as input.`, append:
 
 ```markdown
- Coordinates are in the acting team's attacking frame: x=0 its own goal line, x=105 the opponent's; y=0 the left touchline and y=68 the right, looking towards the opponent's goal.
+ Coordinates are in the attacking frame of the event's `team`: x=0 its own goal line, x=105 the opponent's; y=0 the left touchline and y=68 the right, looking towards the opponent's goal. A point in the other team's frame is (105 − x, 68 − y).
 ```
+
+In the tracking bullet below it, change `- Tracking samples at 5–10 Hz: position` to `- Tracking samples at 5–10 Hz, in the player's own team frame: position`.
 
 Then replace the body of the YAML block that starts `match_id: m01` (everything between its opening and closing fences) with the demo script, which Task 4 also saves as `engine/scripts/planted/m01.yaml`:
 
@@ -202,7 +209,7 @@ amendments:
   - id: a1
     at: "68:00"   # after the 63' press card, so the demo shows a published card withdrawn
     batch:
-      # Selects carries by their true position; the v1 feed shows them 18 m to the right.
+      # Selects carries whose true start and end both lie in y 32-50; v1 shows them 18 m right.
       filter: { type: carry, team: away, window: "48:00-55:00", y_min: 32, y_max: 50 }
       shift: { dy_m: -18 }
     reason: "provider coordinate recalibration"
@@ -228,26 +235,39 @@ git commit -m "Define the event coordinate frame" -m "Metrics such as PPDA depen
 `tests/test_engine_rng.py`:
 
 ```python
+import pytest
+
 from engine.rng import Streams
 
 
 def test_same_seed_gives_same_draws():
     a, b = Streams(7), Streams(7)
-    assert [a.uniform("pass_length", 61) for _ in range(5)] == [
-        b.uniform("pass_length", 61) for _ in range(5)
-    ]
+    draws = [a.uniform("pass_length", 61) for _ in range(5)]
+    assert draws == [b.uniform("pass_length", 61) for _ in range(5)]
+    assert len(set(draws)) == 5  # each draw advances the stream
 
 
 def test_extra_draws_do_not_shift_other_minutes_or_decisions():
     plain, busy = Streams(7), Streams(7)
     for _ in range(50):  # e.g. an intervention adds passes in minute 61
         busy.uniform("pass_length", 61)
+    assert busy.uniform("pass_length", 61) != plain.uniform("pass_length", 61)
     assert plain.uniform("pass_length", 62) == busy.uniform("pass_length", 62)
     assert plain.uniform("shot_outcome", 61) == busy.uniform("shot_outcome", 61)
 
 
 def test_different_seeds_differ():
     assert Streams(1).uniform("pass_length", 10) != Streams(2).uniform("pass_length", 10)
+
+
+def test_draws_are_pinned_across_processes():
+    # Changing this value changes every generated match, suite and released dataset.
+    assert Streams(4417).uniform("pass_dist", 61, 6, 24) == pytest.approx(14.308525307278389)
+
+
+def test_minutes_must_be_integers():
+    with pytest.raises(TypeError):
+        Streams(1).uniform("pass_length", 61.0)
 ```
 
 - [ ] **Step 2: Run it to verify it fails**
@@ -269,6 +289,7 @@ counterfactual aligned (spec §7.2).
 """
 
 import hashlib
+import operator
 import random
 
 
@@ -278,6 +299,7 @@ class Streams:
         self._generators: dict[tuple[str, int], random.Random] = {}
 
     def _gen(self, decision: str, minute: int) -> random.Random:
+        minute = operator.index(minute)  # 61 and 61.0 must not share a slot
         key = (decision, minute)
         gen = self._generators.get(key)
         if gen is None:
@@ -300,7 +322,7 @@ class Streams:
 - [ ] **Step 4: Run it to verify it passes**
 
 Run: `uv run pytest tests/test_engine_rng.py -v`
-Expected: 3 passed
+Expected: 5 passed
 
 - [ ] **Step 5: Commit**
 
@@ -346,6 +368,19 @@ def _script(**overrides):
     return MatchScript.model_validate(base)
 
 
+def _intervention(**overrides):
+    base = {"id": "s1", "at": "60:00", "team": "home", "set": {"press_height": 0.7}}
+    base.update(overrides)
+    return base
+
+
+def _amendment(at="68:00", dy=-18, **band):
+    batch_filter = {"type": "carry", "team": "away", "window": "48:00-55:00", "y_min": 32}
+    batch_filter |= {"y_max": 50, **band}
+    shift = {"dy_m": dy}
+    return {"id": "a1", "at": at, "batch": {"filter": batch_filter, "shift": shift}, "reason": "r"}
+
+
 def test_demo_script_loads():
     script = load_script(M01)
     s1, s2 = script.scripts
@@ -354,27 +389,43 @@ def test_demo_script_loads():
     assert script.amendments[0].batch.shift.dy_m == -18
 
 
-def test_unknown_parameter_is_rejected():
-    with pytest.raises(ValidationError):
-        _script(scripts=[{"id": "s1", "at": "60:00", "team": "home", "set": {"pres": 0.7}}])
+@pytest.mark.parametrize(
+    "intervention,message",
+    [
+        ({"set": {"pres": 0.7}}, "not valid team parameter"),
+        ({"set": {"stamina_decay": 2.0}}, "not valid team parameter"),
+        ({"set": {"press_height": 7.5}}, "outside"),
+        ({"set": {"press_height": float("nan")}}, "outside"),
+        ({"player": "NV-03", "set": {"stamina_decay": 2.0}}, "not on the home team"),
+        ({"player": "HC-3", "set": {"stamina_decay": 2.0}}, "should match pattern"),
+        ({"player": "HC-03", "set": {"stamina_decay": -1.0}}, "outside"),
+    ],
+)
+def test_bad_interventions_are_rejected(intervention, message):
+    with pytest.raises(ValidationError, match=message):
+        _script(scripts=[_intervention(**intervention)])
 
 
-def test_player_must_be_on_the_named_team():
-    player_on_wrong_team = {
-        "id": "s1",
-        "at": "60:00",
-        "team": "home",
-        "player": "NV-03",
-        "set": {"stamina_decay": 2.0},
-    }
-    with pytest.raises(ValidationError):
-        _script(scripts=[player_on_wrong_team])
+@pytest.mark.parametrize(
+    "amendment,message",
+    [
+        (_amendment(type="carries"), "Input should be"),
+        (_amendment(y_min=50, y_max=32), "above y_max"),
+        (_amendment(at="50:00"), "before its window ends"),
+        (_amendment(y_max=52), "leaves the pitch"),
+    ],
+)
+def test_incoherent_amendments_are_rejected(amendment, message):
+    with pytest.raises(ValidationError, match=message):
+        _script(amendments=[amendment])
 
 
-def test_unquoted_yaml_time_is_rejected():
-    # YAML reads an unquoted 60:00 as the integer 3600; the clock must refuse it.
-    with pytest.raises(ValidationError):
-        _script(scripts=[{"id": "s1", "at": 3600, "team": "home", "set": {"press_height": 0.7}}])
+def test_unquoted_yaml_time_is_rejected(tmp_path):
+    # YAML reads an unquoted 60:00 as the integer 3600; loading must refuse it.
+    bad = tmp_path / "bad.yaml"
+    bad.write_text(M01.read_text().replace('at: "60:00"', "at: 60:00"))
+    with pytest.raises(ValidationError, match="valid dictionary"):
+        load_script(bad)
 ```
 
 - [ ] **Step 2: Run it to verify it fails**
@@ -413,7 +464,7 @@ amendments:
   - id: a1
     at: "68:00"   # after the 63' press card, so the demo shows a published card withdrawn
     batch:
-      # Selects carries by their true position; the v1 feed shows them 18 m to the right.
+      # Selects carries whose true start and end both lie in y 32-50; v1 shows them 18 m right.
       filter: { type: carry, team: away, window: "48:00-55:00", y_min: 32, y_max: 50 }
       shift: { dy_m: -18 }
     reason: "provider coordinate recalibration"
@@ -430,6 +481,9 @@ A script names two teams and their starting parameters, then interventions that
 ramp a parameter to a new value from a match time. Cause-taxonomy names never
 appear here; the mapping from an intervention to a cause lives in the suite's
 sealed ground-truth file, which only eval/ reads.
+
+Interventions on the same parameter compose in time order, so the later one wins;
+a ramp still running at half-time completes at the start of the second half.
 """
 
 import re
@@ -440,11 +494,18 @@ import yaml
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from contracts.clock import MatchClock, Window
-from contracts.event import CoordinateShift
+from contracts.event import CoordinateShift, EventType
 
 Side = Literal["home", "away"]
 TEAM_PARAMS = frozenset({"press_height", "directness", "quality"})
 PLAYER_PARAMS = frozenset({"stamina_decay"})
+PARAM_RANGES = {
+    "press_height": (0.0, 1.0),
+    "directness": (0.0, 1.0),
+    "quality": (0.0, 1.0),
+    "stamina_decay": (0.0, 5.0),
+}
+PLAYER_ID = r"^[A-Z]{2}-(0[1-9]|1[01])$"  # one of the 11 starters in engine.teams
 _RAMP_RE = re.compile(r"^(\d+)(m|s)$")
 
 
@@ -466,7 +527,7 @@ class Intervention(BaseModel):
     at: MatchClock
     ramp: str = Field(default="0m", pattern=_RAMP_RE.pattern)
     team: Side
-    player: str | None = None
+    player: str | None = Field(default=None, pattern=PLAYER_ID)
     set: dict[str, float] = Field(min_length=1)
 
     @property
@@ -476,23 +537,36 @@ class Intervention(BaseModel):
 
     @model_validator(mode="after")
     def _known_params(self) -> "Intervention":
+        level = "player" if self.player else "team"
         allowed = PLAYER_PARAMS if self.player else TEAM_PARAMS
         unknown = sorted(set(self.set) - allowed)
         if unknown:
-            raise ValueError(f"{self.id}: unknown parameter(s) {unknown}")
+            raise ValueError(
+                f"{self.id}: {unknown} not valid {level} parameter(s); use {sorted(allowed)}"
+            )
+        for key, value in self.set.items():
+            lo, hi = PARAM_RANGES[key]
+            if not lo <= value <= hi:  # also rejects NaN
+                raise ValueError(f"{self.id}: {key}={value} outside [{lo}, {hi}]")
         return self
 
 
 class AmendmentFilter(BaseModel):
-    """Selects events by their true position; v1 of the feed shows them displaced."""
+    """Events whose true start and end both lie in [y_min, y_max]; v1 shows them displaced."""
 
     model_config = ConfigDict(extra="forbid")
 
-    type: str
+    type: EventType
     team: Side
     window: Window
     y_min: float = Field(default=0, ge=0, le=68)
     y_max: float = Field(default=68, ge=0, le=68)
+
+    @model_validator(mode="after")
+    def _band(self) -> "AmendmentFilter":
+        if self.y_min > self.y_max:
+            raise ValueError(f"y_min {self.y_min} is above y_max {self.y_max}")
+        return self
 
 
 class AmendmentBatch(BaseModel):
@@ -509,6 +583,15 @@ class AmendmentSpec(BaseModel):
     at: MatchClock
     batch: AmendmentBatch
     reason: str
+
+    @model_validator(mode="after")
+    def _coherent(self) -> "AmendmentSpec":
+        band, dy = self.batch.filter, self.batch.shift.dy_m
+        if self.at < band.window.end:
+            raise ValueError(f"{self.id}: the correction at {self.at} comes before its window ends")
+        if band.y_min - dy < 0 or band.y_max - dy > 68:  # v1 shows events at true y - dy
+            raise ValueError(f"{self.id}: the displaced v1 band leaves the pitch")
+        return self
 
 
 class MatchScript(BaseModel):
@@ -542,13 +625,13 @@ def load_script(path: str | Path) -> MatchScript:
 - [ ] **Step 5: Run it to verify it passes**
 
 Run: `uv run pytest tests/test_engine_script.py -v`
-Expected: 4 passed
+Expected: 13 passed
 
 - [ ] **Step 6: Commit**
 
 ```bash
 git add engine/script.py engine/scripts/planted/m01.yaml tests/test_engine_script.py
-git commit -m "Add the tactical script DSL and the demo match script" -m "Scripts declare mechanisms with ramps, never cause labels, so the mapping to causes can stay sealed in ground truth. Unknown parameters, players on the wrong team and unquoted YAML times are rejected at load."
+git commit -m "Add the tactical script DSL and the demo match script" -m "Scripts declare mechanisms with ramps, never cause labels, so the mapping to causes can stay sealed in ground truth. Authoring errors fail at load instead of silently distorting a suite: unknown or out-of-range parameters, player ids that match no starter, incoherent amendment batches and unquoted YAML times."
 ```
 
 ---
@@ -624,6 +707,46 @@ def test_other_team_and_players_are_untouched():
 def test_player_parameter_ramps():
     assert TL.player("away", "NV-03", 2, at(65))["stamina_decay"] == pytest.approx(1.75)
     assert TL.player("away", "NV-03", 2, at(70))["stamina_decay"] == pytest.approx(2.5)
+
+
+EDGES = MatchScript.model_validate(
+    {
+        "match_id": "t02",
+        "seed": 1,
+        "teams": {
+            "home": {"name": "Harbour City", "code": "HC", "press_height": 0.4},
+            "away": {"name": "Northvale", "code": "NV", "directness": 0.1},
+        },
+        "scripts": [
+            {"id": "a", "at": "44:00", "ramp": "4m", "team": "home", "set": {"press_height": 0.8}},
+            {"id": "b", "at": "70:00", "team": "away", "set": {"directness": 0.5}},
+            {"id": "c", "at": "75:00", "ramp": "2m", "team": "away", "set": {"directness": 0.3}},
+            {"id": "d", "at": "45+2:10", "ramp": "1m", "team": "away", "set": {"quality": 0.9}},
+        ],
+    }
+)
+EDGE_TL = ParamTimeline(EDGES)
+
+
+def test_a_ramp_running_at_half_time_completes_at_the_restart():
+    assert EDGE_TL.team("home", 1, 45 * 60)["press_height"] == pytest.approx(0.5)  # 1 of 4 min
+    assert EDGE_TL.team("home", 2, 0)["press_height"] == pytest.approx(0.8)
+
+
+def test_a_zero_ramp_is_a_step_at_its_start():
+    assert EDGE_TL.team("away", 2, at(69.99))["directness"] == pytest.approx(0.1)
+    assert EDGE_TL.team("away", 2, at(70))["directness"] == pytest.approx(0.5)
+
+
+def test_the_later_intervention_wins():
+    assert EDGE_TL.team("away", 2, at(76))["directness"] == pytest.approx(0.4)  # halfway to 0.3
+    assert EDGE_TL.team("away", 2, at(80))["directness"] == pytest.approx(0.3)
+
+
+def test_a_first_half_stoppage_start_ramps_within_stoppage():
+    start = 47 * 60 + 10  # 45+2:10, in first-half seconds
+    assert EDGE_TL.team("away", 1, start - 1)["quality"] == pytest.approx(0.5)
+    assert EDGE_TL.team("away", 1, start + 30)["quality"] == pytest.approx(0.7)
 ```
 
 - [ ] **Step 2: Run it to verify it fails**
@@ -655,6 +778,11 @@ def _progress(start: MatchClock, ramp_s: int, period: int, s: float) -> float:
 
 
 class ParamTimeline:
+    """Values at (period, s), where s is seconds since that period's kick-off.
+
+    That is `MatchClock.seconds_in_period`, not minute * 60: 60:00 is (2, 900).
+    """
+
     def __init__(self, script: MatchScript) -> None:
         self._base = {
             side: {"press_height": t.press_height, "directness": t.directness, "quality": t.quality}
@@ -686,7 +814,7 @@ def _apply(values: dict[str, float], iv: Intervention, period: int, s: float) ->
 - [ ] **Step 4: Run it to verify it passes**
 
 Run: `uv run pytest tests/test_engine_params.py -v`
-Expected: 4 passed
+Expected: 8 passed
 
 - [ ] **Step 5: Commit**
 
@@ -708,16 +836,29 @@ git commit -m "Ramp script parameters in over match time" -m "Spec 7.1 has every
 `tests/test_engine_teams.py`:
 
 ```python
-from engine.script import TeamSpec
+import re
+from typing import get_args
+
+from engine.script import PLAYER_ID, TeamSpec
 from engine.teams import FORMATIONS, build_lineup, position
 
 NORTHVALE = TeamSpec(name="Northvale", code="NV", formation="4-2-3-1")
 
 
-def test_every_formation_fields_eleven_with_one_keeper():
-    for roles in FORMATIONS.values():
-        assert len(roles) == 11
-        assert [r for r, _, _ in roles].count("GK") == 1
+def _lineup(formation):
+    return build_lineup(TeamSpec(name="Test", code="XX", formation=formation))
+
+
+def test_script_formations_match_the_engine():
+    assert set(get_args(TeamSpec.model_fields["formation"].annotation)) == set(FORMATIONS)
+
+
+def test_every_formation_builds_eleven_valid_starters():
+    for formation in FORMATIONS:
+        lineup = _lineup(formation)
+        assert [p.player_id for p in lineup] == [f"XX-{i:02d}" for i in range(1, 12)]
+        assert all(re.match(PLAYER_ID, p.player_id) for p in lineup)
+        assert [p.role for p in lineup].count("GK") == 1
 
 
 def test_lineup_ids_names_and_units():
@@ -734,11 +875,29 @@ def test_a_higher_press_pushes_the_defensive_block_up():
     assert high > low
 
 
+def test_attacking_pushes_the_line_up_ten_metres():
+    rcb = build_lineup(NORTHVALE)[2]
+    x, _ = position(rcb, attacking=True, press_height=0.5, ball=(50, 34))
+    assert x == rcb.base_x + 10
+
+
+def test_players_shift_towards_the_ball():
+    rb = build_lineup(NORTHVALE)[1]
+    _, towards_right = position(rb, attacking=False, press_height=0.5, ball=(50, 68))
+    _, towards_left = position(rb, attacking=False, press_height=0.5, ball=(50, 0))
+    assert towards_left < rb.base_y < towards_right
+
+
 def test_positions_stay_on_the_pitch():
-    for p in build_lineup(NORTHVALE):
-        for attacking in (True, False):
-            x, y = position(p, attacking=attacking, press_height=1.0, ball=(100, 68))
-            assert 0 <= x <= 105 and 0 <= y <= 68
+    for formation in FORMATIONS:  # 4-3-3 wingers and 3-5-2 wing-backs need the clamp
+        for p in _lineup(formation):
+            for attacking in (True, False):
+                for press in (0.0, 1.0):
+                    for ball_y in (0.0, 68.0):
+                        x, y = position(
+                            p, attacking=attacking, press_height=press, ball=(50, ball_y)
+                        )
+                        assert 0 <= x <= 105 and 0 <= y <= 68
 ```
 
 - [ ] **Step 2: Run it to verify it fails**
@@ -883,7 +1042,11 @@ def build_lineup(team: TeamSpec) -> list[Player]:
 def position(
     player: Player, *, attacking: bool, press_height: float, ball: tuple[float, float]
 ) -> tuple[float, float]:
-    """Where a player stands right now, in his own team's frame."""
+    """Where a player stands right now, in their own team's frame.
+
+    `ball` is in the same frame; only its y is used. Scaling x when defending is a
+    lightweight approximation: a higher press also stretches the team lengthways.
+    """
     if player.role == "GK":
         return (8.0 if attacking else 4.0), 34.0
     if attacking:
@@ -897,7 +1060,7 @@ def position(
 - [ ] **Step 4: Run it to verify it passes**
 
 Run: `uv run pytest tests/test_engine_teams.py -v`
-Expected: 4 passed
+Expected: 7 passed
 
 - [ ] **Step 5: Commit**
 
@@ -910,7 +1073,7 @@ git commit -m "Add formations and the positional model" -m "Events and player po
 
 ### Task 7: The possession-chain simulator
 
-The three test files below all fail until `engine/sim.py` exists. The mechanism tests run paired seeds (about 8 s); the realism test checks calibration (about 1 s).
+The three test files below all fail until `engine/sim.py` exists. The mechanism tests run 20 paired seeds each (about 15 s in total); the realism test checks calibration on 40 held-out seeds (about 5 s).
 
 **Files:**
 - Create: `engine/sim.py`
@@ -925,6 +1088,7 @@ The three test files below all fail until `engine/sim.py` exists. The mechanism 
 ```python
 from pathlib import Path
 
+from contracts.event import Point
 from engine.script import load_script
 from engine.sim import MatchSim
 
@@ -966,13 +1130,47 @@ def test_every_player_is_on_a_roster():
     assert {e.team for e in events} == {"Harbour City", "Northvale"}
 
 
-def test_intervention_leaves_the_match_before_it_untouched():
-    without_s1 = M01.model_copy(update={"scripts": [s for s in M01.scripts if s.id != "s1"]})
+def test_interventions_leave_the_match_before_them_untouched():
+    for sid, start_minute in (("s1", 60), ("s2", 62)):
+        without = M01.model_copy(update={"scripts": [s for s in M01.scripts if s.id != sid]})
 
-    def before_60(events):
-        return _dump([e for e in events if e.clock.minute < 60])
+        def before(events, cutoff=start_minute):
+            return _dump([e for e in events if e.clock.minute < cutoff])
 
-    assert before_60(MatchSim(M01, seed=3).run()) == before_60(MatchSim(without_s1, seed=3).run())
+        assert before(MatchSim(M01, seed=3).run()) == before(MatchSim(without, seed=3).run())
+
+
+def test_each_player_acts_for_their_own_team():
+    code = {team.name: team.code for team in M01.teams.values()}
+    for seed in (3, 4, 5):
+        for e in MatchSim(M01, seed=seed).run():
+            assert e.player_id is None or e.player_id.startswith(code[e.team] + "-"), e.event_id
+
+
+def _close(p, q):
+    return abs(p.x - q.x) <= 0.11 and abs(p.y - q.y) <= 0.11
+
+
+def test_the_ball_moves_continuously_between_actions():
+    """Each action starts where the ball is: kept, won (mirrored) or restarted.
+
+    A set-piece taker is also the player who then plays the ball.
+    """
+    for seed in (3, 4, 5):
+        owner, ball, taker = None, None, None
+        for e in MatchSim(M01, seed=seed).run():
+            if e.type == "set_piece":
+                owner, ball, taker = e.team, e.start, e.player_id
+            elif e.type in ("pressure", "foul"):  # by the defending team, at the mirrored ball
+                assert e.team != owner, e.event_id
+                assert _close(e.start, Point(x=105 - ball.x, y=68 - ball.y)), e.event_id
+            elif e.type in ("tackle", "interception"):
+                assert _close(e.start, Point(x=105 - ball.x, y=68 - ball.y)), e.event_id
+                owner, ball, taker = e.team, e.start, None
+            elif e.type in ("pass", "carry", "dribble", "shot"):
+                assert e.team == owner and _close(e.start, ball), e.event_id
+                assert taker is None or e.player_id == taker, e.event_id
+                ball, taker = e.end, None
 ```
 
 - [ ] **Step 2: Write the failing mechanism tests**
@@ -990,7 +1188,7 @@ from engine.sim import MatchSim
 
 M01_PATH = Path(__file__).resolve().parents[1] / "engine" / "scripts" / "planted" / "m01.yaml"
 M01 = load_script(M01_PATH)
-SEEDS = range(12)
+SEEDS = range(20)
 
 
 def _without(sid):
@@ -1012,12 +1210,24 @@ def _in(e, lo, hi):
     return lo <= e.clock.minute < hi
 
 
-def hc_pressures_in_nv_half(events):
-    # Harbour City pressures in Northvale's first 60% are at x > 42 in Harbour City's frame.
-    return sum(
+def hc_pressure_rate(events):
+    """Harbour City pressures per Northvale action in Northvale's first 60%.
+
+    A rate, not a count: a heavier press also shortens Northvale's time on the ball there.
+    That zone is x < 63 in Northvale's frame and x > 42 in Harbour City's.
+    """
+    pressures = sum(
         e.type == "pressure" and e.team == "Harbour City" and e.start.x > 42 and _in(e, 62, 68)
         for e in events
     )
+    actions = sum(
+        e.type in ("pass", "carry", "dribble")
+        and e.team == "Northvale"
+        and e.start.x < 63
+        and _in(e, 62, 68)
+        for e in events
+    )
+    return pressures / actions
 
 
 def nv_long_ball_share(events):
@@ -1030,7 +1240,7 @@ def nv03_sprints(events):
 
 
 def test_raised_press_means_more_pressure():
-    low, _ = _paired_ci("s1", hc_pressures_in_nv_half)
+    low, _ = _paired_ci("s1", hc_pressure_rate)
     assert low > 0
 
 
@@ -1049,9 +1259,13 @@ def test_stamina_decay_costs_sprints():
 `tests/test_engine_realism.py`:
 
 ```python
-"""Match totals stay within typical top-flight ranges (spec §7.3 realism controls)."""
+"""Match totals stay within typical top-flight ranges (spec §7.3 realism controls).
+
+Seeds 100-139 are held out: none of them were used to tune the engine's constants.
+"""
 
 import statistics
+from collections import Counter
 from pathlib import Path
 
 from engine.script import load_script
@@ -1062,9 +1276,12 @@ BASE = load_script(M01_PATH).model_copy(update={"scripts": []})
 
 
 def test_totals_per_team_are_realistic():
-    passes, completion, shots, goals = [], [], [], []
-    for seed in range(10):
+    passes, completion, shots, goals, shot_x, shot_dist = [], [], [], [], [], []
+    for seed in range(100, 140):
         events = MatchSim(BASE, seed=seed).run()
+        match_shots = [e for e in events if e.type == "shot"]
+        shot_x += [round(e.start.x) for e in match_shots]
+        shot_dist += [e.shot_q.distance_m for e in match_shots]
         for team in ("Harbour City", "Northvale"):
             team_passes = [e for e in events if e.type == "pass" and e.team == team]
             passes.append(len(team_passes))
@@ -1072,9 +1289,12 @@ def test_totals_per_team_are_realistic():
             shots.append(sum(e.type == "shot" and e.team == team for e in events))
             goals.append(sum(e.type == "goal" and e.team == team for e in events))
     assert 400 <= statistics.mean(passes) <= 600
-    assert 0.74 <= statistics.mean(completion) <= 0.86
-    assert 9 <= statistics.mean(shots) <= 18
-    assert 1.8 <= 2 * statistics.mean(goals) <= 3.8
+    assert 0.75 <= statistics.mean(completion) <= 0.86
+    assert 10 <= statistics.mean(shots) <= 17
+    assert 2.4 <= 2 * statistics.mean(goals) <= 3.3
+    assert 15 <= statistics.mean(shot_dist) <= 21
+    # Open play must not pile up on one line: no single metre of x holds 15% of shots.
+    assert Counter(shot_x).most_common(1)[0][1] / len(shot_x) < 0.15
 ```
 
 - [ ] **Step 4: Run them to verify they fail**
@@ -1110,8 +1330,7 @@ PITCH_X, PITCH_Y = 105.0, 68.0
 HALF = 45 * 60
 HALF_TIME_BREAK_S = 15 * 60
 KICKOFF_MS = 1_800_000_000_000
-MAX_ACTIONS = 40
-OPEN_PLAY_MAX_X = 97.0  # open play rarely reaches the six-yard box
+OPEN_PLAY_MAX_X = 97.0  # open play bounces back off the six-yard line
 FATIGUE_PER_MIN = 0.25 / 90
 
 
@@ -1132,8 +1351,14 @@ def on_pitch(x: float, y: float) -> tuple[float, float]:
 
 
 def ahead(x: float, y: float, dist: float, angle: float) -> tuple[float, float]:
-    """A point `dist` metres away at `angle` radians, kept out of the six-yard box."""
-    return on_pitch(min(x + dist * math.cos(angle), OPEN_PLAY_MAX_X), y + dist * math.sin(angle))
+    """A point `dist` metres away at `angle` radians, reflected off the six-yard line.
+
+    Reflecting rather than clamping keeps play from piling up on one line at x = 97.
+    """
+    tx = x + dist * math.cos(angle)
+    if tx > OPEN_PLAY_MAX_X:
+        tx = 2 * OPEN_PLAY_MAX_X - tx
+    return on_pitch(tx, y + dist * math.sin(angle))
 
 
 def clock_at(period: int, s: float) -> MatchClock:
@@ -1173,6 +1398,11 @@ class MatchSim:
     def minute(self) -> int:
         return ((0 if self.period == 1 else HALF) + int(self.t)) // 60
 
+    @property
+    def bucket(self) -> int:
+        """Random-stream key: first-half stoppage (45+) and the second half's 45-47 differ."""
+        return self.period * 100 + self.minute
+
     def _advance(self, seconds: float) -> None:
         self.t += seconds
         while self._ticked + 1 < self.minute:
@@ -1182,6 +1412,7 @@ class MatchSim:
     def _physical_minute(self, m: int) -> None:
         """Fatigue and off-ball sprints for one completed minute."""
         start = m * 60 - (0 if self.period == 1 else HALF)
+        m = self.period * 100 + m  # stream bucket from here on
         for side in ("home", "away"):
             press = self.params.team(side, self.period, start)["press_height"]
             for p in self.lineups[side]:
@@ -1194,13 +1425,14 @@ class MatchSim:
                 ball = self.ball if side == self.att else mirror(self.ball)
                 x, y = position(p, attacking=side == self.att, press_height=press, ball=ball)
                 dist = self.rng.uniform(f"sprint_dist:{pid}", m, 12, 40)
+                ex = x + dist if x + dist <= PITCH_X - 0.5 else x - dist  # stay on the pitch
                 speed = 25 + 8 * p.energy + self.rng.normal(f"sprint_speed:{pid}", m, 0, 1.5)
                 self._emit(
                     EventType.SPRINT,
                     side,
                     p,
                     start=(x, y),
-                    end=on_pitch(x + dist, y),
+                    end=(ex, y),
                     at=s,
                     qualifiers={
                         "speed_kmh": round(clamp(speed, 24.5, 36.0), 1),
@@ -1219,6 +1451,7 @@ class MatchSim:
         self._emit(EventType.PERIOD_START, "home", None, start=None)
         att: Side = "home" if period == 1 else "away"
         ball = (52.5, 34.0)
+        self.att, self.ball = att, ball
         self._emit(
             EventType.SET_PIECE,
             att,
@@ -1234,10 +1467,8 @@ class MatchSim:
         deff = other(att)
         self.att, self.ball = att, ball
         carrier = self._nearest(att, ball)
-        for _ in range(MAX_ACTIONS):
-            if self.t >= end:
-                break
-            m = self.minute
+        while self.t < end:  # every action takes time, so the period end bounds a possession
+            m = self.bucket
             tp = self.params.team(att, self.period, self.t)
             press = self.params.team(deff, self.period, self.t)["press_height"]
             press = clamp(press + self.rng.normal("press_jitter", m, 0, 0.03), 0, 1)
@@ -1259,7 +1490,7 @@ class MatchSim:
         return deff, mirror(self.ball)
 
     def _maybe_press(self, deff: Side, ball: tuple[float, float], press: float) -> float:
-        m = self.minute
+        m = self.bucket
         if ball[0] < 63:  # the attacker's first 60%: where pressing happens
             p_press = 0.06 + 0.62 * press
             intensity = 0.25 + 0.6 * press + self.rng.normal("press_intensity", m, 0, 0.08)
@@ -1276,7 +1507,7 @@ class MatchSim:
     # --- actions: each returns (kept, player, ball position in the new owner's frame)
 
     def _pass(self, att: Side, carrier: Player, tp: dict[str, float], pressure: float):
-        m = self.minute
+        m = self.bucket
         x, y = self.ball
         long_p = clamp(tp["directness"] + 0.9 * pressure, 0.0, 0.9) if x < 70 else 0.05
         is_long = self.rng.chance("pass_length", m, long_p)
@@ -1324,7 +1555,7 @@ class MatchSim:
         return False, winner, lost_at
 
     def _carry(self, att: Side, carrier: Player, pressure: float):
-        m = self.minute
+        m = self.bucket
         x, y = self.ball
         dist = self.rng.uniform("carry_dist", m, 4, 14)
         ex, ey = ahead(x, y, dist, self.rng.normal("carry_angle", m, 0, 0.6))
@@ -1335,7 +1566,7 @@ class MatchSim:
         return self._challenge(att, (ex, ey))
 
     def _dribble(self, att: Side, carrier: Player):
-        m = self.minute
+        m = self.bucket
         x, y = self.ball
         ex, ey = ahead(x, y, self.rng.uniform("dribble_dist", m, 3, 7), 0.0)
         won = self.rng.chance("dribble_success", m, 0.55)
@@ -1352,7 +1583,7 @@ class MatchSim:
 
     def _challenge(self, att: Side, at: tuple[float, float]):
         """A defender wins the ball, or fouls and gives away a free kick."""
-        m = self.minute
+        m = self.bucket
         deff = other(att)
         where = mirror(at)
         defender = self._nearest(deff, where)
@@ -1366,13 +1597,13 @@ class MatchSim:
         return False, defender, where
 
     def _shot(self, att: Side, shooter: Player):
-        m = self.minute
+        m = self.bucket
         x, y = self.ball
         dx, dy = PITCH_X - x, y - 34.0
         dist = math.hypot(dx, dy)
         angle = math.degrees(math.atan2(7.32 * dx, dx * dx + dy * dy - 3.66**2))
         defenders = max(0, round(self.rng.normal("shot_defenders", m, 1.2 + (x - 85) / 15, 0.9)))
-        xg = 1 / (1 + math.exp(-(-0.75 - 0.10 * dist + 0.03 * angle - 0.30 * defenders)))
+        xg = 1 / (1 + math.exp(-(-0.65 - 0.10 * dist + 0.03 * angle - 0.30 * defenders)))
         r = self.rng.uniform("shot_outcome", m)
         if r < xg:
             outcome = Outcome.GOAL
@@ -1410,6 +1641,7 @@ class MatchSim:
 
     def _restart(self, side: Side, spot: tuple[float, float], kind: str, pause: float) -> None:
         self._advance(pause)
+        self.att, self.ball = side, spot  # the taker is chosen from the restart's shape
         self._emit(
             EventType.SET_PIECE,
             side,
@@ -1475,7 +1707,7 @@ class MatchSim:
 - [ ] **Step 6: Run them to verify they pass**
 
 Run: `uv run pytest tests/test_engine_sim.py tests/test_engine_mechanisms.py tests/test_engine_realism.py -v`
-Expected: 10 passed
+Expected: 12 passed
 
 - [ ] **Step 7: Commit**
 
@@ -1501,20 +1733,43 @@ git commit -m "Add the possession-chain match simulator" -m "Pressure from a rai
 import json
 from pathlib import Path
 
+import pytest
+
 from engine.cli import main
 from engine.io import read_events
+from engine.script import load_script
+from engine.sim import MatchSim
 
 M01 = Path(__file__).resolve().parents[1] / "engine" / "scripts" / "planted" / "m01.yaml"
 
 
-def test_generate_writes_events_and_meta(tmp_path, capsys):
+def test_generate_round_trips_events_and_writes_meta(tmp_path, capsys):
     assert main(["generate", "--script", str(M01), "--seed", "7", "--out", str(tmp_path)]) == 0
     events = read_events(tmp_path / "events.jsonl")
     meta = json.loads((tmp_path / "meta.json").read_text())
-    assert meta["match_id"] == "m01" and meta["seed"] == 7
+    assert events == MatchSim(load_script(M01), seed=7).run()
+    assert meta["match_id"] == "m01" and meta["seed"] == 7 and meta["events"] == len(events)
     assert len(meta["teams"]["home"]["players"]) == 11
-    assert len(events) == meta["events"] > 2000
     assert "Harbour City" in capsys.readouterr().out
+
+
+def test_meta_reveals_nothing_about_the_script(tmp_path):
+    # Interventions are sealed ground truth; meta.json may carry only these keys.
+    main(["generate", "--script", str(M01), "--out", str(tmp_path)])
+    meta = json.loads((tmp_path / "meta.json").read_text())
+    assert set(meta) == {"match_id", "seed", "teams", "period_lengths_s", "score", "events"}
+    for team in meta["teams"].values():
+        assert set(team) == {"name", "code", "formation", "players"}
+
+
+@pytest.mark.parametrize(
+    "args", [["--script", "missing.yaml"], ["--script", str(M01), "--seed", "-3"]]
+)
+def test_bad_input_is_a_usage_error(tmp_path, capsys, args):
+    with pytest.raises(SystemExit) as exit_info:
+        main(["generate", *args, "--out", str(tmp_path)])
+    assert exit_info.value.code == 2
+    assert "proofline-engine" in capsys.readouterr().err
 ```
 
 - [ ] **Step 2: Run it to verify it fails**
@@ -1584,9 +1839,19 @@ def read_events(path: str | Path) -> list[Event]:
 import argparse
 import sys
 
+import yaml
+from pydantic import ValidationError
+
 from engine.io import write_match
 from engine.script import load_script
 from engine.sim import MatchSim
+
+
+def _seed(text: str) -> int:
+    value = int(text)
+    if value < 0:
+        raise argparse.ArgumentTypeError("seed must be zero or positive")
+    return value
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -1594,14 +1859,20 @@ def main(argv: list[str] | None = None) -> int:
     sub = parser.add_subparsers(dest="command", required=True)
     gen = sub.add_parser("generate", help="simulate one match from a script")
     gen.add_argument("--script", required=True, help="path to a tactical script (YAML)")
-    gen.add_argument("--seed", type=int, default=None, help="overrides the script's seed")
+    gen.add_argument("--seed", type=_seed, default=None, help="overrides the script's seed")
     gen.add_argument("--out", required=True, help="output directory")
     args = parser.parse_args(argv)
 
-    script = load_script(args.script)
+    try:
+        script = load_script(args.script)
+    except (OSError, yaml.YAMLError, ValidationError) as exc:
+        parser.error(f"cannot load {args.script}: {exc}")
     sim = MatchSim(script, seed=args.seed)
     events = sim.run()
-    write_match(sim, events, args.out)
+    try:
+        write_match(sim, events, args.out)
+    except OSError as exc:
+        parser.error(f"cannot write {args.out}: {exc}")
     home, away = script.teams["home"].name, script.teams["away"].name
     print(
         f"{script.match_id} seed {sim.seed}: {len(events)} events, "
@@ -1617,18 +1888,18 @@ if __name__ == "__main__":
 - [ ] **Step 5: Run it to verify it passes**
 
 Run: `uv run pytest tests/test_engine_cli.py -v`
-Expected: 1 passed
+Expected: 4 passed
 
 - [ ] **Step 6: Generate the demo match through the installed command**
 
 Run: `uv run proofline-engine generate --script engine/scripts/planted/m01.yaml --out data/m01/`
-Expected: `m01 seed 4417: 2949 events, Harbour City 2-2 Northvale`, and `data/m01/events.jsonl` (about 1 MB) plus `data/m01/meta.json`. `data/` is gitignored; do not commit it.
+Expected: `m01 seed 4417: 3036 events, Harbour City 4-1 Northvale`, and `data/m01/events.jsonl` (about 1 MB) plus `data/m01/meta.json`. `data/` is gitignored; do not commit it.
 
 - [ ] **Step 7: Commit**
 
 ```bash
 git add engine/io.py engine/cli.py tests/test_engine_cli.py
-git commit -m "Add the proofline-engine generate command" -m "Writes one validated Event per line plus rosters and score, with nothing that reveals the script's interventions."
+git commit -m "Add the proofline-engine generate command" -m "Writes one validated Event per line plus rosters and score, with nothing that reveals the script's interventions; tests pin the round trip and the allowed meta keys. A missing or invalid script, or a negative seed, is a usage error rather than a stack trace."
 ```
 
 ---
@@ -1657,7 +1928,7 @@ uv run pytest
 uv run python scripts/export_schemas.py && git diff --exit-code -- 'docs/*.schema.json'
 ```
 
-Expected: `All checks passed!`, all files already formatted, `Engine isolation OK`, `75 passed`, and no schema diff.
+Expected: `All checks passed!`, all files already formatted, `Engine isolation OK`, `98 passed`, and no schema diff.
 
 - [ ] **Step 3: Commit**
 
@@ -1665,3 +1936,27 @@ Expected: `All checks passed!`, all files already formatted, `Engine isolation O
 git add README.md
 git commit -m "List the Match Engine in the README"
 ```
+
+---
+
+## Follow-ups for later plans
+
+Found by the per-task reviews while executing this plan; each belongs to the plan named.
+
+**Plan 2: engine proof tooling**
+- **Touchline pile-up (important).** About 16% of on-ball actions sit exactly on a touchline (y = 0.5 or 67.5) because `on_pitch()` clamps y; about 18.5% of passes end there. It needs a ball-out-of-play rule (a target off the pitch goes out for a throw-in) and a recalibration; plain reflection cuts throw-ins from 43 to 18.5 a match and lifts goals to 3.6. It inflates flank bands by about 10%, so fix it before trusting the 55' flank card.
+- **55' flank card.** The amendment filter now needs both the true start and end of a carry in y 32–50; confirm the card still reaches moderate support in v1.
+- **Goal kicks and corners.** Every non-goal shot is followed by a goal kick (about 27 a match against 15–18) and there are no corners; record this in the realism report or add corners with a recalibration.
+- **First-half stoppage starts.** An intervention `at` beyond the played first-half stoppage (1–3 min) only applies as a step at the second-half kick-off; reject first-half `at` after 45+1:00 or document it.
+- **Sealed ground truth.** Keep `engine/suites/**/ground_truth*.yaml` out of product images (wheel exclude or `.dockerignore`), and extend the isolation guard to flag product references to `engine/scripts/`, since a script reveals the planted moment as plainly as ground truth.
+- **Optional hardening.** Reject a NaN `dy_m` in `AmendmentSpec`; derive the parameter sets and `PARAM_RANGES` from one table; list the `EDGES` interventions out of time order in `tests/test_engine_params.py` so removing the sort fails a test; catch `UnicodeDecodeError` in the CLI's load step.
+
+**Plan 3: streaming and ledger**
+- **First task: a `meta.json` contract** in `contracts/` (match, teams, roster players; `period_lengths_s` typed with integer keys; consider `event_count`), written through the model and exported for `DATASET.md`, before any product code reads the file.
+- **Truncated output.** Have the Match Clock check the event count against `meta.json`, or write both files atomically.
+
+**Plan 4: State Builder**
+- **Flank bands.** Define them in spec §8.1 in the event team's frame (left y < 18, right y > 50) so amendment a1 withdraws the 55' card rather than revising it.
+- **Possession segmentation.** `possession_change` marks only open-play turnovers; segment sequences on team changes, since set pieces after throw-ins, goal kicks and kick-offs also change possession. Period markers carry the home team's name; exclude them from per-team counts.
+- **Sprints** should use the `distance_m` and `speed_kmh` qualifiers. **xG** in the State Builder uses body part while the engine's goal model does not; expect a difference between the two independent models.
+- **Window sizes.** PPDA and raw pressure counts are noisy over 6-minute windows; the pressure rate per opponent action is the robust press signal.

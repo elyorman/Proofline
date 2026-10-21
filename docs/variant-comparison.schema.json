@@ -1,0 +1,124 @@
+{
+  "$defs": {
+    "MetricEstimate": {
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "suite": {
+          "$ref": "#/$defs/Suite"
+        },
+        "value": {
+          "title": "Value",
+          "type": "number"
+        },
+        "ci_low": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ci Low"
+        },
+        "ci_high": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ci High"
+        },
+        "n": {
+          "minimum": 0,
+          "title": "N",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "name",
+        "suite",
+        "value",
+        "n"
+      ],
+      "title": "MetricEstimate",
+      "type": "object"
+    },
+    "Split": {
+      "enum": [
+        "dev",
+        "heldout"
+      ],
+      "title": "Split",
+      "type": "string"
+    },
+    "Suite": {
+      "enum": [
+        "planted",
+        "decoys",
+        "corrections",
+        "confounded",
+        "seeded_false_claims"
+      ],
+      "title": "Suite",
+      "type": "string"
+    },
+    "Variant": {
+      "enum": [
+        "A",
+        "B",
+        "C"
+      ],
+      "title": "Variant",
+      "type": "string"
+    }
+  },
+  "description": "Paired comparison of two runs on the same cases, e.g. Proofline vs single agent.\n\n`difference` is variant_a minus variant_b, with a paired bootstrap CI over the\ncases both runs scored; never derived from the two runs' separate CIs. Stored in\neval_runs beside the runs it compares, so the README's A-vs-B number has a record.",
+  "properties": {
+    "comparison_id": {
+      "title": "Comparison Id",
+      "type": "string"
+    },
+    "run_a": {
+      "description": "run_id of variant_a's EvalRun",
+      "title": "Run A",
+      "type": "string"
+    },
+    "run_b": {
+      "description": "run_id of variant_b's EvalRun",
+      "title": "Run B",
+      "type": "string"
+    },
+    "variant_a": {
+      "$ref": "#/$defs/Variant"
+    },
+    "variant_b": {
+      "$ref": "#/$defs/Variant"
+    },
+    "split": {
+      "$ref": "#/$defs/Split"
+    },
+    "difference": {
+      "$ref": "#/$defs/MetricEstimate"
+    }
+  },
+  "required": [
+    "comparison_id",
+    "run_a",
+    "run_b",
+    "variant_a",
+    "variant_b",
+    "split",
+    "difference"
+  ],
+  "title": "VariantComparison",
+  "type": "object"
+}

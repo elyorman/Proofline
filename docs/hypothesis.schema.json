@@ -5,7 +5,8 @@
         "tactics",
         "physical",
         "game_state",
-        "synthesis"
+        "synthesis",
+        "single"
       ],
       "title": "AgentRole",
       "type": "string"
@@ -154,7 +155,7 @@
       "type": "object"
     },
     "ThresholdKind": {
-      "description": "How a predicted change is measured against its baseline.\n\nRELATIVE: |value - baseline| / |baseline|; only for ratios and counts\nwith a baseline well above zero.\nABSOLUTE: |value - baseline| in the metric's own units.\nSIGMA: |value - baseline| / std from the `distribution` tool; the default\nfor signed or near-zero metrics such as momentum.",
+      "description": "How a predicted change is measured against its baseline. Changes are signed.\n\nRELATIVE: (value - baseline) / |baseline|; only for metrics pinned relative,\ni.e. ratios and counts with a baseline well above zero.\nABSOLUTE: value - baseline, in the metric's own units.\nSIGMA: (value - baseline) / std from the `distribution` tool; the default\nfor signed or near-zero metrics such as momentum.",
       "enum": [
         "relative",
         "absolute",

@@ -5,7 +5,8 @@
         "tactics",
         "physical",
         "game_state",
-        "synthesis"
+        "synthesis",
+        "single"
       ],
       "title": "AgentRole",
       "type": "string"

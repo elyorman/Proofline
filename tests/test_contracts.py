@@ -1,3 +1,6 @@
+import re
+from pathlib import Path
+
 import pytest
 from pydantic import ValidationError
 
@@ -5,9 +8,12 @@ from contracts import (
     Case,
     CaseOutcome,
     Cause,
+    Cue,
+    DependencyEntry,
     EvalRun,
     Event,
     EventAmendment,
+    Hypothesis,
     InsightCard,
     LanguageLevel,
     MatchClock,
@@ -15,6 +21,7 @@ from contracts import (
     Profile,
     SupportLevel,
     ThresholdKind,
+    ToolResult,
     Window,
 )
 from contracts.card import (
@@ -29,11 +36,14 @@ from contracts.card import (
     Verification,
 )
 from contracts.case import CaseStage, Checkpoint, TriggerMetric
-from contracts.eval_run import MetricEstimate, Split, Suite, Variant
+from contracts.cue import ShowAt
+from contracts.eval_run import MetricEstimate, Split, Suite, Variant, VariantComparison
 from contracts.event import CoordinateShift, EventType, Outcome, PassQualifiers, Point
 from contracts.prediction import Direction
 from contracts.profile import Expertise
 from contracts.taxonomy import AgentRole, BaselineScope, Metric, MomentType, OverlayTemplate
+
+SPEC = Path(__file__).resolve().parents[1] / "docs" / "spec.md"
 
 # --- clock and window -------------------------------------------------------
 
@@ -150,6 +160,121 @@ def test_prediction_defaults_threshold_kind_per_metric():
     assert ppda.threshold_kind == ThresholdKind.RELATIVE
 
 
+def _prediction(**overrides):
+    base = dict(
+        metric=Metric.PPDA,
+        subject="Harbour City",
+        window="58:00-63:00",
+        compare_to=BaselineScope.FIRST_HALF,
+        direction=Direction.DOWN,
+        min_change=0.3,
+    )
+    base.update(overrides)
+    return Prediction(**base)
+
+
+def test_relative_threshold_only_on_metrics_pinned_relative():
+    with pytest.raises(ValidationError):
+        _prediction(metric=Metric.MOMENTUM, threshold_kind=ThresholdKind.RELATIVE)
+    assert _prediction(threshold_kind=ThresholdKind.SIGMA).threshold_kind == ThresholdKind.SIGMA
+
+
+def test_prediction_is_judged_on_signed_change():
+    ppda_down = _prediction()
+    assert ppda_down.supported_by(-0.46)
+    assert not ppda_down.supported_by(0.4)  # large change, wrong direction
+    assert not ppda_down.supported_by(-0.1)  # right direction, too small
+
+
+def _hypothesis(agent, cause):
+    sprints = _prediction(metric=Metric.SPRINT_COUNT, subject="Northvale", min_change=0.15)
+    return Hypothesis(
+        hypothesis_id="hyp-1", case_id="case-063", agent=agent, taxonomy=cause, prediction=sprints
+    )
+
+
+def test_agents_register_only_causes_in_their_own_domain():
+    assert _hypothesis(AgentRole.PHYSICAL, Cause.UNIT_FATIGUE).agent == AgentRole.PHYSICAL
+    with pytest.raises(ValidationError):
+        _hypothesis(AgentRole.TACTICS, Cause.UNIT_FATIGUE)
+
+
+def test_synthesis_cannot_register_hypotheses():
+    with pytest.raises(ValidationError):
+        _hypothesis(AgentRole.SYNTHESIS, Cause.UNIT_FATIGUE)
+
+
+def test_other_and_none_are_outcomes_not_hypotheses():
+    with pytest.raises(ValidationError):
+        _hypothesis(AgentRole.TACTICS, Cause.NONE)
+
+
+def test_single_agent_baseline_registers_any_domain():
+    assert _hypothesis(AgentRole.SINGLE, Cause.UNIT_FATIGUE).agent == AgentRole.SINGLE
+    assert _hypothesis(AgentRole.SINGLE, Cause.PRESS_INTENSITY_UP).agent == AgentRole.SINGLE
+
+
+# --- tool results -----------------------------------------------------------
+
+
+def _tool_result(tool, **fields):
+    return ToolResult(
+        tool_call_id="tc-1",
+        tool=tool,
+        match_id="m01",
+        n_events=41,
+        evidence_set_id="es-tc-1",
+        computed_at_ms=0,
+        **fields,
+    )
+
+
+def test_compare_result_carries_both_windows_and_effect_size():
+    result = _tool_result(
+        "compare",
+        metric=Metric.PPDA,
+        subject="Harbour City",
+        window="58:00-63:00",
+        value=6.1,
+        compared_with={"window": "50:00-55:00", "value": 10.8, "n_events": 37},
+        effect_size=-1.4,
+    )
+    assert result.compared_with.window.start == MatchClock.parse("50:00")
+
+
+def test_multi_valued_and_instant_tools_fit():
+    load = _tool_result(
+        "player_load",
+        subject="NV-03",
+        window="58:00-63:00",
+        values={"sprints": 4, "high_intensity_runs": 9, "distance_m": 612.0},
+    )
+    state = _tool_result("game_state", at="63:12", values={"home_goals": 1, "away_goals": 0})
+    assert load.values["sprints"] == 4
+    assert state.subject is None
+
+
+def test_tool_result_requires_the_fields_its_tool_returns():
+    with pytest.raises(ValidationError):
+        _tool_result(
+            "compare", metric=Metric.PPDA, subject="Harbour City", window="58:00-63:00", value=6.1
+        )
+
+
+def test_tool_name_is_from_the_catalog():
+    with pytest.raises(ValidationError):
+        _tool_result(
+            "metrc", metric=Metric.PPDA, subject="Harbour City", window="58:00-63:00", value=6.1
+        )
+
+
+def test_dependency_ids_are_unique_across_matches():
+    first = DependencyEntry(event_id="e1", match_id="m01")
+    second = DependencyEntry(event_id="e1", match_id="m02")
+    assert first.id != second.id
+    assert first.model_dump()["id"] == "m01:e1"
+
+
 # --- verification -----------------------------------------------------------
 
 
@@ -195,6 +320,34 @@ def test_rejected_requires_reason_and_no_support():
 def test_language_level_cannot_contradict_support():
     with pytest.raises(ValidationError):
         _verification(support_level=SupportLevel.WEAK, language_level=LanguageLevel.ASSERTIVE)
+
+
+def test_corrected_cannot_skip_checks():
+    skipped = {
+        name: CheckResult.SKIPPED
+        for name in (
+            "baseline_check",
+            "sample_size_check",
+            "contradiction_check",
+            "number_check",
+            "semantic_check",
+        )
+    }
+    with pytest.raises(ValidationError):
+        _verification(status="corrected", **skipped)
+    with pytest.raises(ValidationError):
+        _verification(
+            status="corrected",
+            number_check=CheckResult.SKIPPED,
+            semantic_check=CheckResult.CORRECTED,
+        )
+
+
+def test_corrected_needs_a_corrected_check():
+    with pytest.raises(ValidationError):
+        _verification(status="corrected")
+    fixed = _verification(status="corrected", number_check=CheckResult.CORRECTED)
+    assert fixed.status == "corrected"
 
 
 # --- cards ------------------------------------------------------------------
@@ -268,6 +421,29 @@ def test_cue_template_is_an_enum_everywhere():
         BroadcastCueSpec(template="presure_shift_bar", fields={})
 
 
+def test_cue_slot_cannot_close_before_it_opens():
+    assert ShowAt(mode="immediate", not_before="63:40", not_after="63:40").mode == "immediate"
+    with pytest.raises(ValidationError):
+        ShowAt(mode="next_dead_ball", not_before="64:25", not_after="63:40")
+
+
+def _spec_example(heading):
+    text = SPEC.read_text(encoding="utf-8")
+    return re.search(re.escape(heading) + r".*?```json\n(.*?)```", text, re.S).group(1)
+
+
+@pytest.mark.parametrize(
+    "heading,model",
+    [
+        ("## 5. Insight Card", InsightCard),
+        ("### 12.3 Broadcast Cue Feed", Cue),
+        ("## 13. Personalization model", Profile),
+    ],
+)
+def test_spec_examples_validate(heading, model):
+    model.model_validate_json(_spec_example(heading))
+
+
 # --- case, eval run, profile ------------------------------------------------
 
 
@@ -311,21 +487,55 @@ def test_case_checkpoints_in_order_and_budget():
         )
 
 
-def test_eval_run_ci_contains_estimate():
-    run = EvalRun(
+def _estimate(**overrides):
+    base = dict(
+        name="planted_recall", suite=Suite.PLANTED, value=0.8, ci_low=0.7, ci_high=0.9, n=40
+    )
+    base.update(overrides)
+    return MetricEstimate(**base)
+
+
+def _eval_run(metrics):
+    return EvalRun(
         run_id="r1",
         variant=Variant.A_PROOFLINE,
         suites=[Suite.PLANTED],
         split=Split.HELDOUT,
         model_tier="final",
         match_ids=["m01"],
-        metrics=[MetricEstimate(name="planted_recall", value=0.8, ci_low=0.7, ci_high=0.9, n=40)],
+        metrics=metrics,
         started_at_ms=0,
         finished_at_ms=10,
     )
-    assert run.metrics[0].n == 40
+
+
+def test_eval_run_ci_contains_estimate():
+    assert _eval_run([_estimate()]).metrics[0].n == 40
     with pytest.raises(ValidationError):
-        MetricEstimate(name="x", value=0.95, ci_low=0.7, ci_high=0.9, n=40)
+        _estimate(value=0.95)
+
+
+def test_eval_metric_belongs_to_a_suite_the_run_covered():
+    with pytest.raises(ValidationError):
+        _eval_run([_estimate(name="decoy_restraint", suite=Suite.DECOYS)])
+
+
+def _comparison(variant_b):
+    return VariantComparison(
+        comparison_id="cmp-1",
+        run_a="r-a",
+        run_b="r-b",
+        variant_a=Variant.A_PROOFLINE,
+        variant_b=variant_b,
+        split=Split.HELDOUT,
+        difference=_estimate(value=0.12, ci_low=0.03, ci_high=0.21),
+    )
+
+
+def test_variant_comparison_is_a_paired_difference_of_two_variants():
+    assert _comparison(Variant.B_SINGLE_AGENT).difference.value == 0.12
+    with pytest.raises(ValidationError):
+        _comparison(Variant.A_PROOFLINE)
 
 
 def test_profile_budget_defaults_by_expertise():

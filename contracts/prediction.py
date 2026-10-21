@@ -11,6 +11,7 @@ from pydantic import BaseModel, Field, model_validator
 from contracts.clock import Window
 from contracts.taxonomy import (
     DEFAULT_THRESHOLD_KIND,
+    DOMAIN_OF_AGENT,
     AgentRole,
     BaselineScope,
     Cause,
@@ -39,9 +40,17 @@ class Prediction(BaseModel):
     def _default_threshold(self) -> "Prediction":
         if self.threshold_kind is None:
             self.threshold_kind = DEFAULT_THRESHOLD_KIND[self.metric]
-        if self.threshold_kind == ThresholdKind.RELATIVE and self.min_change > 5:
-            raise ValueError("relative min_change above 500% is not a real prediction")
+        if self.threshold_kind == ThresholdKind.RELATIVE:
+            if DEFAULT_THRESHOLD_KIND[self.metric] != ThresholdKind.RELATIVE:
+                raise ValueError(f"{self.metric} is not pinned relative; use absolute or sigma")
+            if self.min_change > 5:
+                raise ValueError("relative min_change above 500% is not a real prediction")
         return self
+
+    def supported_by(self, observed_change: float) -> bool:
+        """Mechanical verdict: the signed change must point the predicted way, far enough."""
+        signed = observed_change if self.direction == Direction.UP else -observed_change
+        return signed >= self.min_change
 
 
 class Hypothesis(BaseModel):
@@ -50,6 +59,16 @@ class Hypothesis(BaseModel):
     agent: AgentRole
     taxonomy: Cause
     prediction: Prediction
+
+    @model_validator(mode="after")
+    def _agent_owns_cause(self) -> "Hypothesis":
+        if self.agent == AgentRole.SYNTHESIS:
+            raise ValueError("synthesis ranks hypotheses; it does not register them")
+        if self.taxonomy.domain == "fallback":
+            raise ValueError("'other' and 'none' are synthesis outcomes, not hypotheses")
+        if self.agent != AgentRole.SINGLE and self.taxonomy.domain != DOMAIN_OF_AGENT[self.agent]:
+            raise ValueError(f"{self.agent} cannot register a {self.taxonomy.domain} cause")
+        return self
 
 
 class TestOutcome(StrEnum):
@@ -60,7 +79,7 @@ class TestOutcome(StrEnum):
 class HypothesisTest(BaseModel):
     hypothesis_id: str
     tool_call_id: str
-    observed_change: float = Field(description="in the prediction's threshold units")
+    observed_change: float = Field(description="signed, in the prediction's threshold units")
     outcome: TestOutcome
     reason: str
 

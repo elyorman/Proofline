@@ -26,6 +26,7 @@ class Split(StrEnum):
 
 class MetricEstimate(BaseModel):
     name: str
+    suite: Suite
     value: float
     ci_low: float | None = None
     ci_high: float | None = None
@@ -60,4 +61,34 @@ class EvalRun(BaseModel):
     def _timing(self) -> "EvalRun":
         if self.finished_at_ms < self.started_at_ms:
             raise ValueError("finished before started")
+        return self
+
+    @model_validator(mode="after")
+    def _metrics_from_run_suites(self) -> "EvalRun":
+        for m in self.metrics:
+            if m.suite not in self.suites:
+                raise ValueError(f"metric {m.name} is from {m.suite}, a suite this run did not run")
+        return self
+
+
+class VariantComparison(BaseModel):
+    """Paired comparison of two runs on the same cases, e.g. Proofline vs single agent.
+
+    `difference` is variant_a minus variant_b, with a paired bootstrap CI over the
+    cases both runs scored; never derived from the two runs' separate CIs. Stored in
+    eval_runs beside the runs it compares, so the README's A-vs-B number has a record.
+    """
+
+    comparison_id: str
+    run_a: str = Field(description="run_id of variant_a's EvalRun")
+    run_b: str = Field(description="run_id of variant_b's EvalRun")
+    variant_a: Variant
+    variant_b: Variant
+    split: Split
+    difference: MetricEstimate
+
+    @model_validator(mode="after")
+    def _two_variants(self) -> "VariantComparison":
+        if self.variant_a == self.variant_b:
+            raise ValueError("a comparison needs two different variants")
         return self

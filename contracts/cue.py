@@ -3,7 +3,7 @@
 from enum import StrEnum
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 from contracts.clock import MatchClock
 from contracts.taxonomy import LanguageLevel, OverlayTemplate
@@ -30,6 +30,12 @@ class ShowAt(BaseModel):
     mode: Literal["immediate", "next_dead_ball"]
     not_before: MatchClock
     not_after: MatchClock
+
+    @model_validator(mode="after")
+    def _ordered(self) -> "ShowAt":
+        if self.not_after < self.not_before:
+            raise ValueError(f"cue slot closes at {self.not_after} before it opens")
+        return self
 
 
 class Cue(BaseModel):

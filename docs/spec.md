@@ -78,7 +78,7 @@ The Insight Card is the single unit of truth every surface renders.
   "subject": { "team": "Harbour City", "players": [] },
 
   "timing": {
-    "change_window": ["58:00", "63:00"],
+    "change_window": "58:00-63:00",
     "detected_at": "63:12",
     "verified_at": "63:31",
     "published_at": "63:40"
@@ -100,10 +100,10 @@ The Insight Card is the single unit of truth every surface renders.
   "claim": "Harbour City have raised their press since around the hour, and Northvale have started going long far more often.",
 
   "evidence": [
-    { "metric": "ppda", "team": "Harbour City", "window": "58:00-63:00",
+    { "metric": "ppda", "subject": "Harbour City", "window": "58:00-63:00",
       "value": 6.1, "baseline": { "window": "first_half", "value": 11.4 },
       "n_events": 41, "tool_call_id": "tc-8841" },
-    { "metric": "long_ball_share", "team": "Northvale", "window": "58:00-63:00",
+    { "metric": "long_ball_share", "subject": "Northvale", "window": "58:00-63:00",
       "value": 0.48, "baseline": { "window": "first_half", "value": 0.21 },
       "n_events": 33, "tool_call_id": "tc-8842" }
   ],
@@ -259,7 +259,7 @@ amendments:
     reason: "provider coordinate recalibration"
 ```
 
-For the demo match the sequence is: a smaller card about Northvale attacking down the right (`tactical.flank_overload`, weak or moderate support) published around 55'; the press card at 63'; the amendment at 68' relocating the 48–55' carries; the 55' card withdrawn; the press card untouched.
+For the demo match the sequence is: a smaller card about Northvale attacking down the right (`tactical.flank_overload`, **moderate** support: a weak card never reaches the casual demo fan, whose minimum language level is `measured`, so there would be no fan Update card to show) published around 55'; the press card at 63'; the amendment at 68' relocating the 48–55' carries; the 55' card withdrawn; the press card untouched.
 
 Amendments are **batches**, as real feed corrections usually are. A single amended event rarely moves a windowed metric enough to change a verdict, so the correction suite uses batch amendments and includes claims near their support boundary.
 
@@ -305,7 +305,7 @@ Paired runs are an evaluation tool only. Live, agents reason from the single mat
 
 ### 8.1 Match State Builder
 
-Pure analytics, exposed as MCP tools. Every call returns the value, window, event IDs and versions used, `n_events` and a `tool_call_id`.
+Pure analytics, exposed as MCP tools. Every call returns the value, window, event IDs and versions used, `n_events` and a `tool_call_id`, as a `ToolResult` whose required fields depend on the tool: `compare` adds the second window and an effect size, `shape`, `player_load` and `game_state` return named `values`, and `events` returns the events at their versions.
 
 | Metric | Definition | Status |
 |---|---|---|
@@ -390,11 +390,11 @@ Every ambient element is tappable: "Why?" opens an on-demand case for that windo
 }
 ```
 
-Validation: metric exists, subject resolves, window and baseline are standard scopes, direction and threshold present. `threshold_kind` is `relative` (ratios and counts with a baseline well above zero), `absolute` (the metric's own units) or `sigma` (standard deviations from the `distribution` tool, the default for signed or near-zero metrics such as momentum); each metric has a pinned default. The prediction is judged mechanically against the tool result, not by the agent.
+Validation: metric exists, subject resolves, window and baseline are standard scopes, direction and threshold present. `threshold_kind` is `relative` (ratios and counts with a baseline well above zero), `absolute` (the metric's own units) or `sigma` (standard deviations from the `distribution` tool, the default for signed or near-zero metrics such as momentum); each metric has a pinned default, and an agent may switch to `absolute` or `sigma` but never to `relative` on a metric not pinned relative. Changes are signed: a prediction holds only when the change points the predicted way by at least `min_change`. The prediction is judged mechanically against the tool result (`Prediction.supported_by`), not by the agent.
 
 **Protocol:**
 1. **Open.** The case is written to the ledger with its trigger metrics and window.
-2. **Pre-register** (agents in parallel). Each agent decides whether the case touches its domain and registers up to two hypotheses.
+2. **Pre-register** (agents in parallel). Each agent decides whether the case touches its domain and registers up to two hypotheses, each a cause in its own domain; `other` and `none` are synthesis outcomes, never hypotheses.
 3. **Test.** Each agent spends its budget on tool calls of its choosing. Predictions are scored mechanically; failed hypotheses are discarded with the reason.
 4. **Cross-examine.** Each surviving hypothesis goes to the other agents, who may each register and run one structured counter-test. Result: holds, weakened or refuted.
 5. **Attribute.** A synthesis step ranks survivors into primary and secondary. Nothing survives: `none`. A real effect with no fitting class: `other`.
@@ -408,12 +408,14 @@ An independent stage that sees only the propositions, claim text, variants and e
 
 | Check | How | Model |
 |---|---|---|
-| Recompute | Every number recomputed from raw events at the recorded versions | Deterministic |
+| Recompute | Each evidence number's tool call re-run over its evidence set at the recorded versions; exact match (below) | Deterministic |
 | Baseline fairness | Comparison window must be a standard scope | Deterministic |
 | Sample size | Minimum `n_events` per metric and window | Deterministic |
 | Contradiction scan | Related metrics checked for an opposite-direction signal | Deterministic |
 | Number check | Every number in every variant matches the evidence | Deterministic |
 | Semantic entailment | Each sentence, in every language and headline, is entailed by the propositions at the allowed language level; flags overstatement | LLM, Foundry-hosted, different model family from the agents; English at build, Spanish as stretch |
+
+**Recompute, defined.** For each evidence number, the Verifier re-runs the tool call named by its `tool_call_id`, with the same arguments, over exactly the events in its evidence set at their recorded versions (never by re-querying the window or scope, which for `match_so_far` grows between the call and verification). The stored value must match exactly; rounding applies only to the number check on text. The Correction Watcher runs the same procedure at the amended versions. This proves each published number is what the tool computes from those events, not that the tool is correct; tool correctness comes from the `state/` unit tests. Evidence sets therefore record every event a tool read, including events it filtered out, so an amendment that moves events into a team or zone a tool filters on still reaches the dependency index.
 
 **Support level** (deterministic rules):
 
@@ -426,7 +428,7 @@ An independent stage that sees only the propositions, claim text, variants and e
 
 Effect-size bands and minimum samples are pinned per metric in `docs/support-rules.md`, tuned on the dev split only.
 
-**Outcomes:** `passed` (recompute matches and every check passed), `corrected` (no check failed; numbers or wording fixed then re-checked) or `rejected` (carries a `rejection_reason`, shown on the console). The contract refuses any other combination. The Evaluator injects seeded false claims to measure the catch rate. Groundedness and language quality also run as **Foundry evaluations**, linked from every card.
+**Outcomes:** `passed` (recompute matches and every check passed), `corrected` (every check passed or corrected, at least one corrected, none skipped; numbers or wording fixed then re-checked) or `rejected` (carries a `rejection_reason`, shown on the console). The contract refuses any other combination. The Evaluator injects seeded false claims to measure the catch rate. Groundedness and language quality also run as **Foundry evaluations**, linked from every card.
 
 ### 9.3 Narrator
 
@@ -504,7 +506,7 @@ If the revise path slips, ship withdraw-only with full propagation; never ship p
 | Variant | What changes |
 |---|---|
 | A. Proofline | Full design |
-| B. Single agent | One agent with every tool and the same total budget |
+| B. Single agent | One agent (role `single`, may register causes in any domain) with every tool and the same total budget |
 | C. No cross-examination | Parallel agents, straight to synthesis (stretch) |
 
 Same suites, same tools, same Verifier. B is built first in the dependency order and reported with CIs whichever way it falls. If B matches A on the planted suite, the confounded suite may be added with causes that require a second domain's counter-test, but **every suite run is reported, including those where B matched A**; no suite is dropped from the scoreboard because of its result. If no gap appears anywhere, the category case rests on cross-examination traces, corrections and recovery, and the README says the gap was not found.
@@ -519,12 +521,12 @@ One Cosmos DB store, partitioned by `match_id`.
 | metrics | Metric snapshots per window, including `player_load` aggregates reduced from tracking |
 | cases | Cases, status and stage checkpoints |
 | hypotheses | Structured predictions, tests, cross-examination results |
-| evidence_sets | Per tool call: the event IDs and versions it read; every tool returns a `ToolResult` that points at one |
+| evidence_sets | Per tool call: the event IDs and versions it read, including events it filtered out; every tool returns a `ToolResult` that points at one |
 | dependencies | Index from event ID to evidence sets and cards (partition key `event_id`) |
 | cards | Insight Cards with all revisions |
 | cues | Director schedules, cue log, correction cues |
 | audit | Every agent action and human override |
-| eval_runs | Evaluation and ablation results; every README number comes from one of these records |
+| eval_runs | Evaluation and ablation results, each metric tagged with its suite, plus paired A-vs-B `VariantComparison` records; every README number comes from one of these records |
 
 Change feeds on `cards` trigger the Director; on `events` the Correction Watcher. Director output reaches surfaces through Web PubSub. The ledger is browsable on the Analyst Console.
 
@@ -566,6 +568,7 @@ Synthetic data creation is the first bullet of the first judging criterion and t
 ```json
 {
   "cue_id": "cue-0412",
+  "match_id": "m01",
   "insight_id": "ins-m01-063-01",
   "insight_revision": 1,
   "kind": "insight",

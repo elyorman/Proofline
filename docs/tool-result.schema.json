@@ -45,6 +45,177 @@
       "title": "BaselineValue",
       "type": "object"
     },
+    "Event": {
+      "properties": {
+        "event_id": {
+          "title": "Event Id",
+          "type": "string"
+        },
+        "version": {
+          "default": 1,
+          "minimum": 1,
+          "title": "Version",
+          "type": "integer"
+        },
+        "match_id": {
+          "title": "Match Id",
+          "type": "string"
+        },
+        "clock": {
+          "$ref": "#/$defs/MatchClock"
+        },
+        "wall_clock_ms": {
+          "minimum": 0,
+          "title": "Wall Clock Ms",
+          "type": "integer"
+        },
+        "type": {
+          "$ref": "#/$defs/EventType"
+        },
+        "team": {
+          "title": "Team",
+          "type": "string"
+        },
+        "player_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Player Id"
+        },
+        "position": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Position"
+        },
+        "start": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Point"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "end": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Point"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "outcome": {
+          "$ref": "#/$defs/Outcome",
+          "default": "na"
+        },
+        "body_part": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Body Part"
+        },
+        "pass_q": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PassQualifiers"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "shot_q": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ShotQualifiers"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "qualifiers": {
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "boolean"
+              }
+            ]
+          },
+          "title": "Qualifiers",
+          "type": "object"
+        }
+      },
+      "required": [
+        "event_id",
+        "match_id",
+        "clock",
+        "wall_clock_ms",
+        "type",
+        "team"
+      ],
+      "title": "Event",
+      "type": "object"
+    },
+    "EventType": {
+      "enum": [
+        "pass",
+        "carry",
+        "dribble",
+        "shot",
+        "tackle",
+        "interception",
+        "clearance",
+        "pressure",
+        "duel",
+        "foul",
+        "card",
+        "substitution",
+        "possession_change",
+        "set_piece",
+        "goal",
+        "sprint",
+        "period_start",
+        "period_end"
+      ],
+      "title": "EventType",
+      "type": "string"
+    },
     "MatchClock": {
       "description": "Period plus elapsed minute and second within that period's own numbering.\n\n`minute` is the on-screen minute: 0-45+ in the first half, 45-90+ in the second.",
       "properties": {
@@ -101,6 +272,130 @@
       "title": "Metric",
       "type": "string"
     },
+    "Outcome": {
+      "enum": [
+        "complete",
+        "incomplete",
+        "won",
+        "lost",
+        "on_target",
+        "off_target",
+        "blocked",
+        "goal",
+        "na"
+      ],
+      "title": "Outcome",
+      "type": "string"
+    },
+    "PassQualifiers": {
+      "properties": {
+        "distance_m": {
+          "minimum": 0,
+          "title": "Distance M",
+          "type": "number"
+        },
+        "ball_speed_kmh": {
+          "minimum": 0,
+          "title": "Ball Speed Kmh",
+          "type": "number"
+        },
+        "pressure_on_passer": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Pressure On Passer",
+          "type": "number"
+        },
+        "receiver_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Receiver Id"
+        }
+      },
+      "required": [
+        "distance_m",
+        "ball_speed_kmh",
+        "pressure_on_passer"
+      ],
+      "title": "PassQualifiers",
+      "type": "object"
+    },
+    "Point": {
+      "properties": {
+        "x": {
+          "maximum": 105.0,
+          "minimum": 0,
+          "title": "X",
+          "type": "number"
+        },
+        "y": {
+          "maximum": 68.0,
+          "minimum": 0,
+          "title": "Y",
+          "type": "number"
+        }
+      },
+      "required": [
+        "x",
+        "y"
+      ],
+      "title": "Point",
+      "type": "object"
+    },
+    "ShotQualifiers": {
+      "properties": {
+        "shot_speed_kmh": {
+          "minimum": 0,
+          "title": "Shot Speed Kmh",
+          "type": "number"
+        },
+        "distance_m": {
+          "minimum": 0,
+          "title": "Distance M",
+          "type": "number"
+        },
+        "angle_deg": {
+          "maximum": 180,
+          "minimum": 0,
+          "title": "Angle Deg",
+          "type": "number"
+        },
+        "defenders_in_cone": {
+          "minimum": 0,
+          "title": "Defenders In Cone",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "shot_speed_kmh",
+        "distance_m",
+        "angle_deg",
+        "defenders_in_cone"
+      ],
+      "title": "ShotQualifiers",
+      "type": "object"
+    },
+    "ToolName": {
+      "description": "The MCP tool catalog (spec \u00a78.1).",
+      "enum": [
+        "metric",
+        "compare",
+        "baseline",
+        "events",
+        "shape",
+        "player_load",
+        "game_state",
+        "distribution"
+      ],
+      "title": "ToolName",
+      "type": "string"
+    },
     "Window": {
       "description": "Half-open match-clock window [start, end). Accepts \"58:00-63:00\".",
       "properties": {
@@ -117,17 +412,40 @@
       ],
       "title": "Window",
       "type": "object"
+    },
+    "WindowValue": {
+      "description": "The second window of a `compare` call; its events are in the call's evidence set.",
+      "properties": {
+        "window": {
+          "$ref": "#/$defs/Window"
+        },
+        "value": {
+          "title": "Value",
+          "type": "number"
+        },
+        "n_events": {
+          "minimum": 0,
+          "title": "N Events",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "window",
+        "value",
+        "n_events"
+      ],
+      "title": "WindowValue",
+      "type": "object"
     }
   },
+  "description": "One result shape for the whole catalog; REQUIRED_FIELDS says what each tool fills.",
   "properties": {
     "tool_call_id": {
       "title": "Tool Call Id",
       "type": "string"
     },
     "tool": {
-      "description": "metric | compare | baseline | events | shape | ...",
-      "title": "Tool",
-      "type": "string"
+      "$ref": "#/$defs/ToolName"
     },
     "match_id": {
       "title": "Match Id",
@@ -145,8 +463,17 @@
       "default": null
     },
     "subject": {
-      "title": "Subject",
-      "type": "string"
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "team, unit or player; not game_state",
+      "title": "Subject"
     },
     "window": {
       "anyOf": [
@@ -158,6 +485,18 @@
         }
       ],
       "default": null
+    },
+    "at": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/MatchClock"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "game_state only"
     },
     "value": {
       "anyOf": [
@@ -171,6 +510,14 @@
       "default": null,
       "title": "Value"
     },
+    "values": {
+      "additionalProperties": {
+        "type": "number"
+      },
+      "description": "named numbers from shape, player_load, game_state",
+      "title": "Values",
+      "type": "object"
+    },
     "baseline": {
       "anyOf": [
         {
@@ -181,6 +528,29 @@
         }
       ],
       "default": null
+    },
+    "compared_with": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/WindowValue"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "effect_size": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Effect Size"
     },
     "std": {
       "anyOf": [
@@ -195,6 +565,14 @@
       "default": null,
       "description": "from distribution, for sigma",
       "title": "Std"
+    },
+    "events": {
+      "description": "events tool, at their versions",
+      "items": {
+        "$ref": "#/$defs/Event"
+      },
+      "title": "Events",
+      "type": "array"
     },
     "n_events": {
       "minimum": 0,
@@ -215,7 +593,6 @@
     "tool_call_id",
     "tool",
     "match_id",
-    "subject",
     "n_events",
     "evidence_set_id",
     "computed_at_ms"

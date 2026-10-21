@@ -8,7 +8,7 @@ from contracts.card import InsightCard
 from contracts.case import Case
 from contracts.clock import MatchClock, Window
 from contracts.cue import Cue
-from contracts.eval_run import EvalRun
+from contracts.eval_run import EvalRun, VariantComparison
 from contracts.event import Event, EventAmendment, EventRef, TrackingSample
 from contracts.prediction import CrossExamination, Hypothesis, HypothesisTest, Prediction
 from contracts.profile import Profile
@@ -25,7 +25,7 @@ from contracts.taxonomy import (
     SupportLevel,
     ThresholdKind,
 )
-from contracts.tool_result import DependencyEntry, EvidenceSet, ToolResult
+from contracts.tool_result import DependencyEntry, EvidenceSet, ToolName, ToolResult
 
 __all__ = [
     "AgentRole",
@@ -54,7 +54,9 @@ __all__ = [
     "Profile",
     "SupportLevel",
     "ThresholdKind",
+    "ToolName",
     "ToolResult",
     "TrackingSample",
+    "VariantComparison",
     "Window",
 ]

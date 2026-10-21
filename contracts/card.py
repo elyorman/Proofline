@@ -125,8 +125,11 @@ class Verification(BaseModel):
             if self.support_level is None:
                 raise ValueError("a passed verification carries a support level")
         elif self.status == "corrected":
-            if self.recompute != "match" or any(c == CheckResult.FAILED for c in self.checks):
-                raise ValueError("status 'corrected' allows no failed check and no mismatch")
+            allowed = (CheckResult.PASSED, CheckResult.CORRECTED)
+            if self.recompute != "match" or any(c not in allowed for c in self.checks):
+                raise ValueError("status 'corrected' allows no failed, skipped or mismatched check")
+            if CheckResult.CORRECTED not in self.checks:
+                raise ValueError("status 'corrected' needs at least one corrected check")
             if self.support_level is None:
                 raise ValueError("a corrected verification carries a support level")
         else:

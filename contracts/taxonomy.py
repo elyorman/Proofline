@@ -37,6 +37,7 @@ class AgentRole(StrEnum):
     PHYSICAL = "physical"
     GAME_STATE = "game_state"
     SYNTHESIS = "synthesis"
+    SINGLE = "single"  # ablation B: one agent with every tool, any domain
 
 
 DOMAIN_OF_AGENT: dict[AgentRole, str] = {
@@ -122,12 +123,12 @@ class Metric(StrEnum):
 
 
 class ThresholdKind(StrEnum):
-    """How a predicted change is measured against its baseline.
+    """How a predicted change is measured against its baseline. Changes are signed.
 
-    RELATIVE: |value - baseline| / |baseline|; only for ratios and counts
-    with a baseline well above zero.
-    ABSOLUTE: |value - baseline| in the metric's own units.
-    SIGMA: |value - baseline| / std from the `distribution` tool; the default
+    RELATIVE: (value - baseline) / |baseline|; only for metrics pinned relative,
+    i.e. ratios and counts with a baseline well above zero.
+    ABSOLUTE: value - baseline, in the metric's own units.
+    SIGMA: (value - baseline) / std from the `distribution` tool; the default
     for signed or near-zero metrics such as momentum.
     """
 

@@ -6,6 +6,9 @@
           "title": "Name",
           "type": "string"
         },
+        "suite": {
+          "$ref": "#/$defs/Suite"
+        },
         "value": {
           "title": "Value",
           "type": "number"
@@ -42,6 +45,7 @@
       },
       "required": [
         "name",
+        "suite",
         "value",
         "n"
       ],

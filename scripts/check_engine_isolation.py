@@ -53,7 +53,7 @@ def scan(root: Path = ROOT) -> list[str]:
     found: list[str] = []
     for d in product_dirs(root):
         for py in d.rglob("*.py"):
-            if any(part in NOT_PYTHON for part in py.parts):
+            if any(part in NOT_PYTHON for part in py.relative_to(root).parts):
                 continue
             found.extend(violations_in(py))
     return found

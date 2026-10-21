@@ -43,6 +43,13 @@ def test_ground_truth_reference_is_caught(tmp_path):
     assert any("ground-truth" in v for v in guard.scan(repo))
 
 
+def test_clone_location_does_not_hide_violations(tmp_path):
+    guard = _load()
+    repo = _repo(tmp_path / "data" / "Proofline")
+    (repo / "state" / "leak.py").write_text("import engine.suites\n")
+    assert len(guard.scan(repo)) == 1
+
+
 def test_eval_is_exempt(tmp_path):
     guard = _load()
     assert guard.scan(_repo(tmp_path)) == []

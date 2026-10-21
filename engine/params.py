@@ -17,6 +17,11 @@ def _progress(start: MatchClock, ramp_s: int, period: int, s: float) -> float:
 
 
 class ParamTimeline:
+    """Values at (period, s), where s is seconds since that period's kick-off.
+
+    That is `MatchClock.seconds_in_period`, not minute * 60: 60:00 is (2, 900).
+    """
+
     def __init__(self, script: MatchScript) -> None:
         self._base = {
             side: {"press_height": t.press_height, "directness": t.directness, "quality": t.quality}

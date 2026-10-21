@@ -58,3 +58,43 @@ def test_other_team_and_players_are_untouched():
 def test_player_parameter_ramps():
     assert TL.player("away", "NV-03", 2, at(65))["stamina_decay"] == pytest.approx(1.75)
     assert TL.player("away", "NV-03", 2, at(70))["stamina_decay"] == pytest.approx(2.5)
+
+
+EDGES = MatchScript.model_validate(
+    {
+        "match_id": "t02",
+        "seed": 1,
+        "teams": {
+            "home": {"name": "Harbour City", "code": "HC", "press_height": 0.4},
+            "away": {"name": "Northvale", "code": "NV", "directness": 0.1},
+        },
+        "scripts": [
+            {"id": "a", "at": "44:00", "ramp": "4m", "team": "home", "set": {"press_height": 0.8}},
+            {"id": "b", "at": "70:00", "team": "away", "set": {"directness": 0.5}},
+            {"id": "c", "at": "75:00", "ramp": "2m", "team": "away", "set": {"directness": 0.3}},
+            {"id": "d", "at": "45+2:10", "ramp": "1m", "team": "away", "set": {"quality": 0.9}},
+        ],
+    }
+)
+EDGE_TL = ParamTimeline(EDGES)
+
+
+def test_a_ramp_running_at_half_time_completes_at_the_restart():
+    assert EDGE_TL.team("home", 1, 45 * 60)["press_height"] == pytest.approx(0.5)  # 1 of 4 min
+    assert EDGE_TL.team("home", 2, 0)["press_height"] == pytest.approx(0.8)
+
+
+def test_a_zero_ramp_is_a_step_at_its_start():
+    assert EDGE_TL.team("away", 2, at(69.99))["directness"] == pytest.approx(0.1)
+    assert EDGE_TL.team("away", 2, at(70))["directness"] == pytest.approx(0.5)
+
+
+def test_the_later_intervention_wins():
+    assert EDGE_TL.team("away", 2, at(76))["directness"] == pytest.approx(0.4)  # halfway to 0.3
+    assert EDGE_TL.team("away", 2, at(80))["directness"] == pytest.approx(0.3)
+
+
+def test_a_first_half_stoppage_start_ramps_within_stoppage():
+    start = 47 * 60 + 10  # 45+2:10, in first-half seconds
+    assert EDGE_TL.team("away", 1, start - 1)["quality"] == pytest.approx(0.5)
+    assert EDGE_TL.team("away", 1, start + 30)["quality"] == pytest.approx(0.7)

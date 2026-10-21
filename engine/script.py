@@ -4,6 +4,9 @@ A script names two teams and their starting parameters, then interventions that
 ramp a parameter to a new value from a match time. Cause-taxonomy names never
 appear here; the mapping from an intervention to a cause lives in the suite's
 sealed ground-truth file, which only eval/ reads.
+
+Interventions on the same parameter compose in time order, so the later one wins;
+a ramp still running at half-time completes at the start of the second half.
 """
 
 import re
@@ -14,11 +17,18 @@ import yaml
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from contracts.clock import MatchClock, Window
-from contracts.event import CoordinateShift
+from contracts.event import CoordinateShift, EventType
 
 Side = Literal["home", "away"]
 TEAM_PARAMS = frozenset({"press_height", "directness", "quality"})
 PLAYER_PARAMS = frozenset({"stamina_decay"})
+PARAM_RANGES = {
+    "press_height": (0.0, 1.0),
+    "directness": (0.0, 1.0),
+    "quality": (0.0, 1.0),
+    "stamina_decay": (0.0, 5.0),
+}
+PLAYER_ID = r"^[A-Z]{2}-(0[1-9]|1[01])$"  # one of the 11 starters in engine.teams
 _RAMP_RE = re.compile(r"^(\d+)(m|s)$")
 
 
@@ -40,7 +50,7 @@ class Intervention(BaseModel):
     at: MatchClock
     ramp: str = Field(default="0m", pattern=_RAMP_RE.pattern)
     team: Side
-    player: str | None = None
+    player: str | None = Field(default=None, pattern=PLAYER_ID)
     set: dict[str, float] = Field(min_length=1)
 
     @property
@@ -50,10 +60,17 @@ class Intervention(BaseModel):
 
     @model_validator(mode="after")
     def _known_params(self) -> "Intervention":
+        level = "player" if self.player else "team"
         allowed = PLAYER_PARAMS if self.player else TEAM_PARAMS
         unknown = sorted(set(self.set) - allowed)
         if unknown:
-            raise ValueError(f"{self.id}: unknown parameter(s) {unknown}")
+            raise ValueError(
+                f"{self.id}: {unknown} not valid {level} parameter(s); use {sorted(allowed)}"
+            )
+        for key, value in self.set.items():
+            lo, hi = PARAM_RANGES[key]
+            if not lo <= value <= hi:  # also rejects NaN
+                raise ValueError(f"{self.id}: {key}={value} outside [{lo}, {hi}]")
         return self
 
 
@@ -62,11 +79,17 @@ class AmendmentFilter(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    type: str
+    type: EventType
     team: Side
     window: Window
     y_min: float = Field(default=0, ge=0, le=68)
     y_max: float = Field(default=68, ge=0, le=68)
+
+    @model_validator(mode="after")
+    def _band(self) -> "AmendmentFilter":
+        if self.y_min > self.y_max:
+            raise ValueError(f"y_min {self.y_min} is above y_max {self.y_max}")
+        return self
 
 
 class AmendmentBatch(BaseModel):
@@ -83,6 +106,15 @@ class AmendmentSpec(BaseModel):
     at: MatchClock
     batch: AmendmentBatch
     reason: str
+
+    @model_validator(mode="after")
+    def _coherent(self) -> "AmendmentSpec":
+        band, dy = self.batch.filter, self.batch.shift.dy_m
+        if self.at < band.window.end:
+            raise ValueError(f"{self.id}: the correction at {self.at} comes before its window ends")
+        if band.y_min - dy < 0 or band.y_max - dy > 68:  # v1 shows events at true y - dy
+            raise ValueError(f"{self.id}: the displaced v1 band leaves the pitch")
+        return self
 
 
 class MatchScript(BaseModel):

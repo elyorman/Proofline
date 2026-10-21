@@ -872,12 +872,13 @@ proofline/
 ## 23. Before the first paid run
 
 - [ ] Public GitHub repo created; CI with the engine-import guard
-- [ ] azd skeleton deployed: Container Apps, Cosmos (free tier), Event Hubs, Web PubSub, Static Web Apps, App Insights, Key Vault with managed identity
+- [x] azd skeleton deployed: Container Apps, Container Registry, Cosmos (free tier), Event Hubs, Web PubSub, Static Web Apps, App Insights, Key Vault with managed identity
 - [x] Quota checked in region (Free Trial: gpt-5-mini has quota; gpt-5.6-terra and gpt-5.6-luna have none)
-- [ ] gpt-5-mini deployed in Foundry
-- [ ] Non-OpenAI model confirmed in Foundry in region and covered by credit
-- [ ] Model prices confirmed in the Azure portal; budget alert at 60%
-- [ ] Azure MCP Server connected to the development agent; transcript capture started
+- [x] gpt-5-mini deployed in Foundry
+- [x] Non-OpenAI models with quota confirmed in region (grok-4-fast-reasoning, DeepSeek-V3.2, Mistral Medium); one is deployed at the Verifier step
+- [x] Budget alert at 60%
+- [ ] Model prices confirmed in the Azure portal (the Retail Prices API lists only priority-processing meters for gpt-5-mini in eastus2)
+- [x] Azure MCP Server connected to the development agent; transcript capture started (`docs/azure-mcp.md`)
 - [ ] Fabric trial access and cost checked
 - [ ] Trademark and domain search for "Proofline"
 - [ ] Licence-free music chosen for the video

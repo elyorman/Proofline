@@ -646,7 +646,7 @@ Every row leaves evidence a judge can see; use that leaves no trace is not claim
 | Microsoft Agent Framework (Python) | Orchestration, fan-out, cross-examination round, checkpoints | Workflow diagram in README; recovery beat in the video | Build |
 | Custom MCP server (`tools_server/`) | State Builder catalog for every agent | Tool-call log per hypothesis | Build |
 | Azure MCP Server | Ops panel on the console; provisioning during the build | Ops panel in the video; `docs/azure-mcp.md` transcripts | Build |
-| GitHub Copilot coding agent / Agent Mode | Only if genuinely used for real work (the primary build tool is Claude Code, stated in the README); never PRs created as evidence | Copilot-authored PRs in repo history where they exist; `docs/copilot.md` | Claim only if true |
+| GitHub Copilot coding agent / Agent Mode | Only if genuinely used for real work; never PRs created as evidence | Copilot-authored PRs in repo history where they exist; `docs/copilot.md` | Claim only if true |
 | GitHub CLI in Actions | Publishes the dataset and demo build as releases | Release assets; workflow file | Build |
 | Azure Event Hubs | Live event ingestion | Architecture diagram; throughput in App Insights | Build |
 | Azure Cosmos DB | Match Ledger and change feeds | Ledger view on the console | Build |

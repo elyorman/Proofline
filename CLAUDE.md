@@ -98,7 +98,7 @@ Every Microsoft technology we use must leave something a judge can click or see.
 | GitHub CLI | release workflow publishing the dataset | release assets |
 | Fabric RTI (stretch) | Eventstream → Eventhouse → Real-Time Dashboard | screenshot in README |
 
-Claude Code is the build tool and is stated in the README. Do not claim GitHub Copilot unless it did real work.
+The README does not name the build tool. Do not claim GitHub Copilot unless it did real work.
 
 ## Definition of done for any feature
 

@@ -25,10 +25,6 @@ uv run python scripts/check_engine_isolation.py
 | `docs/*.schema.json` | Exported JSON Schemas |
 | `scripts/check_engine_isolation.py` | CI guard: product code (including `surfaces/api/`) never imports the match engine or reads ground truth |
 
-## Built with
-
-Claude Code is the primary build tool for this project.
-
 ## Licence
 
 MIT.

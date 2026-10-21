@@ -7,6 +7,7 @@ counterfactual aligned (spec §7.2).
 """
 
 import hashlib
+import operator
 import random
 
 
@@ -16,6 +17,7 @@ class Streams:
         self._generators: dict[tuple[str, int], random.Random] = {}
 
     def _gen(self, decision: str, minute: int) -> random.Random:
+        minute = operator.index(minute)  # 61 and 61.0 must not share a slot
         key = (decision, minute)
         gen = self._generators.get(key)
         if gen is None:

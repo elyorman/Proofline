@@ -36,10 +36,12 @@ def _amendment(at="68:00", dy=-22, dx=0.0, **band):
 
 def test_demo_script_loads():
     script = load_script(M01)
-    s1, s2 = script.scripts
-    assert (s1.at.period, s1.at.minute, s1.ramp_seconds) == (2, 60, 180)
-    assert s2.player == "NV-03"
-    assert script.amendments[0].batch.shift.dy_m == -18
+    (s1,) = script.scripts
+    assert (s1.at.period, s1.at.minute, s1.ramp_seconds) == (2, 56, 120)
+    assert s1.set == {"press_height": 0.9}
+    (a1,) = script.amendments
+    assert a1.batch.filter.types == ["pass", "carry", "dribble"]
+    assert a1.batch.shift.dy_m == -22
 
 
 @pytest.mark.parametrize(
@@ -85,8 +87,8 @@ def test_an_amendment_can_relocate_several_event_types():
 
 
 def test_unquoted_yaml_time_is_rejected(tmp_path):
-    # YAML reads an unquoted 60:00 as the integer 3600; loading must refuse it.
+    # YAML reads an unquoted 56:00 as the integer 3360; loading must refuse it.
     bad = tmp_path / "bad.yaml"
-    bad.write_text(M01.read_text().replace('at: "60:00"', "at: 60:00"))
+    bad.write_text(M01.read_text().replace('at: "56:00"', "at: 56:00"))
     with pytest.raises(ValidationError, match="valid dictionary"):
         load_script(bad)

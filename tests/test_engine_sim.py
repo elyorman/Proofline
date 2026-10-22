@@ -3,11 +3,28 @@ from itertools import pairwise
 from pathlib import Path
 
 from contracts.event import Point
-from engine.script import load_script
+from engine.script import Intervention, load_script
 from engine.sim import MatchSim
 
 M01_PATH = Path(__file__).resolve().parents[1] / "engine" / "scripts" / "planted" / "m01.yaml"
 M01 = load_script(M01_PATH)
+TIRED = M01.model_copy(
+    update={
+        "scripts": [
+            *M01.scripts,
+            Intervention.model_validate(
+                {
+                    "id": "s2",
+                    "at": "62:00",
+                    "ramp": "6m",
+                    "team": "away",
+                    "player": "NV-03",
+                    "set": {"stamina_decay": 2.5},
+                }
+            ),
+        ]
+    }
+)
 
 
 def _dump(events):
@@ -45,13 +62,13 @@ def test_every_player_is_on_a_roster():
 
 
 def test_interventions_leave_the_match_before_them_untouched():
-    for sid, start_minute in (("s1", 60), ("s2", 62)):
-        without = M01.model_copy(update={"scripts": [s for s in M01.scripts if s.id != sid]})
+    for script, sid, start_minute in ((M01, "s1", 56), (TIRED, "s2", 62)):
+        without = script.model_copy(update={"scripts": [s for s in script.scripts if s.id != sid]})
 
         def before(events, cutoff=start_minute):
             return _dump([e for e in events if e.clock.minute < cutoff])
 
-        assert before(MatchSim(M01, seed=3).run()) == before(MatchSim(without, seed=3).run())
+        assert before(MatchSim(script, seed=3).run()) == before(MatchSim(without, seed=3).run())
 
 
 def test_each_player_acts_for_their_own_team():

@@ -3,22 +3,38 @@
 import statistics
 from pathlib import Path
 
-from engine.script import load_script
+from engine.script import Intervention, load_script
 from engine.sim import MatchSim
 
 M01_PATH = Path(__file__).resolve().parents[1] / "engine" / "scripts" / "planted" / "m01.yaml"
 M01 = load_script(M01_PATH)
+# m01 no longer plants fatigue (one player's sprints cannot show it in a single match),
+# so the stamina mechanism is checked on m01 plus a test-only intervention.
+TIRED = M01.model_copy(
+    update={
+        "scripts": [
+            *M01.scripts,
+            Intervention.model_validate(
+                {
+                    "id": "s2",
+                    "at": "62:00",
+                    "ramp": "6m",
+                    "team": "away",
+                    "player": "NV-03",
+                    "set": {"stamina_decay": 2.5},
+                }
+            ),
+        ]
+    }
+)
 SEEDS = range(20)
 
 
-def _without(sid):
-    return M01.model_copy(update={"scripts": [s for s in M01.scripts if s.id != sid]})
-
-
-def _paired_ci(sid, observable):
+def _paired_ci(script, sid, observable):
     """Mean with-minus-without difference over seeds, with a normal 95% CI."""
+    without = script.model_copy(update={"scripts": [s for s in script.scripts if s.id != sid]})
     diffs = [
-        observable(MatchSim(M01, seed=s).run()) - observable(MatchSim(_without(sid), seed=s).run())
+        observable(MatchSim(script, seed=s).run()) - observable(MatchSim(without, seed=s).run())
         for s in SEEDS
     ]
     mean = statistics.mean(diffs)
@@ -77,20 +93,20 @@ def nv03_sprints(events):
 
 
 def test_raised_press_means_more_pressure():
-    low, _ = _paired_ci("s1", hc_pressure_rate)
+    low, _ = _paired_ci(M01, "s1", hc_pressure_rate)
     assert low > 0
 
 
 def test_raised_press_pushes_the_opponent_long():
-    low, _ = _paired_ci("s1", nv_long_ball_share)
+    low, _ = _paired_ci(M01, "s1", nv_long_ball_share)
     assert low > 0
 
 
 def test_a_high_press_is_bypassed_with_long_balls():
-    low, _ = _paired_ci("s1", nv_unpressed_long_share)
+    low, _ = _paired_ci(M01, "s1", nv_unpressed_long_share)
     assert low > 0
 
 
 def test_stamina_decay_costs_sprints():
-    _, high = _paired_ci("s2", nv03_sprints)
+    _, high = _paired_ci(TIRED, "s2", nv03_sprints)
     assert high < 0

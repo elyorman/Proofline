@@ -2,7 +2,7 @@
 
 **Match intelligence that shows its evidence, knows its limits, and corrects itself.**
 
-> Scoped for the Microsoft × Premier League "Inside the Game" hackathon (submission 27 October, judging to 10 November). Built solo with Claude Code. All clubs, players, competitions and brands are fictional. Working name; trademark check before the video.
+> Scoped for the "Inside the Game" hackathon (submission 27 October, judging to 10 November). All clubs, players, competitions and brands are fictional. Working name; trademark check before the video.
 
 ---
 
@@ -903,9 +903,6 @@ proofline/
 - [IBM 2026 sports fan study](https://newsroom.ibm.com/2026-08-24-ibm-study-sports-fans-want-streamlined-digital-experiences-as-platform-choices-expand)
 - [SVG Europe — EVS on provenance, accuracy and speed](https://www.svgeurope.org/blog/headlines/trust-in-content-provenance-accuracy-and-speed-the-next-challenges-of-ai-adoption-in-sports-production-according-to-evs/)
 - [Stats Perform — OptaAI Studio](https://www.statsperform.com/optaai-studio/)
-- [Bundesliga Data Story Finder](https://www.casestudies.com/company/aws-elemental/case-study/bundesliga-delivers-live-football-stories-from-36-million-data-points-per-match-with-aws-elemental)
-- [How Bundesliga built Captain](https://aws-news.com/article/2026-06-01-how-bundesliga-built-captain-an-ai-agent-for-fans-using-amazon-bedrock)
-- [Premier League Companion](https://www.premierleague.com/en/news/4345260/what-is-the-premier-league-companion)
 - [xGuff — Football fans are drowning in data](https://xguff.substack.com/p/football-fans-are-drowning-in-data)
 - [Adweek — casual vs core fan behavior](https://develop.adweek.com/?p=1943074)
 - [gpt-5.6-terra in Foundry](https://ai.azure.com/catalog/models/gpt-5.6-terra)

@@ -89,7 +89,7 @@ def _shows_every_story(seed):
 
 
 def test_demo_seed_is_the_first_from_4417_that_shows_every_story():
-    for seed in range(4417, 4617):  # about one seed in seven meets the rule
+    for seed in range(4417, 4617):  # about one seed in twelve meets the rule here
         if _shows_every_story(seed):
             break
     else:

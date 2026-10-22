@@ -51,19 +51,21 @@ def test_selects_by_type_team_window_and_true_position():
     events = [
         _carry("in"),
         _carry("ends-outside-the-band", y1=46.1),
+        _carry("starts-outside-the-band", y0=46.1, y1=40.0),
+        _carry("window-start", clock="45:00"),  # windows include their start
         _carry("other-team", team="Harbour City"),
         _carry("first-half", clock="44:59"),
         _carry("window-end", clock="55:00"),  # windows are half-open
         _carry("not-a-listed-type", type_="dribble"),
     ]
-    assert corrected_by(A1, "Northvale", events) == ["in"]
+    assert corrected_by(A1, "Northvale", events) == ["in", "window-start"]
 
 
 def test_first_delivered_shows_corrected_events_displaced():
-    events = [_carry("in", y0=30.0, y1=46.0), _carry("other-team", team="Harbour City")]
+    events = [_carry("in", y0=30.14, y1=46.0), _carry("other-team", team="Harbour City")]
     delivered, corrected = first_delivered(SCRIPT, events)
     assert corrected == {"a1": ["in"]}
-    assert (delivered[0].start.y, delivered[0].end.y) == (52.0, 68.0)  # 22 m to the right
+    assert (delivered[0].start.y, delivered[0].end.y) == (52.1, 68.0)  # 22 m to the right
     unchanged = {"start", "end"}
     assert delivered[0].model_dump(exclude=unchanged) == events[0].model_dump(exclude=unchanged)
     assert delivered[1] is events[1]

@@ -1945,6 +1945,8 @@ git commit -m "List the Match Engine in the README"
 
 Found by the per-task reviews while executing this plan; each belongs to the plan named.
 
+> Resolved by `docs/plans/2026-10-22-planted-signal.md`: the demo seed (now chosen by a stated rule), the touchline pile-up, the 55' flank card, pinning the demo match, and rejecting a NaN `dy_m`. Flank bands are superseded: channels are equal thirds of the width, defined in spec §8.1.
+
 **Plan 2: engine proof tooling**
 - **Demo seed (important, decide before gate 2).** On m01's seed 4417 the planted press barely shows: Harbour City's pressure rate goes from 0.41 (54–60') to 0.44 (62–68') and Northvale's long-ball share stays flat (9.3% to 9.1%), although 30 of 40 held-out seeds show both rising. Gate 2 needs the detector to fire on the planted moment and the demo needs a verified 63' card. Either strengthen the mechanism, or choose the demo seed by a stated rule (for example, the first seed from 4417 up whose effect on both observables exceeds the held-out median) recorded in the script and `DATASET.md`, never quietly. The scoreboard keeps using held-out suites.
 - **`MatchSim.run()` is single-use.** A second call on the same instance appends a second match (5,641 events and a wrong score). Paired and batch runs must build a new `MatchSim` per run, or `run()` should refuse a second call.

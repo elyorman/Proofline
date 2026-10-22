@@ -18,8 +18,8 @@ param principalId string = ''
 @description('Where budget alerts are emailed (kept in the local azd env, not in code)')
 param budgetContactEmail string
 
-@description('Monthly budget in the billing currency; alerts at 60%')
-param budgetAmount int = 200
+@description('Monthly budget in the billing currency (KRW for this subscription); alerts at 60%')
+param budgetAmount int = 150000
 
 @description('First day of the budget period; budgets need a fixed start date')
 param budgetStartDate string = '2026-10-01'

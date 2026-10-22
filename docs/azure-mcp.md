@@ -30,4 +30,6 @@ Call 5, request and trimmed response:
   "usage": {"prompt_tokens": 13, "completion_tokens": 76, "total_tokens": 89}}}}
 ```
 
-Checks outside the exposed namespaces ran with `az`: the subscription budget ($200 a month, alert at 60%), the Cosmos data-plane role assignments (Built-in Data Contributor for the app identity and the developer), local auth disabled on Cosmos DB, Event Hubs and Foundry, and both public endpoints answering HTTP 200.
+Checks outside the exposed namespaces ran with `az`: the subscription budget (initially 200 in the billing currency, later confirmed as KRW), the Cosmos data-plane role assignments (Built-in Data Contributor for the app identity and the developer), local auth disabled on Cosmos DB, Event Hubs and Foundry, and both public endpoints answering HTTP 200.
+
+On 22 October 2026, Azure CLI confirmed the subscription bills in KRW. The monthly budget was updated to **₩150,000**, preserving its 60% actual-cost alert (**₩90,000**). Infrastructure defaults match this amount. This is an alerting budget, not a spending cap.

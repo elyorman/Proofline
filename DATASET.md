@@ -13,10 +13,10 @@ Its seed is chosen by a stated rule, never by eye: **the first seed from 4417 up
 
 ## Is a planted story visible in one match?
 
-The detector watches a single match, so a paired-run effect whose confidence interval clears zero is not enough. For an observable and a detection window, a match's **change** is the observable over the window minus its value over the same match's first half. The **natural change** is the same quantity without the story: the same seed with the intervention removed or, for a feed error, the corrected events. **Separation** is the mean change with the story minus the mean natural change, in standard deviations of the natural change across seeds ([`engine/visibility.py`](engine/visibility.py)). A match **clears** when its own change is at least two natural standard deviations above the mean natural change. Windows include their start and exclude their end; on-ball actions are passes, carries and dribbles; coordinates are in the acting team's attacking frame, so the right third is y > 45.33 m.
+The detector watches a single match, so a paired-run effect whose confidence interval clears zero is not enough. For an observable and a detection window, a match's **change** is the observable over the window minus its value over the same match's first half. The **natural change** is the same quantity without the story: the same seed with the intervention removed or, for a feed error, the corrected events. **Separation** is the mean change with the story minus the mean natural change, in sample standard deviations of the natural change across seeds ([`engine/visibility.py`](engine/visibility.py)). A match **clears** when its own change is at least two natural standard deviations above the mean natural change. Windows include their start and exclude their end; on-ball actions are passes, carries and dribbles; coordinates are in the acting team's attacking frame, so the right third is y > 45.33 m.
 
 | Story | Observable | Window |
 |---|---|---|
-| s1 | Harbour City pressures per Northvale on-ball action in Northvale's first 60% | 58:00–63:00 |
+| s1 | Pressure rate: Harbour City pressures in Northvale's first 60% of the pitch, divided by Northvale on-ball actions starting in that same zone (x < 63 in Northvale's frame, x > 42 in Harbour City's) | 58:00–63:00 |
 | s1 | Share of Northvale's passes longer than 30 m | 58:00–63:00 |
 | a1 | Share of Northvale's on-ball actions starting in the right third of the width, as first delivered | 45:00–55:00 |

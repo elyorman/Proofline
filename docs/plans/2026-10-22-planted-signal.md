@@ -4,7 +4,7 @@
 
 **Goal:** Make each planted story in the demo match visible to a detector that watches one match, prove it with a single-match visibility test on held-out seeds, and choose the demo seed by a stated rule.
 
-**Architecture:** A new `engine/signal.py` measures a story's in-match change (detection window against the same match's first half) against the change the same observable shows without the story, in natural standard deviations. A new `engine/amend.py` derives the feed as first delivered, so the 55' flank card's v1 view can be measured. The simulator stops piling play onto the touchlines and gains one mechanism (long balls to bypass a high press); m01's scripts are retimed and strengthened, and its fatigue script is dropped because no single match can show it.
+**Architecture:** A new `engine/visibility.py` measures a story's in-match change (detection window against the same match's first half) against the change the same observable shows without the story, in natural standard deviations. A new `engine/amend.py` derives the feed as first delivered, so the 55' flank card's v1 view can be measured. The simulator stops piling play onto the touchlines and gains one mechanism (long balls to bypass a high press); m01's scripts are retimed and strengthened, and its fatigue script is dropped because no single match can show it.
 
 **Tech Stack:** Python 3.12, pydantic v2 (existing contracts), PyYAML, pytest, ruff, uv. No new dependency.
 
@@ -68,12 +68,12 @@ The demo match: `m01 seed 4434: 2963 events, Harbour City 2-3 Northvale`. Harbou
 |---|---|---|
 | `engine/script.py` | Modify | `AmendmentFilter.types`; lateral, finite shifts only |
 | `engine/amend.py` | Create | Events each amendment corrects; the feed as first delivered |
-| `engine/signal.py` | Create | Observables, in-match change, separation, clears |
+| `engine/visibility.py` | Create | Observables, in-match change, separation, clears |
 | `engine/sim.py` | Modify | Touchline reflection, throw-ins from misplaced passes, `BYPASS`, recalibration |
 | `engine/scripts/planted/m01.yaml` | Modify | Retimed, stronger s1; s2 removed; wider a1; seed 4434 |
 | `tests/test_engine_script.py` | Modify | New filter shape, rejections, demo script |
 | `tests/test_engine_amend.py` | Create | Selection and first-delivered unit tests |
-| `tests/test_engine_signal.py` | Create | Observable and statistic unit tests |
+| `tests/test_engine_visibility.py` | Create | Observable and statistic unit tests |
 | `tests/test_engine_planted_signal.py` | Create | m01 stories visible in one match; the demo-seed rule |
 | `tests/test_engine_sim.py` | Modify | Throw-in test; before-intervention test without s2 |
 | `tests/test_engine_realism.py` | Modify | Width spread and throw-in bands |
@@ -365,19 +365,19 @@ git commit -m "Derive the feed as first delivered" -m "The simulator produces th
 ### Task 3: Measure whether a planted story is visible in one match
 
 **Files:**
-- Create: `engine/signal.py`
-- Test: `tests/test_engine_signal.py`
+- Create: `engine/visibility.py`
+- Test: `tests/test_engine_visibility.py`
 
 - [ ] **Step 1: Write the failing tests**
 
-Create `tests/test_engine_signal.py`:
+Create `tests/test_engine_visibility.py`:
 
 ```python
 import pytest
 
 from contracts.clock import Window
 from contracts.event import Event, PassQualifiers, Point
-from engine.signal import (
+from engine.visibility import (
     change,
     clears,
     first_half,
@@ -448,12 +448,12 @@ def test_separation_and_clears_are_in_natural_standard_deviations():
 
 - [ ] **Step 2: Run the tests to verify they fail**
 
-Run: `uv run pytest tests/test_engine_signal.py -q`
-Expected: collection error, `ModuleNotFoundError: No module named 'engine.signal'`.
+Run: `uv run pytest tests/test_engine_visibility.py -q`
+Expected: collection error, `ModuleNotFoundError: No module named 'engine.visibility'`.
 
 - [ ] **Step 3: Implement**
 
-Create `engine/signal.py`:
+Create `engine/visibility.py`:
 
 ```python
 """Would a detector see a planted story in one match? (spec §7.2)
@@ -545,7 +545,7 @@ Expected: all tests pass; ruff clean; `Engine isolation OK`.
 - [ ] **Step 5: Commit**
 
 ```bash
-git add engine/signal.py tests/test_engine_signal.py
+git add engine/visibility.py tests/test_engine_visibility.py
 git commit -m "Measure whether a planted story is visible in one match" -m "The detector sees one match, so a paired effect that clears zero is not enough. signal.py takes a story's in-match change against the same match's first half and compares it with the change the observable shows without the story, in standard deviations of that natural change."
 ```
 
@@ -841,14 +841,14 @@ from pathlib import Path
 from contracts.clock import Window
 from engine.amend import first_delivered
 from engine.script import load_script
-from engine.signal import (
+from engine.sim import MatchSim
+from engine.visibility import (
     change,
     long_ball_share,
     pressure_rate,
     right_channel_share,
     separation,
 )
-from engine.sim import MatchSim
 
 M01_PATH = Path(__file__).resolve().parents[1] / "engine" / "scripts" / "planted" / "m01.yaml"
 M01 = load_script(M01_PATH)
@@ -892,9 +892,11 @@ def test_raised_press_is_visible_in_one_match():
     assert _separation("long_ball_share") >= 2.5
 
 
-def test_flank_error_is_visible_until_corrected():
+def test_flank_error_is_visible_as_first_delivered():
     # Play stays on one side for spells, so a 10-minute channel share is noisy and the
-    # largest rise a lateral shift can cause is about a third: the bar is lower.
+    # largest rise a lateral shift can cause is about a third: the bar is lower. 1.5 is
+    # the requirement, not a fit: other 40-seed sets give 1.56-2.21, so a change that
+    # reshuffles the random draws can land near it without any real regression.
     assert _separation("right_channel_share") >= 1.5
     assert min(_match(s)["corrected"] for s in HELD_OUT) >= 12
 ```
@@ -1100,7 +1102,7 @@ git commit -m "Make the demo match's planted stories visible in one match" -m "s
 
 - [ ] **Step 1: Write the failing test**
 
-In `tests/test_engine_planted_signal.py`, add `import statistics` below `import functools`, add `clears,` to the `engine.signal` import list (after `change,`), and append (after two blank lines):
+In `tests/test_engine_planted_signal.py`, add `import statistics` below `import functools`, add `clears,` to the `engine.visibility` import list (after `change,`), and append (after two blank lines):
 
 ```python
 def _typical_and_visible(name, story_change):
@@ -1184,7 +1186,7 @@ Its seed is chosen by a stated rule, never by eye: **the first seed from 4417 up
 
 ## Is a planted story visible in one match?
 
-The detector watches a single match, so a paired-run effect whose confidence interval clears zero is not enough. For an observable and a detection window, a match's **change** is the observable over the window minus its value over the same match's first half. The **natural change** is the same quantity without the story: the same seed with the intervention removed or, for a feed error, the corrected events. **Separation** is the mean change with the story minus the mean natural change, in standard deviations of the natural change across seeds ([`engine/signal.py`](engine/signal.py)). A match **clears** when its own change is at least two natural standard deviations above the mean natural change.
+The detector watches a single match, so a paired-run effect whose confidence interval clears zero is not enough. For an observable and a detection window, a match's **change** is the observable over the window minus its value over the same match's first half. The **natural change** is the same quantity without the story: the same seed with the intervention removed or, for a feed error, the corrected events. **Separation** is the mean change with the story minus the mean natural change, in standard deviations of the natural change across seeds ([`engine/visibility.py`](engine/visibility.py)). A match **clears** when its own change is at least two natural standard deviations above the mean natural change.
 
 | Story | Observable | Window |
 |---|---|---|
@@ -1249,7 +1251,7 @@ In §7.2, replace the bullet
 with
 
 ```markdown
-- A script is `not_observable`, and excluded from recall, when its effect's confidence interval includes zero or when none of its observables separates from natural variation by two standard deviations in a single match (`engine/signal.py`, defined in `DATASET.md`). The detector sees one match: a paired effect can clear zero and still be invisible in every match it happens in. The scoreboard reports how many scripts each rule excluded.
+- A script is `not_observable`, and excluded from recall, when its effect's confidence interval includes zero or when none of its observables separates from natural variation by two standard deviations, in the direction its ground truth names, in a single match (`engine/visibility.py`, defined in `DATASET.md`). The detector sees one match: a paired effect can clear zero and still be invisible in every match it happens in. The scoreboard reports how many scripts each rule excluded.
 ```
 
 In the §8.1 metric table, add this row below `Field tilt`:
@@ -1332,7 +1334,7 @@ git push
 
 **Plan 2 (rest): engine proof tooling**
 - **Amendment output.** Write the v1 feed (`first_delivered`) and an `amendments.jsonl` of `contracts.EventAmendment` records, one per batch, with `event_ids` from `corrected_by`; the Match Clock replays v1 and emits each batch at its `at`.
-- **Observability.** The paired-run tooling marks `not_observable` with both rules of spec §7.2, reusing `engine/signal.py`, and reports what each rule excluded.
+- **Observability.** The paired-run tooling marks `not_observable` with both rules of spec §7.2, reusing `engine/visibility.py`, and reports what each rule excluded.
 - **Physical causes in the planted suite.** Design them with tracking: one player's sprint count cannot clear two natural standard deviations, but mean sprint speed separates by 3.3 at a 10× stamina decay, and `player_load` aggregates should do better. Hold every planted script to the same visibility bar before it enters the suite.
 
 **Plan 4: State Builder**

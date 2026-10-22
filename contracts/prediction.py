@@ -5,6 +5,7 @@ The outcome is judged against the ToolResult by code, never by the agent.
 """
 
 from enum import StrEnum
+from typing import Any
 
 from pydantic import BaseModel, Field, computed_field, model_validator
 
@@ -57,6 +58,8 @@ class Prediction(BaseModel):
         Up or down: the change points the predicted way by at least `share` of min_change.
         Flat: the change stays within min_change / share either way.
         """
+        if not 0 < share <= 1:
+            raise ValueError(f"share must be in (0, 1], got {share}")
         if self.direction == Direction.FLAT:
             return abs(observed_change) <= self.min_change / share
         signed = observed_change if self.direction == Direction.UP else -observed_change
@@ -78,6 +81,8 @@ class Hypothesis(BaseModel):
             raise ValueError("'other' and 'none' are synthesis outcomes, not hypotheses")
         if self.agent != AgentRole.SINGLE and self.taxonomy.domain != DOMAIN_OF_AGENT[self.agent]:
             raise ValueError(f"{self.agent} cannot register a {self.taxonomy.domain} cause")
+        if self.prediction.direction == Direction.FLAT:
+            raise ValueError("a hypothesis predicts a change; flat is for counter-tests")
         return self
 
 
@@ -89,7 +94,9 @@ class TestOutcome(StrEnum):
 class HypothesisTest(BaseModel):
     hypothesis_id: str
     tool_call_id: str
-    observed_change: float = Field(description="signed, in the prediction's threshold units")
+    observed_change: float = Field(
+        allow_inf_nan=False, description="signed, in the prediction's threshold units"
+    )
     outcome: TestOutcome
     reason: str
 
@@ -108,8 +115,26 @@ class CrossExamination(BaseModel):
     challenger: AgentRole
     counter_prediction: Prediction
     tool_call_id: str
-    observed_change: float = Field(description="signed, in the counter-prediction's units")
+    observed_change: float = Field(
+        allow_inf_nan=False, description="signed, in the counter-prediction's units"
+    )
     reason: str
+
+    @model_validator(mode="wrap")
+    @classmethod
+    def _stored_result_agrees(cls, data: Any, handler: Any) -> "CrossExamination":
+        """A stored record's result must be the one the counter-test computes."""
+        stored = data.get("result") if isinstance(data, dict) else None
+        exam = handler(data)
+        if stored is not None and stored != exam.result:
+            raise ValueError(f"stored result {stored!r} disagrees with the counter-test")
+        return exam
+
+    @model_validator(mode="after")
+    def _challenger_is_a_domain_agent(self) -> "CrossExamination":
+        if self.challenger in (AgentRole.SYNTHESIS, AgentRole.SINGLE):
+            raise ValueError(f"{self.challenger} does not cross-examine")
+        return self
 
     @computed_field
     @property
@@ -119,3 +144,35 @@ class CrossExamination(BaseModel):
         if self.counter_prediction.supported_by(self.observed_change, share=0.5):
             return CrossExamResult.WEAKENED
         return CrossExamResult.HOLDS
+
+
+def _same_quantity(a: Prediction, b: Prediction) -> bool:
+    return (a.metric, a.subject, a.window, a.compare_to) == (
+        b.metric,
+        b.subject,
+        b.window,
+        b.compare_to,
+    )
+
+
+def check_counter_test(hypothesis: Hypothesis, exam: CrossExamination) -> None:
+    """Refuse a counter-test that cannot fairly contradict `hypothesis` (spec §9.1).
+
+    The orchestrator calls this before running the counter-test, so a challenger cannot
+    restate the hypothesis, or choose a flat tolerance loose enough to swallow the change
+    the hypothesis claims, after seeing the data.
+    """
+    claim, counter = hypothesis.prediction, exam.counter_prediction
+    if exam.hypothesis_id != hypothesis.hypothesis_id:
+        raise ValueError("the counter-test names a different hypothesis")
+    if exam.challenger == hypothesis.agent:
+        raise ValueError("an agent does not cross-examine its own hypothesis")
+    if counter.direction == Direction.FLAT:
+        if (counter.metric, counter.threshold_kind) != (claim.metric, claim.threshold_kind):
+            raise ValueError("a flat counter-test measures the hypothesis's metric, in its units")
+        if counter.min_change >= claim.min_change:
+            raise ValueError(
+                "a flat tolerance must be tighter than the change the hypothesis claims"
+            )
+    elif _same_quantity(claim, counter) and counter.direction == claim.direction:
+        raise ValueError("a counter-test on the hypothesis's own quantity points the other way")

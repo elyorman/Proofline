@@ -40,7 +40,12 @@ from contracts.case import CaseStage, Checkpoint, TriggerMetric
 from contracts.cue import ShowAt
 from contracts.eval_run import MetricEstimate, Split, Suite, Variant, VariantComparison
 from contracts.event import CoordinateShift, EventType, Outcome, PassQualifiers, Point
-from contracts.prediction import CrossExamination, Direction
+from contracts.prediction import (
+    CrossExamination,
+    Direction,
+    HypothesisTest,
+    check_counter_test,
+)
 from contracts.profile import Expertise
 from contracts.taxonomy import (
     DEFAULT_THRESHOLD_KIND,
@@ -227,11 +232,102 @@ def test_cross_examination_is_scored_by_its_counter_test():
     assert _cross_examination(-0.05).model_dump()["result"] == "refuted"
 
 
+def test_an_up_or_down_counter_test_is_scored_against_its_threshold():
+    fell_too = _prediction(metric=Metric.SPRINT_COUNT, subject="Harbour City", min_change=0.15)
+
+    def result(observed):
+        return CrossExamination(
+            hypothesis_id="hyp-physical-01",
+            challenger=AgentRole.TACTICS,
+            counter_prediction=fell_too,
+            tool_call_id="tc-8850",
+            observed_change=observed,
+            reason="Harbour City's sprints fell too",
+        ).result
+
+    scored = {x: result(x) for x in (-0.25, -0.15, -0.10, -0.075, -0.05, 0.30)}
+    assert scored == {
+        -0.25: "refuted",
+        -0.15: "refuted",  # exactly the threshold
+        -0.10: "weakened",
+        -0.075: "weakened",  # exactly half of it
+        -0.05: "holds",
+        0.30: "holds",
+    }
+
+
+def test_a_stored_cross_examination_round_trips_and_cannot_be_rewritten():
+    exam = _cross_examination(-0.05)
+    assert CrossExamination.model_validate(exam.model_dump()) == exam
+    with pytest.raises(ValidationError, match="disagrees with the counter-test"):
+        CrossExamination.model_validate(dict(exam.model_dump(), result="holds"))
+
+
+def test_counter_tests_need_a_domain_challenger_and_a_finite_change():
+    stored = _cross_examination(-0.05).model_dump(exclude={"result"})
+    with pytest.raises(ValidationError, match="does not cross-examine"):
+        CrossExamination.model_validate(dict(stored, challenger="synthesis"))
+    for broken in (float("nan"), float("inf")):
+        with pytest.raises(ValidationError):
+            CrossExamination.model_validate(dict(stored, observed_change=broken))
+        with pytest.raises(ValidationError):
+            HypothesisTest(
+                hypothesis_id="hyp-1",
+                tool_call_id="tc-1",
+                observed_change=broken,
+                outcome="supported",
+                reason="r",
+            )
+
+
+def test_a_hypothesis_predicts_a_change():
+    flat = _prediction(
+        metric=Metric.SPRINT_COUNT, subject="Northvale", direction=Direction.FLAT, min_change=0.15
+    )
+    with pytest.raises(ValidationError, match="flat is for counter-tests"):
+        Hypothesis(
+            hypothesis_id="hyp-1",
+            case_id="case-063",
+            agent=AgentRole.PHYSICAL,
+            taxonomy=Cause.UNIT_FATIGUE,
+            prediction=flat,
+        )
+
+
 def _hypothesis(agent, cause):
     sprints = _prediction(metric=Metric.SPRINT_COUNT, subject="Northvale", min_change=0.15)
     return Hypothesis(
         hypothesis_id="hyp-1", case_id="case-063", agent=agent, taxonomy=cause, prediction=sprints
     )
+
+
+def test_a_counter_test_must_be_able_to_contradict_its_hypothesis():
+    fatigue = _hypothesis(AgentRole.PHYSICAL, Cause.UNIT_FATIGUE)  # Northvale sprints down 15%
+
+    def exam(challenger=AgentRole.TACTICS, **counter):
+        return CrossExamination(
+            hypothesis_id="hyp-1",
+            challenger=challenger,
+            counter_prediction=_prediction(**counter),
+            tool_call_id="tc-1",
+            observed_change=0.0,
+            reason="r",
+        )
+
+    sprints = dict(metric=Metric.SPRINT_COUNT, subject="Northvale")
+    season = dict(sprints, compare_to=BaselineScope.SEASON_AVERAGE, direction=Direction.FLAT)
+    # Fair: Harbour City's sprints fell too; Northvale's are flat against the season average.
+    check_counter_test(fatigue, exam(metric=Metric.SPRINT_COUNT, subject="Harbour City"))
+    check_counter_test(fatigue, exam(**season, min_change=0.1))
+    unfair = [
+        (exam(challenger=AgentRole.PHYSICAL, **season, min_change=0.1), "its own hypothesis"),
+        (exam(**sprints, min_change=0.15), "points the other way"),  # restates the hypothesis
+        (exam(**season, min_change=0.2), "tighter than the change"),
+        (exam(metric=Metric.MOMENTUM, direction=Direction.FLAT, min_change=0.1), "metric"),
+    ]
+    for counter, message in unfair:
+        with pytest.raises(ValueError, match=message):
+            check_counter_test(fatigue, counter)
 
 
 def test_agents_register_only_causes_in_their_own_domain():

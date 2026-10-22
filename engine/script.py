@@ -90,7 +90,11 @@ class AmendmentFilter(BaseModel):
     @model_validator(mode="after")
     def _band(self) -> "AmendmentFilter":
         if not set(self.types) <= AMENDABLE:
-            raise ValueError(f"amendments relocate {', '.join(sorted(AMENDABLE))} events only")
+            refused = ", ".join(sorted(set(self.types) - AMENDABLE))
+            raise ValueError(
+                f"{refused} cannot be amended: amendments relocate "
+                f"{', '.join(sorted(AMENDABLE))} events only"
+            )
         if self.y_min > self.y_max:
             raise ValueError(f"y_min {self.y_min} is above y_max {self.y_max}")
         return self
@@ -114,8 +118,10 @@ class AmendmentSpec(BaseModel):
     @model_validator(mode="after")
     def _coherent(self) -> "AmendmentSpec":
         band, dy = self.batch.filter, self.batch.shift.dy_m
-        if self.batch.shift.dx_m != 0 or not math.isfinite(dy):
-            raise ValueError(f"{self.id}: shifts are lateral only: a finite dy_m and no dx_m")
+        if self.batch.shift.dx_m != 0:
+            raise ValueError(f"{self.id}: shifts are lateral only, so dx_m must be 0")
+        if not math.isfinite(dy) or dy == 0:
+            raise ValueError(f"{self.id}: dy_m must be a finite, non-zero shift")
         if self.at < band.window.end:
             raise ValueError(f"{self.id}: the correction at {self.at} comes before its window ends")
         if band.y_min - dy < 0 or band.y_max - dy > 68:  # v1 shows events at true y - dy

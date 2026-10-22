@@ -64,17 +64,24 @@ def test_bad_interventions_are_rejected(intervention, message):
     [
         (_amendment(types=["carries"]), "Input should be"),
         (_amendment(types=[]), "at least 1 item"),
-        (_amendment(types=["shot"]), "relocate carry, dribble, pass events only"),
+        (_amendment(types=["shot"]), "shot cannot be amended"),
         (_amendment(y_min=50, y_max=32), "above y_max"),
         (_amendment(at="50:00"), "before its window ends"),
         (_amendment(y_max=48), "leaves the pitch"),
         (_amendment(dx=3.0), "lateral only"),
-        (_amendment(dy=float("nan")), "lateral only"),
+        (_amendment(dy=float("nan")), "finite, non-zero"),
+        (_amendment(dy=float("inf")), "finite, non-zero"),
+        (_amendment(dy=0), "finite, non-zero"),
     ],
 )
 def test_incoherent_amendments_are_rejected(amendment, message):
     with pytest.raises(ValidationError, match=message):
         _script(amendments=[amendment])
+
+
+def test_an_amendment_can_relocate_several_event_types():
+    script = _script(amendments=[_amendment(types=["pass", "carry", "dribble"])])
+    assert script.amendments[0].batch.filter.types == ["pass", "carry", "dribble"]
 
 
 def test_unquoted_yaml_time_is_rejected(tmp_path):

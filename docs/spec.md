@@ -233,7 +233,9 @@ A stochastic possession-chain simulator for two fictional teams, with a lightwei
 # Demo match. Mechanisms only: which cause each intervention represents lives in
 # the planted suite's sealed ground truth, never here.
 match_id: m01
-seed: 4417
+# The first seed from 4417 up on which every planted story is visible in this one
+# match (tests/test_engine_planted_signal.py; DATASET.md). Reported numbers use held-out seeds.
+seed: 4434
 teams:
   home: { name: "Harbour City", code: HC, formation: "4-3-3", press_height: 0.3 }
   away: { name: "Northvale", code: NV, formation: "4-2-3-1", press_height: 0.55 }
@@ -261,7 +263,7 @@ amendments:
     reason: "provider coordinate recalibration"
 ```
 
-For the demo match the sequence is: a smaller card about Northvale attacking down the right (`tactical.flank_overload`, **moderate** support: a weak card never reaches the casual demo fan, whose minimum language level is `measured`, so there would be no fan Update card to show) published around 55'; the press card at 63'; the amendment at 68' relocating Northvale's 45–55' passes, carries and dribbles; the 55' card withdrawn; the press card untouched.
+For the demo match the sequence is: a smaller card about Northvale attacking down the right (`tactical.flank_overload`, **moderate** support: a weak card never reaches the casual demo fan, whose minimum language level is `measured`, so there would be no fan Update card to show) published around 55'; the press card at 63'; the amendment at 68' relocating Northvale's 45–55' passes, carries and dribbles; the 55' card withdrawn; the press card untouched. The demo match's seed is chosen by a stated rule (`DATASET.md`): the first seed from 4417 upwards on which every planted story is at least typical and visible in that one match, and the corrected flank is not. No reported number comes from it.
 
 Amendments are **batches**, as real feed corrections usually are. A single amended event rarely moves a windowed metric enough to change a verdict, so the correction suite uses batch amendments and includes claims near their support boundary.
 

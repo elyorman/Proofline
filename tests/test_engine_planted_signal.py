@@ -4,6 +4,7 @@ Held-out seeds 100-139 set the natural variation; none of them tuned the engine.
 """
 
 import functools
+import statistics
 from pathlib import Path
 
 from contracts.clock import Window
@@ -12,6 +13,7 @@ from engine.script import load_script
 from engine.sim import MatchSim
 from engine.visibility import (
     change,
+    clears,
     long_ball_share,
     pressure_rate,
     right_channel_share,
@@ -67,3 +69,25 @@ def test_flank_error_is_visible_as_first_delivered():
     # reshuffles the random draws can land near it without any real regression.
     assert _separation("right_channel_share") >= 1.5
     assert min(_match(s)["corrected"] for s in HELD_OUT) >= 12
+
+
+def _typical_and_visible(name, story_change):
+    """At least the held-out median, and clear of natural variation."""
+    held_out = [_match(s)[name][0] for s in HELD_OUT]
+    return story_change >= statistics.median(held_out) and clears(story_change, _natural(name))
+
+
+def _shows_every_story(seed):
+    m = _match(seed)
+    stories = ("pressure_rate", "long_ball_share", "right_channel_share")
+    corrected_flank = m["right_channel_share"][1]
+    return all(_typical_and_visible(name, m[name][0]) for name in stories) and not clears(
+        corrected_flank, _natural("right_channel_share")
+    )
+
+
+def test_demo_seed_is_the_first_from_4417_that_shows_every_story():
+    seed = 4417
+    while not _shows_every_story(seed):
+        seed += 1
+    assert M01.seed == seed, f"the demo-seed rule now picks seed {seed}"

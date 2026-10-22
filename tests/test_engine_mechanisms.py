@@ -56,7 +56,10 @@ def nv_long_ball_share(events):
 
 
 def nv_unpressed_long_share(events):
-    """Long-ball share of Northvale passes from their own 70 m that nobody pressed."""
+    """Long-ball share of Northvale passes from their own 70 m that nobody pressed.
+
+    Measured to full time: few passes qualify in a few minutes once the press is high.
+    """
     passes = [
         e
         for e in events
@@ -64,7 +67,7 @@ def nv_unpressed_long_share(events):
         and e.team == "Northvale"
         and e.start.x < 70
         and e.pass_q.pressure_on_passer == 0
-        and _in(e, 62, 68)
+        and _in(e, 62, 90)
     ]
     return sum(p.pass_q.distance_m > 30 for p in passes) / len(passes)
 

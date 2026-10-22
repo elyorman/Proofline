@@ -3,11 +3,12 @@
 A possession is a chain of actions (pass, carry, dribble, shot) by the team on the
 ball while the other team presses according to its press height. Pressure makes
 passes riskier and pushes the team on the ball to go long, and a press above 0.5 is
-bypassed with long balls from the back even when nobody presses the passer: the
-mechanisms behind a pressure shift. Open play reflects off the touchlines, and a
-misplaced pass near one runs out for a throw-in. Every random draw comes from a keyed
-stream (engine.rng), so a run without one intervention stays aligned with the run that
-has it. Coordinates are in the acting team's attacking frame (engine.teams).
+bypassed with long balls from the team's own 70 m even when nobody presses the
+passer: the mechanisms behind a pressure shift. Open play reflects off the
+touchlines, and a misplaced pass near one runs out for a throw-in. Every random draw
+comes from a keyed stream (engine.rng), so a run without one intervention stays
+aligned with the run that has it. Coordinates are in the acting team's attacking
+frame (engine.teams).
 """
 
 import math

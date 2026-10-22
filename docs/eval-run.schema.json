@@ -1,5 +1,102 @@
 {
   "$defs": {
+    "Cause": {
+      "enum": [
+        "tactical.press_intensity_up",
+        "tactical.press_intensity_down",
+        "tactical.block_deeper",
+        "tactical.block_higher",
+        "tactical.formation_change",
+        "tactical.flank_overload",
+        "physical.unit_fatigue",
+        "physical.player_fatigue",
+        "physical.fresh_legs_substitution",
+        "game_state.protecting_lead",
+        "game_state.chasing_result",
+        "game_state.numerical_change",
+        "other",
+        "none"
+      ],
+      "title": "Cause",
+      "type": "string"
+    },
+    "Direction": {
+      "enum": [
+        "up",
+        "down",
+        "flat"
+      ],
+      "title": "Direction",
+      "type": "string"
+    },
+    "Exclusion": {
+      "description": "A planted script left out of recall as not_observable, with the numbers why.",
+      "properties": {
+        "script_id": {
+          "title": "Script Id",
+          "type": "string"
+        },
+        "cause": {
+          "$ref": "#/$defs/Cause"
+        },
+        "rule": {
+          "$ref": "#/$defs/ExclusionRule"
+        },
+        "observables": {
+          "items": {
+            "$ref": "#/$defs/ObservableCheck"
+          },
+          "minItems": 1,
+          "title": "Observables",
+          "type": "array"
+        }
+      },
+      "required": [
+        "script_id",
+        "cause",
+        "rule",
+        "observables"
+      ],
+      "title": "Exclusion",
+      "type": "object"
+    },
+    "ExclusionRule": {
+      "description": "Spec \u00a77.2. Each excluded script is counted once, under the first rule it meets.",
+      "enum": [
+        "paired_effect",
+        "single_match"
+      ],
+      "title": "ExclusionRule",
+      "type": "string"
+    },
+    "Metric": {
+      "enum": [
+        "ppda",
+        "press_intensity",
+        "pressure_rate",
+        "long_ball_share",
+        "field_tilt",
+        "channel_share_left",
+        "channel_share_centre",
+        "channel_share_right",
+        "pass_accuracy",
+        "pass_accuracy_under_pressure",
+        "pass_difficulty",
+        "xg",
+        "sprint_count",
+        "high_intensity_run_rate",
+        "momentum",
+        "control_chaos",
+        "rhythm",
+        "line_height",
+        "ball_speed",
+        "shot_speed",
+        "possession_share",
+        "distance_covered"
+      ],
+      "title": "Metric",
+      "type": "string"
+    },
     "MetricEstimate": {
       "properties": {
         "name": {
@@ -50,6 +147,43 @@
         "n"
       ],
       "title": "MetricEstimate",
+      "type": "object"
+    },
+    "ObservableCheck": {
+      "properties": {
+        "metric": {
+          "$ref": "#/$defs/Metric"
+        },
+        "subject": {
+          "title": "Subject",
+          "type": "string"
+        },
+        "direction": {
+          "$ref": "#/$defs/Direction"
+        },
+        "separation": {
+          "description": "natural sds, positive when it moves `direction`",
+          "title": "Separation",
+          "type": "number"
+        },
+        "ci_low": {
+          "title": "Ci Low",
+          "type": "number"
+        },
+        "ci_high": {
+          "title": "Ci High",
+          "type": "number"
+        }
+      },
+      "required": [
+        "metric",
+        "subject",
+        "direction",
+        "separation",
+        "ci_low",
+        "ci_high"
+      ],
+      "title": "ObservableCheck",
       "type": "object"
     },
     "Split": {
@@ -167,6 +301,14 @@
       ],
       "default": null,
       "title": "Foundry Eval Run"
+    },
+    "not_observable": {
+      "description": "planted scripts excluded from recall (spec \u00a77.2)",
+      "items": {
+        "$ref": "#/$defs/Exclusion"
+      },
+      "title": "Not Observable",
+      "type": "array"
     },
     "notes": {
       "default": "",

@@ -761,6 +761,61 @@ def test_eval_metric_belongs_to_a_suite_the_run_covered():
         _eval_run([_estimate(name="decoy_restraint", suite=Suite.DECOYS)])
 
 
+def _check(**overrides):
+    base = dict(
+        metric=Metric.SPRINT_COUNT,
+        subject="NV-03",
+        direction=Direction.DOWN,
+        separation=0.9,
+        ci_low=-1.2,
+        ci_high=-0.6,
+    )
+    return base | overrides
+
+
+def _exclusion(rule, **check):
+    return dict(
+        script_id="p07-s1", cause=Cause.PLAYER_FATIGUE, rule=rule, observables=[_check(**check)]
+    )
+
+
+def _with_exclusions(exclusions, suite=Suite.PLANTED):
+    run = _eval_run([_estimate()]).model_dump()
+    metrics = [_estimate(suite=suite).model_dump()]
+    return EvalRun.model_validate(
+        dict(run, suites=[suite], metrics=metrics, not_observable=exclusions)
+    )
+
+
+def test_excluded_scripts_carry_the_numbers_that_excluded_them():
+    # Its paired CI clears zero downwards, but one match cannot show it: single_match.
+    run = _with_exclusions([_exclusion("single_match")])
+    assert run.not_observable[0].observables[0].clears_zero
+    # A CI that includes zero is excluded by the paired-effect rule first.
+    assert _with_exclusions([_exclusion("paired_effect", ci_high=0.1)]).not_observable
+
+
+@pytest.mark.parametrize(
+    "exclusion,message",
+    [
+        (_exclusion("paired_effect"), "clears zero its way"),
+        (_exclusion("single_match", ci_high=0.1), "paired-effect rule applies first"),
+        (_exclusion("single_match", separation=2.4), "separates enough to count"),
+        (_exclusion("single_match", direction=Direction.FLAT), "moves up or down"),
+    ],
+)
+def test_an_exclusion_must_fit_its_rule(exclusion, message):
+    with pytest.raises(ValidationError, match=message):
+        _with_exclusions([exclusion])
+
+
+def test_exclusions_belong_to_planted_runs_and_are_listed_once():
+    with pytest.raises(ValidationError, match="listed once"):
+        _with_exclusions([_exclusion("single_match")] * 2)
+    with pytest.raises(ValidationError, match="planted suite"):
+        _with_exclusions([_exclusion("single_match")], suite=Suite.DECOYS)
+
+
 def _comparison(variant_b):
     return VariantComparison(
         comparison_id="cmp-1",

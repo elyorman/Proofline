@@ -1,3 +1,4 @@
+import math
 from itertools import pairwise
 from pathlib import Path
 
@@ -95,9 +96,13 @@ def test_a_ball_over_a_touchline_comes_back_as_a_throw_in():
             over = prev.type == "pass" and prev.end.y in (0.0, 68.0)
             throw_in = e.type == "set_piece" and e.qualifiers["kind"] == "throw_in"
             assert over == throw_in, e.event_id
+            if e.type in ("carry", "dribble"):
+                assert 0.0 < e.end.y < 68.0, e.event_id  # carries turn back off a touchline
             if over:
                 throw_ins += 1
                 assert prev.outcome == "incomplete" and e.team != prev.team, e.event_id
+                length = math.hypot(prev.end.x - prev.start.x, prev.end.y - prev.start.y)
+                assert abs(prev.pass_q.distance_m - length) <= 0.2, prev.event_id
                 line = 67.5 if prev.end.y == 0.0 else 0.5  # the same touchline, other frame
                 assert _close(e.start, Point(x=105 - prev.end.x, y=line)), e.event_id
         assert throw_ins > 0

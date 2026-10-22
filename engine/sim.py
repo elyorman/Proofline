@@ -22,7 +22,7 @@ PITCH_X, PITCH_Y = 105.0, 68.0
 HALF = 45 * 60
 HALF_TIME_BREAK_S = 15 * 60
 KICKOFF_MS = 1_800_000_000_000
-OPEN_PLAY_MAX_X = 97.0  # open play bounces back off the six-yard line
+OPEN_PLAY_MAX_X = 97.0  # open play bounces back 8 m from the goal line
 THROW_IN_BAND = 8.0  # a misplaced pass ending this close to a touchline runs out
 FATIGUE_PER_MIN = 0.25 / 90
 
@@ -48,10 +48,11 @@ def reflect(v: float, lo: float, hi: float) -> float:
 
 
 def ahead(x: float, y: float, dist: float, angle: float) -> tuple[float, float]:
-    """A point `dist` metres away at `angle` radians, reflected off the six-yard line,
-    the touchlines and the passer's own goal line.
+    """A point `dist` metres away at `angle` radians, reflected off x = OPEN_PLAY_MAX_X,
+    the touchlines and the own goal line.
 
-    Reflecting rather than clamping keeps play from piling up on any line.
+    Reflecting rather than clamping keeps play from piling up on any line. One reflection
+    is enough while no pass or carry is longer than the pitch is wide (passes reach 55 m).
     """
     tx = reflect(x + dist * math.cos(angle), 0.5, OPEN_PLAY_MAX_X)
     ty = reflect(y + dist * math.sin(angle), 0.5, PITCH_Y - 0.5)

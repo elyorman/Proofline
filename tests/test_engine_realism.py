@@ -45,4 +45,6 @@ def test_totals_per_team_are_realistic():
     assert max(strips.values()) / len(on_ball_y) < 0.08
     for wide in (sum(y < 68 / 3 for y in on_ball_y), sum(y > 68 * 2 / 3 for y in on_ball_y)):
         assert wide / len(on_ball_y) >= 0.25
+    # Only throw-ins are taken on a touchline (17% of actions sat there when y was clamped).
+    assert sum(y in (0.5, 67.5) for y in on_ball_y) / len(on_ball_y) < 0.05
     assert 30 <= statistics.mean(throw_ins) <= 55

@@ -443,22 +443,51 @@ def test_a_card_reaches_a_surface_only_once_verified():
         support_level=None,
         language_level=None,
     )
-    for status in ("verified", "scheduled", "shown", "revised"):
+    corrected = dict(card["verification"], status="corrected", number_check="corrected")
+    assert InsightCard.model_validate(dict(card, status="shown", verification=corrected))
+    for status in ("verified", "scheduled", "shown", "expired", "killed"):
         for verification in (None, rejected):
             with pytest.raises(ValidationError, match="needs a passed or corrected verification"):
                 InsightCard.model_validate(dict(card, status=status, verification=verification))
-    # Fast-lane cards carry deterministic facts only and skip the Verifier (rule 6).
-    fast = dict(card, lane="fast", status="shown", verification=None)
-    assert InsightCard.model_validate(fast).lane == "fast"
+    # A card that fails re-verification is withdrawn and keeps the rejected verdict.
+    assert InsightCard.model_validate(dict(card, status="withdrawn", verification=rejected))
+    for status in ("rejected", "withdrawn"):
+        with pytest.raises(ValidationError, match="carries the rejected verification"):
+            InsightCard.model_validate(dict(card, status=status))
+
+
+def test_only_key_events_take_the_fast_lane():
+    card = _card_example()
+    changes = [p for p in card["propositions"] if p["type"] == "change"]
+    goal = dict(
+        card,
+        lane="fast",
+        status="shown",
+        verification=None,
+        moment_type="key_event",
+        case_outcome="none",
+        propositions=changes,
+    )
+    assert InsightCard.model_validate(goal).lane == "fast"
+    for unfit in (
+        dict(goal, moment_type="pressure_shift"),
+        dict(goal, case_outcome="explained", propositions=card["propositions"]),
+        dict(goal, verification=card["verification"]),
+    ):
+        with pytest.raises(ValidationError, match="fast-lane card is a key event"):
+            InsightCard.model_validate(unfit)
 
 
 def test_revisions_are_numbered_from_two_up_to_the_card_revision():
     card = _card_example()
     second = {"revision": 2, "at": "70:05", "reason": "events amended", "amendment_ids": ["a1"]}
     assert InsightCard.model_validate(dict(card, revision=2, revisions=[second])).revision == 2
-    for revision, revisions in ((2, []), (1, [second]), (3, [second])):
-        with pytest.raises(ValidationError, match="revisions must list"):
+    third = dict(second, revision=3)
+    for revision, revisions in ((2, []), (1, [second]), (3, [second]), (3, [third, second])):
+        with pytest.raises(ValidationError, match="revisions must number"):
             InsightCard.model_validate(dict(card, revision=revision, revisions=revisions))
+    with pytest.raises(ValidationError, match="revision 2 or later"):
+        InsightCard.model_validate(dict(card, status="revised"))
 
 
 def test_cue_template_is_an_enum_everywhere():

@@ -182,10 +182,20 @@ class Revision(BaseModel):
     amendment_ids: list[str] = Field(default_factory=list)
 
 
-# Statuses in which a card has reached, or is queued for, a surface (CLAUDE.md rule 6).
-SURFACED = frozenset(
-    {CardStatus.VERIFIED, CardStatus.SCHEDULED, CardStatus.SHOWN, CardStatus.REVISED}
+# What a full-lane card's verification must say at each lifecycle status (CLAUDE.md rule 6,
+# spec §5 and §10). Every status from `verified` on has passed the Verifier, including a card
+# that expired to the recap or that a producer killed; rejected and withdrawn ones failed it.
+NEEDS_PASSING = frozenset(
+    {
+        CardStatus.VERIFIED,
+        CardStatus.SCHEDULED,
+        CardStatus.SHOWN,
+        CardStatus.REVISED,
+        CardStatus.EXPIRED,
+        CardStatus.KILLED,
+    }
 )
+NEEDS_REJECTED = frozenset({CardStatus.REJECTED, CardStatus.WITHDRAWN})
 
 
 class InsightCard(BaseModel):
@@ -242,9 +252,20 @@ class InsightCard(BaseModel):
         if self.case_outcome == CaseOutcome.OTHER:
             if not primaries or primaries[0].cause != Cause.OTHER:
                 raise ValueError("an 'other' outcome needs a primary attribution to 'other'")
-        if self.lane == "full" and self.status in SURFACED:
-            if self.verification is None or self.verification.status == "rejected":
-                raise ValueError(f"a {self.status} card needs a passed or corrected verification")
-        if [r.revision for r in self.revisions] != list(range(2, self.revision + 1)):
-            raise ValueError(f"revisions must list revisions 2..{self.revision} in order")
+        verdict = self.verification.status if self.verification else None
+        if self.lane == "fast":
+            # Rule 6's only exception: key events stated from deterministic facts.
+            if self.moment_type != MomentType.KEY_EVENT or self.attributions or verdict:
+                raise ValueError("a fast-lane card is a key event with no causes and no verifier")
+        elif self.status in NEEDS_PASSING and verdict not in ("passed", "corrected"):
+            raise ValueError(f"a {self.status} card needs a passed or corrected verification")
+        elif self.status in NEEDS_REJECTED and verdict != "rejected":
+            raise ValueError(f"a {self.status} card carries the rejected verification")
+        listed = [r.revision for r in self.revisions]
+        if listed != list(range(2, self.revision + 1)):
+            raise ValueError(
+                f"revisions must number 2 up to revision {self.revision}; got {listed}"
+            )
+        if self.status == CardStatus.REVISED and self.revision < 2:
+            raise ValueError("a revised card is at revision 2 or later")
         return self

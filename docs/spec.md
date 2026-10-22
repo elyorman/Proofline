@@ -278,7 +278,10 @@ For every scripted match, the engine also runs the match **without each script**
 - Random streams are keyed by **decision type and match-minute bucket** (`pass_choice@61`), so draws stay aligned after a script changes who has the ball. This reduces divergence; it cannot remove it.
 - Effects are measured on **windowed aggregates** over the script's observable window, never event by event.
 - Each script is estimated over **20–30 seed pairs**; the simulator uses no LLM, so this costs seconds.
-- A script is `not_observable`, and excluded from recall, when its effect's confidence interval includes zero or when none of its observables separates from natural variation by two standard deviations, in the direction its ground truth names, in a single match (`engine/visibility.py`, defined in `DATASET.md`). The detector sees one match: a paired effect can clear zero and still be invisible in every match it happens in. The scoreboard reports how many scripts each rule excluded.
+- A script is `not_observable`, and excluded from recall (never from precision), when either rule below holds. The detector sees one match: a paired effect can clear zero and still be invisible in every match it happens in.
+  - Its paired effect's confidence interval includes zero or points against the direction its ground truth names.
+  - None of its class's observables separates from natural variation by two standard deviations in that direction. Separation (`DATASET.md`, `engine/visibility.py`) belongs to the script, never to an evaluated match: the mean in-match change over the script's paired-run seeds, taken over the ground truth's observable window against the same match's first half (or, for a script that starts before half-time, the match before it starts), minus the mean natural change, in natural standard deviations. Each class's observables and their directions are fixed in `DATASET.md` before any script of that class runs.
+- Flags come from engine runs alone, on dev seeds while a script is designed and on held-out seeds for the reported scoreboard, and are frozen before either variant runs; both variants use the same flags. The scoreboard lists every excluded script with its class, separation and interval, counts the first rule's exclusions before the second's, and shows recall over all planted scripts beside the headline, all from `eval_runs` records.
 
 Paired runs are an evaluation tool only. Live, agents reason from the single match.
 
@@ -319,7 +322,7 @@ Pure analytics, exposed as MCP tools. Every call returns the value, window, even
 | Press intensity | Pressure events per minute in the opponent half | Build |
 | Long-ball share | Share of passes over 30 m | Build |
 | Field tilt | Share of final-third touches per team | Build |
-| Channel share | Share of a team's on-ball actions starting in the left, centre or right third of the width, in its own attacking frame | Build |
+| Channel share | Share of a team's passes, carries and dribbles starting in the left, centre or right third of the width (22.67 m each, in the team's own attacking frame; right is y > 45.33) | Build |
 | Pass accuracy | Completed / attempted, overall and under pressure | Build |
 | Pass difficulty rating | 0–100 from distance, pressure on passer, angle, receiver marking, line-breaking | Build |
 | xG | Shot-quality model over distance, angle, body part, defenders in cone | Build |
@@ -496,7 +499,7 @@ If the revise path slips, ship withdraw-only with full propagation; never ship p
 
 | Metric | Reported as |
 |---|---|
-| Planted cause recall | Point estimate with bootstrap 95% CI |
+| Planted cause recall (over scripts not marked `not_observable`, §7.2; exclusions and all-script recall beside it) | Point estimate with bootstrap 95% CI |
 | Cause precision | Point estimate with bootstrap 95% CI |
 | Decoy restraint | Point estimate with bootstrap 95% CI |
 | Verifier catch rate (seeded false claims) | Point estimate with bootstrap 95% CI |
@@ -542,7 +545,7 @@ Change feeds on `cards` trigger the Director; on `events` the Correction Watcher
 Synthetic data creation is the first bullet of the first judging criterion and the tie-breaker. The dataset ships as a GitHub release built by `gh release` in Actions:
 
 - Two curated fixtures (the demo match and one more) as event streams with tracking, plus the planted, decoy and correction suites as scripts.
-- `DATASET.md`: schema, script DSL, amendment format, paired-run method, realism report with calibrated totals.
+- `DATASET.md`: schema, script DSL, amendment format, paired-run method, the single-match visibility statistic with each class's observables, realism report with calibrated totals.
 - A CLI: `proofline-engine generate --script <yaml> --seed <n>`.
 
 ---

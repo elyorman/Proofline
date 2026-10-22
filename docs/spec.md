@@ -64,7 +64,7 @@ Football coverage has plenty of data and a growing amount of AI. What it lacks i
 
 ## 5. Insight Card
 
-The Insight Card is the single unit of truth every surface renders.
+The Insight Card is the single unit of truth every surface renders. The example is the demo match's 63' card, with the numbers seed 4434 measures.
 
 ```json
 {
@@ -87,32 +87,32 @@ The Insight Card is the single unit of truth every surface renders.
   "case_outcome": "explained",
 
   "propositions": [
-    { "id": "p1", "type": "change", "metric": "ppda", "subject": "Harbour City",
-      "direction": "down", "window": "58:00-63:00", "baseline": "first_half" },
+    { "id": "p1", "type": "change", "metric": "pressure_rate", "subject": "Harbour City",
+      "direction": "up", "window": "58:00-63:00", "baseline": "first_half" },
     { "id": "p2", "type": "change", "metric": "long_ball_share", "subject": "Northvale",
       "direction": "up", "window": "58:00-63:00", "baseline": "first_half" },
     { "id": "p3", "type": "attribution", "cause": "tactical.press_intensity_up",
       "effect": "p2", "role": "primary", "hypothesis_id": "hyp-tactics-02", "agent": "tactics" },
     { "id": "p4", "type": "attribution", "cause": "game_state.chasing_result",
-      "effect": "p2", "role": "secondary", "hypothesis_id": "hyp-gamestate-01", "agent": "game_state" }
+      "effect": "p1", "role": "secondary", "hypothesis_id": "hyp-gamestate-01", "agent": "game_state" }
   ],
 
   "claim": "Harbour City have raised their press since around the hour, and Northvale have started going long far more often.",
 
   "evidence": [
-    { "metric": "ppda", "subject": "Harbour City", "window": "58:00-63:00",
-      "value": 6.1, "baseline": { "window": "first_half", "value": 11.4 },
-      "n_events": 41, "tool_call_id": "tc-8841" },
+    { "metric": "pressure_rate", "subject": "Harbour City", "window": "58:00-63:00",
+      "value": 0.83, "baseline": { "window": "first_half", "value": 0.32 },
+      "n_events": 18, "tool_call_id": "tc-8841" },
     { "metric": "long_ball_share", "subject": "Northvale", "window": "58:00-63:00",
-      "value": 0.48, "baseline": { "window": "first_half", "value": 0.21 },
-      "n_events": 33, "tool_call_id": "tc-8842" }
+      "value": 0.59, "baseline": { "window": "first_half", "value": 0.11 },
+      "n_events": 17, "tool_call_id": "tc-8842" }
   ],
 
   "depends_on": { "evidence_sets": ["es-tc-8841", "es-tc-8842"], "data_version": "feed-1" },
 
   "rejected_alternatives": [
     { "hypothesis_id": "hyp-physical-01", "taxonomy": "physical.unit_fatigue", "agent": "physical",
-      "reason": "Northvale sprint count flat versus first half (-2%).",
+      "reason": "Harbour City's sprints fell too (-25%, against Northvale's -34% since the first half): the usual second-half decline, not Northvale tiring.",
       "rejected_by": "cross_examination", "tool_call_id": "tc-8850" }
   ],
 
@@ -147,7 +147,7 @@ The Insight Card is the single unit of truth every surface renders.
       "es": "El Harbour City presiona mucho más arriba y el Northvale juega en largo mucho más a menudo."
     },
     "analyst": {
-      "en": "PPDA 11.4 → 6.1 since 58'. Northvale long-ball share 21% → 48%. Consistent with the press disrupting their build-up. Fatigue ruled out: sprint count flat. Support: moderate."
+      "en": "Pressure rate 0.32 → 0.83 since 58'. Northvale long-ball share 11% → 59%. Consistent with the press disrupting their build-up. Fatigue ruled out: Harbour City's sprints fell too. Support: moderate."
     }
   },
 
@@ -155,7 +155,7 @@ The Insight Card is the single unit of truth every surface renders.
     "template": "pressure_shift_bar", "priority": "normal",
     "show_at": "next_dead_ball", "max_delay_s": 45, "duration_s": 8,
     "fields": { "team": "Harbour City", "headline": "PRESS RAISED",
-      "stat_label": "Passes allowed per defensive action", "before": 11.4, "after": 6.1 }
+      "stat_label": "Pressures per Northvale action", "before": 0.32, "after": 0.83 }
   },
 
   "revisions": [],
@@ -320,9 +320,10 @@ Pure analytics, exposed as MCP tools. Every call returns the value, window, even
 |---|---|---|
 | PPDA | Opponent passes allowed per defensive action in the opponent's 60% of the pitch | Build |
 | Press intensity | Pressure events per minute in the opponent half | Build |
+| Pressure rate | A team's pressures in the opponent's first 60% of the pitch per opponent on-ball action there (passes, carries and dribbles starting at x < 63 in the opponent's frame); metric `pressure_rate` | Build |
 | Long-ball share | Share of passes over 30 m | Build |
 | Field tilt | Share of final-third touches per team | Build |
-| Channel share | Share of a team's passes, carries and dribbles starting in the left, centre or right third of the 68 m width (left y < 22.67, right y > 45.33, in the team's own attacking frame) | Build |
+| Channel share | Share of a team's passes, carries and dribbles starting in the left, centre or right third of the 68 m width (left y < 22.67, right y > 45.33, in the team's own attacking frame); metrics `channel_share_left`, `channel_share_centre`, `channel_share_right` | Build |
 | Pass accuracy | Completed / attempted, overall and under pressure | Build |
 | Pass difficulty rating | 0–100 from distance, pressure on passer, angle, receiver marking, line-breaking | Build |
 | xG | Shot-quality model over distance, angle, body part, defenders in cone | Build |
@@ -400,13 +401,13 @@ Every ambient element is tappable: "Why?" opens an on-demand case for that windo
 }
 ```
 
-Validation: metric exists, subject resolves, window and baseline are standard scopes, direction and threshold present. `threshold_kind` is `relative` (ratios and counts with a baseline well above zero), `absolute` (the metric's own units) or `sigma` (standard deviations from the `distribution` tool, the default for signed or near-zero metrics such as momentum); each metric has a pinned default, and an agent may switch to `absolute` or `sigma` but never to `relative` on a metric not pinned relative. Changes are signed: a prediction holds only when the change points the predicted way by at least `min_change`. The prediction is judged mechanically against the tool result (`Prediction.supported_by`), not by the agent.
+Validation: metric exists, subject resolves, window and baseline are standard scopes, direction and threshold present. `threshold_kind` is `relative` (ratios and counts with a baseline well above zero), `absolute` (the metric's own units) or `sigma` (standard deviations from the `distribution` tool, the default for signed or near-zero metrics such as momentum); each metric has a pinned default, and an agent may switch to `absolute` or `sigma` but never to `relative` on a metric not pinned relative. Changes are signed: a prediction holds only when the change points the predicted way by at least `min_change`; a `flat` prediction holds when the change stays within `min_change` either way, which is how a counter-test says "no change". A hypothesis itself never predicts flat. The prediction is judged mechanically against the tool result (`Prediction.supported_by`), not by the agent.
 
 **Protocol:**
 1. **Open.** The case is written to the ledger with its trigger metrics and window.
 2. **Pre-register** (agents in parallel). Each agent decides whether the case touches its domain and registers up to two hypotheses, each a cause in its own domain; `other` and `none` are synthesis outcomes, never hypotheses.
 3. **Test.** Each agent spends its budget on tool calls of its choosing. Predictions are scored mechanically; failed hypotheses are discarded with the reason.
-4. **Cross-examine.** Each surviving hypothesis goes to the other agents, who may each register and run one structured counter-test. Result: holds, weakened or refuted.
+4. **Cross-examine.** Each surviving hypothesis goes to the other agents, who may each register and run one structured counter-test. Before it runs, the orchestrator refuses a counter-test that cannot fairly contradict the hypothesis (`check_counter_test`): on the hypothesis's metric it uses the same threshold kind and claims at least as large a move; a flat counter-test keeps the hypothesis's subject and window, changes only the baseline and has a tolerance tighter than the claim; a counter-test that moves the same way is a control on another subject. Code scores the result from the counter-test, not any agent: refuted when the counter-prediction holds, weakened when it reaches half its threshold, holds otherwise.
 5. **Attribute.** A synthesis step ranks survivors into primary and secondary. Nothing survives: `none`. A real effect with no fitting class: `other`.
 6. **Propose.** The card, its propositions and the full trace go to the Verifier.
 
@@ -586,7 +587,7 @@ Synthetic data creation is the first bullet of the first judging criterion and t
   "priority": "normal",
   "show_at": { "mode": "next_dead_ball", "not_before": "63:40", "not_after": "64:25" },
   "duration_s": 8,
-  "fields": { "team": "Harbour City", "headline": "PRESS RAISED", "before": 11.4, "after": 6.1 },
+  "fields": { "team": "Harbour City", "headline": "PRESS RAISED", "before": 0.32, "after": 0.83 },
   "locale": "en",
   "language_level": "measured",
   "status": "approved"

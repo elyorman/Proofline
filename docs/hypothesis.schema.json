@@ -159,7 +159,7 @@
       "type": "object"
     },
     "ThresholdKind": {
-      "description": "How a predicted change is measured against its baseline. Changes are signed.\n\nRELATIVE: (value - baseline) / |baseline|; only for metrics pinned relative,\ni.e. ratios and counts with a baseline well above zero.\nABSOLUTE: value - baseline, in the metric's own units.\nSIGMA: (value - baseline) / std from the `distribution` tool; the default\nfor signed or near-zero metrics such as momentum.",
+      "description": "How a predicted change is measured against its baseline. Changes are signed.\n\nRELATIVE: (value - baseline) / |baseline|; only for metrics pinned relative,\ni.e. ratios and counts with a baseline well above zero.\nABSOLUTE: value - baseline, in the metric's own units; shares and rates bounded in\n0-1 (long-ball share, pressure rate, channel shares) are pinned absolute.\nSIGMA: (value - baseline) / std from the `distribution` tool; the default\nfor signed or near-zero metrics such as momentum.",
       "enum": [
         "relative",
         "absolute",

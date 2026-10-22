@@ -131,7 +131,8 @@ class ThresholdKind(StrEnum):
 
     RELATIVE: (value - baseline) / |baseline|; only for metrics pinned relative,
     i.e. ratios and counts with a baseline well above zero.
-    ABSOLUTE: value - baseline, in the metric's own units.
+    ABSOLUTE: value - baseline, in the metric's own units; shares and rates bounded in
+    0-1 (long-ball share, pressure rate, channel shares) are pinned absolute.
     SIGMA: (value - baseline) / std from the `distribution` tool; the default
     for signed or near-zero metrics such as momentum.
     """

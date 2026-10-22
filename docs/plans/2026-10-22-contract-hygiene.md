@@ -2,6 +2,8 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
+> **Status:** executed on branch `contract-hygiene` in October 2026, with a spec check and a code-quality review after every task. The code blocks show each task as dispatched; the fixes listed under "Review fixes during execution" changed the code after the task named. Do not re-run it; later plans pick up the follow-ups at the end.
+
 **Goal:** Close the contract gaps two independent reviews of `827b51b` found before anything downstream builds on them, and fix the repo hygiene they flagged.
 
 **Architecture:** Contract changes first, each with its tests and its exported schema in the same commit: surfaced cards must carry a passing verification, predictions can say "flat", cross-examination is scored by code, the demo card's metrics exist, and evaluation runs record which planted scripts were excluded and why. Then the spec catches up (the 63' example card with the demo match's measured numbers, flat predictions and mechanical cross-examination, a fixed seed partition, no real league names), and CI and the isolation guard close two small holes.
@@ -624,3 +626,43 @@ and replace the bullet that starts `- **Support bands for channel share.**` with
 git add docs/plans/2026-10-22-planted-signal.md docs/plans/2026-10-22-contract-hygiene.md
 git commit -m "Record what the contract-hygiene plan resolved" -m "The planted-signal plan's follow-ups now point at the fixes, and the support-band follow-up says the bands are set on the dev split rather than tuned to the demo."
 ```
+
+
+---
+
+## Review fixes during execution
+
+| Task | Fix | Commit |
+|---|---|---|
+| 1 | The threshold-kind docstring says bounded shares and rates are pinned absolute | `ce0e1b3` |
+| 2 | Expired and killed cards need a passing verification; rejected and withdrawn ones carry the rejected verdict; a fast-lane card must be a key event with no causes and no verification (it was a full bypass); a revised card is at revision 2 or later | `60dd4bc` |
+| 3 | A counter-test cannot choose its own verdict: `check_counter_test` holds every counter on the hypothesis's metric to its threshold kind and claim (flat counters change only the baseline and are tighter than the claim; same-way counters are controls on another subject); hypotheses cannot be flat; changes and thresholds must be finite; only domain agents cross-examine; a stored result must agree with the computed one | `3c18ea6`, `e87b45c` |
+| 4 | Separation is stored with the engine's sign and judged in the observable's direction, and must agree with an interval that clears zero; NaN, infinity, empty subjects and fallback causes are refused; the rules are named `no_paired_effect` and `no_separation` | `bdd36d1` |
+| 5 | A cue's insight revision is at least 1; the test drops each required field and shows a key-event cue may name its fast-lane card | `45e2c4d` |
+| 6 | §9.1 states exactly what `check_counter_test` enforces; the card's sprint falls use the first half's played length (−21%, −31%, not −25%, −34%), and the rejection says only what a control shows; the example hypothesis is about Northvale | `e4f5a1c` |
+| 7 | Seeds 100–139 are called validation seeds wherever the demo-seed rule or the realism and visibility tests mention them | `3927840` |
+
+## Follow-ups for later plans
+
+**Paired-run tooling (rest of plan 2)**
+- **Where flags came from.** A frozen flag-set record (id, split, seeds, number of seed pairs, `frozen_at_ms`, the exclusions) that every planted `EvalRun` points to, frozen before either variant starts; a `VariantComparison` refuses two runs with different flag sets. An empty `not_observable` list cannot yet tell "nothing excluded" from "flags never attached".
+- **Each class's observables.** Pin them, with directions, as data in `contracts/taxonomy.py`, and check that an exclusion lists exactly its class's set: leaving out the one observable that clears zero, or recording a wrong direction, would hide a script today.
+- **Recall denominators.** Fixed metric names for headline and all-script recall, and a check that the headline's count plus the exclusions equals the all-script count.
+- **One threshold.** `engine/visibility.py` should use `contracts.eval_run.VISIBILITY_SDS`.
+
+**Agents and orchestration**
+- **Per-metric minimum thresholds** in `docs/support-rules.md`, for hypotheses and counter-tests alike; `check_counter_test` then checks counters on other metrics, which it skips today.
+- **One counter-test per challenger per hypothesis**, recorded by the orchestrator, so a challenger cannot register several and keep the one that refutes.
+- **Player ids and teams.** `check_counter_test` groups a team with its units ("Northvale.defence") but not with its players ("NV-03").
+- **`HypothesisTest.outcome` is still set freely.** Compute it from the prediction, as cross-examination now is.
+- **The fatigue rejection's strength.** A control refutes whatever the gap; on validation seeds Harbour City's 58–63' sprints fall at least 15% in 70% of matches. The planned same-window season baseline gives the Physical agent and its challengers a sharper test.
+
+**Ledger**
+- **Re-validate a card before every write.** `InsightCard` has no `validate_assignment`, so a status set after construction skips the rule-6 gate.
+- **Keep a document per card revision.** A withdrawn card replaces its earlier passing verification with the rejected one; only per-revision documents keep the history spec §10 promises.
+
+**Surfaces**
+- **Fast-lane cards** always carry `case_outcome: none`; check the lane and moment type before the outcome, so a goal is never labelled "No clear cause — normal variation". The contract still lets a fast-lane card be marked `investigating`, `cross_examined`, `verified` or `rejected`; refuse those if the Director ever sets them.
+
+**Repo**
+- The schema check does not catch a stale schema file for a model removed from `SCHEMAS`.

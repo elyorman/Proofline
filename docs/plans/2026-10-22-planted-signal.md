@@ -150,9 +150,14 @@ In `engine/script.py`, add `import math` above `import re`, and below the `PLAYE
 AMENDABLE = frozenset({EventType.PASS, EventType.CARRY, EventType.DRIBBLE})
 ```
 
-Replace the `type: EventType` field of `AmendmentFilter` and its validator with:
+Replace the `AmendmentFilter` class with:
 
 ```python
+class AmendmentFilter(BaseModel):
+    """Events whose true start and end both lie in [y_min, y_max]; v1 shows them displaced."""
+
+    model_config = ConfigDict(extra="forbid")
+
     types: list[EventType] = Field(min_length=1)
     team: Side
     window: Window
@@ -554,11 +559,9 @@ git commit -m "Measure whether a planted story is visible in one match" -m "The 
 
 - [ ] **Step 1: Write the failing tests**
 
-In `tests/test_engine_sim.py`, add `from itertools import pairwise` as the first import, and append:
+In `tests/test_engine_sim.py`, add `from itertools import pairwise` as the first import, and append (after two blank lines):
 
 ```python
-
-
 def test_a_ball_over_a_touchline_comes_back_as_a_throw_in():
     """Open play reflects off the touchlines; only a misplaced pass goes over one."""
     for seed in (3, 4, 5):
@@ -1097,11 +1100,9 @@ git commit -m "Make the demo match's planted stories visible in one match" -m "s
 
 - [ ] **Step 1: Write the failing test**
 
-In `tests/test_engine_planted_signal.py`, add `import statistics` below `import functools`, add `clears,` to the `engine.signal` import list (after `change,`), and append:
+In `tests/test_engine_planted_signal.py`, add `import statistics` below `import functools`, add `clears,` to the `engine.signal` import list (after `change,`), and append (after two blank lines):
 
 ```python
-
-
 def _typical_and_visible(name, story_change):
     """At least the held-out median, and clear of natural variation."""
     held_out = [_match(s)[name][0] for s in HELD_OUT]
@@ -1148,11 +1149,9 @@ Expected: `3 passed`.
 
 - [ ] **Step 5: Pin the demo match**
 
-In `tests/test_engine_cli.py`, add `import hashlib` above `import json`, and append:
+In `tests/test_engine_cli.py`, add `import hashlib` above `import json`, and append (after two blank lines):
 
 ```python
-
-
 def test_the_demo_match_is_pinned(tmp_path, capsys):
     """The video's match. A change that moves it must update these lines on purpose."""
     main(["generate", "--script", str(M01), "--out", str(tmp_path)])

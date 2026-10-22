@@ -6,7 +6,7 @@ The outcome is judged against the ToolResult by code, never by the agent.
 
 from enum import StrEnum
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, computed_field, model_validator
 
 from contracts.clock import Window
 from contracts.taxonomy import (
@@ -23,6 +23,7 @@ from contracts.taxonomy import (
 class Direction(StrEnum):
     UP = "up"
     DOWN = "down"
+    FLAT = "flat"  # no change beyond min_change either way; predictions only
 
 
 class Prediction(BaseModel):
@@ -34,7 +35,10 @@ class Prediction(BaseModel):
     threshold_kind: ThresholdKind | None = Field(
         default=None, description="defaults to the metric's pinned kind"
     )
-    min_change: float = Field(gt=0, description="relative fraction, absolute units, or sigmas")
+    min_change: float = Field(
+        gt=0,
+        description="relative fraction, absolute units, or sigmas; for flat, the tolerance",
+    )
 
     @model_validator(mode="after")
     def _default_threshold(self) -> "Prediction":
@@ -47,10 +51,16 @@ class Prediction(BaseModel):
                 raise ValueError("relative min_change above 500% is not a real prediction")
         return self
 
-    def supported_by(self, observed_change: float) -> bool:
-        """Mechanical verdict: the signed change must point the predicted way, far enough."""
+    def supported_by(self, observed_change: float, share: float = 1.0) -> bool:
+        """Mechanical verdict on a signed change.
+
+        Up or down: the change points the predicted way by at least `share` of min_change.
+        Flat: the change stays within min_change / share either way.
+        """
+        if self.direction == Direction.FLAT:
+            return abs(observed_change) <= self.min_change / share
         signed = observed_change if self.direction == Direction.UP else -observed_change
-        return signed >= self.min_change
+        return signed >= share * self.min_change
 
 
 class Hypothesis(BaseModel):
@@ -91,9 +101,21 @@ class CrossExamResult(StrEnum):
 
 
 class CrossExamination(BaseModel):
+    """A challenger's counter-test, scored by code: if the counter-prediction holds, the
+    hypothesis is refuted; if it reaches half its threshold, weakened; otherwise it holds."""
+
     hypothesis_id: str
     challenger: AgentRole
     counter_prediction: Prediction
     tool_call_id: str
-    result: CrossExamResult
+    observed_change: float = Field(description="signed, in the counter-prediction's units")
     reason: str
+
+    @computed_field
+    @property
+    def result(self) -> CrossExamResult:
+        if self.counter_prediction.supported_by(self.observed_change):
+            return CrossExamResult.REFUTED
+        if self.counter_prediction.supported_by(self.observed_change, share=0.5):
+            return CrossExamResult.WEAKENED
+        return CrossExamResult.HOLDS

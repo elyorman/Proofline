@@ -35,6 +35,12 @@ class ChangeProposition(BaseModel):
     window: Window
     baseline: BaselineScope
 
+    @model_validator(mode="after")
+    def _moves(self) -> "ChangeProposition":
+        if self.direction == Direction.FLAT:
+            raise ValueError("a change proposition moves up or down")
+        return self
+
 
 class AttributionProposition(BaseModel):
     id: str

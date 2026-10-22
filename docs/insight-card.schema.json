@@ -266,7 +266,8 @@
     "Direction": {
       "enum": [
         "up",
-        "down"
+        "down",
+        "flat"
       ],
       "title": "Direction",
       "type": "string"

@@ -40,7 +40,7 @@ from contracts.case import CaseStage, Checkpoint, TriggerMetric
 from contracts.cue import ShowAt
 from contracts.eval_run import MetricEstimate, Split, Suite, Variant, VariantComparison
 from contracts.event import CoordinateShift, EventType, Outcome, PassQualifiers, Point
-from contracts.prediction import Direction
+from contracts.prediction import CrossExamination, Direction
 from contracts.profile import Expertise
 from contracts.taxonomy import (
     DEFAULT_THRESHOLD_KIND,
@@ -198,6 +198,33 @@ def test_prediction_is_judged_on_signed_change():
     assert ppda_down.supported_by(-0.46)
     assert not ppda_down.supported_by(0.4)  # large change, wrong direction
     assert not ppda_down.supported_by(-0.1)  # right direction, too small
+
+
+def test_a_flat_prediction_holds_within_its_tolerance():
+    flat = _prediction(metric=Metric.SPRINT_COUNT, direction=Direction.FLAT, min_change=0.1)
+    assert flat.supported_by(0.08) and flat.supported_by(-0.1)
+    assert not flat.supported_by(0.15)
+
+
+def _cross_examination(observed_change):
+    sprints_flat = _prediction(
+        metric=Metric.SPRINT_COUNT, subject="Northvale", direction=Direction.FLAT, min_change=0.1
+    )
+    return CrossExamination(
+        hypothesis_id="hyp-physical-01",
+        challenger=AgentRole.TACTICS,
+        counter_prediction=sprints_flat,
+        tool_call_id="tc-8850",
+        observed_change=observed_change,
+        reason="sprints compared with the season average for the same minutes",
+    )
+
+
+def test_cross_examination_is_scored_by_its_counter_test():
+    assert _cross_examination(-0.05).result == "refuted"  # the counter-prediction holds
+    assert _cross_examination(-0.15).result == "weakened"  # within twice the tolerance
+    assert _cross_examination(-0.30).result == "holds"
+    assert _cross_examination(-0.05).model_dump()["result"] == "refuted"
 
 
 def _hypothesis(agent, cause):
@@ -488,6 +515,18 @@ def test_revisions_are_numbered_from_two_up_to_the_card_revision():
             InsightCard.model_validate(dict(card, revision=revision, revisions=revisions))
     with pytest.raises(ValidationError, match="revision 2 or later"):
         InsightCard.model_validate(dict(card, status="revised"))
+
+
+def test_change_propositions_move():
+    with pytest.raises(ValidationError, match="moves up or down"):
+        ChangeProposition(
+            id="p1",
+            metric=Metric.PRESSURE_RATE,
+            subject="Harbour City",
+            direction=Direction.FLAT,
+            window="58:00-63:00",
+            baseline=BaselineScope.FIRST_HALF,
+        )
 
 
 def test_cue_template_is_an_enum_everywhere():

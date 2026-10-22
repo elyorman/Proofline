@@ -43,7 +43,8 @@
     "Direction": {
       "enum": [
         "up",
-        "down"
+        "down",
+        "flat"
       ],
       "title": "Direction",
       "type": "string"
@@ -141,7 +142,7 @@
           "description": "defaults to the metric's pinned kind"
         },
         "min_change": {
-          "description": "relative fraction, absolute units, or sigmas",
+          "description": "relative fraction, absolute units, or sigmas; for flat, the tolerance",
           "exclusiveMinimum": 0,
           "title": "Min Change",
           "type": "number"

@@ -182,6 +182,12 @@ class Revision(BaseModel):
     amendment_ids: list[str] = Field(default_factory=list)
 
 
+# Statuses in which a card has reached, or is queued for, a surface (CLAUDE.md rule 6).
+SURFACED = frozenset(
+    {CardStatus.VERIFIED, CardStatus.SCHEDULED, CardStatus.SHOWN, CardStatus.REVISED}
+)
+
+
 class InsightCard(BaseModel):
     id: str
     revision: int = Field(default=1, ge=1)
@@ -236,4 +242,9 @@ class InsightCard(BaseModel):
         if self.case_outcome == CaseOutcome.OTHER:
             if not primaries or primaries[0].cause != Cause.OTHER:
                 raise ValueError("an 'other' outcome needs a primary attribution to 'other'")
+        if self.lane == "full" and self.status in SURFACED:
+            if self.verification is None or self.verification.status == "rejected":
+                raise ValueError(f"a {self.status} card needs a passed or corrected verification")
+        if [r.revision for r in self.revisions] != list(range(2, self.revision + 1)):
+            raise ValueError(f"revisions must list revisions 2..{self.revision} in order")
         return self

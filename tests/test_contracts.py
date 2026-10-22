@@ -1,3 +1,4 @@
+import json
 import re
 from pathlib import Path
 
@@ -425,6 +426,39 @@ def test_outcome_explained_needs_taxonomy_cause():
     with pytest.raises(ValidationError):
         _card([CHANGE, _attr(Cause.OTHER)], outcome=CaseOutcome.EXPLAINED)
     assert _card([CHANGE, _attr(Cause.OTHER)], outcome=CaseOutcome.OTHER).case_outcome == "other"
+
+
+def _card_example():
+    return json.loads(_spec_example("## 5. Insight Card"))
+
+
+def test_a_card_reaches_a_surface_only_once_verified():
+    card = _card_example()
+    assert InsightCard.model_validate(dict(card, status="shown")).status == "shown"
+    rejected = dict(
+        card["verification"],
+        status="rejected",
+        rejection_reason="number mismatch",
+        number_check="failed",
+        support_level=None,
+        language_level=None,
+    )
+    for status in ("verified", "scheduled", "shown", "revised"):
+        for verification in (None, rejected):
+            with pytest.raises(ValidationError, match="needs a passed or corrected verification"):
+                InsightCard.model_validate(dict(card, status=status, verification=verification))
+    # Fast-lane cards carry deterministic facts only and skip the Verifier (rule 6).
+    fast = dict(card, lane="fast", status="shown", verification=None)
+    assert InsightCard.model_validate(fast).lane == "fast"
+
+
+def test_revisions_are_numbered_from_two_up_to_the_card_revision():
+    card = _card_example()
+    second = {"revision": 2, "at": "70:05", "reason": "events amended", "amendment_ids": ["a1"]}
+    assert InsightCard.model_validate(dict(card, revision=2, revisions=[second])).revision == 2
+    for revision, revisions in ((2, []), (1, [second]), (3, [second])):
+        with pytest.raises(ValidationError, match="revisions must list"):
+            InsightCard.model_validate(dict(card, revision=revision, revisions=revisions))
 
 
 def test_cue_template_is_an_enum_everywhere():

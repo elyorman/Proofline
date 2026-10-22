@@ -545,9 +545,9 @@ git commit -m "Reserve evaluation seeds nothing else touches" -m "Seeds 100-139 
 
 **Files:** Modify `docs/spec.md` (header, §24).
 
-- [ ] **Step 1: Edit.** Replace the header line `> Scoped for the Microsoft × Premier League "Inside the Game" hackathon (submission 27 October, judging to 10 November). Built solo with Claude Code. All clubs, players, competitions and brands are fictional. Working name; trademark check before the video.` with `> Scoped for the "Inside the Game" hackathon (submission 27 October, judging to 10 November). All clubs, players, competitions and brands are fictional. Working name; trademark check before the video.` In §24 delete the three links whose text names a real league (two "Bundesliga" items and the "Premier League Companion").
+- [ ] **Step 1: Edit.** In the header line, drop the sponsors' names from the hackathon's name and the sentence naming the build tool; keep the rest. In §24 delete the three links whose text names a real league.
 
-- [ ] **Step 2: Check.** `grep -n -i "premier league\|bundesliga\|claude code" docs/spec.md` → nothing.
+- [ ] **Step 2: Check.** A case-insensitive search of `docs/spec.md` for the removed league names and the build tool's name finds nothing.
 
 - [ ] **Step 3: Commit.**
 
@@ -639,8 +639,10 @@ git commit -m "Record what the contract-hygiene plan resolved" -m "The planted-s
 | 3 | A counter-test cannot choose its own verdict: `check_counter_test` holds every counter on the hypothesis's metric to its threshold kind and claim (flat counters change only the baseline and are tighter than the claim; same-way counters are controls on another subject); hypotheses cannot be flat; changes and thresholds must be finite; only domain agents cross-examine; a stored result must agree with the computed one | `3c18ea6`, `e87b45c` |
 | 4 | Separation is stored with the engine's sign and judged in the observable's direction, and must agree with an interval that clears zero; NaN, infinity, empty subjects and fallback causes are refused; the rules are named `no_paired_effect` and `no_separation` | `bdd36d1` |
 | 5 | A cue's insight revision is at least 1; the test drops each required field and shows a key-event cue may name its fast-lane card | `45e2c4d` |
-| 6 | §9.1 states exactly what `check_counter_test` enforces; the card's sprint falls use the first half's played length (−21%, −31%, not −25%, −34%), and the rejection says only what a control shows; the example hypothesis is about Northvale | `e4f5a1c` |
+| 6 | §9.1 states exactly what `check_counter_test` enforces; the card's sprint falls use the first half's played length (−21%, −30%, not −25%, −34%), and the rejection says only what a control shows; the example hypothesis is about Northvale | `e4f5a1c` |
 | 7 | Seeds 100–139 are called validation seeds wherever the demo-seed rule or the realism and visibility tests mention them | `3927840` |
+| 9 | The CI schema check looks at `docs/*.schema.json` rather than all of `docs/`, which still catches a new, uncommitted schema file | `43a7264` |
+| 3 | An opposite-way counter-test keeps the hypothesis's subject and window, so minutes or teams the hypothesis never mentioned cannot refute it; §9.1 states the subject-and-unit rules as the code applies them; Northvale's sprint fall is −30% with the first half's exact length | `9e26841` |
 
 ## Follow-ups for later plans
 
@@ -666,3 +668,5 @@ git commit -m "Record what the contract-hygiene plan resolved" -m "The planted-s
 
 **Repo**
 - The schema check does not catch a stale schema file for a model removed from `SCHEMAS`.
+- When `CrossExamination` is exported, export it in serialization mode, or its computed `result` is missing from the schema although every stored record has it.
+- Spec §11.1 does not yet assign seeds to `state/season_baselines.json`, which the rest of plan 2 generates; pick a range no evaluation split uses.

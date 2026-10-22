@@ -53,3 +53,11 @@ class Cue(BaseModel):
     language_level: LanguageLevel | None = None
     status: CueStatus = CueStatus.PENDING
     decided_by: Literal["auto", "producer"] | None = None
+
+    @model_validator(mode="after")
+    def _names_its_insight(self) -> "Cue":
+        if self.kind != CueKind.KEY_EVENT and (
+            self.insight_id is None or self.insight_revision is None
+        ):
+            raise ValueError(f"a {self.kind} cue names its insight_id and insight_revision")
+        return self

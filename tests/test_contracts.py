@@ -668,6 +668,15 @@ def test_cue_slot_cannot_close_before_it_opens():
         ShowAt(mode="next_dead_ball", not_before="64:25", not_after="63:40")
 
 
+def test_cues_tied_to_an_insight_name_it():
+    cue = json.loads(_spec_example("### 12.3 Broadcast Cue Feed"))
+    for kind in ("insight", "update", "withdrawal"):
+        with pytest.raises(ValidationError, match="names its insight_id"):
+            Cue.model_validate(dict(cue, kind=kind, insight_id=None))
+    key_event = dict(cue, kind="key_event", insight_id=None, insight_revision=None)
+    assert Cue.model_validate(key_event).kind == "key_event"
+
+
 def _spec_example(heading):
     text = SPEC.read_text(encoding="utf-8")
     return re.search(re.escape(heading) + r".*?```json\n(.*?)```", text, re.S).group(1)

@@ -2,6 +2,8 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
+> **Status:** executed on branch `planted-signal` in October 2026, with a spec review and a code-quality review after every task. The code blocks show each task as dispatched; the fixes listed under "Review fixes during execution" changed the code after the task named. Do not re-run it; later plans pick up the follow-ups at the end.
+
 **Goal:** Make each planted story in the demo match visible to a detector that watches one match, prove it with a single-match visibility test on held-out seeds, and choose the demo seed by a stated rule.
 
 **Architecture:** A new `engine/visibility.py` measures a story's in-match change (detection window against the same match's first half) against the change the same observable shows without the story, in natural standard deviations. A new `engine/amend.py` derives the feed as first delivered, so the 55' flank card's v1 view can be measured. The simulator stops piling play onto the touchlines and gains one mechanism (long balls to bypass a high press); m01's scripts are retimed and strengthened, and its fatigue script is dropped because no single match can show it.
@@ -25,8 +27,8 @@ Every number below was measured on a scratch copy of the repo built task by task
 - **The flank story.** a1 selected 2.3 events per match. It now selects every Northvale pass, carry and dribble from 45:00–55:00 whose true start and end lie in y 0–46, and the feed first showed them 22 m to the right (about 55 events per match, never fewer than 17). Channels are equal thirds of the width in the acting team's frame (right: y > 45.33), defined in spec §8.1 by this plan. The flank story is weaker by nature: consecutive actions stay on one side (lag-1 autocorrelation 0.63), so a 10-minute channel share has a natural standard deviation of about 0.165, and any lateral shift can move at most about a third of the events into the right channel. It separates by 1.84 and clears in half the held-out matches. That is enough because a1 is a correction-suite story, not a planted cause, and the demo-seed rule guarantees the demo match shows it.
 - **Fatigue is no longer planted in m01.** One player's sprint count cannot show fatigue in a single match: on seeds 0–79, over 70–90', a striker's separation is 0.93 at a 5× stamina decay, 1.65 at 10× and 2.06 at 20×, where the player barely sprints at all. Mean sprint speed would work (−3.3 at 10×), but it needs an observable the State Builder does not have and a decay at the edge of plausibility. The stamina mechanism stays, tested on a test-only script. Physical causes for the planted suite are designed with tracking (`player_load`) and held to the same visibility bar.
 - **The demo-seed rule.** m01's seed is the first from 4417 upwards on which, in that one match, each planted story's change is at least its held-out median and clears two natural standard deviations, and on which the corrected flank change does not clear them. It picks **4434**. About one held-out match in seven meets the rule, so the demo match is a clear instance, not a typical one, and no reported number comes from it. The rule is stated in the script, `DATASET.md`, the spec and the README, and a test fails if the script's seed is not the one it picks.
-- **Observability in the spec (review this one).** Spec §7.2 marks a script `not_observable` only when its paired CI includes zero. This plan adds: or when none of its observables separates by two natural standard deviations in a single match, with the scoreboard reporting how many scripts each rule excluded. Without it, a script like the old s2 counts against recall although no single-match method could find it.
-- **Amendment filters list types and shift laterally only.** `AmendmentFilter.type` becomes `types` (passes, carries and dribbles; the only events with a ball path to relocate). `AmendmentSpec` rejects a non-zero `dx_m` and a non-finite `dy_m`, so every displaced event stays on the pitch.
+- **Observability in the spec (review this one).** Spec §7.2 marked a script `not_observable` only when its paired CI includes zero. This plan adds a second rule: no observable of the script's class separates by two natural standard deviations in its own direction. Separation belongs to the script (paired-run seeds, the ground truth's observable window), never to an evaluated match, flags freeze before either variant runs, and the scoreboard lists every exclusion with all-script recall beside the headline. Without it, a script like the old s2 counts against recall although no single-match method could find it; with it stated loosely, an implementer could drop the detector's misses and inflate recall, which is why review tightened the wording twice.
+- **Amendment filters list types and shift laterally only.** `AmendmentFilter.type` becomes `types` (passes, carries and dribbles; the only events with a ball path to relocate). `AmendmentSpec` rejects a non-zero `dx_m` and a zero or non-finite `dy_m`, so every displaced event stays on the pitch and every amendment moves something.
 
 ## Measured on held-out seeds 100–139
 
@@ -56,7 +58,7 @@ Visibility in one match (separation in natural standard deviations; share of hel
 
 Events a1 corrects: 2.3 per match (minimum 0) before, 54.6 (minimum 17) after.
 
-Paired runs on seeds 0–19 (`tests/test_engine_mechanisms.py`), 95% CIs after this plan: Harbour City pressure rate 62–68' [+0.26, +0.38]; Northvale long-ball share [+0.24, +0.37]; long-ball share of Northvale passes nobody pressed [+0.36, +0.66] (before `BYPASS`: [−0.06, +0.01]); NV-03 sprints under the test-only fatigue script [−1.02, −0.38].
+Paired runs on seeds 0–19 (`tests/test_engine_mechanisms.py`), 95% CIs after this plan: Harbour City pressure rate 62–68' [+0.26, +0.38]; Northvale long-ball share [+0.24, +0.37]; long-ball share of Northvale passes nobody pressed, 62–90' [+0.29, +0.40] (over 62–68' before `BYPASS`: [−0.06, +0.01]); NV-03 sprints under the test-only fatigue script [−1.02, −0.38].
 
 The demo match: `m01 seed 4434: 2963 events, Harbour City 2-3 Northvale`. Harbour City's pressure rate goes from 0.32 in the first half to 0.83 in 58–63'; Northvale's long-ball share from 11% to 59%. Northvale's right-channel share is 24% in the first half and 62% in 45–55' as first delivered, 38% once a1 corrects 54 events. Northvale lead 3-1 when the press rises (goals at 0:55 HC, 12:30, 26:51 and 52:54 NV, 77:09 HC), which fits the spec card's secondary cause.
 
@@ -88,7 +90,7 @@ The demo match: `m01 seed 4434: 2963 events, Harbour City 2-3 Northvale`. Harbou
 Commands used throughout (from the repo root):
 
 ```bash
-uv run pytest -q                                     # whole suite (about 36 s after Task 7)
+uv run pytest -q                                     # whole suite (about 40 s after Task 7)
 uv run ruff check . && uv run ruff format --check .
 uv run python scripts/check_engine_isolation.py
 ```
@@ -1224,7 +1226,7 @@ uv run proofline-engine generate --script engine/scripts/planted/m01.yaml --out 
 - [ ] **Step 8: Run all checks**
 
 Run: `uv run pytest -q && uv run ruff check . && uv run ruff format --check . && uv run python scripts/check_engine_isolation.py && uv run proofline-engine generate --script engine/scripts/planted/m01.yaml --out data/m01/`
-Expected: 116 tests pass; ruff clean; `Engine isolation OK`; the last line prints `m01 seed 4434: 2963 events, Harbour City 2-3 Northvale`. `data/` is gitignored; do not commit it.
+Expected: all tests pass (121 at this point in execution); ruff clean; `Engine isolation OK`; the last line prints `m01 seed 4434: 2963 events, Harbour City 2-3 Northvale`. `data/` is gitignored; do not commit it.
 
 - [ ] **Step 9: Commit**
 
@@ -1302,7 +1304,7 @@ uv run python scripts/check_engine_isolation.py
 uv run pytest -q
 ```
 
-Expected: ruff clean; `Engine isolation OK`; 116 tests pass.
+Expected: ruff clean; `Engine isolation OK`; 122 tests pass.
 
 - [ ] **Step 2: Mark the resolved follow-ups**
 
@@ -1330,20 +1332,42 @@ git push
 
 ---
 
+## Review fixes during execution
+
+Each review finding that changed the code or the docs, after the task named. The design and every measured number above are unchanged by them.
+
+| Task | Fix | Commit |
+|---|---|---|
+| 1 | Refuse a zero shift, so a missing or misspelled `dy_m` cannot validate as an amendment that moves nothing; messages name the refused type and say exactly which shift field is wrong; a test accepts several types | `6933346` |
+| — | Ruff formats Python blocks inside Markdown, so this plan's blocks were made ruff-clean (a class fragment became the whole class) | `55aa399` |
+| 2 | Tests pin the start-of-band check and the 0.1 m rounding of v1 coordinates (both could be deleted without a failure) | `8e6eac9` |
+| 3 | `engine/signal.py` renamed `engine/visibility.py`: it shadowed the standard library's `signal` whenever `engine/` was on the import path; the plan's later tasks follow | `b1624e5`, `069e66f` |
+| 3 | Tests pin the observables' `keep` and team filters and that first-half stoppage stays in the first-half baseline | `9438788`, `67f7a7b` |
+| 4 | Tests pin the recomputed distance of a pass that runs out, that carries never end on a touchline, and the share of actions on a touchline; comments say x = 97 is 8 m from the goal line | `fbcd771` |
+| 5 | The bypass test measures 62–90': over 62–68' a 0.9 press leaves about four qualifying passes a seed and one seed in 200 has none; the docstring names the 70 m zone | `6bd12a3` |
+| 6 | The flank bar's comment says 1.5 is the requirement and gives the 1.56–2.21 range across 40-seed sets; the test is named for what it checks | `300c2f5` |
+| 7 | The rule is stated exactly in the script comment, spec, `DATASET.md` and README (the short version picked 4417; "each planted story" could pick 4418 or 4429); a test keeps the spec's YAML identical to the script | `94c600d` |
+| 7 | The seed scan stops after 200 seeds; a failing golden pin says what to re-check | `ae68856` |
+| 7 | An outside reader implementing the rule from `DATASET.md` alone picked 4423: the pressure-rate zone now applies to both sides of the ratio. A second reader reproduced 4434 | `f050054` |
+| 8 | The `not_observable` rule belongs to the script, never to an evaluated match; observables and directions are fixed per class, each judged in its own direction; window, baseline, seeds and freezing are stated; every exclusion is listed | `f8e7f03`, `f8102bb` |
+
 ## Follow-ups for later plans
 
 **Plan 2 (rest): engine proof tooling**
-- **Amendment output.** Write the v1 feed (`first_delivered`) and an `amendments.jsonl` of `contracts.EventAmendment` records, one per batch, with `event_ids` from `corrected_by`; the Match Clock replays v1 and emits each batch at its `at`.
-- **Observability.** The paired-run tooling marks `not_observable` with both rules of spec §7.2, reusing `engine/visibility.py`, and reports what each rule excluded.
+- **Amendment output.** Write the v1 feed (`first_delivered`) and an `amendments.jsonl` of `contracts.EventAmendment` records, one per batch, with `event_ids` from `first_delivered`'s map; the Match Clock replays v1 and emits each batch at its `at`. Refuse an amendment that selects nothing (`EventAmendment.event_ids` needs at least one id). State the 0.1 m rounding rule in `contracts` and require `dy_m` to be a multiple of 0.1, so v1 plus the correction returns the truth exactly.
+- **Observability.** The paired-run tooling marks `not_observable` with both rules of spec §7.2. `engine/visibility.py` needs a direction per observable and a before-the-script baseline for scripts that start in the first half, and `DATASET.md` gains the per-class table of observables and directions and the observable-window definition.
 - **Physical causes in the planted suite.** Design them with tracking: one player's sprint count cannot clear two natural standard deviations, but mean sprint speed separates by 3.3 at a 10× stamina decay, and `player_load` aggregates should do better. Hold every planted script to the same visibility bar before it enters the suite.
+- **Realism report.** Record or fix: in about 28% of throw-ins the taker's first action is a carry or dribble; about 22% of on-ball actions reflect off x = 97 and 38.5% start in the last 30 m; scripted windows reach long-ball shares near 40% (m01, 58–63') and 35–36% when a press of 0.9–1.0 runs all match. Fixing the first two changes random draws and needs a recalibration and a new demo seed by the stated rule.
+- **The v1 feed's own consistency.** a1 shifts only the Northvale actions whose band fits, so the first-delivered feed has 2–8 jumps of 22 m between consecutive Northvale actions a match, and Harbour City's pressures sit 22 m from the ball they press. A real calibration fault would move one side of the pitch for both teams. Revisit if the State Builder or the Verifier checks v1 consistency.
 
 **Plan 4: State Builder**
-- **PPDA over five minutes.** Its natural change has a standard deviation of about 6.7 in a 5-minute window; the 63' card's press proposition should use pressure rate per opponent action, and spec §5's example (PPDA 11.4 → 6.1, long-ball share 21% → 48%) should then quote what the demo match measures (pressure rate 0.32 → 0.83, long-ball share 11% → 59%).
+- **PPDA over five minutes.** Its natural change has a standard deviation of about 6.7 in a 5-minute window; the 63' card's press proposition should use pressure rate per opponent action, and spec §5's example (PPDA 11.4 → 6.1, long-ball share 21% → 48%) should then quote what the demo match measures (pressure rate 0.32 → 0.83, long-ball share 11% → 59%), presented as this match's numbers: at a 0.9 press the held-out mean pressure rate is about 0.62.
+- **Channel share in the contracts.** Add `channel_share_left|centre|right` (or a channel argument) to `Metric` and `DEFAULT_THRESHOLD_KIND` with a test before any producer uses them; spec §8.1 now defines it.
 - **Support bands for channel share.** On the demo match the corrected right-channel share is 38% against 24% in the first half (+14 points); the bands must put that below publishing level, or a1 revises the 55' card instead of withdrawing it.
 
 **Plan 5: Moment Detector**
 - **Expected hit rates.** On held-out seeds the press story clears two natural standard deviations in 82% of matches on pressure rate, 85% on long-ball share and 100% on either; the flank story in 50%. Thresholds tuned on the dev split should be compared with these.
-- **The 74' "honest silence" beat.** Check on seed 4434 once the detector exists (Harbour City score at 77:09).
+- **The 74' "honest silence" beat.** Check on seed 4434 once the detector exists (Harbour City score at 77:09). If a demo beat ever needs another condition on the seed, extend the rule openly in `DATASET.md` and record the seed it replaces.
 
 **General**
-- **Test time.** The suite grows from about 21 s to about 36 s; `tests/test_engine_mechanisms.py` runs the same 40 m01 simulations for each of its three s1 tests. Cache them if CI time starts to matter.
+- **Test time and duplication.** The suite grew from about 21 s to about 40 s; `tests/test_engine_mechanisms.py` runs the same 40 m01 simulations for each of its three s1 tests (caching them saves about 9 s), defines `TIRED` a second time, and duplicates two observables from `engine/visibility.py`.

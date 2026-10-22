@@ -9,6 +9,7 @@ Interventions on the same parameter compose in time order, so the later one wins
 a ramp still running at half-time completes at the start of the second half.
 """
 
+import math
 import re
 from pathlib import Path
 from typing import Literal
@@ -29,6 +30,7 @@ PARAM_RANGES = {
     "stamina_decay": (0.0, 5.0),
 }
 PLAYER_ID = r"^[A-Z]{2}-(0[1-9]|1[01])$"  # one of the 11 starters in engine.teams
+AMENDABLE = frozenset({EventType.PASS, EventType.CARRY, EventType.DRIBBLE})
 _RAMP_RE = re.compile(r"^(\d+)(m|s)$")
 
 
@@ -79,7 +81,7 @@ class AmendmentFilter(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    type: EventType
+    types: list[EventType] = Field(min_length=1)
     team: Side
     window: Window
     y_min: float = Field(default=0, ge=0, le=68)
@@ -87,6 +89,8 @@ class AmendmentFilter(BaseModel):
 
     @model_validator(mode="after")
     def _band(self) -> "AmendmentFilter":
+        if not set(self.types) <= AMENDABLE:
+            raise ValueError(f"amendments relocate {', '.join(sorted(AMENDABLE))} events only")
         if self.y_min > self.y_max:
             raise ValueError(f"y_min {self.y_min} is above y_max {self.y_max}")
         return self
@@ -110,6 +114,8 @@ class AmendmentSpec(BaseModel):
     @model_validator(mode="after")
     def _coherent(self) -> "AmendmentSpec":
         band, dy = self.batch.filter, self.batch.shift.dy_m
+        if self.batch.shift.dx_m != 0 or not math.isfinite(dy):
+            raise ValueError(f"{self.id}: shifts are lateral only: a finite dy_m and no dx_m")
         if self.at < band.window.end:
             raise ValueError(f"{self.id}: the correction at {self.at} comes before its window ends")
         if band.y_min - dy < 0 or band.y_max - dy > 68:  # v1 shows events at true y - dy

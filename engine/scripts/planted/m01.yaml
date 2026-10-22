@@ -25,6 +25,6 @@ amendments:
     at: "68:00"   # after the 63' press card, so the demo shows a published card withdrawn
     batch:
       # Selects carries whose true start and end both lie in y 32-50; v1 shows them 18 m right.
-      filter: { type: carry, team: away, window: "48:00-55:00", y_min: 32, y_max: 50 }
+      filter: { types: [carry], team: away, window: "48:00-55:00", y_min: 32, y_max: 50 }
       shift: { dy_m: -18 }
     reason: "provider coordinate recalibration"

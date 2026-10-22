@@ -27,10 +27,10 @@ def _intervention(**overrides):
     return base
 
 
-def _amendment(at="68:00", dy=-18, **band):
-    batch_filter = {"type": "carry", "team": "away", "window": "48:00-55:00", "y_min": 32}
-    batch_filter |= {"y_max": 50, **band}
-    shift = {"dy_m": dy}
+def _amendment(at="68:00", dy=-22, dx=0.0, **band):
+    batch_filter = {"types": ["pass", "carry"], "team": "away", "window": "45:00-55:00"}
+    batch_filter |= {"y_min": 0, "y_max": 46, **band}
+    shift = {"dx_m": dx, "dy_m": dy}
     return {"id": "a1", "at": at, "batch": {"filter": batch_filter, "shift": shift}, "reason": "r"}
 
 
@@ -62,10 +62,14 @@ def test_bad_interventions_are_rejected(intervention, message):
 @pytest.mark.parametrize(
     "amendment,message",
     [
-        (_amendment(type="carries"), "Input should be"),
+        (_amendment(types=["carries"]), "Input should be"),
+        (_amendment(types=[]), "at least 1 item"),
+        (_amendment(types=["shot"]), "relocate carry, dribble, pass events only"),
         (_amendment(y_min=50, y_max=32), "above y_max"),
         (_amendment(at="50:00"), "before its window ends"),
-        (_amendment(y_max=52), "leaves the pitch"),
+        (_amendment(y_max=48), "leaves the pitch"),
+        (_amendment(dx=3.0), "lateral only"),
+        (_amendment(dy=float("nan")), "lateral only"),
     ],
 )
 def test_incoherent_amendments_are_rejected(amendment, message):

@@ -162,7 +162,7 @@ def check_counter_test(hypothesis: Hypothesis, exam: CrossExamination) -> None:
     hypothesis's own change is normal: same subject and window, another baseline, a tolerance
     tighter than the claim. A counter that moves the same way is a control: another subject,
     same window and baseline. Counters on other metrics need per-metric minimum thresholds
-    (docs/support-rules.md) before they can be checked here.
+    (to be pinned in docs/support-rules.md) before they can be checked here.
     """
     claim, counter = hypothesis.prediction, exam.counter_prediction
     if exam.hypothesis_id != hypothesis.hypothesis_id:

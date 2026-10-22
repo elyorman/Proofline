@@ -3,8 +3,8 @@
 match_id: m01
 # Picked by the rule in DATASET.md, enforced by tests/test_engine_planted_signal.py: the
 # first seed from 4417 up on which every planted observable changes by at least its
-# held-out median and clears two natural standard deviations, and the corrected flank
-# change does not clear them.
+# median over validation seeds 100-139 and clears two natural standard deviations, and
+# the corrected flank change does not clear them.
 seed: 4434
 teams:
   home: { name: "Harbour City", code: HC, formation: "4-3-3", press_height: 0.3 }

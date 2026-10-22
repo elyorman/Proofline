@@ -73,10 +73,11 @@ def test_observables_count_only_the_events_kept():
         _event("pressure", "Harbour City", clock="10:00", x=60),
         _event("carry", "Northvale", clock="60:00", y=10),
         _event("carry", "Northvale", clock="60:00", y=10),
+        _event("pressure", "Harbour City", clock="60:00", x=60),
     ]
     assert right_channel_share("Northvale")(events, first_half) == 1.0
     assert pressure_rate("Harbour City", "Northvale")(events, first_half) == 1.0
-    assert pressure_rate("Harbour City", "Northvale")(events, _all) == pytest.approx(1 / 3)
+    assert pressure_rate("Harbour City", "Northvale")(events, _all) == pytest.approx(2 / 3)
 
 
 def test_first_half_stoppage_belongs_to_the_first_half():

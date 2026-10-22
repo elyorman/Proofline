@@ -2,7 +2,7 @@ import pytest
 
 from contracts.clock import Window
 from contracts.event import Event, PassQualifiers, Point
-from engine.signal import (
+from engine.visibility import (
     change,
     clears,
     first_half,

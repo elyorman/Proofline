@@ -41,7 +41,14 @@ from contracts.eval_run import MetricEstimate, Split, Suite, Variant, VariantCom
 from contracts.event import CoordinateShift, EventType, Outcome, PassQualifiers, Point
 from contracts.prediction import Direction
 from contracts.profile import Expertise
-from contracts.taxonomy import AgentRole, BaselineScope, Metric, MomentType, OverlayTemplate
+from contracts.taxonomy import (
+    DEFAULT_THRESHOLD_KIND,
+    AgentRole,
+    BaselineScope,
+    Metric,
+    MomentType,
+    OverlayTemplate,
+)
 
 SPEC = Path(__file__).resolve().parents[1] / "docs" / "spec.md"
 
@@ -158,6 +165,12 @@ def test_prediction_defaults_threshold_kind_per_metric():
         min_change=0.3,
     )
     assert ppda.threshold_kind == ThresholdKind.RELATIVE
+
+
+def test_every_metric_has_a_pinned_threshold_kind():
+    assert set(DEFAULT_THRESHOLD_KIND) == set(Metric)
+    assert DEFAULT_THRESHOLD_KIND[Metric.PRESSURE_RATE] == ThresholdKind.ABSOLUTE
+    assert DEFAULT_THRESHOLD_KIND[Metric.CHANNEL_SHARE_RIGHT] == ThresholdKind.ABSOLUTE
 
 
 def _prediction(**overrides):

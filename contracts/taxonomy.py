@@ -103,8 +103,12 @@ class MomentType(StrEnum):
 class Metric(StrEnum):
     PPDA = "ppda"
     PRESS_INTENSITY = "press_intensity"
+    PRESSURE_RATE = "pressure_rate"
     LONG_BALL_SHARE = "long_ball_share"
     FIELD_TILT = "field_tilt"
+    CHANNEL_SHARE_LEFT = "channel_share_left"
+    CHANNEL_SHARE_CENTRE = "channel_share_centre"
+    CHANNEL_SHARE_RIGHT = "channel_share_right"
     PASS_ACCURACY = "pass_accuracy"
     PASS_ACCURACY_UNDER_PRESSURE = "pass_accuracy_under_pressure"
     PASS_DIFFICULTY = "pass_difficulty"
@@ -140,8 +144,12 @@ class ThresholdKind(StrEnum):
 DEFAULT_THRESHOLD_KIND: dict[Metric, ThresholdKind] = {
     Metric.PPDA: ThresholdKind.RELATIVE,
     Metric.PRESS_INTENSITY: ThresholdKind.RELATIVE,
+    Metric.PRESSURE_RATE: ThresholdKind.ABSOLUTE,
     Metric.LONG_BALL_SHARE: ThresholdKind.ABSOLUTE,
     Metric.FIELD_TILT: ThresholdKind.ABSOLUTE,
+    Metric.CHANNEL_SHARE_LEFT: ThresholdKind.ABSOLUTE,
+    Metric.CHANNEL_SHARE_CENTRE: ThresholdKind.ABSOLUTE,
+    Metric.CHANNEL_SHARE_RIGHT: ThresholdKind.ABSOLUTE,
     Metric.PASS_ACCURACY: ThresholdKind.ABSOLUTE,
     Metric.PASS_ACCURACY_UNDER_PRESSURE: ThresholdKind.ABSOLUTE,
     Metric.PASS_DIFFICULTY: ThresholdKind.ABSOLUTE,

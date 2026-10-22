@@ -252,8 +252,12 @@
       "enum": [
         "ppda",
         "press_intensity",
+        "pressure_rate",
         "long_ball_share",
         "field_tilt",
+        "channel_share_left",
+        "channel_share_centre",
+        "channel_share_right",
         "pass_accuracy",
         "pass_accuracy_under_pressure",
         "pass_difficulty",

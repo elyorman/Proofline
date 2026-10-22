@@ -1,6 +1,6 @@
 """Match totals stay within typical top-flight ranges (spec §7.3 realism controls).
 
-Seeds 100-139 are held out: none of them were used to tune the engine's constants.
+Seeds 100-139 are validation seeds: none of them were used to tune the engine's constants.
 """
 
 import statistics

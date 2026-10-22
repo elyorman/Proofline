@@ -1,6 +1,6 @@
 """Each planted story in the demo match is visible in a single match (spec §7.2).
 
-Held-out seeds 100-139 set the natural variation; none of them tuned the engine.
+Validation seeds 100-139 set the natural variation; none of them tuned the engine.
 """
 
 import functools
@@ -25,7 +25,7 @@ from engine.visibility import (
 M01_PATH = Path(__file__).resolve().parents[1] / "engine" / "scripts" / "planted" / "m01.yaml"
 M01 = load_script(M01_PATH)
 WITHOUT_S1 = M01.model_copy(update={"scripts": [s for s in M01.scripts if s.id != "s1"]})
-HELD_OUT = range(100, 140)
+VALIDATION = range(100, 140)
 CARD = Window.model_validate("58:00-63:00")  # the 63' press card's change window
 FLANK = Window.model_validate("45:00-55:00")  # a1's window, and the 55' flank card's
 PRESS = {
@@ -52,11 +52,11 @@ def _match(seed):
 
 
 def _natural(name):
-    return [_match(s)[name][1] for s in HELD_OUT]
+    return [_match(s)[name][1] for s in VALIDATION]
 
 
 def _separation(name):
-    return separation([_match(s)[name][0] for s in HELD_OUT], _natural(name))
+    return separation([_match(s)[name][0] for s in VALIDATION], _natural(name))
 
 
 def test_raised_press_is_visible_in_one_match():
@@ -70,13 +70,13 @@ def test_flank_error_is_visible_as_first_delivered():
     # the requirement, not a fit: other 40-seed sets give 1.56-2.21, so a change that
     # reshuffles the random draws can land near it without any real regression.
     assert _separation("right_channel_share") >= 1.5
-    assert min(_match(s)["corrected"] for s in HELD_OUT) >= 12
+    assert min(_match(s)["corrected"] for s in VALIDATION) >= 12
 
 
 def _typical_and_visible(name, story_change):
-    """At least the held-out median, and clear of natural variation."""
-    held_out = [_match(s)[name][0] for s in HELD_OUT]
-    return story_change >= statistics.median(held_out) and clears(story_change, _natural(name))
+    """At least the validation-seed median, and clear of natural variation."""
+    validation = [_match(s)[name][0] for s in VALIDATION]
+    return story_change >= statistics.median(validation) and clears(story_change, _natural(name))
 
 
 def _shows_every_story(seed):

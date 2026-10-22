@@ -45,6 +45,7 @@ def test_the_demo_match_is_pinned(tmp_path, capsys):
     """The video's match. A change that moves it must update these lines on purpose."""
     main(["generate", "--script", str(M01), "--out", str(tmp_path)])
     out = capsys.readouterr().out.strip()
-    assert out == "m01 seed 4434: 2963 events, Harbour City 2-3 Northvale"
+    moved = "the demo match changed: if intended, update this pin and re-check the demo beats"
+    assert out == "m01 seed 4434: 2963 events, Harbour City 2-3 Northvale", moved
     digest = hashlib.sha256((tmp_path / "events.jsonl").read_bytes()).hexdigest()
-    assert digest == "fe4a2b2f7fac83443c3828ba3e22e893d31c99b7661f9939bec6804da3e45424"
+    assert digest == "fe4a2b2f7fac83443c3828ba3e22e893d31c99b7661f9939bec6804da3e45424", moved

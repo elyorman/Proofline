@@ -7,6 +7,8 @@ import functools
 import statistics
 from pathlib import Path
 
+import pytest
+
 from contracts.clock import Window
 from engine.amend import first_delivered
 from engine.script import load_script
@@ -87,7 +89,9 @@ def _shows_every_story(seed):
 
 
 def test_demo_seed_is_the_first_from_4417_that_shows_every_story():
-    seed = 4417
-    while not _shows_every_story(seed):
-        seed += 1
+    for seed in range(4417, 4617):  # about one seed in seven meets the rule
+        if _shows_every_story(seed):
+            break
+    else:
+        pytest.fail("no seed in 4417-4616 meets the demo-seed rule")
     assert M01.seed == seed, f"the demo-seed rule now picks seed {seed}"

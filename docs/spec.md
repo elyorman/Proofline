@@ -278,7 +278,7 @@ For every scripted match, the engine also runs the match **without each script**
 - Random streams are keyed by **decision type and match-minute bucket** (`pass_choice@61`), so draws stay aligned after a script changes who has the ball. This reduces divergence; it cannot remove it.
 - Effects are measured on **windowed aggregates** over the script's observable window, never event by event.
 - Each script is estimated over **20–30 seed pairs**; the simulator uses no LLM, so this costs seconds.
-- A script whose effect's confidence interval includes zero is `not_observable` and excluded from recall.
+- A script is `not_observable`, and excluded from recall, when its effect's confidence interval includes zero or when none of its observables separates from natural variation by two standard deviations, in the direction its ground truth names, in a single match (`engine/visibility.py`, defined in `DATASET.md`). The detector sees one match: a paired effect can clear zero and still be invisible in every match it happens in. The scoreboard reports how many scripts each rule excluded.
 
 Paired runs are an evaluation tool only. Live, agents reason from the single match.
 
@@ -319,6 +319,7 @@ Pure analytics, exposed as MCP tools. Every call returns the value, window, even
 | Press intensity | Pressure events per minute in the opponent half | Build |
 | Long-ball share | Share of passes over 30 m | Build |
 | Field tilt | Share of final-third touches per team | Build |
+| Channel share | Share of a team's on-ball actions starting in the left, centre or right third of the width, in its own attacking frame | Build |
 | Pass accuracy | Completed / attempted, overall and under pressure | Build |
 | Pass difficulty rating | 0–100 from distance, pressure on passer, angle, receiver marking, line-breaking | Build |
 | xG | Shot-quality model over distance, angle, body part, defenders in cone | Build |
@@ -491,7 +492,7 @@ If the revise path slips, ship withdraw-only with full propagation; never ship p
 - **Decoys:** correct when nothing is published or the case closes as `none`.
 - **Corrections:** correct when every affected card is revised or withdrawn appropriately and no unaffected card changes.
 - **Confounded** (stretch): each ground-truth cause matched independently; headline number is both-found.
-- Scripts marked `not_observable` by paired runs are excluded from recall.
+- Scripts marked `not_observable` (§7.2) are excluded from recall.
 
 | Metric | Reported as |
 |---|---|

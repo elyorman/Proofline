@@ -50,6 +50,16 @@ def test_clone_location_does_not_hide_violations(tmp_path):
     assert len(guard.scan(repo)) == 1
 
 
-def test_eval_is_exempt(tmp_path):
+def test_eval_may_read_ground_truth(tmp_path):
     guard = _load()
-    assert guard.scan(_repo(tmp_path)) == []
+    repo = _repo(tmp_path)
+    (repo / "eval" / "truth.py").write_text('p = "engine/suites/planted/ground_truth.yaml"\n')
+    assert guard.scan(repo) == []
+
+
+def test_root_level_files_are_checked(tmp_path):
+    guard = _load()
+    repo = _repo(tmp_path)
+    (repo / "app.py").write_text("import engine\n")
+    found = guard.scan(repo)
+    assert len(found) == 1 and "app.py" in found[0]

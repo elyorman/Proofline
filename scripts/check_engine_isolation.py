@@ -3,7 +3,7 @@
 
 Only `engine/` itself, `eval/`, `tests/` and `scripts/` may reference the
 engine package or ground-truth files. Everything else, including the Python
-API under `surfaces/`, is product code and is checked.
+API under `surfaces/` and loose files at the repo root, is product code and is checked.
 """
 
 from __future__ import annotations
@@ -51,6 +51,8 @@ def violations_in(path: Path) -> list[str]:
 
 def scan(root: Path = ROOT) -> list[str]:
     found: list[str] = []
+    for py in sorted(root.glob("*.py")):
+        found.extend(violations_in(py))
     for d in product_dirs(root):
         for py in d.rglob("*.py"):
             if any(part in NOT_PYTHON for part in py.relative_to(root).parts):

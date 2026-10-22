@@ -17,7 +17,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v3
       - run: uv python install 3.12
-      - run: uv sync
+      - run: uv sync --locked
       - name: Lint
         run: uv run ruff check . && uv run ruff format --check .
       - name: Engine isolation guard
@@ -27,4 +27,4 @@ jobs:
       - name: Schemas are up to date
         run: |
           uv run python scripts/export_schemas.py
-          git diff --exit-code -- docs/*.schema.json
+          test -z "$(git status --porcelain -- docs/*.schema.json)" || { git status --porcelain -- docs/*.schema.json; exit 1; }

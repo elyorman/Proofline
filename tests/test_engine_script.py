@@ -92,3 +92,8 @@ def test_unquoted_yaml_time_is_rejected(tmp_path):
     bad.write_text(M01.read_text().replace('at: "56:00"', "at: 56:00"))
     with pytest.raises(ValidationError, match="valid dictionary"):
         load_script(bad)
+
+
+def test_the_spec_shows_the_demo_script_as_it_is():
+    spec = (M01.parents[3] / "docs" / "spec.md").read_text(encoding="utf-8")
+    assert f"```yaml\n{M01.read_text(encoding='utf-8')}```" in spec

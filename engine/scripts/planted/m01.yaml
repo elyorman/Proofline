@@ -1,8 +1,10 @@
 # Demo match. Mechanisms only: which cause each intervention represents lives in
 # the planted suite's sealed ground truth, never here.
 match_id: m01
-# The first seed from 4417 up on which every planted story is visible in this one
-# match (tests/test_engine_planted_signal.py; DATASET.md). Reported numbers use held-out seeds.
+# Picked by the rule in DATASET.md, enforced by tests/test_engine_planted_signal.py: the
+# first seed from 4417 up on which every planted observable changes by at least its
+# held-out median and clears two natural standard deviations, and the corrected flank
+# change does not clear them.
 seed: 4434
 teams:
   home: { name: "Harbour City", code: HC, formation: "4-3-3", press_height: 0.3 }

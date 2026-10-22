@@ -3,9 +3,10 @@
 A possession is a chain of actions (pass, carry, dribble, shot) by the team on the
 ball while the other team presses according to its press height. Pressure makes
 passes riskier and pushes the team on the ball to go long: the mechanism behind a
-pressure shift. Every random draw comes from a keyed stream (engine.rng), so a run
-without one intervention stays aligned with the run that has it. Coordinates are
-in the acting team's attacking frame (engine.teams).
+pressure shift. Open play reflects off the touchlines, and a misplaced pass near one
+runs out for a throw-in. Every random draw comes from a keyed stream (engine.rng), so
+a run without one intervention stays aligned with the run that has it. Coordinates
+are in the acting team's attacking frame (engine.teams).
 """
 
 import math
@@ -22,6 +23,7 @@ HALF = 45 * 60
 HALF_TIME_BREAK_S = 15 * 60
 KICKOFF_MS = 1_800_000_000_000
 OPEN_PLAY_MAX_X = 97.0  # open play bounces back off the six-yard line
+THROW_IN_BAND = 8.0  # a misplaced pass ending this close to a touchline runs out
 FATIGUE_PER_MIN = 0.25 / 90
 
 
@@ -41,15 +43,19 @@ def on_pitch(x: float, y: float) -> tuple[float, float]:
     return clamp(x, 0.5, PITCH_X - 0.5), clamp(y, 0.5, PITCH_Y - 0.5)
 
 
-def ahead(x: float, y: float, dist: float, angle: float) -> tuple[float, float]:
-    """A point `dist` metres away at `angle` radians, reflected off the six-yard line.
+def reflect(v: float, lo: float, hi: float) -> float:
+    return 2 * lo - v if v < lo else 2 * hi - v if v > hi else v
 
-    Reflecting rather than clamping keeps play from piling up on one line at x = 97.
+
+def ahead(x: float, y: float, dist: float, angle: float) -> tuple[float, float]:
+    """A point `dist` metres away at `angle` radians, reflected off the six-yard line,
+    the touchlines and the passer's own goal line.
+
+    Reflecting rather than clamping keeps play from piling up on any line.
     """
-    tx = x + dist * math.cos(angle)
-    if tx > OPEN_PLAY_MAX_X:
-        tx = 2 * OPEN_PLAY_MAX_X - tx
-    return on_pitch(tx, y + dist * math.sin(angle))
+    tx = reflect(x + dist * math.cos(angle), 0.5, OPEN_PLAY_MAX_X)
+    ty = reflect(y + dist * math.sin(angle), 0.5, PITCH_Y - 0.5)
+    return tx, ty
 
 
 def clock_at(period: int, s: float) -> MatchClock:
@@ -166,7 +172,7 @@ class MatchSim:
             pressure = self._maybe_press(deff, self.ball, press)
             x, y = self.ball
             shooting_zone = x > 80 and abs(y - 34) < 20
-            if shooting_zone and self.rng.chance("shot_choice", m, 0.05 + 0.006 * (x - 80)):
+            if shooting_zone and self.rng.chance("shot_choice", m, 0.035 + 0.006 * (x - 80)):
                 return self._shot(att, carrier)
             roll = self.rng.uniform("action_choice", m)
             if roll < 0.72:
@@ -215,6 +221,10 @@ class MatchSim:
         p_ok -= 0.10 if is_long else 0.0
         p_ok -= 0.15 if tx > 88 else 0.0  # passes into the box are contested
         ok = self.rng.chance("pass_success", m, clamp(p_ok, 0.05, 0.98))
+        out = not ok and (ty < THROW_IN_BAND or ty > PITCH_Y - THROW_IN_BAND)
+        if out:  # a misplaced pass near a touchline runs out over it
+            ty = 0.0 if ty < PITCH_Y / 2 else PITCH_Y
+            dist = math.hypot(tx - x, ty - y)
         speed = clamp(30 + 1.1 * dist + self.rng.normal("ball_speed", m, 0, 6), 15, 120)
         self._emit(
             EventType.PASS,
@@ -235,8 +245,8 @@ class MatchSim:
             return True, receiver, (tx, ty)
         deff = other(att)
         lost_at = mirror((tx, ty))
-        if ty < 3 or ty > PITCH_Y - 3:  # out for a throw-in
-            spot = on_pitch(lost_at[0], 0.5 if lost_at[1] < 34 else PITCH_Y - 0.5)
+        if out:
+            spot = on_pitch(*lost_at)
             self._restart(deff, spot, "throw_in", self.rng.uniform("restart_delay", m, 10, 25))
             return False, None, spot
         winner = self._nearest(deff, lost_at)
@@ -294,7 +304,7 @@ class MatchSim:
         dist = math.hypot(dx, dy)
         angle = math.degrees(math.atan2(7.32 * dx, dx * dx + dy * dy - 3.66**2))
         defenders = max(0, round(self.rng.normal("shot_defenders", m, 1.2 + (x - 85) / 15, 0.9)))
-        xg = 1 / (1 + math.exp(-(-0.65 - 0.10 * dist + 0.03 * angle - 0.30 * defenders)))
+        xg = 1 / (1 + math.exp(-(-0.75 - 0.10 * dist + 0.03 * angle - 0.30 * defenders)))
         r = self.rng.uniform("shot_outcome", m)
         if r < xg:
             outcome = Outcome.GOAL

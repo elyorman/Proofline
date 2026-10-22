@@ -1,3 +1,4 @@
+from itertools import pairwise
 from pathlib import Path
 
 from contracts.event import Point
@@ -83,3 +84,20 @@ def test_the_ball_moves_continuously_between_actions():
                 assert e.team == owner and _close(e.start, ball), e.event_id
                 assert taker is None or e.player_id == taker, e.event_id
                 ball, taker = e.end, None
+
+
+def test_a_ball_over_a_touchline_comes_back_as_a_throw_in():
+    """Open play reflects off the touchlines; only a misplaced pass goes over one."""
+    for seed in (3, 4, 5):
+        play = [e for e in MatchSim(M01, seed=seed).run() if e.type != "sprint"]
+        throw_ins = 0
+        for prev, e in pairwise(play):
+            over = prev.type == "pass" and prev.end.y in (0.0, 68.0)
+            throw_in = e.type == "set_piece" and e.qualifiers["kind"] == "throw_in"
+            assert over == throw_in, e.event_id
+            if over:
+                throw_ins += 1
+                assert prev.outcome == "incomplete" and e.team != prev.team, e.event_id
+                line = 67.5 if prev.end.y == 0.0 else 0.5  # the same touchline, other frame
+                assert _close(e.start, Point(x=105 - prev.end.x, y=line)), e.event_id
+        assert throw_ins > 0

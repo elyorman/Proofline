@@ -55,6 +55,20 @@ def nv_long_ball_share(events):
     return sum(p.pass_q.distance_m > 30 for p in passes) / len(passes)
 
 
+def nv_unpressed_long_share(events):
+    """Long-ball share of Northvale passes from their own 70 m that nobody pressed."""
+    passes = [
+        e
+        for e in events
+        if e.type == "pass"
+        and e.team == "Northvale"
+        and e.start.x < 70
+        and e.pass_q.pressure_on_passer == 0
+        and _in(e, 62, 68)
+    ]
+    return sum(p.pass_q.distance_m > 30 for p in passes) / len(passes)
+
+
 def nv03_sprints(events):
     return sum(e.type == "sprint" and e.player_id == "NV-03" and _in(e, 66, 90) for e in events)
 
@@ -66,6 +80,11 @@ def test_raised_press_means_more_pressure():
 
 def test_raised_press_pushes_the_opponent_long():
     low, _ = _paired_ci("s1", nv_long_ball_share)
+    assert low > 0
+
+
+def test_a_high_press_is_bypassed_with_long_balls():
+    low, _ = _paired_ci("s1", nv_unpressed_long_share)
     assert low > 0
 
 

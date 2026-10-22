@@ -2,11 +2,12 @@
 
 A possession is a chain of actions (pass, carry, dribble, shot) by the team on the
 ball while the other team presses according to its press height. Pressure makes
-passes riskier and pushes the team on the ball to go long: the mechanism behind a
-pressure shift. Open play reflects off the touchlines, and a misplaced pass near one
-runs out for a throw-in. Every random draw comes from a keyed stream (engine.rng), so
-a run without one intervention stays aligned with the run that has it. Coordinates
-are in the acting team's attacking frame (engine.teams).
+passes riskier and pushes the team on the ball to go long, and a press above 0.5 is
+bypassed with long balls from the back even when nobody presses the passer: the
+mechanisms behind a pressure shift. Open play reflects off the touchlines, and a
+misplaced pass near one runs out for a throw-in. Every random draw comes from a keyed
+stream (engine.rng), so a run without one intervention stays aligned with the run that
+has it. Coordinates are in the acting team's attacking frame (engine.teams).
 """
 
 import math
@@ -24,6 +25,7 @@ HALF_TIME_BREAK_S = 15 * 60
 KICKOFF_MS = 1_800_000_000_000
 OPEN_PLAY_MAX_X = 97.0  # open play bounces back 8 m from the goal line
 THROW_IN_BAND = 8.0  # a misplaced pass ending this close to a touchline runs out
+BYPASS = 1.0  # extra long-ball chance per unit of opponent press height above 0.5
 FATIGUE_PER_MIN = 0.25 / 90
 
 
@@ -207,7 +209,9 @@ class MatchSim:
     def _pass(self, att: Side, carrier: Player, tp: dict[str, float], pressure: float):
         m = self.bucket
         x, y = self.ball
-        long_p = clamp(tp["directness"] + 0.9 * pressure, 0.0, 0.9) if x < 70 else 0.05
+        opp_press = self.params.team(other(att), self.period, self.t)["press_height"]
+        bypass = BYPASS * max(0.0, opp_press - 0.5)  # go long to skip a high press
+        long_p = clamp(tp["directness"] + bypass + 0.9 * pressure, 0.0, 0.9) if x < 70 else 0.05
         is_long = self.rng.chance("pass_length", m, long_p)
         if is_long:
             dist = self.rng.uniform("pass_dist", m, 30, 55)

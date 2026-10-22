@@ -160,7 +160,8 @@ def check_counter_test(hypothesis: Hypothesis, exam: CrossExamination) -> None:
     that is sure to refute it. A counter on the hypothesis's metric uses its threshold kind
     and, if it predicts a move, a move at least as large. A flat counter asks whether the
     hypothesis's own change is normal: same subject and window, another baseline, a tolerance
-    tighter than the claim. A counter that moves the same way is a control: another subject,
+    tighter than the claim. A counter that moves the other way keeps the hypothesis's subject
+    and window too. A counter that moves the same way is a control: another subject,
     same window and baseline. Counters on other metrics need per-metric minimum thresholds
     (to be pinned in docs/support-rules.md) before they can be checked here.
     """
@@ -198,4 +199,11 @@ def check_counter_test(hypothesis: Hypothesis, exam: CrossExamination) -> None:
     ):
         raise ValueError(
             "a same-way counter-test is a control: another subject, same window and baseline"
+        )
+    if counter.direction != claim.direction and (
+        not _same_family(counter.subject, claim.subject) or counter.window != claim.window
+    ):
+        raise ValueError(
+            "an opposite-way counter-test keeps the hypothesis's subject and window "
+            "and may change only the baseline"
         )

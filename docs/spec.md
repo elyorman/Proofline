@@ -112,7 +112,7 @@ The Insight Card is the single unit of truth every surface renders. The example 
 
   "rejected_alternatives": [
     { "hypothesis_id": "hyp-physical-01", "taxonomy": "physical.unit_fatigue", "agent": "physical",
-      "reason": "Harbour City's sprints fell too (-21%, against Northvale's -31% since the first half): a decline both teams share, not one that singles out Northvale.",
+      "reason": "Harbour City's sprints fell too (-21%, against Northvale's -30% since the first half): a decline both teams share, not one that singles out Northvale.",
       "rejected_by": "cross_examination", "tool_call_id": "tc-8850" }
   ],
 
@@ -327,7 +327,7 @@ Pure analytics, exposed as MCP tools. Every call returns the value, window, even
 | Pass accuracy | Completed / attempted, overall and under pressure | Build |
 | Pass difficulty rating | 0–100 from distance, pressure on passer, angle, receiver marking, line-breaking | Build |
 | xG | Shot-quality model over distance, angle, body part, defenders in cone | Build |
-| Sprint count and high-intensity run rate | From sprint events and tracking, per player and unit; rates are per minute of play, a half's length including its stoppage time | Build |
+| Sprint count and high-intensity run rate | From sprint events and tracking, per player and unit; a count compared across windows of different lengths is a rate per minute of play, a half's length including its stoppage time | Build |
 | Momentum | Exponentially weighted threat differential (xG plus final-third entries) | Build |
 | Control vs chaos index | Composite of sequence length, turnover rate, duel frequency and transitions | Build |
 | Rhythm | Actions per minute and its variance (named in the challenge) | Build |
@@ -407,7 +407,7 @@ Validation: metric exists, subject resolves, window and baseline are standard sc
 1. **Open.** The case is written to the ledger with its trigger metrics and window.
 2. **Pre-register** (agents in parallel). Each agent decides whether the case touches its domain and registers up to two hypotheses, each a cause in its own domain; `other` and `none` are synthesis outcomes, never hypotheses.
 3. **Test.** Each agent spends its budget on tool calls of its choosing. Predictions are scored mechanically; failed hypotheses are discarded with the reason.
-4. **Cross-examine.** Each surviving hypothesis goes to the other agents, who may each register and run one structured counter-test. Before it runs, the orchestrator refuses a counter-test that cannot fairly contradict the hypothesis (`check_counter_test`). A counter-test on the hypothesis's own metric uses its threshold kind; if it predicts a move, the move is at least as large as the claim, and a move the same way makes it a control: a subject outside the hypothesis's team and its units, in the same window against the same baseline. A flat counter-test keeps the hypothesis's subject (or that team or one of its units) and window, changes only the baseline, and has a tolerance tighter than the claim. Counter-tests on other metrics are not checked until per-metric minimums are pinned in `docs/support-rules.md`. Code scores the result from the counter-test, not any agent: refuted when the counter-prediction holds; weakened when it reaches half its threshold (a flat one: when the change stays within twice its tolerance); holds otherwise.
+4. **Cross-examine.** Each surviving hypothesis goes to the other agents, who may each register and run one structured counter-test. Before it runs, the orchestrator refuses a counter-test that cannot fairly contradict the hypothesis (`check_counter_test`). A counter-test on the hypothesis's own metric uses its threshold kind; if it predicts a move, the move is at least as large as the claim. A counter-test that moves the other way, or stays flat, keeps the hypothesis's subject (or a team it is a unit of, or a unit of it) and window and may change only the baseline; a flat one also needs a tolerance tighter than the claim. A counter-test that moves the same way is a control: a subject that is neither the hypothesis's subject, a team it is a unit of, nor a unit of it, in the same window against the same baseline. Counter-tests on other metrics are not checked until per-metric minimums are pinned in `docs/support-rules.md`. Code scores the result from the counter-test, not any agent: refuted when the counter-prediction holds; weakened when it reaches half its threshold (a flat one: when the change stays within twice its tolerance); holds otherwise.
 5. **Attribute.** A synthesis step ranks survivors into primary and secondary. Nothing survives: `none`. A real effect with no fitting class: `other`.
 6. **Propose.** The card, its propositions and the full trace go to the Verifier.
 

@@ -326,6 +326,9 @@ def _hypothesis(agent, cause):
             dict(threshold_kind=ThresholdKind.ABSOLUTE, subject="Harbour City", min_change=0.5),
             False,
         ),
+        # Opposite-way counters from minutes or teams the hypothesis never mentioned.
+        (dict(direction="up", window="10:00-15:00"), False),
+        (dict(direction="up", subject="Harbour City"), False),
     ],
 )
 def test_a_counter_test_must_be_able_to_contradict_its_hypothesis(counter, fair):

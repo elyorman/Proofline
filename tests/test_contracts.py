@@ -671,10 +671,17 @@ def test_cue_slot_cannot_close_before_it_opens():
 def test_cues_tied_to_an_insight_name_it():
     cue = json.loads(_spec_example("### 12.3 Broadcast Cue Feed"))
     for kind in ("insight", "update", "withdrawal"):
-        with pytest.raises(ValidationError, match="names its insight_id"):
-            Cue.model_validate(dict(cue, kind=kind, insight_id=None))
-    key_event = dict(cue, kind="key_event", insight_id=None, insight_revision=None)
-    assert Cue.model_validate(key_event).kind == "key_event"
+        for missing in ("insight_id", "insight_revision"):
+            with pytest.raises(ValidationError, match="names its insight_id"):
+                Cue.model_validate(dict(cue, kind=kind, **{missing: None}))
+    with pytest.raises(ValidationError, match="greater than or equal to 1"):
+        Cue.model_validate(dict(cue, insight_revision=0))
+    # A key-event cue may name the fast-lane card it comes from, or nothing.
+    for named in (True, False):
+        key_event = dict(cue, kind="key_event")
+        if not named:
+            key_event |= {"insight_id": None, "insight_revision": None}
+        assert Cue.model_validate(key_event).kind == "key_event"
 
 
 def _spec_example(heading):

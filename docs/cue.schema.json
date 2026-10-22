@@ -132,6 +132,7 @@
     "insight_revision": {
       "anyOf": [
         {
+          "minimum": 1,
           "type": "integer"
         },
         {

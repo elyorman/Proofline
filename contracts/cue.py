@@ -42,7 +42,7 @@ class Cue(BaseModel):
     cue_id: str
     match_id: str
     insight_id: str | None = None
-    insight_revision: int | None = None
+    insight_revision: int | None = Field(default=None, ge=1)
     kind: CueKind
     template: OverlayTemplate
     priority: Literal["low", "normal", "high"] = "normal"

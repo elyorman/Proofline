@@ -510,7 +510,7 @@ If the revise path slips, ship withdraw-only with full propagation; never ship p
 | Cards over budget | Must be 0 |
 | Cost and latency | Per case and per match |
 
-**Data splits.** A dev split (prompts, support bands, detector thresholds) and a held-out split (reporting only). Headline numbers come from the held-out split. Football-specific scoring runs as custom Python evaluators logged to Foundry; groundedness and language quality run as Foundry evaluations.
+**Data splits.** A dev split (prompts, support bands, detector thresholds) and a held-out split (reporting only). Headline numbers come from the held-out split. Engine seeds are partitioned once: 0–79 tuned the engine; 100–139 check realism and visibility and set the demo-seed medians, so they are validation seeds; the evaluation suites draw dev seeds from 1000–1999 and held-out seeds from 2000–2999, which nothing else touches. Football-specific scoring runs as custom Python evaluators logged to Foundry; groundedness and language quality run as Foundry evaluations.
 
 ### 11.2 Ablation
 

@@ -60,8 +60,10 @@ def test_raised_press_is_visible_in_one_match():
     assert _separation("long_ball_share") >= 2.5
 
 
-def test_flank_error_is_visible_until_corrected():
+def test_flank_error_is_visible_as_first_delivered():
     # Play stays on one side for spells, so a 10-minute channel share is noisy and the
-    # largest rise a lateral shift can cause is about a third: the bar is lower.
+    # largest rise a lateral shift can cause is about a third: the bar is lower. 1.5 is
+    # the requirement, not a fit: other 40-seed sets give 1.56-2.21, so a change that
+    # reshuffles the random draws can land near it without any real regression.
     assert _separation("right_channel_share") >= 1.5
     assert min(_match(s)["corrected"] for s in HELD_OUT) >= 12

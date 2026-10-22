@@ -38,6 +38,7 @@ class Prediction(BaseModel):
     )
     min_change: float = Field(
         gt=0,
+        allow_inf_nan=False,
         description="relative fraction, absolute units, or sigmas; for flat, the tolerance",
     )
 
@@ -146,33 +147,55 @@ class CrossExamination(BaseModel):
         return CrossExamResult.HOLDS
 
 
-def _same_quantity(a: Prediction, b: Prediction) -> bool:
-    return (a.metric, a.subject, a.window, a.compare_to) == (
-        b.metric,
-        b.subject,
-        b.window,
-        b.compare_to,
-    )
+def _same_family(a: str, b: str) -> bool:
+    """One subject is the other, or a unit of it: "Northvale" and "Northvale.defence"."""
+    return a == b or a.startswith(b + ".") or b.startswith(a + ".")
 
 
 def check_counter_test(hypothesis: Hypothesis, exam: CrossExamination) -> None:
     """Refuse a counter-test that cannot fairly contradict `hypothesis` (spec §9.1).
 
-    The orchestrator calls this before running the counter-test, so a challenger cannot
-    restate the hypothesis, or choose a flat tolerance loose enough to swallow the change
-    the hypothesis claims, after seeing the data.
+    The orchestrator calls this before running the counter-test. Every rule compares with
+    the hypothesis's own claim, so a challenger who has seen the data cannot pick a counter
+    that is sure to refute it. A counter on the hypothesis's metric uses its threshold kind
+    and, if it predicts a move, a move at least as large. A flat counter asks whether the
+    hypothesis's own change is normal: same subject and window, another baseline, a tolerance
+    tighter than the claim. A counter that moves the same way is a control: another subject,
+    same window and baseline. Counters on other metrics need per-metric minimum thresholds
+    (docs/support-rules.md) before they can be checked here.
     """
     claim, counter = hypothesis.prediction, exam.counter_prediction
     if exam.hypothesis_id != hypothesis.hypothesis_id:
         raise ValueError("the counter-test names a different hypothesis")
     if exam.challenger == hypothesis.agent:
         raise ValueError("an agent does not cross-examine its own hypothesis")
+    if counter.metric != claim.metric:
+        return
+    if counter.threshold_kind != claim.threshold_kind:
+        raise ValueError("a counter-test on the hypothesis's metric uses its threshold kind")
     if counter.direction == Direction.FLAT:
-        if (counter.metric, counter.threshold_kind) != (claim.metric, claim.threshold_kind):
-            raise ValueError("a flat counter-test measures the hypothesis's metric, in its units")
+        if (
+            not _same_family(counter.subject, claim.subject)
+            or counter.window != claim.window
+            or counter.compare_to == claim.compare_to
+        ):
+            raise ValueError(
+                "a flat counter-test keeps the hypothesis's subject and window "
+                "and changes only the baseline"
+            )
         if counter.min_change >= claim.min_change:
             raise ValueError(
                 "a flat tolerance must be tighter than the change the hypothesis claims"
             )
-    elif _same_quantity(claim, counter) and counter.direction == claim.direction:
-        raise ValueError("a counter-test on the hypothesis's own quantity points the other way")
+        return
+    if counter.min_change < claim.min_change:
+        raise ValueError(
+            "a counter-test on the hypothesis's metric claims at least as large a move"
+        )
+    if counter.direction == claim.direction and (
+        _same_family(counter.subject, claim.subject)
+        or (counter.window, counter.compare_to) != (claim.window, claim.compare_to)
+    ):
+        raise ValueError(
+            "a same-way counter-test is a control: another subject, same window and baseline"
+        )

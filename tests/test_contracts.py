@@ -209,6 +209,8 @@ def test_a_flat_prediction_holds_within_its_tolerance():
     flat = _prediction(metric=Metric.SPRINT_COUNT, direction=Direction.FLAT, min_change=0.1)
     assert flat.supported_by(0.08) and flat.supported_by(-0.1)
     assert not flat.supported_by(0.15)
+    with pytest.raises(ValueError, match="share must be"):
+        flat.supported_by(0.0, share=0)
 
 
 def _cross_examination(observed_change):
@@ -258,7 +260,7 @@ def test_an_up_or_down_counter_test_is_scored_against_its_threshold():
 
 def test_a_stored_cross_examination_round_trips_and_cannot_be_rewritten():
     exam = _cross_examination(-0.05)
-    assert CrossExamination.model_validate(exam.model_dump()) == exam
+    assert CrossExamination.model_validate_json(exam.model_dump_json()) == exam
     with pytest.raises(ValidationError, match="disagrees with the counter-test"):
         CrossExamination.model_validate(dict(exam.model_dump(), result="holds"))
 
@@ -301,33 +303,61 @@ def _hypothesis(agent, cause):
     )
 
 
-def test_a_counter_test_must_be_able_to_contradict_its_hypothesis():
+@pytest.mark.parametrize(
+    "counter,fair",
+    [
+        # The demo's counter: Harbour City's sprints fell too (a control).
+        (dict(subject="Harbour City"), True),
+        # Northvale's sprints are normal for these minutes (flat against another baseline).
+        (dict(compare_to=BaselineScope.SEASON_AVERAGE, direction="flat", min_change=0.1), True),
+        (dict(compare_to=BaselineScope.SEASON_AVERAGE, direction="up"), True),
+        # Restatements of the hypothesis's own signal.
+        (dict(), False),
+        (dict(compare_to=BaselineScope.MATCH_SO_FAR, min_change=0.001), False),
+        (dict(window="57:00-63:00", min_change=0.001), False),
+        (dict(subject="Northvale.defence"), False),
+        # Controls that are trivially easy, or flat tolerances that swallow the claim.
+        (dict(subject="Harbour City", min_change=0.001), False),
+        (dict(subject="Harbour City", direction="flat", min_change=0.149), False),
+        (dict(window="00:00-05:00", direction="flat", min_change=0.149), False),
+        (dict(direction="flat", min_change=0.149), False),
+        (dict(compare_to=BaselineScope.SEASON_AVERAGE, direction="flat", min_change=0.2), False),
+        (
+            dict(threshold_kind=ThresholdKind.ABSOLUTE, subject="Harbour City", min_change=0.5),
+            False,
+        ),
+    ],
+)
+def test_a_counter_test_must_be_able_to_contradict_its_hypothesis(counter, fair):
     fatigue = _hypothesis(AgentRole.PHYSICAL, Cause.UNIT_FATIGUE)  # Northvale sprints down 15%
+    sprints = dict(metric=Metric.SPRINT_COUNT, subject="Northvale", min_change=0.15) | counter
+    exam = CrossExamination(
+        hypothesis_id="hyp-1",
+        challenger=AgentRole.TACTICS,
+        counter_prediction=_prediction(**sprints),
+        tool_call_id="tc-1",
+        observed_change=0.0,
+        reason="r",
+    )
+    if fair:
+        check_counter_test(fatigue, exam)
+    else:
+        with pytest.raises(ValueError):
+            check_counter_test(fatigue, exam)
 
-    def exam(challenger=AgentRole.TACTICS, **counter):
-        return CrossExamination(
-            hypothesis_id="hyp-1",
-            challenger=challenger,
-            counter_prediction=_prediction(**counter),
-            tool_call_id="tc-1",
-            observed_change=0.0,
-            reason="r",
-        )
 
-    sprints = dict(metric=Metric.SPRINT_COUNT, subject="Northvale")
-    season = dict(sprints, compare_to=BaselineScope.SEASON_AVERAGE, direction=Direction.FLAT)
-    # Fair: Harbour City's sprints fell too; Northvale's are flat against the season average.
-    check_counter_test(fatigue, exam(metric=Metric.SPRINT_COUNT, subject="Harbour City"))
-    check_counter_test(fatigue, exam(**season, min_change=0.1))
-    unfair = [
-        (exam(challenger=AgentRole.PHYSICAL, **season, min_change=0.1), "its own hypothesis"),
-        (exam(**sprints, min_change=0.15), "points the other way"),  # restates the hypothesis
-        (exam(**season, min_change=0.2), "tighter than the change"),
-        (exam(metric=Metric.MOMENTUM, direction=Direction.FLAT, min_change=0.1), "metric"),
-    ]
-    for counter, message in unfair:
-        with pytest.raises(ValueError, match=message):
-            check_counter_test(fatigue, counter)
+def test_a_challenger_never_examines_its_own_hypothesis():
+    fatigue = _hypothesis(AgentRole.PHYSICAL, Cause.UNIT_FATIGUE)
+    own = CrossExamination(
+        hypothesis_id="hyp-1",
+        challenger=AgentRole.PHYSICAL,
+        counter_prediction=_prediction(metric=Metric.SPRINT_COUNT, subject="Harbour City"),
+        tool_call_id="tc-1",
+        observed_change=0.0,
+        reason="r",
+    )
+    with pytest.raises(ValueError, match="its own hypothesis"):
+        check_counter_test(fatigue, own)
 
 
 def test_agents_register_only_causes_in_their_own_domain():

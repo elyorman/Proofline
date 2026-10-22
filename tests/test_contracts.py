@@ -766,17 +766,16 @@ def _check(**overrides):
         metric=Metric.SPRINT_COUNT,
         subject="NV-03",
         direction=Direction.DOWN,
-        separation=0.9,
+        separation=-0.9,
         ci_low=-1.2,
         ci_high=-0.6,
     )
     return base | overrides
 
 
-def _exclusion(rule, **check):
-    return dict(
-        script_id="p07-s1", cause=Cause.PLAYER_FATIGUE, rule=rule, observables=[_check(**check)]
-    )
+def _exclusion(rule, *checks, **check):
+    observables = list(checks) or [_check(**check)]
+    return dict(script_id="p07-s1", cause=Cause.PLAYER_FATIGUE, rule=rule, observables=observables)
 
 
 def _with_exclusions(exclusions, suite=Suite.PLANTED):
@@ -787,21 +786,41 @@ def _with_exclusions(exclusions, suite=Suite.PLANTED):
     )
 
 
-def test_excluded_scripts_carry_the_numbers_that_excluded_them():
-    # Its paired CI clears zero downwards, but one match cannot show it: single_match.
-    run = _with_exclusions([_exclusion("single_match")])
-    assert run.not_observable[0].observables[0].clears_zero
-    # A CI that includes zero is excluded by the paired-effect rule first.
-    assert _with_exclusions([_exclusion("paired_effect", ci_high=0.1)]).not_observable
+UP = dict(metric=Metric.PRESSURE_RATE, subject="Harbour City", direction=Direction.UP)
+
+
+@pytest.mark.parametrize(
+    "exclusion",
+    [
+        # Its paired CI clears zero downwards, but one match cannot show it.
+        _exclusion("no_separation"),
+        _exclusion("no_separation", **UP, separation=1.9, ci_low=0.1, ci_high=0.4),
+        # A CI that includes or only touches zero is excluded by the paired-effect rule first.
+        _exclusion("no_paired_effect", ci_high=0.1),
+        _exclusion("no_paired_effect", ci_high=0.0),
+        _exclusion("no_paired_effect", **UP, separation=0.3, ci_low=-0.1, ci_high=0.4),
+    ],
+)
+def test_excluded_scripts_carry_the_numbers_that_excluded_them(exclusion):
+    assert _with_exclusions([exclusion]).not_observable[0].rule == exclusion["rule"]
 
 
 @pytest.mark.parametrize(
     "exclusion,message",
     [
-        (_exclusion("paired_effect"), "clears zero its way"),
-        (_exclusion("single_match", ci_high=0.1), "paired-effect rule applies first"),
-        (_exclusion("single_match", separation=2.4), "separates enough to count"),
-        (_exclusion("single_match", direction=Direction.FLAT), "moves up or down"),
+        (_exclusion("no_paired_effect"), "clears zero its way"),
+        (_exclusion("no_separation", ci_high=0.1), "paired-effect rule applies first"),
+        (_exclusion("no_separation", separation=-2.4), "separates enough to count"),
+        (_exclusion("no_separation", separation=-2.0), "separates enough to count"),
+        (_exclusion("no_separation", **UP, separation=2.1, ci_low=0.1, ci_high=0.4), "enough"),
+        (_exclusion("no_separation", _check(), _check(subject="NV-04", separation=-2.2)), "enough"),
+        (_exclusion("no_separation", separation=0.9), "points against the paired-effect"),
+        (_exclusion("no_separation", direction=Direction.FLAT), "moves up or down"),
+        (_exclusion("no_separation", ci_low=-0.5, ci_high=-0.6), "ci_low is above ci_high"),
+        (_exclusion("no_separation", subject=""), "at least 1 character"),
+        (_exclusion("no_separation", separation=float("nan")), "finite number"),
+        (_exclusion("no_paired_effect", ci_low=float("-inf"), ci_high=0.1), "finite number"),
+        (dict(_exclusion("no_separation"), cause=Cause.NONE), "never planted causes"),
     ],
 )
 def test_an_exclusion_must_fit_its_rule(exclusion, message):
@@ -811,9 +830,9 @@ def test_an_exclusion_must_fit_its_rule(exclusion, message):
 
 def test_exclusions_belong_to_planted_runs_and_are_listed_once():
     with pytest.raises(ValidationError, match="listed once"):
-        _with_exclusions([_exclusion("single_match")] * 2)
+        _with_exclusions([_exclusion("no_separation")] * 2)
     with pytest.raises(ValidationError, match="planted suite"):
-        _with_exclusions([_exclusion("single_match")], suite=Suite.DECOYS)
+        _with_exclusions([_exclusion("no_separation")], suite=Suite.DECOYS)
 
 
 def _comparison(variant_b):

@@ -2,7 +2,7 @@
 
 from enum import StrEnum
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from contracts.prediction import Direction
 from contracts.taxonomy import Cause, Metric
@@ -49,15 +49,24 @@ class MetricEstimate(BaseModel):
 class ExclusionRule(StrEnum):
     """Spec §7.2. Each excluded script is counted once, under the first rule it meets."""
 
-    PAIRED_EFFECT = "paired_effect"  # no observable's paired CI clears zero its way
-    SINGLE_MATCH = "single_match"  # one does, but none separates by VISIBILITY_SDS
+    NO_PAIRED_EFFECT = "no_paired_effect"  # no observable's paired CI clears zero its way
+    NO_SEPARATION = "no_separation"  # one does, but none separates by VISIBILITY_SDS its way
 
 
 class ObservableCheck(BaseModel):
+    """One observable of an excluded script, with the numbers spec §7.2 judges it by.
+
+    `separation` is signed like the engine's (engine/visibility.py) and like the
+    paired-effect interval: positive when the observable rose. Both are judged in
+    `direction`, the way the observable moves when the class is present.
+    """
+
+    model_config = ConfigDict(allow_inf_nan=False)
+
     metric: Metric
-    subject: str
+    subject: str = Field(min_length=1)
     direction: Direction
-    separation: float = Field(description="natural sds, positive when it moves `direction`")
+    separation: float = Field(description="natural sds, signed: positive when it rose")
     ci_low: float
     ci_high: float
 
@@ -67,11 +76,19 @@ class ObservableCheck(BaseModel):
             raise ValueError("an observable of a cause moves up or down")
         if self.ci_low > self.ci_high:
             raise ValueError("ci_low is above ci_high")
+        if (self.ci_low > 0 and self.separation < 0) or (self.ci_high < 0 and self.separation > 0):
+            raise ValueError("separation points against the paired-effect interval")
         return self
 
     @property
     def clears_zero(self) -> bool:
         return self.ci_low > 0 if self.direction == Direction.UP else self.ci_high < 0
+
+    @property
+    def separates(self) -> bool:
+        """Visible in one match: VISIBILITY_SDS or more in the observable's direction."""
+        way = self.separation if self.direction == Direction.UP else -self.separation
+        return way >= VISIBILITY_SDS
 
 
 class Exclusion(BaseModel):
@@ -84,13 +101,15 @@ class Exclusion(BaseModel):
 
     @model_validator(mode="after")
     def _rule_fits_numbers(self) -> "Exclusion":
+        if self.cause.domain == "fallback":
+            raise ValueError("'other' and 'none' are outcomes, never planted causes")
         cleared = any(o.clears_zero for o in self.observables)
-        if self.rule == ExclusionRule.PAIRED_EFFECT and cleared:
+        if self.rule == ExclusionRule.NO_PAIRED_EFFECT and cleared:
             raise ValueError(f"{self.script_id}: an observable's CI clears zero its way")
-        if self.rule == ExclusionRule.SINGLE_MATCH:
+        if self.rule == ExclusionRule.NO_SEPARATION:
             if not cleared:
                 raise ValueError(f"{self.script_id}: the paired-effect rule applies first")
-            if any(o.separation >= VISIBILITY_SDS for o in self.observables):
+            if any(o.separates for o in self.observables):
                 raise ValueError(f"{self.script_id}: an observable separates enough to count")
         return self
 

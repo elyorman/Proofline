@@ -63,8 +63,8 @@
     "ExclusionRule": {
       "description": "Spec \u00a77.2. Each excluded script is counted once, under the first rule it meets.",
       "enum": [
-        "paired_effect",
-        "single_match"
+        "no_paired_effect",
+        "no_separation"
       ],
       "title": "ExclusionRule",
       "type": "string"
@@ -150,11 +150,13 @@
       "type": "object"
     },
     "ObservableCheck": {
+      "description": "One observable of an excluded script, with the numbers spec \u00a77.2 judges it by.\n\n`separation` is signed like the engine's (engine/visibility.py) and like the\npaired-effect interval: positive when the observable rose. Both are judged in\n`direction`, the way the observable moves when the class is present.",
       "properties": {
         "metric": {
           "$ref": "#/$defs/Metric"
         },
         "subject": {
+          "minLength": 1,
           "title": "Subject",
           "type": "string"
         },
@@ -162,7 +164,7 @@
           "$ref": "#/$defs/Direction"
         },
         "separation": {
-          "description": "natural sds, positive when it moves `direction`",
+          "description": "natural sds, signed: positive when it rose",
           "title": "Separation",
           "type": "number"
         },

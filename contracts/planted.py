@@ -70,7 +70,7 @@ def _fills(role: SubjectRole, subject: str, team: str) -> bool:
         return subject == team
     if role == "unit":
         return subject.startswith(f"{team}.")
-    return subject != team and "." not in subject
+    return subject != team and not subject.startswith(f"{team}.")
 
 
 class TruthObservable(BaseModel):

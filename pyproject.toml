@@ -27,6 +27,9 @@ build-backend = "hatchling.build"
 packages = ["contracts", "engine"]
 exclude = ["engine/suites"]  # sealed answers never ship in a package
 
+[tool.hatch.build.targets.sdist]
+exclude = ["engine/suites"]
+
 [tool.ruff]
 line-length = 100
 target-version = "py312"

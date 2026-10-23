@@ -17,8 +17,10 @@ ROOT = Path(__file__).resolve().parents[1]
 EXEMPT = {"engine", "eval", "tests", "scripts"}
 NOT_PYTHON = {"docs", "infra", "data", "node_modules", ".git", ".venv", ".github"}
 GROUND_TRUTH_RE = re.compile(r"ground_truth[^\s\"']*\.(ya?ml|json)")
-# A script reveals its planted moment as plainly as ground truth does.
-ENGINE_DATA_RE = re.compile(r"engine/(scripts|suites)/")
+# A script reveals its planted moment as plainly as ground truth does. Matches the path
+# however it is spelled: "engine/suites", Path("engine") / "suites", join("engine", "scripts").
+# A dotted name is an import, which the import check reports.
+ENGINE_DATA_RE = re.compile(r"\bengine[^\w.]{1,6}(scripts|suites)\b")
 
 
 def product_dirs(root: Path = ROOT) -> list[Path]:

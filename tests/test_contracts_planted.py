@@ -79,6 +79,11 @@ def test_fatigue_is_measured_on_the_teams_own_unit_or_a_player(cause, subject, m
         PlantedTruth(**fatigue(subject))
 
 
+def test_a_team_name_may_contain_a_dot():
+    dotted = _truth(observables=[HC_PRESS, NV_LONG | {"subject": "St. Orrin"}])
+    assert PlantedTruth(**dotted)
+
+
 def test_ground_truth_fits_its_suite():
     planted = PlantedTruth(**_truth())
     nothing = PlantedTruth(match_id="d-h-01", cause=Cause.NONE)

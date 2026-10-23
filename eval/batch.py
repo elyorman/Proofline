@@ -1,0 +1,130 @@
+"""Read the product's per-match batch records without importing product or engine code."""
+
+import hashlib
+from collections.abc import Sequence
+from pathlib import Path
+
+from pydantic import BaseModel, Field, NonNegativeInt, StrictBool, model_validator
+
+from contracts.card import InsightCard
+from contracts.clock import Window
+from contracts.eval_run import EvalRun, Variant
+from contracts.taxonomy import CaseOutcome, MomentType
+from eval.runner import evaluate
+from eval.suites import SuiteBundle
+
+
+class BatchCase(BaseModel):
+    case_id: str = Field(min_length=1)
+    moment: MomentType
+    window: Window
+    outcome: CaseOutcome
+    card: InsightCard | None
+    published: StrictBool
+    tool_calls: NonNegativeInt
+    tokens: tuple[NonNegativeInt, NonNegativeInt]
+    recovered: StrictBool
+    hypotheses: NonNegativeInt
+    counter_tests: NonNegativeInt
+    error: None = None
+
+
+class BatchFailure(BaseModel):
+    case_id: str = Field(min_length=1)
+    moment: MomentType
+    window: Window
+    error: str = Field(min_length=1)
+    tokens: tuple[NonNegativeInt, NonNegativeInt] | None = None
+
+
+class BatchMatch(BaseModel):
+    match_id: str = Field(min_length=1)
+    variant: Variant
+    cases: list[BatchCase | BatchFailure]
+
+    @model_validator(mode="after")
+    def _identities(self) -> "BatchMatch":
+        ids = [c.case_id for c in self.cases]
+        if len(ids) != len(set(ids)):
+            raise ValueError("each batch case is listed once")
+        for case in self.cases:
+            if isinstance(case, BatchFailure):
+                continue
+            if case.published and case.card is None:
+                raise ValueError("a published case must carry its card")
+            if case.card is not None:
+                if (case.card.match_id, case.card.case_id) != (self.match_id, case.case_id):
+                    raise ValueError("card identity must match its batch match and case")
+                if case.outcome != case.card.case_outcome:
+                    raise ValueError("card outcome must match its batch case")
+        return self
+
+
+def evaluate_batch(
+    root: str | Path,
+    suites: Sequence[SuiteBundle],
+    *,
+    variant: Variant | str,
+    run_id: str | None = None,
+    model_id: str | None = None,
+    model_tier: str = "dev",
+    tool_call_budget: int | None = None,
+    wall_time_budget_s: float | None = None,
+    started_at_ms: int | None = None,
+    finished_at_ms: int | None = None,
+    seed: int = 0,
+    resamples: int = 2000,
+) -> EvalRun:
+    variant = Variant(variant)
+    folder = Path(root) / variant.value
+    cohort = {entry.match_id for suite in suites for entry in suite.truth.entries}
+    paths = sorted(folder.glob("*.json"))
+    if {p.stem for p in paths} != cohort:
+        missing = sorted(cohort - {p.stem for p in paths})
+        extra = sorted({p.stem for p in paths} - cohort)
+        raise ValueError(
+            f"batch files must cover the cohort exactly; missing={missing}, extra={extra}"
+        )
+    cards, errors = [], {}
+    input_tokens = output_tokens = 0
+    digest = hashlib.sha256()
+    for path in paths:
+        data = path.read_bytes()
+        try:
+            match = BatchMatch.model_validate_json(data)
+            if match.match_id != path.stem or match.variant != variant:
+                raise ValueError("batch match_id or variant does not match its file")
+        except ValueError as exc:
+            raise ValueError(f"{path}: {exc}") from exc
+        digest.update(path.name.encode() + b"\0" + data + b"\0")
+        errors[match.match_id] = {}
+        for case in match.cases:
+            if case.tokens is not None:
+                input_tokens += case.tokens[0]
+                output_tokens += case.tokens[1]
+            if isinstance(case, BatchFailure):
+                errors[match.match_id][case.case_id] = case.error
+            elif case.published:
+                cards.append(case.card)
+    batch_digest = digest.hexdigest()
+    run = evaluate(
+        suites,
+        cards,
+        run_id=run_id or f"batch-{variant}-{batch_digest[:16]}",
+        variant=variant,
+        model_id=model_id,
+        model_tier=model_tier,
+        tool_call_budget=tool_call_budget,
+        wall_time_budget_s=wall_time_budget_s,
+        seed=seed,
+        resamples=resamples,
+        started_at_ms=started_at_ms,
+        finished_at_ms=finished_at_ms,
+        input_tokens=input_tokens,
+        output_tokens=output_tokens,
+        batch_digest=batch_digest,
+        case_errors=errors,
+    )
+    if run.failed_cases:
+        run.notes = "Token totals include recorded usage only; failed cases may omit tokens."
+    return run

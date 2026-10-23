@@ -679,7 +679,7 @@ Every row leaves evidence a judge can see; use that leaves no trace is not claim
 | Role | Model |
 |---|---|
 | Hypothesis agents, synthesis, recap | gpt-5-mini |
-| Verifier semantic check | A non-OpenAI model with quota on the subscription (candidates: grok-4-fast-reasoning, DeepSeek-V3.2, Mistral Medium), chosen at the Verifier step by catch rate on seeded false claims (fallback: a second OpenAI model with a distinct verifier prompt, stated as a limitation) |
+| Verifier semantic check | Microsoft Phi-4, a non-OpenAI chat model sold directly by Azure (Marketplace models such as Mistral cannot be bought on the Free Trial; DeepSeek-V3.2-Speciale reasoned for minutes per card and was retired from the project). Its catch rate on seeded false claims is measured and reported (fallback: a second OpenAI model with a distinct verifier prompt, stated as a limitation) |
 | Narrator variants | gpt-5-mini |
 | Fast lane | Templates |
 | Development runs | gpt-5-mini for all roles |
@@ -890,7 +890,7 @@ proofline/
 - [x] azd skeleton deployed: Container Apps, Container Registry, Cosmos (free tier), Event Hubs, Web PubSub, Static Web Apps, App Insights, Key Vault with managed identity
 - [x] Quota checked in region (Free Trial: gpt-5-mini has quota; gpt-5.6-terra and gpt-5.6-luna have none)
 - [x] gpt-5-mini deployed in Foundry
-- [x] Non-OpenAI models with quota confirmed in region (grok-4-fast-reasoning, DeepSeek-V3.2, Mistral Medium); one is deployed at the Verifier step
+- [x] Non-OpenAI model deployed for the Verifier: Phi-4, chosen among models with quota that a Free Trial can deploy
 - [x] Budget alert at 60%
 - [ ] Model prices confirmed in the Azure portal (the Retail Prices API lists only priority-processing meters for gpt-5-mini in eastus2)
 - [x] Azure MCP Server connected to the development agent; transcript capture started (`docs/azure-mcp.md`)

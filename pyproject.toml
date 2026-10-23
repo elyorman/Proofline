@@ -24,7 +24,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["contracts", "engine", "state"]
+packages = ["contracts", "engine", "state", "detector"]
 exclude = ["engine/suites"]  # sealed answers never ship in a package
 
 [tool.hatch.build.targets.sdist]

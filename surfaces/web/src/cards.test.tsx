@@ -55,8 +55,8 @@ describe('faithful card rendering', () => {
     expect(html).toContain('Tactics');
     expect(html).toContain('Game state');
     expect(html).toContain('Physical');
-    expect(html).toContain('9 / 16');
-    expect(html).toContain(press.investigation!.cross_examination!);
+    expect(html).toContain(`${press.investigation!.tool_calls} / ${press.investigation!.budget}`);
+    expect(html).toContain(press.investigation!.cross_examination!.replaceAll("'", '&#x27;'));
     expect(html).toContain(press.provenance.trace_id);
     expect(render(<CaseOverview card={{ ...press, investigation: { ...press.investigation!, recovered_from_checkpoint: true } }} />)).toContain('Yes');
   });

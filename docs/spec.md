@@ -269,6 +269,8 @@ For the demo match the sequence is: a smaller card about Northvale attacking dow
 
 Amendments are **batches**, as real feed corrections usually are. A single amended event rarely moves a windowed metric enough to change a verdict, so the correction suite uses batch amendments and includes claims near their support boundary.
 
+An intervention can also target a whole unit with a player parameter (`unit: defence`), and can wait for the score (`when: trailing` or `leading`): it then starts at the first moment from `at` that the condition holds, and the engine records when it started.
+
 The mapping from script to cause-taxonomy class (for example `s1 → tactical.press_intensity_up`, observable 56:00–64:00) lives in a sealed ground-truth file that no product package can read. A CI check enforces this.
 
 ### 7.2 Counterfactual paired runs
@@ -293,6 +295,8 @@ Paired runs are an evaluation tool only. Live, agents reason from the single mat
 | Decoys | Natural variance swings with no scripted cause | Stay silent or close the case as `none` | Build |
 | Corrections | Amendments that remove support for a published claim, and amendments that don't | Withdraw or revise exactly the affected cards, leave the rest alone | Build |
 | Confounded | Two causes overlapping in time | Attribute both, primary and secondary in a sensible order | Stretch: added if it is what opens the single-agent gap |
+
+The planted suite plants the six classes the engine has a mechanism for (`contracts/planted.py`): press intensity up and down, chasing the result, protecting a lead, unit fatigue and player fatigue. Dev holds two matches per class and four decoys; held-out holds five per class and ten decoys. From the change's start to the end of its window, a press change is planted only where the score gives no game-state reason for it, and a score-triggered change only where the score that triggered it holds. Match ids never name the cause. Block height, formation, flank, substitution and numerical-change causes are not planted; an agent may still name them, and precision counts it. `proofline-engine suite` builds both suites, sealed from product code.
 
 **Realism controls:** seed, team quality ratings, noise on every probability, calibration of match totals (passes, completion rate, shots, goals) against typical top-flight ranges, and a realism report shipped with the dataset.
 

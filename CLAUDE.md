@@ -49,6 +49,7 @@ uv run ruff check . && uv run ruff format --check .
 uv run pytest -q                          # unit + contract tests
 uv run python scripts/check_engine_isolation.py
 uv run proofline-engine generate --script engine/scripts/planted/m01.yaml --out data/m01/   # the script carries its seed
+uv run proofline-engine suite --suite planted --split heldout   # writes engine/suites/ (sealed from product code)
 uv run proofline run --mode studio --match m01   # local pipeline against the deployed ledger
 uv run proofline eval --suite planted,decoys,corrections --variant A,B --split heldout
 azd up                                    # provision + deploy everything

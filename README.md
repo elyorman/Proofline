@@ -22,7 +22,7 @@ azd up        # provision every Azure resource into a new environment
 | Path | Purpose |
 |---|---|
 | `contracts/` | Pydantic schemas: event, card, proposition, prediction, cue, profile, taxonomy |
-| `engine/` | Match Engine: synthetic matches from tactical scripts (`proofline-engine generate`); never imported by product code |
+| `engine/` | Match Engine: synthetic matches from tactical scripts (`proofline-engine generate`) and the planted and decoy suites with sealed ground truth (`proofline-engine suite`); never imported by product code |
 | `DATASET.md` | The synthetic dataset: the demo match, the stated rule that picks its seed, and how each planted story is checked for visibility in a single match |
 | `infra/` | Bicep for every Azure resource, deployed with `azd` |
 | `docs/spec.md` | Product spec |

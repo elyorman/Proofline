@@ -13,7 +13,7 @@ Its seed is chosen by a stated rule, never by eye: **the first seed from 4417 up
 
 ## Is a planted story visible in one match?
 
-The detector watches a single match, so a paired-run effect whose confidence interval clears zero is not enough. For an observable and a detection window, a match's **change** is the observable over the window minus its value over the same match's first half. The **natural change** is the same quantity without the story: the same seed with the intervention removed or, for a feed error, the corrected events. **Separation** is the mean change with the story minus the mean natural change, in sample standard deviations of the natural change across seeds ([`engine/visibility.py`](engine/visibility.py)). A match **clears** when its own change is at least two natural standard deviations above the mean natural change. Windows include their start and exclude their end; on-ball actions are passes, carries and dribbles; coordinates are in the acting team's attacking frame, so the right third is y > 45.33 m.
+The detector watches a single match, so a paired-run effect whose confidence interval clears zero is not enough. For an observable and a detection window, a match's **change** is the observable over the window minus its value over the same match's first half. The **natural change** is the same quantity without the story: the same seed with the intervention removed or, for a feed error, the corrected events. **Separation** is the mean change with the story minus the mean natural change, in sample standard deviations of the natural change across seeds ([`engine/visibility.py`](engine/visibility.py)). A match **clears** when its own change is at least two natural standard deviations past the mean natural change, in the way the observable moves with its story. Windows include their start and exclude their end; on-ball actions are passes, carries and dribbles; coordinates are in the acting team's attacking frame, so the right third is y > 45.33 m.
 
 The windows are the demo cards' windows. Scoring a planted suite uses each script's ground-truth observable window instead (spec §7.2).
 
@@ -22,3 +22,26 @@ The windows are the demo cards' windows. Scoring a planted suite uses each scrip
 | s1 | Pressure rate: Harbour City pressures in Northvale's first 60% of the pitch, divided by Northvale on-ball actions starting in that same zone (x < 63 in Northvale's frame, x > 42 in Harbour City's) | 58:00–63:00 |
 | s1 | Share of Northvale's passes longer than 30 m | 58:00–63:00 |
 | a1 | Share of Northvale's on-ball actions starting in the right third of the width, as first delivered | 45:00–55:00 |
+
+## Planted and decoy suites
+
+The evaluation suites live in `engine/suites/<suite>/<split>/`. `scripts/` holds one match script per match. `ground_truth.yaml` records what each match planted, or that it planted nothing. The planted suite's `ground_truth_flags.json` holds its frozen `not_observable` flags. Product code never opens any of them: the CI isolation guard refuses any product-code reference to `engine/scripts/` or `engine/suites/`, and only `eval/` reads the ground truth. `uv run proofline-engine suite --suite planted|decoys --split dev|heldout` builds them.
+
+Each planted match carries one intervention whose mechanism belongs to one of the six classes the engine can plant. The class appears only in the ground truth, and match ids (`p-h-07`, `d-d-02`) are opaque. Each class's observables, and the way each moves when the class is present, are fixed in [`contracts/planted.py`](contracts/planted.py):
+
+| Class | Mechanism in the script | Observables |
+|---|---|---|
+| `tactical.press_intensity_up` | press height rises sharply, from between 55:00 and 65:00 | the team's pressure rate up; the opponent's long-ball share up |
+| `tactical.press_intensity_down` | press height drops sharply, from between 55:00 and 65:00 | the team's pressure rate down; the opponent's long-ball share down |
+| `game_state.chasing_result` | from 55:00, once trailing: press higher, play more directly | the team's pressure rate up; its long-ball share up |
+| `game_state.protecting_lead` | from 55:00, once leading: drop the press, play more directly | the team's pressure rate down; its long-ball share up |
+| `physical.unit_fatigue` | the defence or midfield tires quickly, from between 55:00 and 62:00 | the unit's sprints per minute down; its mean sprint speed down |
+| `physical.player_fatigue` | one midfielder or forward tires quickly, from between 55:00 and 62:00 | the player's sprints per minute down; their mean sprint speed down |
+
+A class's window opens when its change starts: minutes 0–8 after it for the press and game-state classes, 7–27 for fatigue, which takes time to show. Every change starts in the second half, so its change is measured against the first half. Dev holds two matches per class and four decoys; held-out holds five per class and ten decoys. Decoys are the same two clubs with nothing planted, so every swing in them is natural.
+
+**Seeds** stay inside each split's range (spec §11.1, `SEED_RANGES` in [`contracts/eval_run.py`](contracts/eval_run.py)). Planted matches search from the split's first seed, 1000 for dev and 2000 for held-out. Decoys start 300 above it, and paired runs 500 above it.
+
+**Hygiene.** A planted match takes the first seed on which its class is the only fair answer, from the change's start to the end of its window. A press rise is planted only while the team is not trailing, and a press drop only while it is not leading, so chasing the result or protecting a lead is never also right. A chasing or protecting change starts only once the team trails or leads, by 75:00 at the latest, and keeps that score through its window.
+
+**Flags.** Each planted match is run with and without its change, on seeds from 500 above the split's first, until every observable has a value on 30 of them. Sprint speed has none when nobody in the subject sprints in the window. The paired-effect interval is a 95% t-interval on the per-seed differences, and separation is as defined above. A match is excluded under the first rule of spec §7.2 it meets. `ground_truth_flags.json` lists every planted match, the seeds measured for it, and each excluded match with its class, its rule and each observable's numbers. Its `flag_set_id` is a digest of that content, and every planted evaluation run embeds the flag set.

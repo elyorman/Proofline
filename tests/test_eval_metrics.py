@@ -43,7 +43,7 @@ def test_exclusions_change_recall_but_never_remove_precision():
         reconcile(rows, ["a", "b", "missing"], ["b"])
 
 
-def test_precision_pools_cards_and_counts_other_explanations():
+def test_precision_pools_explained_cards_and_leaves_other_out():
     rows = [
         MatchOutcome(
             match_id="a",
@@ -66,8 +66,8 @@ def test_precision_pools_cards_and_counts_other_explanations():
         ),
     ]
     precision = next(m for m in metrics(rows, resamples=100) if m.name == "cause_precision")
-    assert precision.value == 0.25
-    assert precision.n == 4
+    assert precision.value == 1.0
+    assert precision.n == 1
     assert precision.suite == "combined"
 
 

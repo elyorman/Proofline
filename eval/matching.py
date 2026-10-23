@@ -5,7 +5,10 @@ from collections.abc import Iterable
 from contracts.card import NEEDS_PASSING, InsightCard
 from contracts.eval_run import CardOutcome, MatchOutcome, Suite
 from contracts.planted import PlantedTruth
-from contracts.taxonomy import CardStatus, Cause
+from contracts.taxonomy import CardStatus, CaseOutcome, Cause
+
+# Outcomes that claim a real effect; a card closing a decoy's case as `none` is restraint.
+CLAIMS = (CaseOutcome.EXPLAINED, CaseOutcome.OTHER)
 
 
 def final_cards(
@@ -27,17 +30,11 @@ def final_cards(
         if revision in seen and seen[revision] != serialized:
             raise ValueError(f"conflicting records for {card.id} revision {card.revision}")
         seen[revision] = serialized
-        # An unfinished replacement cannot hide the revision viewers still see.
+        # An unfinished replacement cannot hide the revision that passed the Verifier.
         if (
             not batch_published
-            and card.status
-            not in (
-                CardStatus.SHOWN,
-                CardStatus.REVISED,
-                CardStatus.WITHDRAWN,
-                CardStatus.KILLED,
-            )
-            and not (card.status == CardStatus.EXPIRED and card.timing.published_at is not None)
+            and card.status not in NEEDS_PASSING
+            and card.status != CardStatus.WITHDRAWN
         ):
             continue
         if identity not in latest or card.revision > latest[identity].revision:
@@ -100,21 +97,13 @@ def score_match(
         c
         for c in final_cards(cards, batch_published=batch_published)
         if c.match_id == truth.match_id
-        and (
-            batch_published
-            or (
-                c.lane == "full"
-                and (
-                    c.status in (CardStatus.SHOWN, CardStatus.REVISED)
-                    or (c.status == CardStatus.EXPIRED and c.timing.published_at is not None)
-                )
-            )
-        )
+        and (batch_published or (c.lane == "full" and c.status in NEEDS_PASSING))
     ]
     results = [match_card(c, truth) for c in published]
     if suite == Suite.DECOYS:
-        correct = not published
-        reason = "no card published" if correct else "card published on decoy"
+        claims = [c for c in published if c.case_outcome in CLAIMS]
+        correct = not claims
+        reason = "no cause published" if correct else "cause published on decoy"
     elif suite == Suite.PLANTED:
         correct = any(r.correct for r in results)
         reason = (

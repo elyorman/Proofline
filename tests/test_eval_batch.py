@@ -94,19 +94,18 @@ def test_batch_uses_publication_flags_and_keeps_errors_tokens_and_run_times(batc
     assert EvalRun.model_validate_json(run.model_dump_json()) == run
 
 
-def test_decoy_requires_no_published_card_even_for_none(batch):
+def test_a_decoy_closed_as_none_is_restraint_and_a_claimed_cause_is_not(batch):
     root, suites, _, case = batch
     decoy = suites[1].truth.entries[0]
     card = dict(case["card"], match_id=decoy.match_id, case_outcome="none")
     card["propositions"] = card["propositions"][:1]
     write_cases(batch, "A", decoy.match_id, [dict(case, outcome="none", card=card)])
     run = evaluate_batch(root, suites, variant="A", resamples=100)
-    assert not next(o for o in run.outcomes if o.match_id == decoy.match_id).correct
-    write_cases(
-        batch, "A", decoy.match_id, [dict(case, outcome="none", card=card, published=False)]
-    )
-    run = evaluate_batch(root, suites, variant="A", resamples=100)
     assert next(o for o in run.outcomes if o.match_id == decoy.match_id).correct
+    claimed = dict(case["card"], match_id=decoy.match_id)
+    write_cases(batch, "A", decoy.match_id, [dict(case, card=claimed)])
+    run = evaluate_batch(root, suites, variant="A", resamples=100)
+    assert not next(o for o in run.outcomes if o.match_id == decoy.match_id).correct
 
 
 @pytest.mark.parametrize(

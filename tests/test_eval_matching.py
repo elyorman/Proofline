@@ -131,7 +131,15 @@ def test_revalidation_catches_mutated_verification(bundle, make_card):
         score_match(bundle.truth.entries[0], [card], "planted")
 
 
-@pytest.mark.parametrize("status", ["verified", "scheduled", "expired", "killed"])
+@pytest.mark.parametrize("status", ["verified", "scheduled", "killed"])
+def test_a_card_that_passed_the_verifier_counts_whether_or_not_it_aired(bundle, make_card, status):
+    truth = bundle.truth.entries[0]
+    raw = make_card(truth, status=status).model_dump(mode="json")
+    raw["timing"]["published_at"] = None
+    assert score_match(truth, [InsightCard.model_validate(raw)], "planted").correct
+
+
+@pytest.mark.parametrize("status", ["proposed", "cross_examined"])
 def test_unpublished_cards_do_not_count(bundle, make_card, status):
     truth = bundle.truth.entries[0]
     raw = make_card(truth, status=status).model_dump(mode="json")

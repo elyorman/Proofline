@@ -17,8 +17,8 @@ def samples(outcomes: Sequence[MatchOutcome], name: str) -> list[tuple[int, int]
     if name == CAUSE_PRECISION:
         return [
             (
-                sum(c.correct for c in o.cards if c.outcome != CaseOutcome.NONE),
-                sum(c.outcome != CaseOutcome.NONE for c in o.cards),
+                sum(c.correct for c in o.cards if c.outcome == CaseOutcome.EXPLAINED),
+                sum(c.outcome == CaseOutcome.EXPLAINED for c in o.cards),
             )
             for o in outcomes
         ]

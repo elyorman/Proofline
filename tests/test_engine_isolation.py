@@ -73,7 +73,21 @@ def test_engine_scripts_and_suites_are_sealed_too(tmp_path):
     (repo / "state" / "bare.py").write_text('p = Path("engine/suites")\n')
     (repo / "state" / "joined.py").write_text('p = Path("engine") / "suites" / "planted"\n')
     (repo / "state" / "osjoin.py").write_text('p = os.path.join("engine", "scripts")\n')
+    (repo / "state" / "chained.py").write_text('p = Path("engine").joinpath("suites")\n')
     (repo / "state" / "fine.py").write_text('p = "engine_scripts and suites of tests"\n')
     found = guard.scan(repo)
-    assert len(found) == 5 and all("engine scripts or suites" in v for v in found)
+    assert len(found) == 6 and all("engine scripts or suites" in v for v in found)
     assert not any("fine.py" in v for v in found)
+
+
+def test_prose_that_states_the_rule_passes(tmp_path):
+    guard = _load()
+    repo = _repo(tmp_path)
+    (repo / "state" / "rule.py").write_text(
+        '"""Never reads engine/suites or ground_truth.yaml."""\n'
+        "# the engine, scripts and suites are sealed from product code\n"
+        "def f():\n"
+        '    """Not engine/scripts either."""\n'
+        "    return 1\n"
+    )
+    assert guard.scan(repo) == []

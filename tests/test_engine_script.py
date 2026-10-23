@@ -54,6 +54,11 @@ def test_demo_script_loads():
         ({"player": "NV-03", "set": {"stamina_decay": 2.0}}, "not on the home team"),
         ({"player": "HC-3", "set": {"stamina_decay": 2.0}}, "should match pattern"),
         ({"player": "HC-03", "set": {"stamina_decay": -1.0}}, "outside"),
+        ({"player": "HC-03", "set": {"stamina_decay": 10.5}}, "outside"),
+        ({"unit": "defence", "set": {"press_height": 0.7}}, "not valid player parameter"),
+        ({"unit": "defense", "set": {"stamina_decay": 2.0}}, "Input should be"),
+        ({"player": "HC-03", "unit": "defence", "set": {"stamina_decay": 2.0}}, "not both"),
+        ({"when": "drawing"}, "Input should be"),
     ],
 )
 def test_bad_interventions_are_rejected(intervention, message):
@@ -97,3 +102,14 @@ def test_unquoted_yaml_time_is_rejected(tmp_path):
 def test_the_spec_shows_the_demo_script_as_it_is():
     spec = (M01.parents[3] / "docs" / "spec.md").read_text(encoding="utf-8")
     assert f"```yaml\n{M01.read_text(encoding='utf-8')}```" in spec
+
+
+def test_a_unit_and_a_score_trigger_can_be_scripted():
+    script = _script(
+        scripts=[
+            _intervention(unit="midfield", set={"stamina_decay": 8.0}),
+            _intervention(id="s2", when="trailing", set={"press_height": 0.9}),
+        ]
+    )
+    tired, chasing = script.scripts
+    assert (tired.unit, tired.player, chasing.when) == ("midfield", None, "trailing")

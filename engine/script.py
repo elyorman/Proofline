@@ -27,9 +27,11 @@ PARAM_RANGES = {
     "press_height": (0.0, 1.0),
     "directness": (0.0, 1.0),
     "quality": (0.0, 1.0),
-    "stamina_decay": (0.0, 5.0),
+    "stamina_decay": (0.0, 10.0),
 }
 PLAYER_ID = r"^[A-Z]{2}-(0[1-9]|1[01])$"  # one of the 11 starters in engine.teams
+Unit = Literal["defence", "midfield", "attack"]
+Trigger = Literal["trailing", "leading"]
 AMENDABLE = frozenset({EventType.PASS, EventType.CARRY, EventType.DRIBBLE})
 _RAMP_RE = re.compile(r"^(\d+)(m|s)$")
 
@@ -53,6 +55,10 @@ class Intervention(BaseModel):
     ramp: str = Field(default="0m", pattern=_RAMP_RE.pattern)
     team: Side
     player: str | None = Field(default=None, pattern=PLAYER_ID)
+    unit: Unit | None = Field(default=None, description="every player of this unit")
+    when: Trigger | None = Field(
+        default=None, description="start at the first moment from `at` the team is trailing/leading"
+    )
     set: dict[str, float] = Field(min_length=1)
 
     @property
@@ -62,8 +68,10 @@ class Intervention(BaseModel):
 
     @model_validator(mode="after")
     def _known_params(self) -> "Intervention":
-        level = "player" if self.player else "team"
-        allowed = PLAYER_PARAMS if self.player else TEAM_PARAMS
+        if self.player and self.unit:
+            raise ValueError(f"{self.id}: name a player or a unit, not both")
+        level = "player" if self.player or self.unit else "team"
+        allowed = PLAYER_PARAMS if level == "player" else TEAM_PARAMS
         unknown = sorted(set(self.set) - allowed)
         if unknown:
             raise ValueError(

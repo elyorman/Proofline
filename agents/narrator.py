@@ -214,3 +214,51 @@ def updated(variants: dict[str, dict[str, str]]) -> dict[str, dict[str, str]]:
         audience: {locale: UPDATED[LOCALES.index(locale)] + text for locale, text in texts.items()}
         for audience, texts in variants.items()
     }
+
+
+HEADLINE = {  # (metric, direction) -> a broadcast headline, English and Spanish
+    (Metric.PRESSURE_RATE, Direction.UP): ("PRESS RAISED", "MÁS PRESIÓN"),
+    (Metric.PRESSURE_RATE, Direction.DOWN): ("PRESS DROPPED", "MENOS PRESIÓN"),
+    (Metric.LONG_BALL_SHARE, Direction.UP): ("GOING LONG", "JUEGO DIRECTO"),
+    (Metric.LONG_BALL_SHARE, Direction.DOWN): ("PLAYING SHORT", "JUEGO CORTO"),
+    (Metric.SPRINT_COUNT, Direction.DOWN): ("LEGS TIRING", "PIERNAS CANSADAS"),
+    (Metric.SPRINT_COUNT, Direction.UP): ("MORE SPRINTS", "MÁS ESPRINTS"),
+    (Metric.SPRINT_SPEED, Direction.DOWN): ("SLOWER SPRINTS", "ESPRINTS MÁS LENTOS"),
+    (Metric.SPRINT_SPEED, Direction.UP): ("FASTER SPRINTS", "ESPRINTS MÁS RÁPIDOS"),
+    (Metric.CHANNEL_SHARE_LEFT, Direction.UP): ("DOWN THE LEFT", "POR LA IZQUIERDA"),
+    (Metric.CHANNEL_SHARE_LEFT, Direction.DOWN): ("LESS DOWN THE LEFT", "MENOS POR LA IZQUIERDA"),
+    (Metric.CHANNEL_SHARE_CENTRE, Direction.UP): ("THROUGH THE MIDDLE", "POR EL CENTRO"),
+    (Metric.CHANNEL_SHARE_CENTRE, Direction.DOWN): ("LESS IN THE MIDDLE", "MENOS POR EL CENTRO"),
+    (Metric.CHANNEL_SHARE_RIGHT, Direction.UP): ("DOWN THE RIGHT", "POR LA DERECHA"),
+    (Metric.CHANNEL_SHARE_RIGHT, Direction.DOWN): ("LESS DOWN THE RIGHT", "MENOS POR LA DERECHA"),
+}
+CORRECTION_HEADLINE = {
+    "revised": ("UPDATE", "ACTUALIZACIÓN"),
+    "withdrawn": ("WITHDRAWN", "RETIRADA"),
+}
+GOAL = ("Goal for {team}! {score}.", "¡Gol del {team}! {score}.")
+
+
+def broadcast(card: InsightCard, meta: MatchMeta, locale: int) -> dict[str, str | float]:
+    """Fields for the card's overlay graphic: a headline, the stat and its two values."""
+    change = next(p for p in card.propositions if p.type == "change")
+    ev = card.evidence[0]
+    if card.status in CORRECTION_HEADLINE:
+        return {
+            "team": card.subject.team,
+            "headline": CORRECTION_HEADLINE[card.status][locale],
+            "text": card.variants["casual"][LOCALES[locale]],
+        }
+    return {
+        "team": card.subject.team,
+        "headline": HEADLINE[change.metric, change.direction][locale],
+        "stat_label": f"{LABEL[ev.metric][locale]} ({who(meta, ev.subject)[0]})",
+        "metric": ev.metric.value,
+        "before": ev.baseline.value,
+        "after": ev.value,
+    }
+
+
+def goal(team: str, score: str) -> dict[str, str]:
+    """A fast-lane goal line in every locale, from the event alone."""
+    return {locale: GOAL[i].format(team=team, score=score) for i, locale in enumerate(LOCALES)}

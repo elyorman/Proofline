@@ -166,6 +166,8 @@ async def correct(
             ).model_dump(mode="json"),
             "verification": None,
             "variants": {},
+            "timing": was.timing.model_dump(mode="json")
+            | {"verified_at": str(amendment.at), "published_at": None},
         }
     )
     p = published.hypothesis.prediction

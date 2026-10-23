@@ -211,6 +211,7 @@ def test_every_measured_change_can_be_narrated_in_both_languages():
         assert all(narrator.LABEL[metric])
         for direction in (Direction.UP, Direction.DOWN):
             assert all(narrator.CHANGE[metric, direction])
+            assert all(narrator.HEADLINE[metric, direction])
 
 
 def _proposed(feed, case, survivor):

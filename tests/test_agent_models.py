@@ -11,7 +11,9 @@ def test_the_agents_run_on_foundry_unless_a_comparison_names_another_family(monk
         _agents()
     pytest.importorskip("anthropic")  # the experiments group
     monkeypatch.setenv("PROOFLINE_AGENT_MODEL", "claude:claude-opus-5-5")
-    assert _agents().model == "claude-opus-5-5"
+    assert (_agents().model, _agents().effort) == ("claude-opus-5-5", "medium")
+    monkeypatch.setenv("PROOFLINE_AGENT_MODEL", "claude:claude-opus-5-5@high")
+    assert _agents().effort == "high"
     pytest.importorskip("google.genai")
     monkeypatch.setenv("PROOFLINE_AGENT_MODEL", "gemini:")
     assert _agents().model == "gemini-pro-latest"

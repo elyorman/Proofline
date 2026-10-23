@@ -20,7 +20,7 @@ TIMEOUT_S = 180  # one reply; thinking at high effort takes longer than a small 
 @dataclass
 class ClaudeModel:
     model: str = "claude-opus-5-5"
-    effort: str = "high"  # reasoning about causes is the hard part of the job
+    effort: str = "medium"  # Opus 5.5's own default; `claude:<id>@high` raises it
     _client: anthropic.AsyncAnthropic | None = None
 
     async def ask[T: BaseModel](

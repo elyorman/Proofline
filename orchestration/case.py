@@ -105,13 +105,14 @@ def case_file(outcome: Outcome, variant: Variant) -> CaseFile:
 
 def _agents() -> Model:
     """The agents' model: Foundry's deployment, unless PROOFLINE_AGENT_MODEL names another
-    family to compare with (`claude:<id>` or `gemini:<id>`, the `experiments` group). Both
+    family to compare with (`claude:<id>[@effort]` or `gemini:<id>`, the `experiments` group). Both
     variants always use the same one."""
     provider, _, name = os.getenv("PROOFLINE_AGENT_MODEL", "").partition(":")
     if provider == "claude":
         from agents.llm_claude import ClaudeModel
 
-        return ClaudeModel(name or ClaudeModel.model)
+        name, _, effort = name.partition("@")  # claude:<id>@<effort>
+        return ClaudeModel(name or ClaudeModel.model, effort or ClaudeModel.effort)
     if provider == "gemini":
         from agents.llm_gemini import GeminiModel
 

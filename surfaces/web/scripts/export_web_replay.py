@@ -1,8 +1,7 @@
-"""Build the local web demo, keeping engine metadata out of public assets.
+"""Export contract-validated real cards and explicitly identified UI stand-ins.
 
-Events are a real simulator export. Insight/cue records are illustrative UI
-fixtures validated against the public contracts, NOT outputs of an agent run.
-No evaluation results, semantic checks or amendment feed are claimed here.
+The backend's replayed cards are kept unchanged. The flank note, its withdrawal,
+key-event card and cues remain stand-ins until their backend producers exist.
 """
 
 import argparse
@@ -10,135 +9,95 @@ import json
 from pathlib import Path
 
 from contracts.card import InsightCard
+from contracts.clock import MatchClock
 from contracts.cue import Cue
 from contracts.event import Event
-from contracts.taxonomy import Metric
+from contracts.meta import MatchMeta
 
 WEB = Path(__file__).resolve().parents[1]
+DEAD_BALL = {"set_piece", "foul", "goal", "substitution"}
 
 
-def demo_ledger(goal_event: Event) -> tuple[list[InsightCard], list[Cue]]:
-    """Small authored records exercising publication, evidence and withdrawal."""
-    passing = dict(
-        status="passed",
-        recompute="match",
-        baseline_check="passed",
-        sample_size_check="passed",
-        contradiction_check="passed",
-        number_check="passed",
-        semantic_check="passed",
-        verifier_model_family="fixture-only-no-model-run",
-        support_level="moderate",
-    )
+def display_time(card: InsightCard) -> MatchClock:
+    return card.timing.published_at or card.timing.detected_at
 
-    def card(id, at, metric, subject, value, baseline, cause, en, es, **extra):
-        return InsightCard.model_validate(
-            dict(
-                id=id,
-                match_id="m01",
-                case_id=f"fixture-{id}",
-                status="shown",
-                case_outcome="explained",
-                moment_type="pressure_shift" if metric == "pressure_rate" else "shape_change",
-                subject=dict(team=subject),
-                timing=dict(
-                    change_window="58:00-63:00" if metric == "pressure_rate" else "45:00-55:00",
-                    detected_at=at,
-                    verified_at=at,
-                    published_at=at,
+
+def later(clock: MatchClock, seconds: int) -> MatchClock:
+    total = clock.minute * 60 + clock.second + seconds
+    return MatchClock(period=clock.period, minute=total // 60, second=total % 60)
+
+
+def stand_in_cards(match_id: str, meta: MatchMeta, events: list[Event]) -> list[InsightCard]:
+    """Stand-ins only: the 55-minute note, withdrawal and optional first-goal card."""
+    team = meta.teams["away"].name
+    flank = InsightCard.model_validate(
+        dict(
+            id=f"ins-{match_id}-055-01",
+            match_id=match_id,
+            case_id="stand-in-flank",
+            status="shown",
+            case_outcome="explained",
+            moment_type="shape_change",
+            subject=dict(team=team),
+            timing=dict(
+                change_window="45:00-55:00",
+                detected_at="55:20",
+                verified_at="55:20",
+                published_at="55:20",
+            ),
+            propositions=[
+                dict(
+                    id="p1",
+                    type="change",
+                    metric="channel_share_right",
+                    subject=team,
+                    direction="up",
+                    window="45:00-55:00",
+                    baseline="first_half",
                 ),
-                propositions=[
-                    dict(
-                        id="p1",
-                        type="change",
-                        metric=metric,
-                        subject=subject,
-                        direction="up",
-                        window="58:00-63:00" if metric == "pressure_rate" else "45:00-55:00",
-                        baseline="first_half",
-                    ),
-                    dict(
-                        id="p2",
-                        type="attribution",
-                        cause=cause,
-                        effect="p1",
-                        role="primary",
-                        hypothesis_id=f"fixture-hyp-{id}",
-                        agent="tactics",
-                    ),
-                ],
-                claim=en,
-                evidence=[
-                    dict(
-                        metric=metric,
-                        subject=subject,
-                        window="58:00-63:00" if metric == "pressure_rate" else "45:00-55:00",
-                        value=value,
-                        baseline=dict(window="first_half", value=baseline),
-                        n_events=18 if metric == "pressure_rate" else 64,
-                        tool_call_id=f"fixture-tool-{id}",
-                    )
-                ],
-                depends_on=dict(evidence_sets=[f"fixture-evidence-{id}"], data_version="fixture-1"),
-                verification=passing,
-                variants=dict(casual=dict(en=en, es=es), analyst=dict(en=en, es=es)),
-                provenance=dict(trace_id=f"fixture-trace-{id}"),
-            )
-            | extra
-        )
-
-    flank = card(
-        "ins-m01-055-01",
-        "55:20",
-        "channel_share_right",
-        "Northvale",
-        0.625,
-        0.375,
-        "tactical.flank_overload",
-        "Northvale look to be finding more of their attacks down the right.",
-        "El Northvale parece orientar más sus ataques por la derecha.",
-    )
-    pressure = card(
-        "ins-m01-063-01",
-        "63:40",
-        "pressure_rate",
-        "Harbour City",
-        0.83,
-        0.32,
-        "tactical.press_intensity_up",
-        "Harbour City have raised their press. Northvale are going long far more often.",
-        "El Harbour City presiona más arriba. El Northvale juega en largo mucho más a menudo.",
-        investigation=dict(
-            agents=["tactics", "physical", "game_state"],
-            preregistered_predictions=4,
-            tool_calls=11,
-            budget=16,
-            cross_examination="Illustrative fixture; no investigation has run.",
-        ),
-        rejected_alternatives=[
-            dict(
-                hypothesis_id="fixture-fatigue",
-                taxonomy="physical.unit_fatigue",
-                agent="physical",
-                reason="Illustrative alternative; not a measured agent outcome.",
-                rejected_by="cross_examination",
-                tool_call_id="fixture-control",
-            )
-        ],
-    )
-    pressure.evidence.append(
-        pressure.evidence[0].model_copy(
-            update=dict(
-                metric=Metric.LONG_BALL_SHARE,
-                subject="Northvale",
-                value=0.59,
-                baseline=pressure.evidence[0].baseline.model_copy(update=dict(value=0.11)),
-                n_events=17,
-                tool_call_id="fixture-long-ball",
-            )
+                dict(
+                    id="p2",
+                    type="attribution",
+                    cause="tactical.flank_overload",
+                    effect="p1",
+                    role="primary",
+                    hypothesis_id="stand-in-flank",
+                    agent="tactics",
+                ),
+            ],
+            claim=f"{team} look to be finding more attacks down the right.",
+            evidence=[
+                dict(
+                    metric="channel_share_right",
+                    subject=team,
+                    window="45:00-55:00",
+                    value=0.625,
+                    baseline=dict(window="first_half", value=0.375),
+                    n_events=64,
+                    tool_call_id="stand-in-flank",
+                )
+            ],
+            depends_on=dict(evidence_sets=["stand-in-flank"], data_version="stand-in"),
+            verification=dict(
+                status="passed",
+                recompute="match",
+                baseline_check="passed",
+                sample_size_check="passed",
+                contradiction_check="passed",
+                number_check="passed",
+                semantic_check="passed",
+                verifier_model_family="stand-in-no-model-run",
+                support_level="moderate",
+            ),
+            variants=dict(
+                casual=dict(
+                    en=f"{team} look to be finding more attacks down the right.",
+                    es=f"El {team} parece orientar más ataques por la derecha.",
+                )
+            ),
+            provenance=dict(trace_id="stand-in-flank"),
         )
     )
-    pressure.depends_on.evidence_sets.append("fixture-evidence-long-ball")
     withdrawn = InsightCard.model_validate(
         flank.model_dump()
         | dict(
@@ -153,155 +112,192 @@ def demo_ledger(goal_event: Event) -> tuple[list[InsightCard], list[Cue]]:
                 contradiction_check="failed",
                 number_check="failed",
                 semantic_check="skipped",
-                verifier_model_family="fixture-only-no-model-run",
-                rejection_reason="Illustrative withdrawal following a coordinate correction.",
+                verifier_model_family="stand-in-no-model-run",
+                rejection_reason="Stand-in: coordinates changed; the explanation no longer holds.",
             ),
             revisions=[
                 dict(
                     revision=2,
                     at="68:10",
-                    reason="Illustrative coordinate correction",
-                    amendment_ids=["fixture-a1"],
+                    reason="Stand-in coordinate correction",
+                    amendment_ids=["stand-in-a1"],
                 )
             ],
             variants=dict(
                 casual=dict(
                     en=(
-                        "Update: the right-flank explanation has been withdrawn "
+                        "The right-flank explanation has been withdrawn "
                         "after a coordinate correction."
                     ),
                     es=(
-                        "Actualización: se ha retirado la explicación de la banda derecha "
+                        "Se ha retirado la explicación de la banda derecha "
                         "tras corregir las coordenadas."
                     ),
                 )
             ),
         )
     )
-    # A deterministic key-event fixture, not a hard-coded score.
-    goal_clock = goal_event.clock
-    goal_end = goal_clock.model_copy(
-        update=dict(
-            second=(goal_clock.second + 1) % 60,
-            minute=goal_clock.minute + (goal_clock.second == 59),
-        )
-    )
-    goal_en = f"Goal for {goal_event.team}."
-    goal_es = f"Gol del {goal_event.team}."
-    goal = InsightCard.model_validate(
-        dict(
-            id="fixture-goal",
-            match_id="m01",
-            case_id="fixture-key-event",
-            lane="fast",
-            status="shown",
-            case_outcome="none",
-            moment_type="key_event",
-            subject=dict(team=goal_event.team),
-            timing=dict(
-                change_window=f"{goal_clock}-{goal_end}",
-                detected_at=goal_clock,
-                published_at=goal_clock,
-            ),
-            propositions=[
-                dict(
-                    id="p1",
-                    type="change",
-                    metric="xg",
-                    subject=goal_event.team,
-                    direction="up",
-                    window=f"{goal_clock}-{goal_end}",
-                    baseline="match_so_far",
-                )
-            ],
-            claim=goal_en,
-            depends_on=dict(evidence_sets=[], data_version="fixture-only"),
-            variants=dict(casual=dict(en=goal_en, es=goal_es)),
-            provenance=dict(trace_id="fixture-key-event"),
-        )
-    )
-    cues = [
-        Cue.model_validate(
+    out = [flank, withdrawn]
+    goal_event = next((e for e in events if e.type == "goal"), None)
+    if goal_event is not None:
+        at = goal_event.clock
+        goal = InsightCard.model_validate(
             dict(
-                cue_id=f"fixture-cue-{c.id}-{c.revision}",
-                match_id="m01",
-                insight_id=c.id,
-                insight_revision=c.revision,
-                kind="withdrawal" if c.status == "withdrawn" else "insight",
-                template="withdrawal_banner" if c.status == "withdrawn" else "pressure_shift_bar",
-                show_at=dict(
-                    mode="immediate",
-                    not_before=str(c.timing.published_at),
-                    not_after="68:55" if c.status == "withdrawn" else "64:25",
+                id=f"stand-in-goal-{match_id}",
+                match_id=match_id,
+                case_id="stand-in-key-event",
+                lane="fast",
+                status="shown",
+                case_outcome="none",
+                moment_type="key_event",
+                subject=dict(team=goal_event.team),
+                timing=dict(change_window=f"{at}-{later(at, 1)}", detected_at=at, published_at=at),
+                propositions=[
+                    dict(
+                        id="p1",
+                        type="change",
+                        metric="xg",
+                        subject=goal_event.team,
+                        direction="up",
+                        window=f"{at}-{later(at, 1)}",
+                        baseline="match_so_far",
+                    )
+                ],
+                claim=f"Goal for {goal_event.team}.",
+                depends_on=dict(evidence_sets=[], data_version="stand-in"),
+                variants=dict(
+                    casual=dict(en=f"Goal for {goal_event.team}.", es=f"Gol del {goal_event.team}.")
                 ),
-                duration_s=8,
-                status="approved",
-                decided_by="auto",
-                locale="en",
-                language_level="measured",
-                fields=dict(team=c.subject.team),
+                provenance=dict(trace_id="stand-in-key-event"),
             )
         )
-        for c in (pressure, withdrawn)
-    ]
-    # Revalidate the serialized boundary, including nested values changed above.
-    return [
-        InsightCard.model_validate(c.model_dump()) for c in (goal, flank, pressure, withdrawn)
-    ], cues
+        out.insert(0, goal)
+    return out
 
 
-def export(source_dir: Path) -> None:
-    """Prepare public fixtures from CLI output, using only pre-match metadata."""
-    raw_meta = json.loads((source_dir / "meta.json").read_text(encoding="utf-8"))
+def stand_in_cues(cards: list[InsightCard], events: list[Event]) -> list[Cue]:
+    """Stand-in schedules; press fields come only from a real card's facts/text."""
+    cues = []
+    for card in cards:
+        at = display_time(card)
+        if (
+            card.moment_type == "pressure_shift"
+            and card.evidence
+            and card.verification
+            and card.verification.status in {"passed", "corrected"}
+            and card.status in {"verified", "scheduled", "shown", "revised"}
+        ):
+            event = next(
+                (
+                    e
+                    for e in sorted(events, key=lambda e: e.clock.sort_key)
+                    if e.type in DEAD_BALL and e.clock > at
+                ),
+                None,
+            )
+            if event is None:
+                continue
+            at = event.clock
+            first = card.evidence[0]
+            fields = dict(
+                team=card.subject.team,
+                before=first.baseline.value,
+                after=first.value,
+                headline=card.variants.get("casual", {}).get("en", ""),
+                stat_label=first.metric.value,
+                metric=first.metric.value,
+            )
+            template, kind = "pressure_shift_bar", "insight"
+        elif card.status == "withdrawn":
+            fields = dict(
+                team=card.subject.team,
+                headline=card.variants.get("casual", {}).get("en", ""),
+                reason=card.revisions[-1].reason if card.revisions else "",
+            )
+            template, kind = "withdrawal_banner", "withdrawal"
+        else:
+            continue
+        cues.append(
+            Cue.model_validate(
+                dict(
+                    cue_id=f"stand-in-cue-{card.id}-{card.revision}",
+                    match_id=card.match_id,
+                    insight_id=card.id,
+                    insight_revision=card.revision,
+                    kind=kind,
+                    template=template,
+                    show_at=dict(mode="immediate", not_before=at, not_after=later(at, 45)),
+                    duration_s=8,
+                    status="approved",
+                    decided_by="auto",
+                    locale="en",
+                    language_level=card.verification.language_level if card.verification else None,
+                    fields=fields,
+                )
+            )
+        )
+    return sorted(cues, key=lambda cue: cue.show_at.not_before.sort_key)
+
+
+def export(
+    source_dir: Path,
+    match_id: str,
+    output_dir: Path,
+    card_paths: list[Path],
+    ledger_path: Path = WEB / "src/fixtures/ledger.json",
+) -> None:
+    raw = json.loads((source_dir / "meta.json").read_text(encoding="utf-8"))
+    # This allowlist also strips legacy runtime fields before validating metadata.
+    meta = MatchMeta.model_validate(dict(match_id=raw["match_id"], teams=raw["teams"]))
+    if meta.match_id != match_id:
+        raise ValueError("source metadata belongs to a different match")
     events = [
         Event.model_validate_json(line)
         for line in (source_dir / "events.jsonl").read_text(encoding="utf-8").splitlines()
         if line.strip()
     ]
-    out = WEB / "public/fixtures/m01"
-    out.mkdir(parents=True, exist_ok=True)
-    # Only the allowlist below reaches the browser; no seed, score or script.
-    match = dict(
-        match_id=raw_meta["match_id"],
-        teams={
-            side: dict(
-                name=raw_meta["teams"][side]["name"],
-                code=raw_meta["teams"][side]["code"],
-                formation=raw_meta["teams"][side]["formation"],
-                players=[
-                    dict(
-                        player_id=p["player_id"],
-                        name=p["name"],
-                        role=p["role"],
-                        unit=p["unit"],
-                    )
-                    for p in raw_meta["teams"][side]["players"]
-                ],
-            )
-            for side in ("home", "away")
-        },
-    )
-    (out / "meta.json").write_text(json.dumps(match) + "\n", encoding="utf-8")
-    (out / "events.jsonl").write_text(
+    if any(e.match_id != match_id for e in events):
+        raise ValueError("source events belong to a different match")
+    real = [json.loads(path.read_text(encoding="utf-8")) for path in card_paths]
+    validated = [InsightCard.model_validate(card) for card in real]
+    if any(card.match_id != match_id for card in validated):
+        raise ValueError("card belongs to a different match")
+    stand_ins = stand_in_cards(match_id, meta, events)
+    cards = [*stand_ins, *validated]
+    keys = [(card.id, card.revision) for card in cards]
+    if len(keys) != len(set(keys)):
+        raise ValueError("duplicate card id and revision")
+    cues = stand_in_cues(cards, events)
+    output_dir.mkdir(parents=True, exist_ok=True)
+    (output_dir / "meta.json").write_text(meta.model_dump_json(indent=2) + "\n", encoding="utf-8")
+    (output_dir / "events.jsonl").write_text(
         "".join(e.model_dump_json() + "\n" for e in events), encoding="utf-8"
     )
-    (out / "match.json").unlink(missing_ok=True)
-    cards, cues = demo_ledger(next(e for e in events if e.type == "goal"))
-    card_json = json.dumps([c.model_dump(mode="json") for c in cards], indent=2)
-    cue_json = json.dumps([c.model_dump(mode="json") for c in cues], indent=2)
-    source = (
-        "/* Generated by surfaces/web/scripts/export_web_replay.py.\n"
-        "   Illustrative UI records, not agent output. */\n"
-        "import type { InsightCard } from './types/insight-card';\n"
-        "import type { Cue } from './types/cue';\n\n"
-        f"export const cards: InsightCard[] = {card_json};\n\n"
-        f"export const cues: Cue[] = {cue_json};\n"
+    (output_dir / "match.json").unlink(missing_ok=True)
+    # Real payloads are never rewritten to imitate Director or Narrator output.
+    ledger = dict(
+        cards=[*[c.model_dump(mode="json") for c in stand_ins], *real],
+        cues=[c.model_dump(mode="json") for c in cues],
+        stand_ins=dict(
+            cards=[f"{c.id}@{c.revision}" for c in stand_ins], cues=[c.cue_id for c in cues]
+        ),
     )
-    (WEB / "src/fixtures.ts").write_text(source, encoding="utf-8")
-    print(f"Exported {len(events)} simulated events and contract-validated illustrative records.")
+    ledger_path.parent.mkdir(parents=True, exist_ok=True)
+    ledger_path.write_text(
+        json.dumps(ledger, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+    )
+    print(
+        f"Exported {match_id}: {len(events)} events, {len(real)} real cards, "
+        f"{len(stand_ins)} stand-in records and {len(cues)} stand-in cues."
+    )
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--source", type=Path, required=True, help="directory of CLI match output")
-    export(parser.parse_args().source)
+    parser.add_argument("--source", type=Path, required=True)
+    parser.add_argument("--match", required=True)
+    parser.add_argument("--out", type=Path, required=True)
+    parser.add_argument("--cards", type=Path, nargs="+", default=[])
+    parser.add_argument("--ledger", type=Path, default=WEB / "src/fixtures/ledger.json")
+    args = parser.parse_args()
+    export(args.source, args.match, args.out, args.cards, args.ledger)

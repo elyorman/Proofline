@@ -1,0 +1,639 @@
+{
+  "cards": [
+    {
+      "id": "stand-in-goal-m01",
+      "revision": 1,
+      "match_id": "m01",
+      "case_id": "stand-in-key-event",
+      "origin": "auto",
+      "lane": "fast",
+      "status": "shown",
+      "case_outcome": "none",
+      "moment_type": "key_event",
+      "subject": {
+        "team": "Harbour City",
+        "players": []
+      },
+      "timing": {
+        "change_window": {
+          "start": {
+            "period": 1,
+            "minute": 0,
+            "second": 55
+          },
+          "end": {
+            "period": 1,
+            "minute": 0,
+            "second": 56
+          }
+        },
+        "detected_at": {
+          "period": 1,
+          "minute": 0,
+          "second": 55
+        },
+        "verified_at": null,
+        "published_at": {
+          "period": 1,
+          "minute": 0,
+          "second": 55
+        }
+      },
+      "propositions": [
+        {
+          "id": "p1",
+          "type": "change",
+          "metric": "xg",
+          "subject": "Harbour City",
+          "direction": "up",
+          "window": {
+            "start": {
+              "period": 1,
+              "minute": 0,
+              "second": 55
+            },
+            "end": {
+              "period": 1,
+              "minute": 0,
+              "second": 56
+            }
+          },
+          "baseline": "match_so_far"
+        }
+      ],
+      "claim": "Goal for Harbour City.",
+      "evidence": [],
+      "depends_on": {
+        "evidence_sets": [],
+        "data_version": "stand-in"
+      },
+      "rejected_alternatives": [],
+      "investigation": null,
+      "verification": null,
+      "salience": "medium",
+      "variants": {
+        "casual": {
+          "en": "Goal for Harbour City.",
+          "es": "Gol del Harbour City."
+        }
+      },
+      "broadcast_cue": null,
+      "revisions": [],
+      "supersedes": null,
+      "superseded_by": null,
+      "provenance": {
+        "trace_id": "stand-in-key-event",
+        "foundry_eval_run": null
+      }
+    },
+    {
+      "id": "ins-m01-055-01",
+      "revision": 1,
+      "match_id": "m01",
+      "case_id": "stand-in-flank",
+      "origin": "auto",
+      "lane": "full",
+      "status": "shown",
+      "case_outcome": "explained",
+      "moment_type": "shape_change",
+      "subject": {
+        "team": "Northvale",
+        "players": []
+      },
+      "timing": {
+        "change_window": {
+          "start": {
+            "period": 2,
+            "minute": 45,
+            "second": 0
+          },
+          "end": {
+            "period": 2,
+            "minute": 55,
+            "second": 0
+          }
+        },
+        "detected_at": {
+          "period": 2,
+          "minute": 55,
+          "second": 20
+        },
+        "verified_at": {
+          "period": 2,
+          "minute": 55,
+          "second": 20
+        },
+        "published_at": {
+          "period": 2,
+          "minute": 55,
+          "second": 20
+        }
+      },
+      "propositions": [
+        {
+          "id": "p1",
+          "type": "change",
+          "metric": "channel_share_right",
+          "subject": "Northvale",
+          "direction": "up",
+          "window": {
+            "start": {
+              "period": 2,
+              "minute": 45,
+              "second": 0
+            },
+            "end": {
+              "period": 2,
+              "minute": 55,
+              "second": 0
+            }
+          },
+          "baseline": "first_half"
+        },
+        {
+          "id": "p2",
+          "type": "attribution",
+          "cause": "tactical.flank_overload",
+          "effect": "p1",
+          "role": "primary",
+          "hypothesis_id": "stand-in-flank",
+          "agent": "tactics"
+        }
+      ],
+      "claim": "Northvale look to be finding more attacks down the right.",
+      "evidence": [
+        {
+          "metric": "channel_share_right",
+          "subject": "Northvale",
+          "window": {
+            "start": {
+              "period": 2,
+              "minute": 45,
+              "second": 0
+            },
+            "end": {
+              "period": 2,
+              "minute": 55,
+              "second": 0
+            }
+          },
+          "value": 0.625,
+          "baseline": {
+            "window": "first_half",
+            "value": 0.375
+          },
+          "n_events": 64,
+          "tool_call_id": "stand-in-flank"
+        }
+      ],
+      "depends_on": {
+        "evidence_sets": [
+          "stand-in-flank"
+        ],
+        "data_version": "stand-in"
+      },
+      "rejected_alternatives": [],
+      "investigation": null,
+      "verification": {
+        "status": "passed",
+        "recompute": "match",
+        "baseline_check": "passed",
+        "sample_size_check": "passed",
+        "contradiction_check": "passed",
+        "number_check": "passed",
+        "semantic_check": "passed",
+        "verifier_model_family": "stand-in-no-model-run",
+        "support_level": "moderate",
+        "language_level": "measured",
+        "rejection_reason": null
+      },
+      "salience": "medium",
+      "variants": {
+        "casual": {
+          "en": "Northvale look to be finding more attacks down the right.",
+          "es": "El Northvale parece orientar más ataques por la derecha."
+        }
+      },
+      "broadcast_cue": null,
+      "revisions": [],
+      "supersedes": null,
+      "superseded_by": null,
+      "provenance": {
+        "trace_id": "stand-in-flank",
+        "foundry_eval_run": null
+      }
+    },
+    {
+      "id": "ins-m01-055-01",
+      "revision": 2,
+      "match_id": "m01",
+      "case_id": "stand-in-flank",
+      "origin": "auto",
+      "lane": "full",
+      "status": "withdrawn",
+      "case_outcome": "explained",
+      "moment_type": "shape_change",
+      "subject": {
+        "team": "Northvale",
+        "players": []
+      },
+      "timing": {
+        "change_window": {
+          "start": {
+            "period": 2,
+            "minute": 45,
+            "second": 0
+          },
+          "end": {
+            "period": 2,
+            "minute": 55,
+            "second": 0
+          }
+        },
+        "detected_at": {
+          "period": 2,
+          "minute": 55,
+          "second": 20
+        },
+        "verified_at": {
+          "period": 2,
+          "minute": 68,
+          "second": 10
+        },
+        "published_at": {
+          "period": 2,
+          "minute": 68,
+          "second": 10
+        }
+      },
+      "propositions": [
+        {
+          "id": "p1",
+          "type": "change",
+          "metric": "channel_share_right",
+          "subject": "Northvale",
+          "direction": "up",
+          "window": {
+            "start": {
+              "period": 2,
+              "minute": 45,
+              "second": 0
+            },
+            "end": {
+              "period": 2,
+              "minute": 55,
+              "second": 0
+            }
+          },
+          "baseline": "first_half"
+        },
+        {
+          "id": "p2",
+          "type": "attribution",
+          "cause": "tactical.flank_overload",
+          "effect": "p1",
+          "role": "primary",
+          "hypothesis_id": "stand-in-flank",
+          "agent": "tactics"
+        }
+      ],
+      "claim": "Northvale look to be finding more attacks down the right.",
+      "evidence": [
+        {
+          "metric": "channel_share_right",
+          "subject": "Northvale",
+          "window": {
+            "start": {
+              "period": 2,
+              "minute": 45,
+              "second": 0
+            },
+            "end": {
+              "period": 2,
+              "minute": 55,
+              "second": 0
+            }
+          },
+          "value": 0.625,
+          "baseline": {
+            "window": "first_half",
+            "value": 0.375
+          },
+          "n_events": 64,
+          "tool_call_id": "stand-in-flank"
+        }
+      ],
+      "depends_on": {
+        "evidence_sets": [
+          "stand-in-flank"
+        ],
+        "data_version": "stand-in"
+      },
+      "rejected_alternatives": [],
+      "investigation": null,
+      "verification": {
+        "status": "rejected",
+        "recompute": "mismatch",
+        "baseline_check": "passed",
+        "sample_size_check": "passed",
+        "contradiction_check": "failed",
+        "number_check": "failed",
+        "semantic_check": "skipped",
+        "verifier_model_family": "stand-in-no-model-run",
+        "support_level": null,
+        "language_level": null,
+        "rejection_reason": "Stand-in: coordinates changed; the explanation no longer holds."
+      },
+      "salience": "medium",
+      "variants": {
+        "casual": {
+          "en": "The right-flank explanation has been withdrawn after a coordinate correction.",
+          "es": "Se ha retirado la explicación de la banda derecha tras corregir las coordenadas."
+        }
+      },
+      "broadcast_cue": null,
+      "revisions": [
+        {
+          "revision": 2,
+          "at": {
+            "period": 2,
+            "minute": 68,
+            "second": 10
+          },
+          "reason": "Stand-in coordinate correction",
+          "amendment_ids": [
+            "stand-in-a1"
+          ]
+        }
+      ],
+      "supersedes": null,
+      "superseded_by": null,
+      "provenance": {
+        "trace_id": "stand-in-flank",
+        "foundry_eval_run": null
+      }
+    },
+    {
+      "id": "ins-m01-063-pressure_shift",
+      "revision": 1,
+      "match_id": "m01",
+      "case_id": "case-m01-063-pressure_shift",
+      "origin": "auto",
+      "lane": "full",
+      "status": "verified",
+      "case_outcome": "explained",
+      "moment_type": "pressure_shift",
+      "subject": {
+        "team": "Harbour City",
+        "players": []
+      },
+      "timing": {
+        "change_window": {
+          "start": {
+            "period": 2,
+            "minute": 58,
+            "second": 0
+          },
+          "end": {
+            "period": 2,
+            "minute": 63,
+            "second": 0
+          }
+        },
+        "detected_at": {
+          "period": 2,
+          "minute": 63,
+          "second": 0
+        },
+        "verified_at": null,
+        "published_at": null
+      },
+      "propositions": [
+        {
+          "id": "p1",
+          "type": "change",
+          "metric": "pressure_rate",
+          "subject": "Harbour City",
+          "direction": "up",
+          "window": {
+            "start": {
+              "period": 2,
+              "minute": 58,
+              "second": 0
+            },
+            "end": {
+              "period": 2,
+              "minute": 63,
+              "second": 0
+            }
+          },
+          "baseline": "first_half"
+        },
+        {
+          "id": "p2",
+          "type": "attribution",
+          "cause": "tactical.press_intensity_up",
+          "effect": "p1",
+          "role": "primary",
+          "hypothesis_id": "hyp-tactics-01",
+          "agent": "tactics"
+        },
+        {
+          "id": "p3",
+          "type": "attribution",
+          "cause": "game_state.chasing_result",
+          "effect": "p1",
+          "role": "secondary",
+          "hypothesis_id": "hyp-game_state-01",
+          "agent": "game_state"
+        },
+        {
+          "id": "p4",
+          "type": "attribution",
+          "cause": "physical.fresh_legs_substitution",
+          "effect": "p1",
+          "role": "secondary",
+          "hypothesis_id": "hyp-physical-01",
+          "agent": "physical"
+        }
+      ],
+      "claim": "Harbour City are pressing higher since 58'.",
+      "evidence": [
+        {
+          "metric": "pressure_rate",
+          "subject": "Harbour City",
+          "window": {
+            "start": {
+              "period": 2,
+              "minute": 58,
+              "second": 0
+            },
+            "end": {
+              "period": 2,
+              "minute": 63,
+              "second": 0
+            }
+          },
+          "value": 0.8333333333333334,
+          "baseline": {
+            "window": "first_half",
+            "value": 0.32
+          },
+          "n_events": 18,
+          "tool_call_id": "tc-f4cba33510f8"
+        }
+      ],
+      "depends_on": {
+        "evidence_sets": [
+          "es-tc-f4cba33510f8",
+          "es-tc-e256badb8c90"
+        ],
+        "data_version": "feed-1"
+      },
+      "rejected_alternatives": [
+        {
+          "hypothesis_id": "hyp-physical-02",
+          "taxonomy": "physical.fresh_legs_substitution",
+          "agent": "physical",
+          "team": "Harbour City",
+          "reason": "sprint_count of Harbour City.attack: 1.488 in the first half, 1.400 in 58:00-63:00, a change of -0.059 against a claim of up by 0.3",
+          "rejected_by": "test",
+          "tool_call_id": "tc-71365731b70a"
+        },
+        {
+          "hypothesis_id": "hyp-game_state-02",
+          "taxonomy": "game_state.chasing_result",
+          "agent": "game_state",
+          "team": "Harbour City",
+          "reason": "long_ball_share of Harbour City: 0.119 in the first half, 0.189 in 58:00-63:00, a change of +0.071 against a claim of up by 0.1",
+          "rejected_by": "test",
+          "tool_call_id": "tc-2b124ed173dc"
+        }
+      ],
+      "investigation": {
+        "agents": [
+          "tactics",
+          "physical",
+          "game_state"
+        ],
+        "preregistered_predictions": 5,
+        "tool_calls": 9,
+        "budget": 16,
+        "cross_examination": "4 counter-tests",
+        "recovered_from_checkpoint": false
+      },
+      "verification": {
+        "status": "passed",
+        "recompute": "match",
+        "baseline_check": "passed",
+        "sample_size_check": "passed",
+        "contradiction_check": "passed",
+        "number_check": "passed",
+        "semantic_check": "passed",
+        "verifier_model_family": "deepseek",
+        "support_level": "strong",
+        "language_level": "assertive",
+        "rejection_reason": null
+      },
+      "salience": "medium",
+      "variants": {
+        "casual": {
+          "en": "Harbour City are pressing higher since 58'. That is a deliberate step up in Harbour City's press.",
+          "es": "Harbour City presiona más arriba desde el minuto 58. Es un aumento deliberado de la presión de Harbour City."
+        },
+        "analyst": {
+          "en": "Pressure rate (Harbour City): 0.32 → 0.83, 58'-63' against the first half. That is a deliberate step up in Harbour City's press. Ruled out: fresh legs off Harbour City's bench, Harbour City chasing the result. Support: strong.",
+          "es": "Tasa de presión (Harbour City): 0.32 → 0.83, 58'-63' frente a la primera parte. Es un aumento deliberado de la presión de Harbour City. Descartado: piernas frescas del banquillo de Harbour City, Harbour City buscando el resultado. Apoyo: fuerte."
+        }
+      },
+      "broadcast_cue": null,
+      "revisions": [],
+      "supersedes": null,
+      "superseded_by": null,
+      "provenance": {
+        "trace_id": "193e25c11fb740689ba090b13c71175d",
+        "foundry_eval_run": null
+      }
+    }
+  ],
+  "cues": [
+    {
+      "cue_id": "stand-in-cue-ins-m01-063-pressure_shift-1",
+      "match_id": "m01",
+      "insight_id": "ins-m01-063-pressure_shift",
+      "insight_revision": 1,
+      "kind": "insight",
+      "template": "pressure_shift_bar",
+      "priority": "normal",
+      "show_at": {
+        "mode": "immediate",
+        "not_before": {
+          "period": 2,
+          "minute": 63,
+          "second": 29
+        },
+        "not_after": {
+          "period": 2,
+          "minute": 64,
+          "second": 14
+        }
+      },
+      "duration_s": 8,
+      "fields": {
+        "team": "Harbour City",
+        "before": 0.32,
+        "after": 0.8333333333333334,
+        "headline": "Harbour City are pressing higher since 58'. That is a deliberate step up in Harbour City's press.",
+        "stat_label": "pressure_rate",
+        "metric": "pressure_rate"
+      },
+      "locale": "en",
+      "language_level": "assertive",
+      "status": "approved",
+      "decided_by": "auto"
+    },
+    {
+      "cue_id": "stand-in-cue-ins-m01-055-01-2",
+      "match_id": "m01",
+      "insight_id": "ins-m01-055-01",
+      "insight_revision": 2,
+      "kind": "withdrawal",
+      "template": "withdrawal_banner",
+      "priority": "normal",
+      "show_at": {
+        "mode": "immediate",
+        "not_before": {
+          "period": 2,
+          "minute": 68,
+          "second": 10
+        },
+        "not_after": {
+          "period": 2,
+          "minute": 68,
+          "second": 55
+        }
+      },
+      "duration_s": 8,
+      "fields": {
+        "team": "Northvale",
+        "headline": "The right-flank explanation has been withdrawn after a coordinate correction.",
+        "reason": "Stand-in coordinate correction"
+      },
+      "locale": "en",
+      "language_level": null,
+      "status": "approved",
+      "decided_by": "auto"
+    }
+  ],
+  "stand_ins": {
+    "cards": [
+      "stand-in-goal-m01@1",
+      "ins-m01-055-01@1",
+      "ins-m01-055-01@2"
+    ],
+    "cues": [
+      "stand-in-cue-ins-m01-063-pressure_shift-1",
+      "stand-in-cue-ins-m01-055-01-2"
+    ]
+  }
+}

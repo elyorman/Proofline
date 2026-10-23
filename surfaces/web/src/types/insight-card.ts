@@ -107,6 +107,10 @@ export type Evidence = Evidence1[];
 export type EvidenceSets = string[];
 export type DataVersion = string;
 export type HypothesisId1 = string;
+/**
+ * the team the ruled-out cause is about
+ */
+export type Team1 = string | null;
 export type Reason = string;
 export type RejectedBy = "test" | "cross_examination" | "verifier";
 export type ToolCallId1 = string | null;
@@ -248,6 +252,7 @@ export interface RejectedAlternative {
   hypothesis_id: HypothesisId1;
   taxonomy: Cause;
   agent: AgentRole;
+  team?: Team1;
   reason: Reason;
   rejected_by: RejectedBy;
   tool_call_id?: ToolCallId1;

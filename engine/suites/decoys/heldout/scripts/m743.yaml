@@ -12,7 +12,7 @@ teams:
     name: Northvale
     code: NV
     formation: 4-2-3-1
-    press_height: 0.54
+    press_height: 0.4
     directness: 0.08
     quality: 0.49
 scripts: []

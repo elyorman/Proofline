@@ -65,6 +65,11 @@ def test_decoys_plant_nothing_and_a_rebuild_replaces_the_suite(tmp_path):
     assert {p.stem for p in (out / "scripts").glob("*.yaml")} == {s.match_id for s in built.scripts}
 
 
+def test_decoys_start_in_every_style_the_planted_matches_do():
+    presses = [t.press_height for s in decoys(Split.HELDOUT).scripts for t in s.teams.values()]
+    assert min(presses) < 0.4 and max(presses) > 0.6  # a low and a high press, not just mid
+
+
 def test_suite_sizes_are_bounded():
     with pytest.raises(ValueError, match="holds 1 to"):
         decoys(Split.DEV, count=0)

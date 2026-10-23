@@ -5,7 +5,7 @@ teams:
     name: Harbour City
     code: HC
     formation: 4-3-3
-    press_height: 0.48
+    press_height: 0.5
     directness: 0.08
     quality: 0.48
   away:

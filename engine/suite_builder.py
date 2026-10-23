@@ -133,6 +133,16 @@ def _teams(rng: random.Random) -> dict:
     }
 
 
+def _styled(cause: Cause, rng: random.Random) -> tuple[dict, str, dict]:
+    """Two teams, one of them (`side`) set up in the starting style of `cause`'s template,
+    and that template's intervention fields."""
+    teams = _teams(rng)
+    side = rng.choice(["home", "away"])
+    params, fields = _template(cause, rng, teams[side])
+    teams[side] = teams[side].model_copy(update=params)
+    return teams, side, fields
+
+
 def _score_at(events: list, team: str, clock: MatchClock) -> int:
     return sum(e.type == "goal" and e.team == team and e.clock < clock for e in events)
 
@@ -185,11 +195,7 @@ def _planted_match(args: tuple) -> tuple[MatchScript, PlantedTruth]:
     two matches share a seed."""
     split, cause, k, i, n = args
     mid = match_id(Suite.PLANTED, split, i)
-    rng = random.Random(f"planted:{split}:{cause}:{k}")
-    teams = _teams(rng)
-    side = rng.choice(["home", "away"])
-    params, fields = _template(cause, rng, teams[side])
-    teams[side] = teams[side].model_copy(update=params)
+    teams, side, fields = _styled(cause, random.Random(f"planted:{split}:{cause}:{k}"))
     iv = Intervention.model_validate({"id": "s1", "team": side, **fields})
     first, block_end = (SEED_RANGES[split].start + o for o in (MATCH_OFFSET, DECOY_OFFSET))
     for seed in range(first + i, block_end, n):
@@ -252,16 +258,20 @@ def planted(
 
 
 def decoys(split: Split, count: int | None = None) -> BuiltSuite:
-    """Matches with nothing planted: natural swings only."""
+    """Matches with nothing planted: natural swings only. Each decoy sets a team up in the
+    starting style of one class's template, the classes taken in turn, so a team's style
+    before the change never tells a planted match from a decoy."""
     count = DECOYS[split] if count is None else count
     if not 0 < count <= PAIRED_OFFSET - DECOY_OFFSET:
         raise ValueError(f"a decoy suite split holds 1 to {PAIRED_OFFSET - DECOY_OFFSET} matches")
+    styles = list(CAUSE_OBSERVABLES)
+    random.Random(f"decoy-styles:{split}").shuffle(styles)
     scripts, entries = [], []
     for k in range(count):
-        rng = random.Random(f"decoy:{split}:{k}")
+        teams, _, _ = _styled(styles[k % len(styles)], random.Random(f"decoy:{split}:{k}"))
         mid = match_id(Suite.DECOYS, split, k)
         seed = SEED_RANGES[split].start + DECOY_OFFSET + k
-        scripts.append(MatchScript(match_id=mid, seed=seed, teams=_teams(rng)))
+        scripts.append(MatchScript(match_id=mid, seed=seed, teams=teams))
         entries.append(PlantedTruth(match_id=mid, cause=Cause.NONE))
     truth = GroundTruth(suite=Suite.DECOYS, split=split, entries=entries)
     return BuiltSuite(Suite.DECOYS, split, scripts, truth)

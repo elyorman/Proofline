@@ -249,6 +249,9 @@ class InsightCard(BaseModel):
 
     @model_validator(mode="after")
     def _consistent(self) -> "InsightCard":
+        ids = [p.id for p in self.propositions]
+        if len(ids) != len(set(ids)):
+            raise ValueError("each proposition id is used once")
         change_ids = {p.id for p in self.propositions if p.type == "change"}
         for a in self.attributions:
             if a.effect not in change_ids:
@@ -273,6 +276,15 @@ class InsightCard(BaseModel):
             raise ValueError(f"a {self.status} card needs a passed or corrected verification")
         elif self.status in NEEDS_REJECTED and verdict != "rejected":
             raise ValueError(f"a {self.status} card carries the rejected verification")
+        surfaced = self.status in NEEDS_PASSING or self.status == CardStatus.WITHDRAWN
+        if (
+            self.lane == "full"
+            and surfaced
+            and not (self.evidence and self.depends_on.evidence_sets)
+        ):
+            # A correction finds a card through what it depends on, and the analyst view shows
+            # its evidence, so a card that reached a surface carries both.
+            raise ValueError(f"a {self.status} card carries its evidence and what it depends on")
         listed = [r.revision for r in self.revisions]
         if listed != list(range(2, self.revision + 1)):
             raise ValueError(

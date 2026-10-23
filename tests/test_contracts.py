@@ -691,6 +691,29 @@ def test_a_card_reaches_a_surface_only_once_verified():
             InsightCard.model_validate(dict(card, status=status))
 
 
+def test_a_surfaced_card_carries_evidence_and_unique_propositions():
+    card = _card_example()
+    rejected = dict(
+        card["verification"],
+        status="rejected",
+        rejection_reason="amended events no longer support it",
+        number_check="failed",
+        support_level=None,
+        language_level=None,
+    )
+    no_sets = dict(card["depends_on"], evidence_sets=[])
+    for status in ("verified", "shown", "withdrawn"):
+        verdict = rejected if status == "withdrawn" else card["verification"]
+        assert InsightCard.model_validate(dict(card, status=status, verification=verdict))
+        for gap in (dict(evidence=[]), dict(depends_on=no_sets)):
+            with pytest.raises(ValidationError, match="its evidence and what it depends on"):
+                InsightCard.model_validate(dict(card, status=status, verification=verdict, **gap))
+    assert InsightCard.model_validate(dict(card, status="proposed", evidence=[]))  # a draft
+    twice = card["propositions"] + [card["propositions"][0]]
+    with pytest.raises(ValidationError, match="each proposition id is used once"):
+        InsightCard.model_validate(dict(card, propositions=twice))
+
+
 def test_only_key_events_take_the_fast_lane():
     card = _card_example()
     changes = [p for p in card["propositions"] if p["type"] == "change"]

@@ -16,13 +16,18 @@ from pydantic import ValidationError
 from agents import prompts
 from agents.llm import Model, Usage
 from agents.outputs import Proposal, Ranking, Registration
+from agents.verifier.rules import band
 from contracts.case import Case
 from contracts.meta import MatchMeta
-from contracts.prediction import Hypothesis, HypothesisTest, Prediction, TestOutcome
-from contracts.taxonomy import AgentRole, BaselineScope, CaseOutcome, ThresholdKind
+from contracts.planted import CAUSE_OBSERVABLES
+from contracts.prediction import Direction, Hypothesis, HypothesisTest, Prediction, TestOutcome
+from contracts.taxonomy import AgentRole, BaselineScope, CaseOutcome, Cause, ThresholdKind
 from contracts.tool_result import ToolResult
-from state.subjects import resolve
-from state.tools import MEASURED
+from state.subjects import opponent, resolve
+from state.tools import MEASURED, window_minutes
+
+# A game-state cause needs the score to give its team the reason.
+SCORE_NEEDED = {Cause.CHASING_RESULT: "behind", Cause.PROTECTING_LEAD: "ahead"}
 
 
 class BudgetSpent(RuntimeError):
@@ -31,28 +36,29 @@ class BudgetSpent(RuntimeError):
 
 @dataclass
 class Tools:
-    """The State Builder's tools for one case, through MCP, within the case's budget. A call
-    identical to an earlier one is answered from it and not charged again."""
+    """The State Builder's tools for one case, through MCP, within the agents' budget. A call
+    identical to an earlier one is answered from it and not charged again. Code's own checks
+    pass `charged=False`: logged like any call, but outside the agents' budget."""
 
     server: MCPServer
     match_id: str
     budget: int
     log: list[dict[str, Any]] = field(default_factory=list)
+    used: int = 0
     _answers: dict[str, ToolResult] = field(default_factory=dict)
 
-    @property
-    def used(self) -> int:
-        return len(self.log)
-
-    async def call(self, tool: str, **arguments: Any) -> ToolResult:
+    async def call(self, tool: str, charged: bool = True, **arguments: Any) -> ToolResult:
         request = {"match_id": self.match_id, **arguments}
         key = json.dumps([tool, request], sort_keys=True, default=str)
         if key in self._answers:
             return self._answers[key]
-        if self.used >= self.budget:
+        if charged and self.used >= self.budget:
             raise BudgetSpent(f"the case's {self.budget} tool calls are spent")
         entry: dict[str, Any] = {"tool": tool, "arguments": request}
+        if not charged:
+            entry["by"] = "code"
         self.log.append(entry)
+        self.used += charged
         try:
             response = await self.server.call_tool(tool, request)
         except ToolError as exc:
@@ -81,6 +87,31 @@ class Tested:
     @property
     def supported(self) -> bool:
         return self.test.outcome == TestOutcome.SUPPORTED
+
+
+def cause_team(meta: MatchMeta, hypothesis: Hypothesis) -> str:
+    """The team a cause is about. A class's signature says whose metric each observable is:
+    a press shows in the pressing team's pressure rate and in its opponent's long balls."""
+    p = hypothesis.prediction
+    team = resolve(meta, p.subject).team
+    roles = {o.metric: o.subject for o in CAUSE_OBSERVABLES.get(hypothesis.taxonomy, ())}
+    return opponent(meta, team) if roles.get(p.metric) == "opponent" else team
+
+
+def _goal_difference(meta: MatchMeta, team: str, score: dict[str, float]) -> float:
+    side = next(s for s, t in meta.teams.items() if t.name == team)
+    other = "away" if side == "home" else "home"
+    return score[f"{side}_goals"] - score[f"{other}_goals"]
+
+
+def _score_gives_reason(meta: MatchMeta, hypothesis: Hypothesis, score: dict[str, float]) -> None:
+    needed = SCORE_NEEDED.get(hypothesis.taxonomy)
+    if needed is None:
+        return
+    team = cause_team(meta, hypothesis)
+    lead = _goal_difference(meta, team, score)
+    if (lead >= 0) if needed == "behind" else (lead <= 0):
+        raise ValueError(f"{team} is not {needed}, so the score gives no reason for this cause")
 
 
 async def register(
@@ -119,6 +150,7 @@ async def register(
                     min_change=proposal.min_change,
                 ),
             )
+            _score_gives_reason(meta, hypothesis, score)
         except (ValidationError, ValueError) as exc:
             refused.append(Refused(proposal, role, str(exc).splitlines()[0][:200]))
             continue
@@ -175,6 +207,68 @@ async def run_test(tools: Tools, hypothesis: Hypothesis) -> Tested:
     return Tested(hypothesis, record, during, before)
 
 
+def _level(meta: MatchMeta, subject: str) -> str:
+    who = resolve(meta, subject)
+    return "player" if who.player_id else "unit" if who.unit else "team"
+
+
+async def signature(tools: Tools, meta: MatchMeta, case: Case, hypothesis: Hypothesis) -> list[str]:
+    """Every observable the cause's class moves, measured by code over the case's window and
+    judged against natural variation (the Verifier's bands). One prediction can hold for
+    several causes; their whole signatures tell them apart."""
+    observed = CAUSE_OBSERVABLES.get(hypothesis.taxonomy)
+    if not observed:
+        return ["no signature on file: judged on its own prediction alone"]
+    team = cause_team(meta, hypothesis)
+    whose = {"team": team, "opponent": opponent(meta, team)}
+    lines = []
+    for o in observed:
+        subject = whose.get(o.subject, hypothesis.prediction.subject)
+        what = f"{o.metric} of {subject} {o.direction}"
+        natural = band(o.metric, _level(meta, subject), window_minutes(case.window))
+        try:
+            during = await tools.call(
+                "metric", charged=False, name=o.metric, subject=subject, window=str(case.window)
+            )
+            before = await tools.call(
+                "baseline",
+                charged=False,
+                name=o.metric,
+                subject=subject,
+                scope=BaselineScope.FIRST_HALF,
+            )
+        except ToolError as exc:
+            lines.append(f"{what}: not measured ({exc})")
+            continue
+        if natural is None or during.value is None or before.baseline is None:
+            lines.append(f"{what}: not measured (too little data or no natural band)")
+            continue
+        p = Prediction(
+            metric=o.metric,
+            subject=subject,
+            window=case.window,
+            compare_to=BaselineScope.FIRST_HALF,
+            direction=o.direction,
+            min_change=natural,
+        )
+        change = change_of(p, during.value, before.baseline.value)
+        if change is None:
+            lines.append(f"{what}: not measured (no change from a zero baseline)")
+            continue
+        signed = change if o.direction == Direction.UP else -change
+        verdict = (
+            "clear of natural variation"
+            if signed >= natural
+            else "the predicted way, within natural variation"
+            if signed > 0
+            else "the other way, within natural variation"
+            if signed > -natural
+            else "the other way, beyond natural variation"
+        )
+        lines.append(f"{what}: {change:+.3f} against a natural band of {natural:g}, {verdict}")
+    return lines
+
+
 def _summary(t: Tested) -> dict[str, Any]:
     p = t.hypothesis.prediction
     return {
@@ -193,12 +287,19 @@ async def rank(
     meta: MatchMeta,
     score: dict[str, float],
     survivors: list[Tested],
+    tools: Tools,
     extra: dict[str, dict[str, Any]] | None = None,
 ) -> tuple[Ranking, Usage]:
-    """Order the survivors; with none, the outcome is `none` and no model is asked."""
+    """Order the survivors, each with its whole signature; with none, the outcome is `none`
+    and no model is asked."""
     if not survivors:
         return Ranking(outcome="none", primary=None, secondary=[], why="nothing survived"), Usage()
-    listed = [_summary(t) | (extra or {}).get(t.hypothesis.hypothesis_id, {}) for t in survivors]
+    listed = [
+        _summary(t)
+        | {"signature": await signature(tools, meta, case, t.hypothesis)}
+        | (extra or {}).get(t.hypothesis.hypothesis_id, {})
+        for t in survivors
+    ]
     answer, usage = await model.ask(
         role.value, prompts.RANKING, prompts.ranking_prompt(case, listed, score, meta), Ranking
     )

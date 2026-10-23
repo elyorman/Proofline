@@ -56,7 +56,7 @@ async def investigate(model: Model, case: Case, feed: Feed) -> Finding:
     hypotheses, refused, usage = await register(model, role, case, feed.meta, score, MAX_HYPOTHESES)
     tested = [await run_test(tools, h) for h in hypotheses]
     survivors = [t for t in tested if t.supported]
-    ranking, ranked = await rank(model, role, case, feed.meta, score, survivors)
+    ranking, ranked = await rank(model, role, case, feed.meta, score, survivors, tools)
     return Finding(
         case=case,
         agents=[role],

@@ -64,7 +64,7 @@ def facts(card: InsightCard, support: SupportLevel) -> dict:
             for ev in card.evidence
         ],
         "ruled_out": [
-            narrator.cause_phrase(r.taxonomy, card.subject.team, 0)
+            narrator.cause_phrase(r.taxonomy, r.team or card.subject.team, 0)
             for r in card.rejected_alternatives
         ],
         "team_the_cause_is_about": card.subject.team,

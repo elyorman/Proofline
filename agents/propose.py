@@ -6,7 +6,7 @@ alternatives. The card goes to the Verifier; nothing here decides whether it is 
 import uuid
 
 from agents import narrator
-from agents.investigation import Tested
+from agents.investigation import Tested, cause_team
 from agents.single import Finding
 from contracts.card import (
     AttributionProposition,
@@ -21,21 +21,9 @@ from contracts.card import (
     Subject,
     Timing,
 )
-from contracts.meta import MatchMeta
-from contracts.planted import CAUSE_OBSERVABLES
-from contracts.prediction import Hypothesis
 from contracts.taxonomy import CardStatus, CaseOutcome
-from state.subjects import opponent, resolve
+from state.subjects import resolve
 from state.tools import Feed
-
-
-def cause_team(meta: MatchMeta, hypothesis: Hypothesis) -> str:
-    """The team a cause is about. A class's signature says whose metric each observable is:
-    a press shows in the pressing team's pressure rate and in its opponent's long balls."""
-    p = hypothesis.prediction
-    team = resolve(meta, p.subject).team
-    roles = {o.metric: o.subject for o in CAUSE_OBSERVABLES.get(hypothesis.taxonomy, ())}
-    return opponent(meta, team) if roles.get(p.metric) == "opponent" else team
 
 
 def _evidence(t: Tested) -> Evidence:
@@ -81,12 +69,14 @@ def propose(finding: Finding, feed: Feed) -> InsightCard | None:
     propositions = [change, _attribution(primary, "p2", "primary")]
     propositions += [_attribution(t, f"p{i}", "secondary") for i, t in enumerate(secondary, 3)]
     backing = [primary, *secondary]
+    measured = list({t.test.tool_call_id: t for t in backing}.values())  # one line per call
     refuted = {e.hypothesis_id: e for e in finding.exams if e.result == "refuted"}
     rejected = [
         RejectedAlternative(
             hypothesis_id=t.hypothesis.hypothesis_id,
             taxonomy=t.hypothesis.taxonomy,
             agent=t.hypothesis.agent,
+            team=cause_team(feed.meta, t.hypothesis),
             reason=refuted[t.hypothesis.hypothesis_id].reason
             if t.hypothesis.hypothesis_id in refuted
             else t.test.reason,
@@ -111,10 +101,10 @@ def propose(finding: Finding, feed: Feed) -> InsightCard | None:
         timing=Timing(change_window=case.window, detected_at=case.window.end),
         propositions=propositions,
         claim="",
-        evidence=[_evidence(t) for t in backing],
+        evidence=[_evidence(t) for t in measured],
         depends_on=DependsOn(
             evidence_sets=[
-                s for t in backing for s in (t.during.evidence_set_id, t.before.evidence_set_id)
+                s for t in measured for s in (t.during.evidence_set_id, t.before.evidence_set_id)
             ],
             data_version=feed.data_version,
         ),

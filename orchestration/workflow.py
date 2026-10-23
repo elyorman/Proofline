@@ -258,7 +258,7 @@ class Synthesizer(Executor):
             for t in survivors
         }
         ranking, usage = await rank(
-            r.model, AgentRole.SYNTHESIS, r.case, r.feed.meta, r.score, survivors, notes
+            r.model, AgentRole.SYNTHESIS, r.case, r.feed.meta, r.score, survivors, r.tools, notes
         )
         r.usage = r.usage + usage
         r.checkpoint(CaseStage.SYNTHESIZED, ranking.outcome)

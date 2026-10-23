@@ -83,6 +83,7 @@ class RejectedAlternative(BaseModel):
     hypothesis_id: str
     taxonomy: Cause
     agent: AgentRole
+    team: str | None = Field(default=None, description="the team the ruled-out cause is about")
     reason: str
     rejected_by: Literal["test", "cross_examination", "verifier"]
     tool_call_id: str | None = None

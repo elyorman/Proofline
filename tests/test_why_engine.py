@@ -6,23 +6,24 @@ from pathlib import Path
 
 import pytest
 
-from agents.investigation import Tools, rank, register, run_test
+from agents import narrator
+from agents.investigation import Tools, cause_team, rank, register, run_test, signature
 from agents.llm import Replay, Usage
 from agents.outputs import Proposal, Ranking, Registration
-from agents.propose import cause_team, propose
+from agents.propose import propose
 from agents.single import case_tools, investigate
 from agents.verifier.checks import Record
 from agents.verifier.semantic import SemanticReport, SentenceCheck
 from agents.verifier.verify import verify
 from contracts.eval_run import Variant
-from contracts.prediction import Hypothesis
+from contracts.prediction import Direction, Hypothesis
 from contracts.taxonomy import AgentRole, CaseOutcome, Cause
 from detector.cusum import detect
 from engine.io import match_meta
 from engine.script import load_script
 from engine.sim import MatchSim
 from orchestration.case import run_case
-from state.tools import Feed
+from state.tools import MEASURED, Feed
 
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURES = ROOT / "tests" / "fixtures" / "cases" / "m01-063-B"
@@ -75,8 +76,10 @@ def test_the_demo_press_becomes_a_verified_card_from_recorded_exchanges(m01):
         0.32,
         0.83,
     )
-    ruled_out = {r.taxonomy for r in card.rejected_alternatives}
-    assert Cause.CHASING_RESULT in ruled_out
+    assert [(e.metric, e.subject) for e in card.evidence] == [
+        ("pressure_rate", "Harbour City"),
+        ("long_ball_share", "Northvale"),  # the press's own signature, as in spec §5
+    ]
     assert set(card.variants) == {"casual", "analyst"}
     assert all(set(v) == {"en", "es"} for v in card.variants.values())
     assert outcome.finding.tools.used <= case.tool_call_budget
@@ -99,6 +102,27 @@ def test_vague_or_misplaced_predictions_are_refused_before_testing(m01):
     )
     assert [h.hypothesis_id for h in accepted] == ["hyp-tactics-01"]
     assert len(refused) == 4
+
+
+def test_a_game_state_cause_needs_the_score_to_give_its_team_the_reason(m01):
+    feed, case = m01
+    chase = dict(cause="game_state.chasing_result", direction="up")
+    answer = Registration(
+        hypotheses=[
+            _proposal(**chase),  # Harbour City trail 1-3
+            _proposal(**chase, subject="Northvale"),
+            _proposal(cause="game_state.protecting_lead", direction="down"),
+        ]
+    )
+    score = {"home_goals": 1.0, "away_goals": 3.0}
+    accepted, refused, _ = asyncio.run(
+        register(Scripted(answer), AgentRole.GAME_STATE, case, feed.meta, score, 3)
+    )
+    assert [h.prediction.subject for h in accepted] == ["Harbour City"]
+    assert [r.reason for r in refused] == [
+        "Northvale is not behind, so the score gives no reason for this cause",
+        "Harbour City is not ahead, so the score gives no reason for this cause",
+    ]
 
 
 def _hypothesis(case, **prediction):
@@ -137,10 +161,10 @@ def test_a_ranking_that_names_nothing_real_falls_back_to_the_strongest_margin(m0
     made_up = Ranking(outcome="explained", primary="hyp-9", secondary=[], why="?")
     score = {"home_goals": 1.0, "away_goals": 3.0}
     ranking, _ = asyncio.run(
-        rank(Scripted(made_up), AgentRole.SINGLE, case, feed.meta, score, survivors)
+        rank(Scripted(made_up), AgentRole.SINGLE, case, feed.meta, score, survivors, tools)
     )
     assert ranking.primary == "hyp-1" and "did not fit" in ranking.why
-    none, _ = asyncio.run(rank(Scripted(), AgentRole.SINGLE, case, feed.meta, score, []))
+    none, _ = asyncio.run(rank(Scripted(), AgentRole.SINGLE, case, feed.meta, score, [], tools))
     assert none.outcome == CaseOutcome.NONE
 
 
@@ -148,6 +172,27 @@ def test_a_press_seen_in_the_opponents_long_balls_is_the_pressing_teams(m01):
     feed, case = m01
     seen = _hypothesis(case, metric="long_ball_share", subject="Northvale", min_change=0.1)
     assert cause_team(feed.meta, seen) == "Harbour City"
+
+
+def test_code_measures_each_causes_whole_signature_outside_the_agents_budget(m01):
+    feed, case = m01
+    tools, _ = case_tools(case, feed)
+    press = asyncio.run(signature(tools, feed.meta, case, _hypothesis(case)))
+    chase = _hypothesis(case).model_copy(update={"taxonomy": Cause.CHASING_RESULT})
+    chasing = asyncio.run(signature(tools, feed.meta, case, chase))
+    assert press[0].startswith("pressure_rate of Harbour City up: +0.513")
+    assert press[1].startswith("long_ball_share of Northvale up: +0.47")
+    assert all(line.endswith("clear of natural variation") for line in press)
+    assert chasing[1].startswith("long_ball_share of Harbour City up: +0.07")
+    assert chasing[1].endswith("the predicted way, within natural variation")
+    assert tools.used == 0 and all(e["by"] == "code" for e in tools.log)
+
+
+def test_every_measured_change_can_be_narrated_in_both_languages():
+    for metric in MEASURED:
+        assert all(narrator.LABEL[metric])
+        for direction in (Direction.UP, Direction.DOWN):
+            assert all(narrator.CHANGE[metric, direction])
 
 
 def _proposed(feed, case, survivor):
@@ -178,6 +223,27 @@ def test_the_verifier_catches_a_tampered_number_and_an_overstatement(m01):
     )
     flagged = asyncio.run(verify(Scripted(overstated), card, record, feed, [])).card
     assert flagged.status == "rejected" and "too sure" in flagged.verification.rejection_reason
+
+
+def test_card_text_lists_each_measurement_once_and_names_each_ruled_out_teams_own(m01):
+    feed, case = m01
+    answer = Registration(
+        hypotheses=[
+            _proposal(),
+            _proposal(cause="game_state.chasing_result"),  # the same test as the press
+            _proposal(cause="game_state.protecting_lead", subject="Northvale", direction="down"),
+        ]
+    )
+    ranking = Ranking(
+        outcome="explained", primary="hyp-single-01", secondary=["hyp-single-02"], why="clear"
+    )
+    finding = asyncio.run(investigate(Scripted(answer, ranking), case, feed))
+    card = propose(finding, feed)
+    assert len(card.evidence) == 1
+    assert [r.team for r in card.rejected_alternatives] == ["Northvale"]
+    record = Record.of(finding.tools.log, finding.evidence)
+    verdict = asyncio.run(verify(Scripted(SOUND), card, record, feed, []))
+    assert "Ruled out: Northvale protecting their lead." in verdict.card.variants["analyst"]["en"]
 
 
 def test_a_seeded_false_number_in_the_text_fails_the_number_check(m01):

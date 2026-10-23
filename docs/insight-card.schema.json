@@ -497,6 +497,19 @@
         "agent": {
           "$ref": "#/$defs/AgentRole"
         },
+        "team": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "the team the ruled-out cause is about",
+          "title": "Team"
+        },
         "reason": {
           "title": "Reason",
           "type": "string"

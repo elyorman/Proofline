@@ -12,10 +12,7 @@ from state.subjects import resolve
 
 CHANGE = {  # (metric, direction) -> (English with {is}, Spanish)
     (Metric.PRESSURE_RATE, Direction.UP): ("{is} pressing higher", "presiona más arriba"),
-    (Metric.PRESSURE_RATE, Direction.DOWN): (
-        "{has} stopped pressing high",
-        "ha dejado de presionar arriba",
-    ),
+    (Metric.PRESSURE_RATE, Direction.DOWN): ("{is} pressing less", "presiona menos"),
     (Metric.LONG_BALL_SHARE, Direction.UP): (
         "{is} going long more often",
         "juega en largo más a menudo",
@@ -28,6 +25,30 @@ CHANGE = {  # (metric, direction) -> (English with {is}, Spanish)
     (Metric.SPRINT_COUNT, Direction.UP): ("{is} sprinting more", "esprinta más"),
     (Metric.SPRINT_SPEED, Direction.DOWN): ("{is} sprinting more slowly", "esprinta más despacio"),
     (Metric.SPRINT_SPEED, Direction.UP): ("{is} sprinting faster", "esprinta más rápido"),
+    (Metric.CHANNEL_SHARE_LEFT, Direction.UP): (
+        "{is} playing more down the left",
+        "juega más por la izquierda",
+    ),
+    (Metric.CHANNEL_SHARE_LEFT, Direction.DOWN): (
+        "{is} playing less down the left",
+        "juega menos por la izquierda",
+    ),
+    (Metric.CHANNEL_SHARE_CENTRE, Direction.UP): (
+        "{is} playing more through the middle",
+        "juega más por el centro",
+    ),
+    (Metric.CHANNEL_SHARE_CENTRE, Direction.DOWN): (
+        "{is} playing less through the middle",
+        "juega menos por el centro",
+    ),
+    (Metric.CHANNEL_SHARE_RIGHT, Direction.UP): (
+        "{is} playing more down the right",
+        "juega más por la derecha",
+    ),
+    (Metric.CHANNEL_SHARE_RIGHT, Direction.DOWN): (
+        "{is} playing less down the right",
+        "juega menos por la derecha",
+    ),
 }
 CAUSE = {  # {team} is the team the cause is about
     Cause.PRESS_INTENSITY_UP: (
@@ -72,6 +93,9 @@ LABEL = {
     Metric.LONG_BALL_SHARE: ("Long-ball share", "Proporción de balones largos"),
     Metric.SPRINT_COUNT: ("Sprints a minute", "Esprints por minuto"),
     Metric.SPRINT_SPEED: ("Sprint speed", "Velocidad de esprint"),
+    Metric.CHANNEL_SHARE_LEFT: ("Share down the left", "Proporción por la izquierda"),
+    Metric.CHANNEL_SHARE_CENTRE: ("Share through the middle", "Proporción por el centro"),
+    Metric.CHANNEL_SHARE_RIGHT: ("Share down the right", "Proporción por la derecha"),
 }
 SUPPORT = {
     "strong": ("strong", "fuerte"),
@@ -135,7 +159,7 @@ def variants(
                 f"{LABEL[ev.metric][i]} ({_who(meta, ev.subject)[0]}): "
                 f"{number(ev.metric, ev.baseline.value)} → {number(ev.metric, ev.value)}"
             )
-        ruled = [cause_phrase(r.taxonomy, team, i) for r in card.rejected_alternatives]
+        ruled = [cause_phrase(r.taxonomy, r.team or team, i) for r in card.rejected_alternatives]
         strength = SUPPORT[support.value][i]
         window = (
             f"{card.timing.change_window.start.minute}'-{card.timing.change_window.end.minute}'"

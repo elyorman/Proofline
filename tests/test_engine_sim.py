@@ -136,20 +136,25 @@ def test_a_score_triggered_change_starts_when_its_condition_first_holds():
         }
     )
     script = M01.model_copy(update={"scripts": [leading]})
+    outcomes = []
     for seed in (3, 4, 5, 6, 7, 8):
         sim = MatchSim(script, seed=seed)
         events = sim.run()
         started = sim.params.started["sit"]
         goals = [e for e in events if e.type == "goal"]
 
-        def lead_at(clock, goals=goals):
-            ours = sum(g.team == "Harbour City" and g.clock < clock for g in goals)
-            return ours - sum(g.team == "Northvale" and g.clock < clock for g in goals)
+        def lead_after(clock, goals=goals):
+            ours = sum(g.team == "Harbour City" and g.clock <= clock for g in goals)
+            return ours - sum(g.team == "Northvale" and g.clock <= clock for g in goals)
 
-        if started is None:
-            later = [g.clock for g in goals if g.clock >= leading.at] + [leading.at]
-            assert all(lead_at(c) <= 0 for c in later), seed
+        # The condition first holds at `at` or at a goal after it. The simulator checks it
+        # as each possession starts, so the change starts within one possession of then.
+        moments = [leading.at] + [g.clock for g in goals if g.clock >= leading.at]
+        holds = next((c for c in moments if lead_after(c) > 0), None)
+        if holds is None:
+            assert started is None, seed
         else:
-            assert started >= leading.at and lead_at(started) > 0, seed
-            # nothing between `at` and the start already had them ahead at a goal
-            assert all(lead_at(g.clock) <= 0 for g in goals if leading.at <= g.clock < started)
+            gap = started.seconds_in_period - holds.seconds_in_period
+            assert started.period == holds.period and 0 <= gap <= 90, (seed, holds, started)
+        outcomes.append(started is not None)
+    assert any(outcomes) and not all(outcomes)

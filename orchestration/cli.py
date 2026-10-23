@@ -5,13 +5,20 @@ Azure credential; nothing here holds a key.
 """
 
 import argparse
+import asyncio
+import logging
 import os
 import sys
+from pathlib import Path
 
 from contracts.case import Case
+from contracts.eval_run import Variant
+from detector.cusum import detect
 from ledger.eventhubs import consume
 from ledger.ingest import Ingest
 from ledger.store import CosmosLedger
+from orchestration.case import models, run_case
+from tools_server.server import DirectorySource
 
 ENV = ("AZURE_EVENTHUBS_NAMESPACE", "AZURE_EVENTHUB_NAME", "AZURE_COSMOS_ENDPOINT")
 
@@ -32,7 +39,16 @@ def main(argv: list[str] | None = None) -> int:
     ingest.add_argument("--match", required=True, help="the match id to wait for")
     ingest.add_argument("--run-id", required=True, help="the Match Clock run to read")
     ingest.add_argument("--timeout", type=float, default=900, help="seconds to wait")
+    case = sub.add_parser("case", help="investigate one detected case and verify its card")
+    case.add_argument("--data", default="data", help="folder of engine-written matches")
+    case.add_argument("--match", required=True)
+    case.add_argument("--minute", type=int, required=True, help="the minute the case opened")
+    case.add_argument("--variant", choices=["A", "B"], default="B")
+    case.add_argument("--record", type=Path, help="save every model exchange here")
+    case.add_argument("--replay", type=Path, help="answer from saved exchanges only")
     args = parser.parse_args(argv)
+    if args.command == "case":
+        return _case(parser, args)
 
     missing = [name for name in ENV if not os.getenv(name)]
     if missing:
@@ -52,6 +68,42 @@ def main(argv: list[str] | None = None) -> int:
     stored, cases = (len(match.delivered), len(match.detector.cases)) if match else (0, 0)
     print(f"{args.match}: {stored} events stored, {cases} cases")
     return 0 if ended else 1
+
+
+def _case(parser: argparse.ArgumentParser, args: argparse.Namespace) -> int:
+    logging.getLogger("httpx").setLevel(logging.WARNING)
+    logging.getLogger("azure").setLevel(logging.WARNING)
+    feed = DirectorySource(Path(args.data)).feed(args.match)
+    found = [c for c in detect(feed.meta, feed.events) if c.window.end.minute == args.minute]
+    if not found:
+        parser.error(f"no case on {args.match} opened at {args.minute}'")
+    agents, verifier = models(args.record, args.replay)
+    outcome = asyncio.run(run_case(Variant(args.variant), agents, verifier, found[0], feed))
+    f = outcome.finding
+    print(f"{found[0].case_id}: {len(f.hypotheses)} hypotheses, {len(f.refused)} refused")
+    for r in f.refused:
+        print(f"  refused {r.proposal.cause} {r.proposal.metric}: {r.reason}")
+    for t in f.tested:
+        print(f"  {t.test.outcome:9s} {t.hypothesis.taxonomy}: {t.test.reason}")
+    print(f"  ranking: {f.ranking.outcome}, primary {f.ranking.primary}: {f.ranking.why}")
+    print(f"  {f.tools.used} tool calls, {f.usage.input_tokens}+{f.usage.output_tokens} tokens")
+    if outcome.verdict is None:
+        print("  no card: the case closes as", f.ranking.outcome)
+        return 0
+    card = outcome.verdict.card
+    v = card.verification
+    print(f"  card {card.id}: {card.status}, support {v.support_level}, {v.rejection_reason or ''}")
+    for audience, texts in card.variants.items():
+        for locale, text in texts.items():
+            print(f"    {audience}/{locale}: {text}")
+    if outcome.verdict.report:
+        for s in outcome.verdict.report.sentences:
+            print(f"    semantic: entailed={s.entailed} overstated={s.overstated}: {s.reason}")
+    out = Path("runs") / f"{card.id}-{args.variant}.json"
+    out.parent.mkdir(exist_ok=True)
+    out.write_text(card.model_dump_json(indent=2) + "\n", encoding="utf-8")
+    print(f"  written to {out}")
+    return 0
 
 
 if __name__ == "__main__":

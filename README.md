@@ -26,6 +26,7 @@ azd up        # provision every Azure resource into a new environment
 | `state/` | State Builder: the planted observables and the score as tool results, each with the evidence set it read, from events delivered by the case's clock |
 | `detector/` | Moment Detector: CUSUM over each watched metric's change from the first half, thresholds tuned on the dev split ([`scripts/tune_detector.py`](scripts/tune_detector.py)) |
 | `tools_server/` | Custom MCP server exposing the State Builder's tools to the agents |
+| `agents/` | The Why Engine: agents pre-register predictions, code tests them through the MCP tools, the Verifier recomputes every number and checks every sentence ([`docs/support-rules.md`](docs/support-rules.md)) |
 | `ledger/`, `orchestration/` | Feed ingest into the Cosmos ledger with live detection (`proofline ingest`); the Match Clock replays a match onto Event Hubs (`proofline-engine clock`) |
 | `DATASET.md` | The synthetic dataset: the demo match, the stated rule that picks its seed, and how each planted story is checked for visibility in a single match |
 | `infra/` | Bicep for every Azure resource, deployed with `azd` |
@@ -38,7 +39,8 @@ azd up        # provision every Azure resource into a new environment
 
 | Technology | Where it lives | Evidence |
 |---|---|---|
-| Microsoft Foundry | [`infra/resources.bicep`](infra/resources.bicep): Foundry project and the `gpt-5-mini` deployment | Deployment verified in [`docs/azure-mcp.md`](docs/azure-mcp.md) |
+| Microsoft Foundry | [`infra/resources.bicep`](infra/resources.bicep): the Foundry project, `gpt-5-mini` for the agents and `DeepSeek-V3.2-Speciale` for the Verifier's semantic check, a different model family ([`agents/verifier/semantic.py`](agents/verifier/semantic.py)) | Deployments verified in [`docs/azure-mcp.md`](docs/azure-mcp.md); recorded agent and verifier exchanges in [`tests/fixtures/cases/`](tests/fixtures/cases/) |
+| Microsoft Agent Framework | [`agents/llm.py`](agents/llm.py): every agent and verifier call goes through an Agent Framework agent on the Foundry chat client, with Entra ID | [`tests/test_why_engine.py`](tests/test_why_engine.py) replays the demo's verified 63' card |
 | Custom MCP server | [`tools_server/server.py`](tools_server/server.py): `metric`, `baseline` and `game_state` over the State Builder | [`tests/test_tools_server.py`](tests/test_tools_server.py): calls through the server, refusals for minutes that have not happened |
 | Azure MCP Server | Read-only server used to verify every deployment | [`docs/azure-mcp.md`](docs/azure-mcp.md) |
 | Cosmos DB, Event Hubs, Container Apps, Container Registry, Web PubSub, Static Web Apps, App Insights, Key Vault | [`infra/resources.bicep`](infra/resources.bicep), all key-less: local auth disabled, access by managed identity and role; [`engine/clock.py`](engine/clock.py) and [`ledger/`](ledger/) stream a match through Event Hubs into the Cosmos ledger | Resource and role listings, and the demo match's events and 63' case read back from Cosmos, in [`docs/azure-mcp.md`](docs/azure-mcp.md) |

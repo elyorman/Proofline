@@ -53,6 +53,7 @@ uv run proofline-engine suite --suite planted --split heldout   # writes engine/
 make stream-m01                          # gate 2: m01 through Event Hubs into Cosmos, detector cases printed
 uv run python -m tools_server.server --data data --match m01 --as-of 63:00   # the State Builder over MCP (stdio)
 make tune-detector                        # re-tune detector thresholds on the dev split only
+uv run proofline case --match m01 --minute 63 --variant B --record tests/fixtures/cases/m01-063-B   # one case end to end, live (gpt-5-mini + verifier); --replay DIR answers from fixtures
 uv run proofline run --mode studio --match m01   # local pipeline against the deployed ledger
 uv run proofline eval --suite planted,decoys,corrections --variant A,B --split heldout
 azd up                                    # provision + deploy everything

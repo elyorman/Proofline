@@ -50,6 +50,18 @@ class DirectorySource:
 
 
 @dataclass
+class FeedSource:
+    """Matches already in memory, such as one a case is running on."""
+
+    feeds: dict[str, Feed]
+
+    def feed(self, match_id: str) -> Feed:
+        if match_id not in self.feeds:
+            raise ValueError(f"no feed for {match_id}")
+        return self.feeds[match_id]
+
+
+@dataclass
 class MemorySink:
     evidence: dict[str, EvidenceSet] = field(default_factory=dict)
 

@@ -8,10 +8,11 @@ from pathlib import Path
 import yaml
 
 from contracts.card import InsightCard
-from contracts.eval_run import EvalRun, VariantComparison
+from contracts.eval_run import EvalRun, SeededRun, VariantComparison
 from eval.batch import evaluate_batch
 from eval.compare import compare
 from eval.metrics import METRIC_NAMES, PLANTED_RECALL
+from eval.records import reuse_runs, save_records
 from eval.runner import evaluate
 from eval.suites import load_suite
 
@@ -20,6 +21,8 @@ def main(argv: list[str] | None = None) -> int:
     argv = list(sys.argv[1:] if argv is None else argv)
     if argv and argv[0] == "compare":
         return _compare(argv[1:])
+    if argv and argv[0] == "scoreboard":
+        return _scoreboard(argv[1:])
     parser = argparse.ArgumentParser(
         prog="proofline-eval",
         description=__doc__,
@@ -45,6 +48,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--resamples", type=int, default=2000)
     parser.add_argument("--metric", choices=METRIC_NAMES, default=PLANTED_RECALL)
     parser.add_argument("--out", type=Path, help="also save JSON to a new file")
+    parser.add_argument("--record-dir", type=Path, help="save immutable committed-number records")
     args = parser.parse_args(argv)
     try:
         suites = [
@@ -74,12 +78,15 @@ def main(argv: list[str] | None = None) -> int:
                 )
                 for variant in variants
             ]
+            if args.compare and args.record_dir:
+                runs = reuse_runs(runs, args.record_dir)
             result = (
                 compare(*runs, metric=args.metric, seed=args.seed, resamples=args.resamples)
                 if args.compare
                 else runs[0]
             )
-            _emit(result, args.out)
+            dependencies = runs if args.compare else []
+            _emit(result, args.out, args.record_dir, dependencies)
             return 0
         if args.compare:
             raise ValueError("--compare requires --runs")
@@ -104,14 +111,24 @@ def main(argv: list[str] | None = None) -> int:
             variant=args.variant,
             **options,
         )
-        _emit(run, args.out)
+        _emit(run, args.out, args.record_dir)
     except (OSError, ValueError, yaml.YAMLError) as exc:
         parser.error(str(exc))
     return 0
 
 
-def _emit(record: EvalRun | VariantComparison, out: Path | None) -> None:
+def _emit(
+    record: EvalRun | VariantComparison | SeededRun,
+    out: Path | None,
+    record_dir: Path | None = None,
+    dependencies: list[EvalRun] | None = None,
+) -> None:
     serialized = record.model_dump_json(indent=2) + "\n"
+    if out is not None and out.exists():
+        raise FileExistsError(f"output already exists: {out}")
+    if record_dir is not None:
+        missing = [r for r in dependencies or [] if not (record_dir / f"{r.run_id}.json").exists()]
+        save_records([*missing, record], record_dir)
     if out is not None:
         out.parent.mkdir(parents=True, exist_ok=True)
         with out.open("x", encoding="utf-8") as output:
@@ -129,12 +146,29 @@ def _compare(argv: list[str]) -> int:
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--resamples", type=int, default=2000)
     parser.add_argument("--out", type=Path, required=True)
+    parser.add_argument("--record-dir", type=Path)
     args = parser.parse_args(argv)
     try:
         a = EvalRun.model_validate_json(args.run_a.read_text(encoding="utf-8"))
         b = EvalRun.model_validate_json(args.run_b.read_text(encoding="utf-8"))
         comparison = compare(a, b, metric=args.metric, seed=args.seed, resamples=args.resamples)
-        _emit(comparison, args.out)
+        if args.record_dir:
+            reuse_runs([a, b], args.record_dir)
+        _emit(comparison, args.out, args.record_dir, [a, b])
+    except (OSError, ValueError) as exc:
+        parser.error(str(exc))
+    return 0
+
+
+def _scoreboard(argv: list[str]) -> int:
+    from eval.scoreboard import scoreboard
+
+    parser = argparse.ArgumentParser(prog="python -m eval scoreboard")
+    parser.add_argument("--records", type=Path, required=True)
+    parser.add_argument("--check", type=Path)
+    args = parser.parse_args(argv)
+    try:
+        print(scoreboard(args.records, args.check), end="")
     except (OSError, ValueError) as exc:
         parser.error(str(exc))
     return 0

@@ -7,6 +7,7 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, computed_field, model_validator
 
+from contracts.card import Verification
 from contracts.prediction import Direction
 from contracts.taxonomy import CaseOutcome, Cause, Metric
 
@@ -344,4 +345,124 @@ class VariantComparison(BaseModel):
             raise ValueError("a comparison needs two different runs")
         if self.variant_a == self.variant_b:
             raise ValueError("a comparison needs two different variants")
+        return self
+
+
+class SeedType(StrEnum):
+    EVIDENCE_VALUE = "evidence_value"
+    BASELINE_VALUE = "baseline_value"
+    UNSUPPORTED_NUMBER = "unsupported_number"
+    CLAIM_DIRECTION = "claim_direction"
+    WRONG_TEAM = "wrong_team"
+    OVERCERTAINTY = "overcertainty"
+    UNNAMED_CAUSE = "unnamed_cause"
+    PRIMARY_DIRECTION = "primary_direction"
+
+
+class SeedTrial(BaseModel):
+    kind: SeedType
+    applied: bool
+    field: str | None = None
+    before: str | float | None = None
+    after: str | float | None = None
+    skip_reason: str | None = None
+    verification: Verification | None = None
+    caught: bool | None = None
+
+    @model_validator(mode="after")
+    def _verdict(self) -> "SeedTrial":
+        if self.applied:
+            if self.verification is None or self.field is None or self.before == self.after:
+                raise ValueError("an applied seed records a changed field and its verification")
+            if self.caught != (self.verification.status == "rejected") or self.skip_reason:
+                raise ValueError("caught must agree with the seeded verification")
+        elif not self.skip_reason or any(
+            value is not None
+            for value in (self.field, self.before, self.after, self.verification, self.caught)
+        ):
+            raise ValueError("an inapplicable seed records only its reason")
+        return self
+
+
+class SeedCardResult(BaseModel):
+    match_id: str
+    case_id: str
+    card_id: str
+    revision: int = Field(ge=1)
+    card_digest: str = Field(pattern=r"^[0-9a-f]{64}$")
+    control: Verification
+    trials: list[SeedTrial]
+
+    @model_validator(mode="after")
+    def _all_types(self) -> "SeedCardResult":
+        kinds = [t.kind for t in self.trials]
+        if len(kinds) != len(SeedType) or set(kinds) != set(SeedType):
+            raise ValueError("every card records each seed type exactly once")
+        return self
+
+
+class SeedTypeResult(BaseModel):
+    kind: SeedType
+    seeded: int = Field(ge=0)
+    caught: int = Field(ge=0)
+    checks: dict[str, int] = Field(default_factory=dict)
+    estimate: MetricEstimate | None = None
+
+
+class SeededRun(BaseModel):
+    """Verifier benchmark with card-cluster intervals and every trial retained."""
+
+    record_type: Literal["seeded_verifier"] = "seeded_verifier"
+    run_id: str = Field(min_length=1)
+    split: Split
+    variant: Variant
+    model_id: str | None = None
+    batch_digest: str = Field(pattern=r"^[0-9a-f]{64}$")
+    exchanges_digest: str = Field(pattern=r"^[0-9a-f]{64}$")
+    data_digest: str = Field(pattern=r"^[0-9a-f]{64}$")
+    verifier_exchanges_digest: str = Field(pattern=r"^[0-9a-f]{64}$")
+    suite_digest: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
+    flag_set_id: str | None = None
+    started_at_ms: int = Field(ge=0)
+    finished_at_ms: int = Field(ge=0)
+    bootstrap_seed: int = 0
+    bootstrap_resamples: int = Field(default=2000, ge=1)
+    input_tokens: int = Field(default=0, ge=0)
+    output_tokens: int = Field(default=0, ge=0)
+    cards: list[SeedCardResult] = Field(min_length=1)
+    types: list[SeedTypeResult]
+    catch_rate: MetricEstimate
+    false_rejection_rate: MetricEstimate
+
+    @model_validator(mode="after")
+    def _reconciles(self) -> "SeededRun":
+        if self.finished_at_ms < self.started_at_ms:
+            raise ValueError("seeded run finished before it started")
+        identities = [(c.match_id, c.case_id, c.card_id, c.revision) for c in self.cards]
+        if len(set(identities)) != len(identities):
+            raise ValueError("each seeded card is recorded once")
+        if len(self.types) != len(SeedType) or {t.kind for t in self.types} != set(SeedType):
+            raise ValueError("all seed types are reported, including inapplicable types")
+        for result in self.types:
+            trials = [
+                t for c in self.cards for t in c.trials if t.kind == result.kind and t.applied
+            ]
+            if (result.seeded, result.caught) != (len(trials), sum(t.caught for t in trials)):
+                raise ValueError("seeded counts must agree with the recorded trials")
+            if (result.estimate is None) != (not trials):
+                raise ValueError("a catch-rate estimate needs a nonzero denominator")
+            if result.estimate and (result.estimate.n, result.estimate.value) != (
+                len(trials),
+                result.caught / len(trials),
+            ):
+                raise ValueError("per-type estimates must agree with the recorded trials")
+        seeded, caught = sum(t.seeded for t in self.types), sum(t.caught for t in self.types)
+        if not seeded or (self.catch_rate.n, self.catch_rate.value) != (seeded, caught / seeded):
+            raise ValueError("total catch rate must agree with seeded trials")
+        rejected = sum(c.control.status == "rejected" for c in self.cards)
+        if (self.false_rejection_rate.n, self.false_rejection_rate.value) != (
+            len(self.cards),
+            rejected / len(self.cards),
+        ):
+            raise ValueError("false rejection rate must agree with controls")
         return self

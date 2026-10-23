@@ -2,7 +2,7 @@
 AZD_ENV = eval "$$(azd env get-values | grep -E '^AZURE_(EVENTHUBS_NAMESPACE|EVENTHUB_NAME|COSMOS_ENDPOINT|COSMOS_DATABASE)=')" && \
 	export AZURE_EVENTHUBS_NAMESPACE AZURE_EVENTHUB_NAME AZURE_COSMOS_ENDPOINT AZURE_COSMOS_DATABASE
 
-.PHONY: check m01 stream-m01 tune-detector
+.PHONY: check m01 stream-m01 tune-detector dev-feeds
 
 check:
 	uv run ruff check . && uv run ruff format --check .
@@ -22,3 +22,10 @@ stream-m01: m01
 
 tune-detector:
 	uv run python scripts/tune_detector.py
+
+# The dev split's matches as feeds (events and metadata only) for the product's batch runs;
+# the scripts and ground truth stay sealed in engine/suites.
+dev-feeds:
+	for script in engine/suites/*/dev/scripts/*.yaml; do \
+		uv run proofline-engine generate --script $$script --out data/dev/$$(basename $$script .yaml)/ || exit 1; \
+	done

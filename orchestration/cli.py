@@ -18,6 +18,7 @@ from detector.cusum import detect
 from ledger.eventhubs import consume
 from ledger.ingest import Ingest
 from ledger.store import CosmosLedger
+from orchestration.batch import run_batch
 from orchestration.case import models, run_case
 from tools_server.server import DirectorySource
 
@@ -54,9 +55,24 @@ def main(argv: list[str] | None = None) -> int:
         choices=["tactics", "physical", "game_state"],
         help="stop this agent once mid-case, to show recovery from its checkpoint (variant A)",
     )
+    batch = sub.add_parser("batch", help="run every detected case of a folder of matches")
+    batch.add_argument("--data", type=Path, required=True, help="folder of match feeds")
+    batch.add_argument("--variant", choices=["A", "B"], required=True)
+    batch.add_argument("--out", type=Path, default=Path("runs"), help="results root")
+    batch.add_argument("--concurrency", type=int, default=3)
+    batch.add_argument("--record", type=Path, help="save every model exchange here")
     args = parser.parse_args(argv)
     if args.command == "case":
         return _case(parser, args)
+    if args.command == "batch":
+        _quiet()
+        agents, verifier = models(args.record)
+        asyncio.run(
+            run_batch(
+                args.data, Variant(args.variant), args.out, agents, verifier, args.concurrency
+            )
+        )
+        return 0
 
     missing = [name for name in ENV if not os.getenv(name)]
     if missing:
@@ -78,10 +94,13 @@ def main(argv: list[str] | None = None) -> int:
     return 0 if ended else 1
 
 
+def _quiet() -> None:
+    for name in ("httpx", "azure", "agent_framework"):
+        logging.getLogger(name).setLevel(logging.WARNING)
+
+
 def _case(parser: argparse.ArgumentParser, args: argparse.Namespace) -> int:
-    logging.getLogger("httpx").setLevel(logging.WARNING)
-    logging.getLogger("azure").setLevel(logging.WARNING)
-    logging.getLogger("agent_framework").setLevel(logging.WARNING)
+    _quiet()
     feed = DirectorySource(Path(args.data)).feed(args.match)
     found = [c for c in detect(feed.meta, feed.events) if c.window.end.minute == args.minute]
     if not found:

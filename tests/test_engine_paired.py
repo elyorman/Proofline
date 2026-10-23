@@ -7,7 +7,7 @@ from contracts.eval_run import ExclusionRule
 from contracts.planted import TruthObservable
 from contracts.prediction import Direction
 from contracts.taxonomy import Cause, Metric
-from engine.paired import judge, measure, resolve, window_after
+from engine.paired import judge, measure, resolve, t95, window_after
 from engine.script import Intervention, load_script
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -24,8 +24,21 @@ def _with(**fields):
 
 
 def test_a_window_is_counted_from_the_start_of_the_change():
-    window = window_after(MatchClock.parse("63:27"), (7, 27))
-    assert (str(window.start), str(window.end)) == ("70:27", "90+0:27")
+    window = window_after(MatchClock.parse("61:27"), (7, 27))
+    assert (str(window.start), str(window.end)) == ("68:27", "88:27")
+
+
+def test_a_window_stays_in_minutes_every_match_plays_after_a_first_half_baseline():
+    assert window_after(MatchClock.parse("63:00"), (7, 27)).end == MatchClock.parse("90:00")
+    with pytest.raises(ValueError, match="not every match plays"):
+        window_after(MatchClock.parse("63:27"), (7, 27))
+    with pytest.raises(ValueError, match="cannot be compared with the first half"):
+        window_after(MatchClock.parse("30:00"), (0, 8))
+
+
+def test_the_interval_uses_the_t_quantile_of_its_seed_count():
+    assert t95(19) == pytest.approx(2.093, abs=1e-3)
+    assert t95(29) == pytest.approx(2.045, abs=1e-3)
 
 
 def test_observables_are_named_for_the_script():
@@ -39,6 +52,8 @@ def test_observables_are_named_for_the_script():
         (Metric.PRESSURE_RATE, "Harbour City"),
         (Metric.LONG_BALL_SHARE, "Northvale"),
     ]
+    with pytest.raises(ValueError, match="measured on a unit; s1 names none"):
+        resolve(Cause.UNIT_FATIGUE, M01, M01.scripts[0])
 
 
 def test_the_demo_press_counts_toward_recall():
@@ -57,5 +72,5 @@ def test_an_intervention_that_changes_nothing_is_not_observable():
 
 def test_a_change_that_never_starts_in_time_cannot_be_measured():
     late = _with(at="80:00", set={"press_height": 0.9})
-    with pytest.raises(ValueError, match="starts in time on only 0 seeds"):
+    with pytest.raises(ValueError, match="starts in time on 0 seeds"):
         measure(late, "s1", PRESS, (0, 8), range(1500, 1510), pairs=20)

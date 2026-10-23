@@ -105,8 +105,10 @@ def propose(finding: Finding, feed: Feed) -> InsightCard | None:
         for x in finding.corroborations
         if x.exam.hypothesis_id == primary.hypothesis.hypothesis_id
     ]
-    for x in corroborated:
-        add(lambda pid, x=x: _change(pid, x.exam.counter_prediction))
+    for x in corroborated:  # two challengers may ask for the same corollary
+        q = x.exam.counter_prediction
+        if (q.metric, q.subject, q.direction) not in changes:
+            changes[q.metric, q.subject, q.direction] = add(lambda pid, q=q: _change(pid, q))
     backing = [primary, *secondary]
     measured = {  # one evidence line per tool call
         t.during.tool_call_id: (t.hypothesis.prediction, t.during, t.before) for t in backing

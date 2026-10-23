@@ -143,6 +143,18 @@ def test_code_judges_each_prediction_on_the_tools_within_the_budget(m01):
     assert "spent" in asyncio.run(run_test(spent, _hypothesis(case))).test.reason
 
 
+def test_code_judges_nothing_on_fewer_events_than_a_card_may_rest_on(m01):
+    feed, case = m01
+    tools, _ = case_tools(case, feed)
+    # HC-09 sprinted once in 58-63'; a sprint speed needs three sprints.
+    one_sprint = _hypothesis(
+        case, metric="sprint_speed", subject="HC-09", direction="down", min_change=0.5
+    )
+    tested = asyncio.run(run_test(tools, one_sprint))
+    assert not tested.supported
+    assert tested.test.reason == "too little data: 1 events, fewer than the 3 a claim needs"
+
+
 def test_a_ranking_that_names_nothing_real_falls_back_to_the_strongest_margin(m01):
     feed, case = m01
     tools, _ = case_tools(case, feed)

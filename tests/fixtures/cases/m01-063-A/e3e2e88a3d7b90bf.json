@@ -1,0 +1,16 @@
+{
+  "role": "synthesis",
+  "prompt": "Rank these surviving hypotheses.\n{\n \"moment\": \"pressure_shift\",\n \"window\": \"58:00-63:00\",\n \"score_at_detection\": {\n  \"Harbour City\": 1,\n  \"Northvale\": 3\n },\n \"survivors\": [\n  {\n   \"hypothesis_id\": \"hyp-physical-02\",\n   \"cause\": \"physical.unit_fatigue\",\n   \"agent\": \"physical\",\n   \"prediction\": \"sprint_count of Northvale down by at least 0.25\",\n   \"result\": \"sprint_count of Northvale: 3.741 in the first half, 2.600 in 58:00-63:00, a change of -0.305 against a claim of down by 0.25\",\n   \"cross_examination\": [\n    \"tactics corollary: sprint_speed of Northvale down by 1, measured -0.974; result: weakened (If fatigue caused the sprint_count drop, mean sprint speed should fall; a tactical sit-deeper would cut counts without similarly slowing sprint speed.)\",\n    \"game_state corollary: sprint_speed of Northvale down by 1, measured -0.974; result: weakened (If true fatigue caused the sprint_count drop, mean sprint speed should also fall; a protecting-the-lead tactic would lower pressures/sprints but not necessarily reduce average sprint speed.)\"\n   ]\n  },\n  {\n   \"hypothesis_id\": \"hyp-game_state-01\",\n   \"cause\": \"game_state.chasing_result\",\n   \"agent\": \"game_state\",\n   \"prediction\": \"pressure_rate of Harbour City up by at least 0.15\",\n   \"result\": \"pressure_rate of Harbour City: 0.320 in the first half, 0.833 in 58:00-63:00, a change of +0.513 against a claim of up by 0.15\",\n   \"cross_examination\": [\n    \"physical control: pressure_rate of Northvale up by 0.15, measured -0.025; result: holds (If Harbour City's rise is specific to them chasing the game, Northvale should not show an equal jump; a shared jump would point to a non-subjective cause.)\"\n   ]\n  }\n ]\n}",
+  "answer": {
+    "outcome": "explained",
+    "primary": "hyp-game_state-01",
+    "secondary": [
+      "hyp-physical-02"
+    ],
+    "why": "Harbour City's large, specific pressure increase (+0.513) strongly supports the chasing_result hypothesis; Northvale's sprint_count drop meets the fatigue threshold but corollary tests weaken its uniqueness, so fatigue is a secondary contributor."
+  },
+  "usage": {
+    "input_tokens": 732,
+    "output_tokens": 768
+  }
+}

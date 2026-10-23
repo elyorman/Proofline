@@ -16,11 +16,12 @@ from pydantic import ValidationError
 from agents import prompts
 from agents.llm import Model, Usage
 from agents.outputs import Proposal, Ranking, Registration
+from agents.verifier.rules import MIN_SAMPLE
 from contracts.case import Case
 from contracts.meta import MatchMeta
 from contracts.planted import CAUSE_OBSERVABLES
 from contracts.prediction import Hypothesis, HypothesisTest, Prediction, TestOutcome
-from contracts.taxonomy import AgentRole, BaselineScope, CaseOutcome, Cause, ThresholdKind
+from contracts.taxonomy import AgentRole, BaselineScope, CaseOutcome, Cause, Metric, ThresholdKind
 from contracts.tool_result import ToolResult
 from state.subjects import opponent, resolve
 from state.tools import MEASURED
@@ -165,6 +166,14 @@ def change_of(prediction: Prediction, during: float, before: float) -> float | N
     return None  # sigma needs the distribution tool, which is not built yet
 
 
+def too_few(metric: Metric, during: ToolResult, before: ToolResult) -> str | None:
+    """Why a measurement rests on fewer events than a card may (the Verifier's minimum
+    samples), or None. Code judges nothing on data a card could not be published on."""
+    n = before.baseline.n_events if metric == Metric.SPRINT_COUNT else during.n_events
+    minimum = MIN_SAMPLE.get(metric, 0)
+    return f"{n} events, fewer than the {minimum} a claim needs" if n < minimum else None
+
+
 async def run_test(tools: Tools, hypothesis: Hypothesis) -> Tested:
     """Measure the prediction's metric over its window and its baseline, and judge it."""
     p = hypothesis.prediction
@@ -188,6 +197,8 @@ async def run_test(tools: Tools, hypothesis: Hypothesis) -> Tested:
     if during.value is None or before.baseline is None:
         why = during.insufficient_data or before.insufficient_data
         return failed(f"insufficient data: {why}", during=during, before=before)
+    if thin := too_few(p.metric, during, before):
+        return failed(f"too little data: {thin}", during=during, before=before)
     change = change_of(p, during.value, before.baseline.value)
     if change is None:
         return failed("no change defined from a zero baseline", during=during, before=before)

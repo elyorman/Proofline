@@ -10,7 +10,7 @@ from mcp.server.mcpserver.exceptions import ToolError
 from pydantic import BaseModel, Field, ValidationError
 
 from agents import prompts
-from agents.investigation import BudgetSpent, Tested, Tools, change_of
+from agents.investigation import BudgetSpent, Tested, Tools, change_of, too_few
 from agents.llm import Model, Usage
 from contracts.case import Case
 from contracts.meta import MatchMeta
@@ -197,7 +197,7 @@ async def run_counter(tools: Tools, exam: CrossExamination) -> Examined | None:
         before = await tools.call("baseline", name=p.metric, subject=p.subject, scope=p.compare_to)
     except (ToolError, BudgetSpent):  # an unmeasurable counter-test leaves the hypothesis standing
         return None
-    if during.value is None or before.baseline is None:
+    if during.value is None or before.baseline is None or too_few(p.metric, during, before):
         return None
     change = change_of(p, during.value, before.baseline.value)
     if change is None:

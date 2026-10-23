@@ -9,6 +9,7 @@ from pydantic import BaseModel
 from agents import narrator
 from agents.llm import Model, Usage
 from contracts.card import InsightCard
+from contracts.meta import MatchMeta
 from contracts.taxonomy import LANGUAGE_FOR_SUPPORT, SupportLevel
 
 INSTRUCTIONS = """\
@@ -20,9 +21,12 @@ them, a change in the wrong direction, or more certainty about the cause than th
 level allows. The support level the Verifier assigned is a fact. 'assertive' may \
 state the cause as fact; 'measured' may say it looks like or \
 is consistent with the cause; 'tentative' may only say it may be the cause. The card is \
-published when its window ends, so 'since <start>' means from the window's start until now. \
-A rejected alternative is a cause the investigation ruled out; naming it as ruled out is \
-entailed. Keep each reason under 20 words."""
+published when its window ends, so 'since <start>' with the window's start is entailed. \
+Each subject is written as 'names' gives it. The first sentence states only the change: it \
+names no cause, so it cannot overstate one. Plain words for a change ('pressing harder', \
+'going long more often', 'sprinting less') narrate its metric and are entailed when the \
+metric moved that way. A rejected alternative is a cause the investigation ruled out; \
+naming it as ruled out is entailed. Keep each reason under 20 words."""
 
 
 class SentenceCheck(BaseModel):
@@ -36,7 +40,7 @@ class SemanticReport(BaseModel):
     sentences: list[SentenceCheck]
 
 
-def facts(card: InsightCard, support: SupportLevel) -> dict:
+def facts(card: InsightCard, support: SupportLevel, meta: MatchMeta) -> dict:
     change = next(p for p in card.propositions if p.type == "change")
     return {
         "change": {
@@ -67,6 +71,13 @@ def facts(card: InsightCard, support: SupportLevel) -> dict:
             narrator.cause_phrase(r.taxonomy, r.team or card.subject.team, 0)
             for r in card.rejected_alternatives
         ],
+        "names": {
+            s: narrator.who(meta, s)[0]
+            for s in dict.fromkeys(
+                [p.subject for p in card.propositions if p.type == "change"]
+                + [ev.subject for ev in card.evidence]
+            )
+        },
         "team_the_cause_is_about": card.subject.team,
         "support_level": support.value,
         "language_level": LANGUAGE_FOR_SUPPORT[support].value,
@@ -75,7 +86,7 @@ def facts(card: InsightCard, support: SupportLevel) -> dict:
 
 
 async def check(
-    model: Model, card: InsightCard, sentences: list[str], support: SupportLevel
+    model: Model, card: InsightCard, sentences: list[str], support: SupportLevel, meta: MatchMeta
 ) -> tuple[SemanticReport, Usage]:
-    prompt = json.dumps({"facts": facts(card, support), "sentences": sentences}, indent=1)
+    prompt = json.dumps({"facts": facts(card, support, meta), "sentences": sentences}, indent=1)
     return await model.ask("verifier", INSTRUCTIONS, prompt, SemanticReport)

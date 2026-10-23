@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from agents.cross_exam import Counter, Counters
+from agents.cross_exam import Counter, Counters, kind_of
 from agents.llm import Replay, Usage
 from agents.outputs import Proposal, Ranking, Registration
 from agents.verifier.semantic import SemanticReport, SentenceCheck
@@ -85,23 +85,29 @@ SCRIPT = {
 }
 
 
-def test_the_demo_press_survives_cross_examination_from_recorded_exchanges(m01):
+def test_the_demo_case_is_cross_examined_and_verified_from_recorded_exchanges(m01):
     feed, case = m01
     replay = Replay(FIXTURES)
     outcome = asyncio.run(run_case(Variant.A_PROOFLINE, replay, replay, case, feed))
     finding, card = outcome.finding, outcome.verdict.card
     assert finding.agents == [AgentRole.TACTICS, AgentRole.PHYSICAL, AgentRole.GAME_STATE]
-    # Recorded live: unprompted, the challengers asked for corollaries (fatigue should slow
-    # sprints too; chasing should bring more long balls), and none of them held fully.
-    assert finding.exams and all(e.corollary for e in finding.exams)
-    assert {e.result for e in finding.exams} == {"weakened"}
+    # Recorded live: unprompted, two challengers asked whether Northvale's fall in sprints
+    # also slowed them (a corollary of fatigue; it did not fully), and one ran a control on
+    # Harbour City's press against Northvale's (it held).
+    kinds = sorted((e.challenger, kind_of(e), e.result) for e in finding.exams)
+    assert kinds == [
+        (AgentRole.GAME_STATE, "corollary", "weakened"),
+        (AgentRole.PHYSICAL, "control", "holds"),
+        (AgentRole.TACTICS, "corollary", "weakened"),
+    ]
     assert [c.stage for c in finding.checkpoints] == [
         CaseStage.PREREGISTERED,
         CaseStage.TESTED,
         CaseStage.CROSS_EXAMINED,
         CaseStage.SYNTHESIZED,
     ]
-    assert card.status == "verified" and card.primary_cause.cause == Cause.PRESS_INTENSITY_UP
+    # Harbour City trail 1-3; the synthesis agent read their press as chasing the result.
+    assert card.status == "verified" and card.primary_cause.cause == Cause.CHASING_RESULT
     assert card.subject.team == "Harbour City" and not finding.recovered
     changes = {p.id: (p.metric, p.subject) for p in card.propositions if p.type == "change"}
     (secondary,) = [p for p in card.propositions if getattr(p, "role", None) == "secondary"]

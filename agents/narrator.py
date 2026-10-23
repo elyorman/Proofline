@@ -114,7 +114,7 @@ def number(metric: Metric, value: float) -> str:
     return f"{value:.2f}"
 
 
-def _who(meta: MatchMeta, subject: str) -> tuple[str, bool]:
+def who(meta: MatchMeta, subject: str) -> tuple[str, bool]:
     """(the subject as written, whether it takes a singular verb in English)."""
     who = resolve(meta, subject)
     if who.player_id:
@@ -127,15 +127,15 @@ def _who(meta: MatchMeta, subject: str) -> tuple[str, bool]:
 
 def _sentence(card: InsightCard, meta: MatchMeta, locale: int) -> str:
     change = next(p for p in card.propositions if p.type == "change")
-    who, singular = _who(meta, change.subject)
+    name, singular = who(meta, change.subject)
     en, es = CHANGE[change.metric, change.direction]
     start = change.window.start.minute
     if locale == 0:
         text = en.format(
             **{"is": "is" if singular else "are", "has": "has" if singular else "have"}
         )
-        return f"{who} {text} since {start}'."
-    return f"{who} {es} desde el minuto {start}."
+        return f"{name} {text} since {start}'."
+    return f"{name} {es} desde el minuto {start}."
 
 
 def claim(card: InsightCard, meta: MatchMeta) -> str:
@@ -156,7 +156,7 @@ def variants(
         facts = []
         for ev in card.evidence:
             facts.append(
-                f"{LABEL[ev.metric][i]} ({_who(meta, ev.subject)[0]}): "
+                f"{LABEL[ev.metric][i]} ({who(meta, ev.subject)[0]}): "
                 f"{number(ev.metric, ev.baseline.value)} → {number(ev.metric, ev.value)}"
             )
         ruled = [cause_phrase(r.taxonomy, r.team or team, i) for r in card.rejected_alternatives]

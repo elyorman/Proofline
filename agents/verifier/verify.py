@@ -85,7 +85,7 @@ async def verify(
     numbers = CheckResult.PASSED if numbers_match(card, every) else CheckResult.FAILED
     english = [card.claim] + [by_locale["en"] for by_locale in texts.values()]
     try:
-        report, usage = await semantic.check(model, card, english, level)
+        report, usage = await semantic.check(model, card, english, level, feed.meta)
     except ValueError as exc:  # no answer is no verification: the card is not published
         report, usage = None, Usage()
         unanswered = f"the semantic check gave no answer ({str(exc)[:80]})"

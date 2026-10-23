@@ -19,7 +19,7 @@ from azure.identity import DefaultAzureCredential
 from pydantic import BaseModel
 
 T = TypeVar("T", bound=BaseModel)
-MAX_TEXT_TOKENS = 32000  # a reasoning model writes its thinking before its answer
+MAX_TEXT_TOKENS = 8000  # the verifier's whole reply: its checks, then the JSON
 
 
 @dataclass(frozen=True)

@@ -260,14 +260,16 @@ resource modelDeployment 'Microsoft.CognitiveServices/accounts/deployments@2025-
 }
 
 // The Verifier's semantic check runs on a different model family from the agents, so it
-// does not share their blind spots (spec §9.2). DeepSeek-V3.2 has no Free Trial quota;
-// its Speciale variant does.
+// does not share their blind spots (spec §9.2). A chat model, not a reasoning one:
+// DeepSeek-V3.2-Speciale thought for minutes and left one reply in nine without an answer,
+// against a full-lane budget of 25 s. Microsoft's Phi-4 needs no Marketplace plan, which a
+// Free Trial cannot buy, and is served past 10 November.
 resource verifierDeployment 'Microsoft.CognitiveServices/accounts/deployments@2025-06-01' = {
   parent: foundry
-  name: 'DeepSeek-V3.2-Speciale'
+  name: 'Phi-4'
   sku: { name: 'GlobalStandard', capacity: verifierCapacity }
   properties: {
-    model: { format: 'DeepSeek', name: 'DeepSeek-V3.2-Speciale', version: '1' }
+    model: { format: 'Microsoft', name: 'Phi-4', version: '7' }
   }
   dependsOn: [modelDeployment] // one change at a time
 }

@@ -25,7 +25,7 @@ from contracts.prediction import CrossExamination
 from contracts.taxonomy import CardStatus
 from state.tools import Feed, window_minutes
 
-MODEL_FAMILY = "deepseek"
+MODEL_FAMILY = "phi"
 
 
 @dataclass

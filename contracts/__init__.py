@@ -10,6 +10,7 @@ from contracts.clock import MatchClock, Window
 from contracts.cue import Cue
 from contracts.eval_run import EvalRun, VariantComparison
 from contracts.event import Event, EventAmendment, EventRef, TrackingSample
+from contracts.feed import FeedMessage
 from contracts.meta import MatchMeta
 from contracts.prediction import CrossExamination, Hypothesis, HypothesisTest, Prediction
 from contracts.profile import Profile
@@ -42,6 +43,7 @@ __all__ = [
     "Event",
     "EventAmendment",
     "EventRef",
+    "FeedMessage",
     "EvidenceSet",
     "Hypothesis",
     "HypothesisTest",

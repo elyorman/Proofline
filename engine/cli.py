@@ -1,12 +1,14 @@
 """proofline-engine: generate synthetic matches from tactical scripts."""
 
 import argparse
+import os
 import sys
 
 import yaml
 from pydantic import ValidationError
 
 from contracts.eval_run import Split
+from engine.clock import event_hubs_sender, messages, publish
 from engine.io import write_match
 from engine.script import load_script
 from engine.sim import MatchSim
@@ -41,9 +43,17 @@ def main(argv: list[str] | None = None) -> int:
     suite.add_argument(
         "--size", type=_size, default=None, help="scripts per class (planted) or matches (decoys)"
     )
+    clock = sub.add_parser("clock", help="replay a written match onto the Event Hubs feed")
+    clock.add_argument("--match-dir", required=True, help="a folder written by generate")
+    clock.add_argument("--run-id", required=True, help="tags every message of this replay")
+    clock.add_argument(
+        "--speed", type=float, default=0.0, help="0 sends as fast as possible; N is N x real time"
+    )
     args = parser.parse_args(argv)
     if args.command == "suite":
         return _suite(parser, args)
+    if args.command == "clock":
+        return _clock(parser, args)
 
     try:
         script = load_script(args.script)
@@ -76,6 +86,21 @@ def _suite(parser: argparse.ArgumentParser, args: argparse.Namespace) -> int:
     excluded = len(built.flags.exclusions) if built.flags else 0
     print(f"{args.suite} {args.split}: {len(built.scripts)} matches, {excluded} not observable")
     print(f"written to {out}")
+    return 0
+
+
+def _clock(parser: argparse.ArgumentParser, args: argparse.Namespace) -> int:
+    namespace, hub = os.getenv("AZURE_EVENTHUBS_NAMESPACE"), os.getenv("AZURE_EVENTHUB_NAME")
+    if not (namespace and hub):
+        parser.error("set AZURE_EVENTHUBS_NAMESPACE and AZURE_EVENTHUB_NAME (azd env get-values)")
+    try:
+        feed = messages(args.match_dir, args.run_id)
+    except (OSError, ValidationError) as exc:
+        parser.error(f"cannot read {args.match_dir}: {exc}")
+    send, client = event_hubs_sender(namespace, hub)
+    with client:
+        sent = publish(feed, send, args.speed)
+    print(f"{feed[0].match_id}: {sent} messages on {hub} (run {args.run_id})")
     return 0
 
 

@@ -76,7 +76,8 @@ def subjects(meta: MatchMeta, watch: Watch) -> list[str]:
 
 @dataclass
 class Detector:
-    """Feed it the events delivered so far once a minute; it returns the cases it opens."""
+    """Feed it the events delivered so far once a minute; it returns the cases it opened or
+    added a trigger to."""
 
     meta: MatchMeta
     watches: tuple[Watch, ...] = WATCHES
@@ -89,7 +90,7 @@ class Detector:
         half = first_half_minutes(delivered)
         if half is None:
             return []
-        opened: list[Case] = []
+        touched: list[Case] = []
         first = [e for e in delivered if e.clock.period == 1]
         for i, watch in enumerate(self.watches):
             if minute - watch.window < 45:
@@ -113,17 +114,17 @@ class Detector:
                         n_events=now.n,
                     )
                     case = self._open(watch.moment, window, trigger, minute)
-                    if case is not None:
-                        opened.append(case)
-        return opened
+                    if all(case is not c for c in touched):
+                        touched.append(case)
+        return touched
 
     def _open(
         self, moment: MomentType, window: Window, trigger: TriggerMetric, minute: int
-    ) -> Case | None:
+    ) -> Case:
         for case in self.cases:
             if case.moment_type == moment and minute - case.window.end.minute <= MERGE_MINUTES:
                 case.triggers.append(trigger)
-                return None
+                return case
         case = Case(
             case_id=f"case-{self.meta.match_id}-{minute:03d}-{moment}",
             match_id=self.meta.match_id,

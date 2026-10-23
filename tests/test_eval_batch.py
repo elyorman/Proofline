@@ -209,6 +209,29 @@ def test_batch_inputs_have_stable_content_provenance(batch):
     assert changed.batch_digest != first.batch_digest and changed.run_id != first.run_id
 
 
+@pytest.mark.parametrize("index,count", [(0, 12), (1, 4)])
+def test_a_selected_suite_ignores_other_suite_files(batch, index, count):
+    root, suites, _, _ = batch
+    run = evaluate_batch(root, [suites[index]], variant="A", resamples=100)
+    assert len(run.outcomes) == count
+    assert run.suites == [suites[index].truth.suite]
+
+
+def test_batch_start_is_the_earliest_recorded_start_and_cannot_bypass_freeze(batch):
+    root, suites, truth, _ = batch
+    path = root / "A" / f"{truth.match_id}.json"
+    raw = json.loads(path.read_text())
+    frozen = suites[0].flags.frozen_at_ms
+    raw["started_at_ms"] = frozen + 10
+    path.write_text(json.dumps(raw))
+    run = evaluate_batch(root, suites, variant="A", resamples=100)
+    assert run.started_at_ms == frozen + 10
+    raw["started_at_ms"] = frozen - 1
+    path.write_text(json.dumps(raw))
+    with pytest.raises(ValueError, match="frozen before"):
+        evaluate_batch(root, suites, variant="A", started_at_ms=frozen + 20, resamples=100)
+
+
 def test_comparison_records_supplied_configuration_and_failed_case_usage(batch, capsys):
     root, _, truth, _ = batch
     write_cases(

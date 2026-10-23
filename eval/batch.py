@@ -40,6 +40,7 @@ class BatchFailure(BaseModel):
 class BatchMatch(BaseModel):
     match_id: str = Field(min_length=1)
     variant: Variant
+    started_at_ms: NonNegativeInt | None = None
     cases: list[BatchCase | BatchFailure]
 
     @model_validator(mode="after")
@@ -78,15 +79,13 @@ def evaluate_batch(
     variant = Variant(variant)
     folder = Path(root) / variant.value
     cohort = {entry.match_id for suite in suites for entry in suite.truth.entries}
-    paths = sorted(folder.glob("*.json"))
+    paths = sorted(p for p in folder.glob("*.json") if p.stem in cohort)
     if {p.stem for p in paths} != cohort:
         missing = sorted(cohort - {p.stem for p in paths})
-        extra = sorted({p.stem for p in paths} - cohort)
-        raise ValueError(
-            f"batch files must cover the cohort exactly; missing={missing}, extra={extra}"
-        )
+        raise ValueError(f"batch files must cover the selected cohort exactly; missing={missing}")
     cards, errors = [], {}
     input_tokens = output_tokens = 0
+    starts = [] if started_at_ms is None else [started_at_ms]
     digest = hashlib.sha256()
     for path in paths:
         data = path.read_bytes()
@@ -97,6 +96,8 @@ def evaluate_batch(
         except ValueError as exc:
             raise ValueError(f"{path}: {exc}") from exc
         digest.update(path.name.encode() + b"\0" + data + b"\0")
+        if match.started_at_ms is not None:
+            starts.append(match.started_at_ms)
         errors[match.match_id] = {}
         for case in match.cases:
             if case.tokens is not None:
@@ -118,7 +119,7 @@ def evaluate_batch(
         wall_time_budget_s=wall_time_budget_s,
         seed=seed,
         resamples=resamples,
-        started_at_ms=started_at_ms,
+        started_at_ms=min(starts) if starts else None,
         finished_at_ms=finished_at_ms,
         input_tokens=input_tokens,
         output_tokens=output_tokens,

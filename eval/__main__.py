@@ -8,7 +8,7 @@ from pathlib import Path
 import yaml
 
 from contracts.card import InsightCard
-from contracts.eval_run import EvalRun, SeededRun, VariantComparison
+from contracts.eval_run import EvalRun, SeededRun, Split, Variant, VariantComparison
 from eval.batch import evaluate_batch
 from eval.compare import compare
 from eval.metrics import METRIC_NAMES, PLANTED_RECALL
@@ -23,6 +23,8 @@ def main(argv: list[str] | None = None) -> int:
         return _compare(argv[1:])
     if argv and argv[0] == "scoreboard":
         return _scoreboard(argv[1:])
+    if argv and argv[0] == "seeded":
+        return _seeded(argv[1:])
     parser = argparse.ArgumentParser(
         prog="proofline-eval",
         description=__doc__,
@@ -170,6 +172,70 @@ def _scoreboard(argv: list[str]) -> int:
     try:
         print(scoreboard(args.records, args.check), end="")
     except (OSError, ValueError) as exc:
+        parser.error(str(exc))
+    return 0
+
+
+def _seeded(argv: list[str]) -> int:
+    import asyncio
+    import os
+    from contextlib import redirect_stdout
+
+    from eval.seeded import run_seeded
+    from orchestration.case import models
+
+    parser = argparse.ArgumentParser(prog="python -m eval seeded")
+    for name in ("runs", "data", "exchanges"):
+        parser.add_argument(f"--{name}", type=Path, required=True)
+    parser.add_argument("--variant", choices=["A", "B"], required=True)
+    parser.add_argument("--split", choices=["dev", "heldout"])
+    mode = parser.add_mutually_exclusive_group(required=True)
+    mode.add_argument("--record", type=Path, help="record live Verifier exchanges")
+    mode.add_argument("--replay", type=Path, help="use recorded Verifier exchanges only")
+    parser.add_argument("--limit", type=int, help="maximum number of published cards")
+    parser.add_argument("--concurrency", type=int, default=1)
+    parser.add_argument("--seed", type=int, default=0)
+    parser.add_argument("--resamples", type=int, default=2000)
+    parser.add_argument("--model-id")
+    parser.add_argument("--run-id")
+    parser.add_argument("--eval-run", type=Path, help="link an EvalRun for suite/flag provenance")
+    parser.add_argument("--record-dir", type=Path, default=Path("eval/records"))
+    parser.add_argument("--out", type=Path)
+    args = parser.parse_args(argv)
+    try:
+        if args.record and args.record.resolve() == args.exchanges.resolve():
+            raise ValueError("record seeded verification into a separate exchange directory")
+        if args.record and any(args.record.rglob("*.json")):
+            raise ValueError("seeded --record requires a fresh exchange directory; use --replay")
+        split = Split(args.split or args.runs.name)
+        _, model = models(record=args.record, replay=args.replay)
+        evaluation = (
+            EvalRun.model_validate_json(args.eval_run.read_bytes()) if args.eval_run else None
+        )
+        model_id = args.model_id or (
+            os.getenv("AZURE_VERIFIER_DEPLOYMENT") if args.record else None
+        )
+        with redirect_stdout(sys.stderr):
+            result = asyncio.run(
+                run_seeded(
+                    args.runs,
+                    Variant(args.variant),
+                    args.data,
+                    args.exchanges,
+                    model,
+                    args.record or args.replay,
+                    split=split,
+                    model_id=model_id,
+                    run_id=args.run_id,
+                    limit=args.limit,
+                    concurrency=args.concurrency,
+                    seed=args.seed,
+                    resamples=args.resamples,
+                    evaluation=evaluation,
+                )
+            )
+        _emit(result, args.out, args.record_dir)
+    except (OSError, ValueError, LookupError) as exc:
         parser.error(str(exc))
     return 0
 

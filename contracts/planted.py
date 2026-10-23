@@ -14,7 +14,7 @@ from contracts.eval_run import Split, Suite
 from contracts.prediction import Direction
 from contracts.taxonomy import Cause, Metric
 
-Role = Literal["team", "opponent", "unit", "player"]
+SubjectRole = Literal["team", "opponent", "unit", "player"]
 
 
 class CauseObservable(BaseModel):
@@ -23,45 +23,54 @@ class CauseObservable(BaseModel):
     model_config = {"frozen": True}
 
     metric: Metric
-    subject: Role
+    subject: SubjectRole
     direction: Direction
 
 
-def _obs(metric: Metric, subject: Role, direction: Direction) -> CauseObservable:
+def _obs(metric: Metric, subject: SubjectRole, direction: Direction) -> CauseObservable:
     return CauseObservable(metric=metric, subject=subject, direction=direction)
 
 
-UP, DOWN = Direction.UP, Direction.DOWN
+_UP, _DOWN = Direction.UP, Direction.DOWN
 
 # The classes the Match Engine can plant, and what each moves. Classes missing here
 # (block height, formation, flank, substitution, numerical change) have no mechanism
 # yet and are never planted; an agent may still name them, and precision counts it.
 CAUSE_OBSERVABLES: dict[Cause, tuple[CauseObservable, ...]] = {
     Cause.PRESS_INTENSITY_UP: (
-        _obs(Metric.PRESSURE_RATE, "team", UP),
-        _obs(Metric.LONG_BALL_SHARE, "opponent", UP),
+        _obs(Metric.PRESSURE_RATE, "team", _UP),
+        _obs(Metric.LONG_BALL_SHARE, "opponent", _UP),
     ),
     Cause.PRESS_INTENSITY_DOWN: (
-        _obs(Metric.PRESSURE_RATE, "team", DOWN),
-        _obs(Metric.LONG_BALL_SHARE, "opponent", DOWN),
+        _obs(Metric.PRESSURE_RATE, "team", _DOWN),
+        _obs(Metric.LONG_BALL_SHARE, "opponent", _DOWN),
     ),
     Cause.CHASING_RESULT: (
-        _obs(Metric.PRESSURE_RATE, "team", UP),
-        _obs(Metric.LONG_BALL_SHARE, "team", UP),
+        _obs(Metric.PRESSURE_RATE, "team", _UP),
+        _obs(Metric.LONG_BALL_SHARE, "team", _UP),
     ),
     Cause.PROTECTING_LEAD: (
-        _obs(Metric.PRESSURE_RATE, "team", DOWN),
-        _obs(Metric.LONG_BALL_SHARE, "team", UP),
+        _obs(Metric.PRESSURE_RATE, "team", _DOWN),
+        _obs(Metric.LONG_BALL_SHARE, "team", _UP),
     ),
     Cause.UNIT_FATIGUE: (
-        _obs(Metric.SPRINT_COUNT, "unit", DOWN),
-        _obs(Metric.SPRINT_SPEED, "unit", DOWN),
+        _obs(Metric.SPRINT_COUNT, "unit", _DOWN),
+        _obs(Metric.SPRINT_SPEED, "unit", _DOWN),
     ),
     Cause.PLAYER_FATIGUE: (
-        _obs(Metric.SPRINT_COUNT, "player", DOWN),
-        _obs(Metric.SPRINT_SPEED, "player", DOWN),
+        _obs(Metric.SPRINT_COUNT, "player", _DOWN),
+        _obs(Metric.SPRINT_SPEED, "player", _DOWN),
     ),
 }
+
+
+def _fills(role: SubjectRole, subject: str, team: str) -> bool:
+    """Whether `subject` can be the `role` of a change planted on `team`."""
+    if role == "team":
+        return subject == team
+    if role == "unit":
+        return subject.startswith(f"{team}.")
+    return subject != team and "." not in subject
 
 
 class TruthObservable(BaseModel):
@@ -95,6 +104,10 @@ class PlantedTruth(BaseModel):
         expected = [(o.metric, o.direction) for o in CAUSE_OBSERVABLES[self.cause]]
         if [(o.metric, o.direction) for o in self.observables] != expected:
             raise ValueError(f"{self.match_id}: observables must be {self.cause}'s, in order")
+        roles = [o.subject for o in CAUSE_OBSERVABLES[self.cause]]
+        for role, o in zip(roles, self.observables, strict=True):
+            if not _fills(role, o.subject, self.team):
+                raise ValueError(f"{self.match_id}: {o.subject} cannot be the {role} here")
         if self.window.start < self.started:
             raise ValueError(f"{self.match_id}: the window opens before the change began")
         return self
@@ -109,6 +122,8 @@ class GroundTruth(BaseModel):
 
     @model_validator(mode="after")
     def _fits_suite(self) -> "GroundTruth":
+        if self.suite not in (Suite.PLANTED, Suite.DECOYS):
+            raise ValueError(f"the {self.suite} suite has no planted ground truth")
         ids = [e.match_id for e in self.entries]
         if len(ids) != len(set(ids)):
             raise ValueError("each match appears once")

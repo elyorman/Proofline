@@ -32,6 +32,10 @@ class Split(StrEnum):
     HELDOUT = "heldout"
 
 
+# Spec §11.1: the seeds each split's suites and paired runs are drawn from.
+SEED_RANGES = {Split.DEV: range(1000, 2000), Split.HELDOUT: range(2000, 3000)}
+
+
 class MetricEstimate(BaseModel):
     name: str
     suite: Suite
@@ -95,9 +99,9 @@ class ObservableCheck(BaseModel):
 
 
 class Exclusion(BaseModel):
-    """A planted script left out of recall as not_observable, with the numbers why."""
+    """A planted match left out of recall as not_observable, with the numbers why."""
 
-    script_id: str
+    match_id: str
     cause: Cause
     rule: ExclusionRule
     observables: list[ObservableCheck] = Field(min_length=1)
@@ -108,12 +112,12 @@ class Exclusion(BaseModel):
             raise ValueError("'other' and 'none' are outcomes, never planted causes")
         cleared = any(o.clears_zero for o in self.observables)
         if self.rule == ExclusionRule.NO_PAIRED_EFFECT and cleared:
-            raise ValueError(f"{self.script_id}: an observable's CI clears zero its way")
+            raise ValueError(f"{self.match_id}: an observable's CI clears zero its way")
         if self.rule == ExclusionRule.NO_SEPARATION:
             if not cleared:
-                raise ValueError(f"{self.script_id}: the paired-effect rule applies first")
+                raise ValueError(f"{self.match_id}: the paired-effect rule applies first")
             if any(o.separates for o in self.observables):
-                raise ValueError(f"{self.script_id}: an observable separates enough to count")
+                raise ValueError(f"{self.match_id}: an observable separates enough to count")
         return self
 
 
@@ -121,39 +125,43 @@ class FlagSet(BaseModel):
     """The frozen not_observable flags of one planted suite split, with their provenance.
 
     Every planted EvalRun embeds the same flag set, frozen before either variant ran, so
-    both variants exclude the same scripts and the scoreboard can show why.
+    both variants exclude the same matches and the scoreboard can show why.
     """
 
     split: Split
-    scripts: list[str] = Field(min_length=1, description="every planted match considered")
-    paired_seeds: dict[str, list[int]] = Field(description="per script, the seeds measured")
-    frozen_at_ms: int = Field(ge=0)
+    match_ids: list[str] = Field(min_length=1, description="every planted match considered")
+    paired_seeds: dict[str, list[int]] = Field(description="per match, the seeds measured")
+    frozen_at_ms: int = Field(ge=0, description="epoch milliseconds")
     exclusions: list[Exclusion] = Field(default_factory=list)
 
     @computed_field
     @property
     def flag_set_id(self) -> str:
         content = self.model_dump(
-            mode="json", include={"split", "scripts", "paired_seeds", "exclusions"}
+            mode="json", include={"split", "match_ids", "paired_seeds", "exclusions"}
         )
         digest = hashlib.sha256(json.dumps(content, sort_keys=True).encode()).hexdigest()
         return f"flags-{digest[:16]}"
 
     @model_validator(mode="after")
-    def _covers_its_scripts(self) -> "FlagSet":
-        if len(self.scripts) != len(set(self.scripts)):
-            raise ValueError("each planted script is listed once")
-        if set(self.paired_seeds) != set(self.scripts):
-            raise ValueError("every planted script, and only those, has its paired seeds")
-        thin = sorted(s for s, seeds in self.paired_seeds.items() if len(seeds) < MIN_SEED_PAIRS)
-        if thin:
-            raise ValueError(f"fewer than {MIN_SEED_PAIRS} seed pairs for {thin}")
-        excluded = [x.script_id for x in self.exclusions]
+    def _covers_its_matches(self) -> "FlagSet":
+        if len(self.match_ids) != len(set(self.match_ids)):
+            raise ValueError("each planted match is listed once")
+        if set(self.paired_seeds) != set(self.match_ids):
+            raise ValueError("every planted match, and only those, has its paired seeds")
+        for m, seeds in self.paired_seeds.items():
+            if len(seeds) != len(set(seeds)):
+                raise ValueError(f"{m}: a seed is measured once")
+            if len(seeds) < MIN_SEED_PAIRS:
+                raise ValueError(f"fewer than {MIN_SEED_PAIRS} seed pairs for {m}")
+            if not set(seeds) <= set(SEED_RANGES[self.split]):
+                raise ValueError(f"{m}: paired seeds outside the {self.split} range")
+        excluded = [x.match_id for x in self.exclusions]
         if len(excluded) != len(set(excluded)):
-            raise ValueError("each excluded script is listed once")
-        unknown = sorted(set(excluded) - set(self.scripts))
+            raise ValueError("each excluded match is listed once")
+        unknown = sorted(set(excluded) - set(self.match_ids))
         if unknown:
-            raise ValueError(f"exclusions name scripts outside the set: {unknown}")
+            raise ValueError(f"exclusions name matches outside the set: {unknown}")
         return self
 
 
@@ -165,8 +173,8 @@ class EvalRun(BaseModel):
     model_tier: str = Field(description="dev | final")
     match_ids: list[str] = Field(min_length=1)
     metrics: list[MetricEstimate] = Field(min_length=1)
-    started_at_ms: int = Field(ge=0)
-    finished_at_ms: int = Field(ge=0)
+    started_at_ms: int = Field(ge=0, description="epoch milliseconds")
+    finished_at_ms: int = Field(ge=0, description="epoch milliseconds")
     input_tokens: int = Field(default=0, ge=0)
     output_tokens: int = Field(default=0, ge=0)
     cost_usd: float | None = Field(default=None, ge=0)
@@ -199,6 +207,9 @@ class EvalRun(BaseModel):
                 raise ValueError("the flag set is for another split")
             if self.flags.frozen_at_ms > self.started_at_ms:
                 raise ValueError("flags must be frozen before the run starts")
+            missing = sorted(set(self.flags.match_ids) - set(self.match_ids))
+            if missing:
+                raise ValueError(f"a planted run scores every flagged match; missing {missing}")
         return self
 
 

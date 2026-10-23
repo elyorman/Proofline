@@ -30,10 +30,10 @@
       "type": "string"
     },
     "Exclusion": {
-      "description": "A planted script left out of recall as not_observable, with the numbers why.",
+      "description": "A planted match left out of recall as not_observable, with the numbers why.",
       "properties": {
-        "script_id": {
-          "title": "Script Id",
+        "match_id": {
+          "title": "Match Id",
           "type": "string"
         },
         "cause": {
@@ -52,7 +52,7 @@
         }
       },
       "required": [
-        "script_id",
+        "match_id",
         "cause",
         "rule",
         "observables"
@@ -70,18 +70,18 @@
       "type": "string"
     },
     "FlagSet": {
-      "description": "The frozen not_observable flags of one planted suite split, with their provenance.\n\nEvery planted EvalRun embeds the same flag set, frozen before either variant ran, so\nboth variants exclude the same scripts and the scoreboard can show why.",
+      "description": "The frozen not_observable flags of one planted suite split, with their provenance.\n\nEvery planted EvalRun embeds the same flag set, frozen before either variant ran, so\nboth variants exclude the same matches and the scoreboard can show why.",
       "properties": {
         "split": {
           "$ref": "#/$defs/Split"
         },
-        "scripts": {
+        "match_ids": {
           "description": "every planted match considered",
           "items": {
             "type": "string"
           },
           "minItems": 1,
-          "title": "Scripts",
+          "title": "Match Ids",
           "type": "array"
         },
         "paired_seeds": {
@@ -91,11 +91,12 @@
             },
             "type": "array"
           },
-          "description": "per script, the seeds measured",
+          "description": "per match, the seeds measured",
           "title": "Paired Seeds",
           "type": "object"
         },
         "frozen_at_ms": {
+          "description": "epoch milliseconds",
           "minimum": 0,
           "title": "Frozen At Ms",
           "type": "integer"
@@ -110,7 +111,7 @@
       },
       "required": [
         "split",
-        "scripts",
+        "match_ids",
         "paired_seeds",
         "frozen_at_ms"
       ],
@@ -307,11 +308,13 @@
       "type": "array"
     },
     "started_at_ms": {
+      "description": "epoch milliseconds",
       "minimum": 0,
       "title": "Started At Ms",
       "type": "integer"
     },
     "finished_at_ms": {
+      "description": "epoch milliseconds",
       "minimum": 0,
       "title": "Finished At Ms",
       "type": "integer"

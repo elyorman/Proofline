@@ -17,7 +17,7 @@ from pathlib import Path
 import yaml
 
 from contracts.clock import MatchClock
-from contracts.eval_run import FlagSet, Split, Suite
+from contracts.eval_run import SEED_RANGES, FlagSet, Split, Suite
 from contracts.planted import CAUSE_OBSERVABLES, GroundTruth, PlantedTruth
 from contracts.taxonomy import Cause
 from engine.paired import LATEST_START, judge, measure, resolve, window_after
@@ -25,7 +25,6 @@ from engine.script import Intervention, MatchScript, TeamSpec
 from engine.sim import MatchSim
 from engine.teams import FORMATIONS, UNIT_OF_ROLE
 
-SPLIT_BASE = {Split.DEV: 1000, Split.HELDOUT: 2000}  # spec §11.1
 MATCH_OFFSET, DECOY_OFFSET, PAIRED_OFFSET = 0, 300, 500
 PER_CLASS = {Split.DEV: 2, Split.HELDOUT: 5}
 DECOYS = {Split.DEV: 4, Split.HELDOUT: 10}
@@ -150,7 +149,8 @@ def _planted_match(args: tuple) -> tuple[MatchScript, PlantedTruth]:
     params, fields = _template(cause, rng, teams[side])
     teams[side] = teams[side].model_copy(update=params)
     iv = Intervention.model_validate({"id": "s1", "team": side, **fields})
-    first = SPLIT_BASE[split] + MATCH_OFFSET + 20 * k + 7 * list(CAUSE_OBSERVABLES).index(cause)
+    base = SEED_RANGES[split].start + MATCH_OFFSET
+    first = base + 20 * k + 7 * list(CAUSE_OBSERVABLES).index(cause)
     for seed in range(first, first + SCAN):
         script = MatchScript(match_id=match_id, seed=seed, teams=teams, scripts=[iv])
         sim = MatchSim(script)
@@ -172,7 +172,7 @@ def _planted_match(args: tuple) -> tuple[MatchScript, PlantedTruth]:
 
 def _flag(args: tuple):
     split, script, truth, pairs = args
-    first = SPLIT_BASE[split] + PAIRED_OFFSET
+    first = SEED_RANGES[split].start + PAIRED_OFFSET
     checks, seeds = measure(
         script,
         truth.script_id,
@@ -200,7 +200,7 @@ def planted(
     scripts = [s for s, _ in built]
     flags = FlagSet(
         split=split,
-        scripts=[s.match_id for s in scripts],
+        match_ids=[s.match_id for s in scripts],
         paired_seeds={s.match_id: seeds for s, (_, seeds) in zip(scripts, flagged, strict=True)},
         frozen_at_ms=int(time.time() * 1000),
         exclusions=[x for x, _ in flagged if x is not None],
@@ -217,7 +217,7 @@ def decoys(split: Split, count: int | None = None) -> BuiltSuite:
     for k in range(count):
         rng = random.Random(f"decoy:{split}:{k}")
         match_id = f"{prefix}-{k + 1:02d}"
-        seed = SPLIT_BASE[split] + DECOY_OFFSET + k
+        seed = SEED_RANGES[split].start + DECOY_OFFSET + k
         scripts.append(MatchScript(match_id=match_id, seed=seed, teams=_teams(rng)))
         entries.append(PlantedTruth(match_id=match_id, cause=Cause.NONE))
     truth = GroundTruth(suite=Suite.DECOYS, split=split, entries=entries)

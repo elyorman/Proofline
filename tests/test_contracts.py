@@ -756,11 +756,11 @@ def _estimate(**overrides):
     return MetricEstimate(**base)
 
 
-def _flags(*exclusions, scripts=("p07-s1",)):
-    seeds = {s: list(range(2500, 2520)) for s in scripts}
+def _flags(*exclusions, match_ids=("p-h-07",)):
+    seeds = {m: list(range(2500, 2520)) for m in match_ids}
     return dict(
         split="heldout",
-        scripts=list(scripts),
+        match_ids=list(match_ids),
         paired_seeds=seeds,
         frozen_at_ms=0,
         exclusions=list(exclusions),
@@ -774,7 +774,7 @@ def _eval_run(metrics):
         suites=[Suite.PLANTED],
         split=Split.HELDOUT,
         model_tier="final",
-        match_ids=["m01"],
+        match_ids=["p-h-07"],
         metrics=metrics,
         started_at_ms=0,
         finished_at_ms=10,
@@ -807,7 +807,7 @@ def _check(**overrides):
 
 def _exclusion(rule, *checks, **check):
     observables = list(checks) or [_check(**check)]
-    return dict(script_id="p07-s1", cause=Cause.PLAYER_FATIGUE, rule=rule, observables=observables)
+    return dict(match_id="p-h-07", cause=Cause.PLAYER_FATIGUE, rule=rule, observables=observables)
 
 
 def _with_exclusions(exclusions, suite=Suite.PLANTED):
@@ -833,7 +833,7 @@ UP = dict(metric=Metric.PRESSURE_RATE, subject="Harbour City", direction=Directi
         _exclusion("no_paired_effect", **UP, separation=0.3, ci_low=-0.1, ci_high=0.4),
     ],
 )
-def test_excluded_scripts_carry_the_numbers_that_excluded_them(exclusion):
+def test_excluded_matches_carry_the_numbers_that_excluded_them(exclusion):
     assert _with_exclusions([exclusion]).flags.exclusions[0].rule == exclusion["rule"]
 
 
@@ -871,6 +871,8 @@ def test_a_flag_set_names_its_provenance_and_changes_id_with_it():
     flags = FlagSet(**_flags())
     assert flags.flag_set_id.startswith("flags-")
     assert FlagSet(**_flags()).flag_set_id == flags.flag_set_id
+    # When the flags were frozen is not what they say, so it does not change the id.
+    assert FlagSet(**_flags() | {"frozen_at_ms": 99}).flag_set_id == flags.flag_set_id
     excluding = FlagSet(**_flags(_exclusion("no_separation")))
     assert excluding.flag_set_id != flags.flag_set_id
     assert FlagSet.model_validate_json(excluding.model_dump_json()) == excluding
@@ -879,13 +881,18 @@ def test_a_flag_set_names_its_provenance_and_changes_id_with_it():
 @pytest.mark.parametrize(
     "overrides,message",
     [
-        (dict(paired_seeds={"p07-s1": list(range(19))}), "fewer than 20 seed pairs"),
+        (dict(paired_seeds={"p-h-07": list(range(2500, 2519))}), "fewer than 20 seed pairs"),
+        (dict(paired_seeds={"p-h-07": [2500, *range(2500, 2520)]}), "measured once"),
+        (dict(paired_seeds={"p-h-07": list(range(1990, 2010))}), "outside the heldout range"),
         (dict(paired_seeds={}), "has its paired seeds"),
-        (dict(scripts=["p07-s1", "p07-s1"]), "listed once"),
-        (dict(exclusions=[_exclusion("no_separation") | {"script_id": "p99"}]), "outside the set"),
+        (dict(match_ids=["p-h-07", "p-h-07"]), "listed once"),
+        (
+            dict(exclusions=[_exclusion("no_separation") | {"match_id": "p-h-99"}]),
+            "outside the set",
+        ),
     ],
 )
-def test_a_flag_set_covers_exactly_its_scripts(overrides, message):
+def test_a_flag_set_covers_exactly_its_matches(overrides, message):
     with pytest.raises(ValidationError, match=message):
         FlagSet(**(_flags() | overrides))
 
@@ -895,9 +902,12 @@ def test_a_planted_run_carries_flags_frozen_before_it_for_its_split():
     with pytest.raises(ValidationError, match="carries its flag set"):
         EvalRun.model_validate(dict(run, flags=None))
     with pytest.raises(ValidationError, match="another split"):
-        EvalRun.model_validate(dict(run, flags=_flags() | {"split": "dev"}))
+        dev = {"split": "dev", "paired_seeds": {"p-h-07": list(range(1500, 1520))}}
+        EvalRun.model_validate(dict(run, flags=_flags() | dev))
     with pytest.raises(ValidationError, match="frozen before the run starts"):
         EvalRun.model_validate(dict(run, flags=_flags() | {"frozen_at_ms": 5}, started_at_ms=1))
+    with pytest.raises(ValidationError, match=r"scores every flagged match; missing \['p-h-07'\]"):
+        EvalRun.model_validate(dict(run, match_ids=["p-h-08"]))
 
 
 def _comparison(variant_b):

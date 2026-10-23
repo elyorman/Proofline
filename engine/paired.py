@@ -112,7 +112,7 @@ def measure(
     return checks, used
 
 
-def judge(script_id: str, cause: Cause, checks: list[ObservableCheck]) -> Exclusion | None:
+def judge(match_id: str, cause: Cause, checks: list[ObservableCheck]) -> Exclusion | None:
     """Spec §7.2: excluded under the first rule the numbers meet, or None if it counts."""
     if not any(c.clears_zero for c in checks):
         rule = ExclusionRule.NO_PAIRED_EFFECT
@@ -120,4 +120,4 @@ def judge(script_id: str, cause: Cause, checks: list[ObservableCheck]) -> Exclus
         rule = ExclusionRule.NO_SEPARATION
     else:
         return None
-    return Exclusion(script_id=script_id, cause=cause, rule=rule, observables=checks)
+    return Exclusion(match_id=match_id, cause=cause, rule=rule, observables=checks)

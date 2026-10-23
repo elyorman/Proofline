@@ -5,6 +5,9 @@ from contracts.planted import CAUSE_OBSERVABLES, GroundTruth, PlantedTruth
 from contracts.prediction import Direction
 from contracts.taxonomy import DEFAULT_THRESHOLD_KIND, Cause, Metric
 
+HC_PRESS = dict(metric=Metric.PRESSURE_RATE, subject="Harbour City", direction=Direction.UP)
+NV_LONG = dict(metric=Metric.LONG_BALL_SHARE, subject="Northvale", direction=Direction.UP)
+
 
 def _truth(**overrides):
     base = dict(
@@ -14,10 +17,7 @@ def _truth(**overrides):
         script_id="s1",
         started="60:00",
         window="60:00-68:00",
-        observables=[
-            dict(metric=Metric.PRESSURE_RATE, subject="Harbour City", direction=Direction.UP),
-            dict(metric=Metric.LONG_BALL_SHARE, subject="Northvale", direction=Direction.UP),
-        ],
+        observables=[HC_PRESS, NV_LONG],
     )
     return base | overrides
 
@@ -43,6 +43,10 @@ def test_planted_truth_matches_its_class():
         (dict(cause=Cause.BLOCK_DEEPER), "cannot be planted"),
         (dict(team=None), "names its team, script and window"),
         (dict(observables=[]), "observables must be"),
+        (dict(observables=[NV_LONG, HC_PRESS]), "observables must be"),
+        (dict(observables=[HC_PRESS | {"direction": Direction.DOWN}, NV_LONG]), "observables must"),
+        (dict(observables=[HC_PRESS | {"subject": "Northvale"}, NV_LONG]), "cannot be the team"),
+        (dict(observables=[HC_PRESS, NV_LONG | {"subject": "Harbour City"}]), "be the opponent"),
         (dict(window="58:00-66:00"), "opens before the change began"),
         (dict(cause=Cause.NONE), "names nothing"),
     ],
@@ -50,6 +54,29 @@ def test_planted_truth_matches_its_class():
 def test_planted_truth_refuses_what_does_not_fit(overrides, message):
     with pytest.raises(ValidationError, match=message):
         PlantedTruth(**_truth(**overrides))
+
+
+@pytest.mark.parametrize(
+    "cause,subject,message",
+    [
+        (Cause.UNIT_FATIGUE, "Northvale.defence", "cannot be the unit"),
+        (Cause.PLAYER_FATIGUE, "Harbour City", "cannot be the player"),
+        (Cause.PLAYER_FATIGUE, "Harbour City.defence", "cannot be the player"),
+    ],
+)
+def test_fatigue_is_measured_on_the_teams_own_unit_or_a_player(cause, subject, message):
+    def fatigue(subject):
+        observables = [
+            dict(metric=o.metric, subject=subject, direction=o.direction)
+            for o in CAUSE_OBSERVABLES[cause]
+        ]
+        return _truth(cause=cause, window="67:00-87:00", observables=observables)
+
+    assert PlantedTruth(
+        **fatigue("Harbour City.defence" if cause == Cause.UNIT_FATIGUE else "HC-04")
+    )
+    with pytest.raises(ValidationError, match=message):
+        PlantedTruth(**fatigue(subject))
 
 
 def test_ground_truth_fits_its_suite():
@@ -63,3 +90,5 @@ def test_ground_truth_fits_its_suite():
         GroundTruth(suite="planted", split="heldout", entries=[nothing])
     with pytest.raises(ValidationError, match="appears once"):
         GroundTruth(suite="planted", split="heldout", entries=[planted, planted])
+    with pytest.raises(ValidationError, match="has no planted ground truth"):
+        GroundTruth(suite="corrections", split="heldout", entries=[nothing])

@@ -1,15 +1,23 @@
+import math
+
 import pytest
 
 from contracts.clock import Window
 from contracts.event import Event, PassQualifiers, Point
+from contracts.prediction import Direction
+from contracts.taxonomy import Metric
 from engine.visibility import (
     change,
     clears,
     first_half,
     long_ball_share,
+    observable,
     pressure_rate,
     right_channel_share,
     separation,
+    sprint_count,
+    sprint_speed,
+    window_minutes,
 )
 
 
@@ -96,3 +104,68 @@ def test_separation_and_clears_are_in_natural_standard_deviations():
     assert separation([6.0, 8.0], natural) == pytest.approx(2.5)
     assert clears(6.0, natural)
     assert not clears(5.9, natural)
+
+
+def _sprint(team, player, position, speed, clock):
+    return Event(
+        event_id="s",
+        match_id="t01",
+        clock=clock,
+        wall_clock_ms=0,
+        type="sprint",
+        team=team,
+        player_id=player,
+        position=position,
+        start=Point(x=30, y=30),
+        end=Point(x=50, y=30),
+        qualifiers={"speed_kmh": speed, "distance_m": 20.0},
+    )
+
+
+SPRINTS = [
+    _sprint("Harbour City", "HC-02", "RB", 30.0, "10:00"),
+    _sprint("Harbour City", "HC-10", "ST", 32.0, "20:00"),
+    _sprint("Northvale", "NV-02", "RB", 31.0, "20:00"),
+    _sprint("Harbour City", "HC-02", "RB", 28.0, "60:00"),
+    Event(
+        event_id="e",
+        match_id="t01",
+        clock="45+0:00",
+        wall_clock_ms=0,
+        type="period_end",
+        team="Harbour City",
+    ),
+]
+CARD = Window.model_validate("58:00-63:00")
+
+
+def test_sprints_are_counted_per_minute_for_a_team_a_unit_or_a_player():
+    # One sprint in 5 minutes against one in the 45-minute first half.
+    assert change(sprint_count("Harbour City.defence"), SPRINTS, CARD) == pytest.approx(
+        1 / 5 - 1 / 45
+    )
+    assert change(sprint_count("HC-10"), SPRINTS, CARD) == pytest.approx(-1 / 45)
+    assert change(sprint_count("Northvale"), SPRINTS, CARD) == pytest.approx(-1 / 45)
+
+
+def test_sprint_speed_is_the_mean_and_undefined_without_sprints():
+    assert change(sprint_speed("Harbour City"), SPRINTS, CARD) == pytest.approx(28.0 - 31.0)
+    assert math.isnan(change(sprint_speed("Northvale"), SPRINTS, CARD))
+
+
+def test_a_window_spanning_half_time_is_refused():
+    with pytest.raises(ValueError, match="spans half-time"):
+        window_minutes(Window.model_validate("44:00-46:00"))
+
+
+def test_observables_are_found_by_metric():
+    assert observable(Metric.PRESSURE_RATE, "Harbour City", "Northvale")
+    with pytest.raises(ValueError, match="does not measure"):
+        observable(Metric.XG, "Harbour City", "Northvale")
+
+
+def test_clears_in_the_story_direction():
+    natural = [0.0, 2.0, 4.0]  # mean 2, sd 2
+    assert clears(-2.0, natural, direction=Direction.DOWN)
+    assert not clears(-1.9, natural, direction=Direction.DOWN)
+    assert not clears(6.0, natural, direction=Direction.DOWN)

@@ -23,7 +23,13 @@ def write_match(sim: MatchSim, events: list[Event], out_dir: str | Path) -> Path
     out = Path(out_dir)
     out.mkdir(parents=True, exist_ok=True)
     _write(out / "events.jsonl", "".join(e.model_dump_json() + "\n" for e in events))
-    meta = MatchMeta(
+    _write(out / "meta.json", match_meta(sim).model_dump_json(indent=2) + "\n")
+    return out
+
+
+def match_meta(sim: MatchSim) -> MatchMeta:
+    """The match's metadata as a feed states it before kick-off."""
+    return MatchMeta(
         match_id=sim.script.match_id,
         teams={
             side: {
@@ -38,8 +44,6 @@ def write_match(sim: MatchSim, events: list[Event], out_dir: str | Path) -> Path
             for side, team in sim.script.teams.items()
         },
     )
-    _write(out / "meta.json", meta.model_dump_json(indent=2) + "\n")
-    return out
 
 
 def read_meta(path: str | Path) -> MatchMeta:

@@ -1,18 +1,20 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Analyst } from './Analyst';
 import { Broadcast } from './Broadcast';
+import { Overlay } from './Overlay';
 import { loadReplay, type ReplayData } from './data';
-import { cards, cues } from './fixtures';
+import { cards, cues, isStandInCard } from './fixtures';
 import type { Locale } from './i18n';
 import { Insights } from './Insights';
 import { Activity, EventFeed, Pitch } from './Pitch';
-import { clockAt, elapsedAt, formatClock, scoreAt, teamStats, visibleCards, type ProducerDecision } from './replay';
-import { Crest, Icon, LocaleContext, SectionTitle, useText } from './ui';
+import { clockAt, displayTime, elapsedAt, formatClock, scoreAt, teamStats, visibleCards, type ProducerDecision } from './replay';
+import { Crest, Icon, LocaleContext, SectionTitle, ViewBoundary, useText } from './ui';
 
-type Route = 'fan' | 'analyst' | 'broadcast';
+type Route = 'fan' | 'analyst' | 'broadcast' | 'overlay';
+const pressureCard = cards.find(card => card.moment_type === 'pressure_shift' && !isStandInCard(card));
 function routeAtHash(): Route {
   const route = location.hash.replace('#/', '');
-  return route === 'analyst' || route === 'broadcast' ? route : 'fan';
+  return route === 'analyst' || route === 'broadcast' || route === 'overlay' ? route : 'fan';
 }
 
 export default function App() {
@@ -32,7 +34,7 @@ function Workspace({ locale, setLocale }: { locale: Locale; setLocale: (locale: 
   const [mode, setMode] = useState('casual');
   const [favorite, setFavorite] = useState('Northvale');
   const [player, setPlayer] = useState('NV-10');
-  const [selected, setSelected] = useState('ins-m01-063-01');
+  const [selected, setSelected] = useState(pressureCard?.id ?? '');
   const [decisions, setDecisions] = useState<ProducerDecision[]>([]);
 
   useEffect(() => {
@@ -47,14 +49,14 @@ function Workspace({ locale, setLocale }: { locale: Locale; setLocale: (locale: 
     loadReplay(controller.signal).then(replay => {
       if (controller.signal.aborted) return;
       setData(replay);
-      setElapsed(elapsedAt({ period: 2, minute: 63, second: 40 }, replay.timeline.firstHalfSeconds));
+      setElapsed(pressureCard ? elapsedAt(displayTime(pressureCard), replay.timeline.firstHalfSeconds) : 0);
     }).catch(() => { if (!controller.signal.aborted) setError(true); });
     return () => controller.abort();
   }, [attempt]);
 
   useEffect(() => {
     document.documentElement.lang = locale;
-    document.title = `Proofline · ${text(`nav.${route}`)}`;
+    document.title = `${text('brand.name')} · ${text(`nav.${route}`)}`;
   }, [locale, route, text]);
 
   useEffect(() => {
@@ -74,7 +76,7 @@ function Workspace({ locale, setLocale }: { locale: Locale; setLocale: (locale: 
   }, [elapsed, data]);
 
   const delivered = useMemo(() => data?.timeline.events.filter(e => e.at <= elapsed) ?? [], [data, elapsed]);
-  if (!data) return <main className="load-screen"><div className="wordmark">proofline<span>↗</span></div>
+  if (!data) return <main className="load-screen"><div className="wordmark">{text('brand.wordmark')}<span>↗</span></div>
     {error ? <><h1>{text('error.title')}</h1><p>{text('error.body')}</p><button className="button primary" onClick={() => setAttempt(n => n + 1)}>{text('error.retry')}</button></> : <p role="status">{text('loading')}</p>}
   </main>;
 
@@ -83,7 +85,7 @@ function Workspace({ locale, setLocale }: { locale: Locale; setLocale: (locale: 
   const full = elapsed >= data.timeline.duration;
   const score = scoreAt(data.timeline, elapsed, data.teams.map(t => t.name));
   const currentCards = visibleCards(cards, elapsed, firstHalf);
-  const publishedRevisions = cards.filter(c => c.timing.published_at && elapsedAt(c.timing.published_at, firstHalf) <= elapsed);
+  const publishedRevisions = cards.filter(c => elapsedAt(displayTime(c), firstHalf) <= elapsed);
   const stats = data.teams.map(team => teamStats(delivered.map(d => d.event), team.name));
   const roster = data.teams.find(team => team.name === favorite)?.players ?? data.teams[0].players;
   const openCase = (id: string) => { setSelected(id); location.hash = '/analyst'; };
@@ -95,36 +97,38 @@ function Workspace({ locale, setLocale }: { locale: Locale; setLocale: (locale: 
   const jumps = [
     { key: 'start', at: 0 },
     { key: 'flank', at: elapsedAt({ period: 2, minute: 55, second: 20 }, firstHalf) },
-    { key: 'press', at: elapsedAt({ period: 2, minute: 63, second: 40 }, firstHalf) },
+    { key: 'press', at: pressureCard ? elapsedAt(displayTime(pressureCard), firstHalf) : 0 },
+    ...cues.filter(c => c.template === 'pressure_shift_bar').slice(0, 1).map(cue => ({ key: 'overlay', at: elapsedAt(cue.show_at.not_before, firstHalf) })),
     { key: 'correction', at: elapsedAt({ period: 2, minute: 68, second: 10 }, firstHalf) },
     { key: 'full', at: data.timeline.duration },
   ];
   return <div className="app-shell">
-    <aside className="sidebar"><a href="#/fan" className="brand" aria-label="Proofline"><span className="brand-icon"><i /><i /><i /></span><span className="wordmark">proofline<span>↗</span></span></a><p className="brand-caption">{text('brand.caption')}</p>
+    <aside className="sidebar"><a href="#/fan" className="brand" aria-label={text('brand.name')}><span className="brand-icon"><i /><i /><i /></span><span className="wordmark">{text('brand.wordmark')}<span>↗</span></span></a><p className="brand-caption">{text('brand.caption')}</p>
       <span className="nav-label">{text('nav.workspace')}</span>
-      <nav aria-label={text('nav.workspace')}>{(['fan', 'analyst', 'broadcast'] as const).map(name => <a href={`#/${name}`} key={name} aria-label={text(`nav.${name}`)} aria-current={route === name ? 'page' : undefined} className={route === name ? 'active' : ''}><Icon name={name} /><span>{text(`nav.${name}`)}</span>{route === name && <span className="nav-active-dot" />}</a>)}</nav>
+      <nav aria-label={text('nav.workspace')}>{(['fan', 'analyst', 'broadcast', 'overlay'] as const).map(name => <a href={`#/${name}`} key={name} aria-label={text(`nav.${name}`)} aria-current={route === name ? 'page' : undefined} className={route === name ? 'active' : ''}><Icon name={name} /><span>{text(`nav.${name}`)}</span>{route === name && <span className="nav-active-dot" />}</a>)}</nav>
       <div className="sidebar-bottom"><div className="proof-mark"><span /><span /><span /></div><p>{text('nav.about')}</p><span className="sidebar-replay"><i />{text('fixture')}</span></div>
     </aside>
-    <div className="workspace"><header className="topbar"><div className="breadcrumb"><span>Proofline</span><span>/</span><strong>{text(`nav.${route}`)}</strong></div><div className="topbar-actions"><span className="replay-badge"><i />{text('replay')}</span><label className="locale-picker"><Icon name="globe" size={17} /><span className="sr-only">{text('language')}</span><select value={locale} onChange={e => setLocale(e.target.value as Locale)}><option value="en">English</option><option value="es">Español</option></select></label></div></header>
-      <main className="main-content" id="main-content"><div className="page-intro"><div><p className="eyebrow">{text('league')}</p><h1>{text(`page.${route}`)}</h1><p>{text(`page.${route}.sub`)}</p></div></div>
+    <div className="workspace"><header className="topbar"><div className="breadcrumb"><span>{text('brand.name')}</span><span>/</span><strong>{text(`nav.${route}`)}</strong></div><div className="topbar-actions"><span className="replay-badge"><i />{text('replay')}</span><label className="locale-picker"><Icon name="globe" size={17} /><span className="sr-only">{text('language')}</span><select value={locale} onChange={e => setLocale(e.target.value as Locale)}><option value="en">{text('locale.en')}</option><option value="es">{text('locale.es')}</option></select></label></div></header>
+      <main className="main-content" id="main-content"><div className="page-intro"><div><p className="eyebrow">{text('league', { match: data.matchId })}</p><h1>{text(`page.${route}`)}</h1><p>{text(`page.${route}.sub`)}</p></div></div>
         <div className="fixture-notice"><Icon name="info" size={17} /><p><strong>{text('fixture')}.</strong> {text('fixture.notice')}</p></div>
         <section className="match-bar" aria-label={text('match')}><div className="match-team home"><Crest code={data.teams[0].code} /><div><span>{text('match.home')}</span><h2>{data.teams[0].name}</h2></div></div>
           <div className="match-score"><span className="match-phase">{text(full ? 'match.full' : clock.period === 1 ? 'match.half1' : 'match.half2')}</span><strong aria-label={text('match.score')}>{score[0]}<span>:</span>{score[1]}</strong><time>{full ? formatClock(data.timeline.events.at(-1)!.event.clock) : formatClock(clock)}</time></div>
           <div className="match-team away"><div><span>{text('match.away')}</span><h2>{data.teams[1].name}</h2></div><Crest code={data.teams[1].code} away /></div>
         </section>
         <section className="playback" aria-label={text('replay')}><div className="playback-main"><button className="play-button" aria-label={text(playing ? 'pause' : 'play')} onClick={() => { if (full) seek(0); setPlaying(!playing); }}><Icon name={playing ? 'pause' : 'play'} size={17} /></button><button className="icon-button" aria-label={text('reset')} onClick={() => { seek(0); setPlaying(false); setDecisions([]); }}><Icon name="reset" size={18} /></button><time>{formatClock(clock)}</time><input aria-label={text('seek')} aria-valuetext={formatClock(clock)} type="range" min="0" max={data.timeline.duration} step="1" value={elapsed} style={{ '--progress': `${elapsed / data.timeline.duration * 100}%` } as React.CSSProperties} onChange={e => seek(Number(e.target.value))} /><label className="speed-picker"><span className="sr-only">{text('speed')}</span><select value={speed} onChange={e => setSpeed(Number(e.target.value))}>{[1, 4, 16].map(s => <option key={s} value={s}>{s}×</option>)}</select></label></div>
-          <div className="moment-jumps"><span>{text('jump')}</span>{jumps.map(jump => <button key={jump.key} className={Math.abs(elapsed - jump.at) < 8 ? 'current' : ''} onClick={() => { seek(jump.at); setPlaying(false); }}>{text(`jump.${jump.key}`)}</button>)}</div>
+          <div className="moment-jumps"><span>{text('jump')}</span>{jumps.map(jump => <button key={jump.key} className={Math.abs(elapsed - jump.at) < 8 ? 'current' : ''} onClick={() => { seek(jump.at); setPlaying(false); }}>{text(`jump.${jump.key}`, { clock: formatClock(clockAt(jump.at, firstHalf)) })}</button>)}</div>
         </section>
-        {route === 'fan' && <><div className="fan-toolbar"><div className="mode-selector" role="group" aria-label={text('mode')}>{['casual', 'data', 'player'].map(value => <button aria-pressed={mode === value} className={mode === value ? 'active' : ''} key={value} onClick={() => setMode(value)}>{text(`mode.${value}`)}</button>)}</div><label className="club-picker"><span>{text('favorite')}</span><select value={favorite} onChange={e => { setFavorite(e.target.value); setPlayer(data.teams.find(t => t.name === e.target.value)!.players[0].id); }}>{data.teams.map(team => <option key={team.code}>{team.name}</option>)}</select></label></div>
+        {route === 'fan' && <ViewBoundary key={`fan:${locale}`}><div className="fan-toolbar"><div className="mode-selector" role="group" aria-label={text('mode')}>{['casual', 'data', 'player'].map(value => <button aria-pressed={mode === value} className={mode === value ? 'active' : ''} key={value} onClick={() => setMode(value)}>{text(`mode.${value}`)}</button>)}</div><label className="club-picker"><span>{text('favorite')}</span><select value={favorite} onChange={e => { setFavorite(e.target.value); setPlayer(data.teams.find(t => t.name === e.target.value)!.players[0].id); }}>{data.teams.map(team => <option key={team.code}>{team.name}</option>)}</select></label></div>
           {mode === 'player' && <div className="player-focus-bar"><label>{text('player')}<select value={player} onChange={e => setPlayer(e.target.value)}>{roster.map(p => <option key={p.id} value={p.id}>{p.name} · {p.id}</option>)}</select></label><strong>{text('player.events', { count: delivered.filter(({ event }) => event.player_id === player || event.pass_q?.receiver_id === player).length })}</strong></div>}
           <div className="fan-layout"><div className="match-column"><Pitch data={data} elapsed={elapsed} player={mode === 'player' ? player : undefined} /><Activity data={data} elapsed={elapsed} />
             <section className="panel stats-panel"><SectionTitle title={text('stats')} sub={text('stats.sub')} /><div className="stats-team-head"><span>{data.teams[0].code}</span><span>{data.teams[1].code}</span></div>{(['passes', 'accuracy', 'shots', 'pressures'] as const).map(key => <div className="stat-row" key={key}><strong>{stats[0][key] === null ? '—' : num(stats[0][key], key === 'accuracy')}</strong><span>{text(`stats.${key}`)}</span><strong>{stats[1][key] === null ? '—' : num(stats[1][key], key === 'accuracy')}</strong></div>)}</section>
             <EventFeed events={delivered} data={data} />
           </div><Insights cards={currentCards} onOpen={openCase} mode={mode} full={full} /></div>
-        </>}
-        {route === 'analyst' && <Analyst cards={currentCards} allRevisions={publishedRevisions} selected={selected} onSelect={setSelected} />}
-        {route === 'broadcast' && <Broadcast data={data} elapsed={elapsed} cues={cues} cards={cards} decisions={decisions} onDecide={decision => setDecisions(previous => [...previous, decision])} onReset={() => setDecisions([])} />}
-        <footer className="workspace-footer"><span>Proofline</span><p>{text('nav.about')}</p><span>{data.matchId} · {text('fixture')}</span></footer>
+        </ViewBoundary>}
+        {route === 'analyst' && <ViewBoundary key={`analyst:${locale}`}><Analyst cards={currentCards} allRevisions={publishedRevisions} selected={selected} onSelect={setSelected} /></ViewBoundary>}
+        {route === 'broadcast' && <ViewBoundary key={`broadcast:${locale}`}><Broadcast data={data} elapsed={elapsed} cues={cues} cards={cards} decisions={decisions} onDecide={decision => setDecisions(previous => [...previous, decision])} onReset={() => setDecisions([])} /></ViewBoundary>}
+        {route === 'overlay' && <ViewBoundary key={`overlay:${locale}`}><Overlay data={data} elapsed={elapsed} cards={cards} cues={cues} decisions={decisions} /></ViewBoundary>}
+        <footer className="workspace-footer"><span>{text('brand.name')}</span><p>{text('nav.about')}</p><span>{data.matchId} · {text('fixture')}</span></footer>
       </main>
     </div>
   </div>;

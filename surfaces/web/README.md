@@ -1,83 +1,113 @@
-# Proofline web shell
+# Proofline replay surfaces
 
-A local React + TypeScript SPA with three hash routes: `#/fan`, `#/analyst` and
-`#/broadcast`. One replay clock drives the score, event locations, statistics,
-insight revisions and overlay cues across all three views. English and Spanish
-catalogs cover the UI; all clubs and players are fictional.
+The fan and analyst views render the actual verified 63-minute card from a
+recorded backend run. The producer view (`#/broadcast`) controls timed graphics;
+`#/overlay` renders those graphics over the pitch without the producer queue.
+All views share the replay clock, and English/Spanish UI catalogs have key parity.
 
-## Run locally
+## Run
 
 From the repository root, with Python 3.12+, uv, Node 20+ and pnpm 10.11.0:
 
 ```bash
-uv sync --locked
+uv sync
+uv run proofline-engine generate --script engine/scripts/planted/m01.yaml --out data/m01/
+uv run proofline case --match m01 --minute 63 --variant A --replay tests/fixtures/cases/m01-063-A
 cd surfaces/web
-pnpm install --frozen-lockfile
-pnpm types
-pnpm fixtures
-pnpm dev
+corepack pnpm install --frozen-lockfile
+corepack pnpm types
+corepack pnpm fixtures
+corepack pnpm dev
 ```
 
-The fixture command uses the repository's uv environment. To reuse another
-existing virtual environment, set `PROOFLINE_PYTHON=/absolute/path/to/venv/bin/python`.
-Generated match files stay in ignored `public/fixtures/m01/`; do not commit them.
-The small generated contract types and illustrative ledger records under `src/`
-are source artifacts. Regenerate them before testing when contracts change.
+`pnpm fixtures` repeats the two recorded backend commands above, then exports the
+feed and card. It never calls a model; every case command includes `--replay`.
+`PROOFLINE_PYTHON=/absolute/path/to/venv/bin/python` optionally selects a Python
+environment, while imports still resolve to this checkout. The runtime event
+feed stays in ignored `public/fixtures/m01/`; `data/` and `runs/` are also ignored.
+
+The app starts paused at the real card's display time (currently 63:00). Select
+Español and open **Cómo lo sabemos** to see the supplied Spanish variant,
+pressure-rate values and actual rejected alternatives. Data mode uses the
+analyst variant. The analyst view includes propositions, attribution roles and
+agents, evidence and baselines, tool-call references, investigation counts and
+cross-examination, recovery status, verification checks, support/language level,
+provenance, dependencies and revision reasons.
+
+The **Overlay · 63:29** shortcut visits the first dead ball after the card. The
+stand-in press cue waits **29 seconds** after 63:00 on m01 and uses the real card's
+team, first evidence baseline/value and supplied casual variant. It airs for
+8 seconds. Hold/approve/kill decisions affect only this browser session and are
+shared between the producer and overlay routes. Rewinding discards later local
+decisions; restart/reset clears them.
+
+## Export other card files
+
+From the repository root:
 
 ```bash
-pnpm test
-pnpm build
-pnpm preview
+uv run python surfaces/web/scripts/export_web_replay.py \
+  --source data/m01 --match m01 --out surfaces/web/public/fixtures/m01 \
+  --cards runs/ins-m01-063-pressure_shift-A.json
 ```
 
-If pnpm is supplied by Corepack, run these commands as `corepack pnpm ...` from
-`surfaces/web/`, where `package.json` pins the package manager version.
+`--cards` accepts multiple individual card JSON files. Each is validated as an
+`InsightCard`, must belong to `--match`, and is stored unchanged in the committed
+`src/fixtures/ledger.json`. `--ledger PATH` selects another ledger output, useful
+for tests. The output folder is exactly `--out`. Scoreless matches are supported;
+no goal card is invented when the feed contains no goal.
 
-## What the shell demonstrates
+The ledger's separate `stand_ins` index identifies the authored 55-minute flank
+note, its withdrawal, optional first-goal card and cues. These producers do not
+exist in the backend yet. The exporter marks them as stand-ins in comments and
+validates them against the public contracts. There is no hand-built pressure
+card. The withdrawal demonstrates revision playback, not a real amendment run.
 
-- Starts paused at 63:40. Play at 1×, 4× or 16×, seek backwards, or use moment
-  shortcuts. Each half's length comes from its `period_end` event. First-half
-  stoppage stays distinct from the second half.
-- Scores, passes, accuracy, shots, pressures, the event feed and the ten-minute
-  activity chart use only events delivered at the replay cutoff. Empty pass
-  samples have no accuracy value. The chart shows action counts, not momentum.
-- Pitch marks show actual event coordinates, with both axes mirrored for the
-  away team. No invented tracking/formation positions or shot trajectories.
-  Player Focus filters the event locations and counts recorded involvements.
-- Insight records appear at their publication time. At 68:10 the sample flank
-  record is replaced by its withdrawal; the analyst history retains revision 1.
-  Seeking backwards restores the earlier state. The pressure record is unaffected.
-- The broadcast view renders eight-second sample cues. Hold, approve and kill
-  affect only the browser session; the decision log records match time. Rewinding
-  discards decisions after the new cutoff. Restart/reset clears local decisions.
-  The replay module also supports dead-ball slots using delivered event times.
+## Verification
 
-## Data boundary and limitations
+From the repository root:
 
-The build-only `scripts/fixtures.mjs` invokes the simulator CLI into temporary
-storage. `scripts/export_web_replay.py` validates the exported events, cards and
-cues with the Python contracts, then writes public fixtures. Both scripts live
-under `surfaces/web/`. No Python code under the web surface imports the engine.
+```bash
+uv run pytest
+uv run ruff check .
+uv run ruff format --check .
+uv run python scripts/check_engine_isolation.py
+```
 
-The browser consumes `meta.json` in the current feed shape: only `match_id` and
-`teams` (home/away team and roster records). The exporter also accepts this older
-branch's metadata and copies only those pre-match fields. It never copies the
-seed, score or period lengths; the app never reads them. Scores come from goal
-events up to the replay cutoff, and half lengths come from `period_end` events.
-Keep generated runtime assets separate from the engine source when packaging a
-future deployment.
+From `surfaces/web/`:
 
-The event feed is a genuine simulator export. The full-lane insight cards,
-verification fields and correction cues are **authored illustrative fixtures**,
-not results of agents, tool calls, a verifier or the Correction Watcher. The
-exported event feed currently has no amendment stream; the withdrawal demonstrates
-the ledger UI only. Every view labels this distinction. The first key-event card
-uses a goal actually present in the exported feed.
+```bash
+corepack pnpm test
+corepack pnpm build
+corepack pnpm preview
+```
 
-Raw tool arguments, evidence sets, trace links, evaluations, live agents, durable
-producer decisions, real profile services and APIs are not connected. Evaluation
-is an empty state and Run live is disabled. This change prepares the frontend
-boundary; it does not satisfy the backend build gates in `docs/spec.md`.
+Python tests validate every committed card/cue and compare the pressure card with
+a fresh backend replay, excluding only `provenance.trace_id`. The MCP server also
+allocates transient tool identifiers; the comparison pins only that identifier
+factory to the saved references. Metrics, recorded model answers, verification,
+narration and returned cards are never patched. The test also checks that tool
+requests are identical across the fresh runs. There are no live model calls.
 
-Hash routing works on static hosts without rewrite rules. Vite uses a relative
-asset base. This shell is local work; no hosting or Azure resources are changed.
+Vitest covers display-time fallback, in-place withdrawals, metric formatting,
+catalog fallback/parity, case-file fields, duplicate evidence references, shot
+outcomes, cue-template selection and producer controls. Per-view error boundaries
+keep the match controls and other views available if a view cannot render.
+
+## Boundaries
+
+- Metadata contains only `match_id` and team/roster fields. Scores use delivered
+  goal events and half lengths use `period_end`, including stoppage time.
+- Card text comes only from supplied `variants`; rejection and revision reasons
+  are shown verbatim. The UI never invents a fatigue rejection or support level.
+- Evidence numbers follow the narrator's units: long-ball and channel shares are
+  percents, sprint speed has one decimal and km/h, other metrics have two decimals.
+  Channel-share percentages extend the current backend narrator, which still
+  formats those shares as decimals.
+- The recorded card lacks a Director publication timestamp and broadcast cue, so
+  display falls back to `detected_at` and the exporter supplies the marked cue.
+- Raw tool arguments, full evidence sets, per-counter-test details and trace/eval
+  URLs are not attached to the card. The UI shows only the fields and references
+  it actually has. Evaluation remains an empty state; Run live remains disabled.
+- Hash routes and relative assets support static hosting. No hosting, CI,
+  backend files or cloud resources are changed here.

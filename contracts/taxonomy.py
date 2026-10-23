@@ -114,6 +114,7 @@ class Metric(StrEnum):
     PASS_DIFFICULTY = "pass_difficulty"
     XG = "xg"
     SPRINT_COUNT = "sprint_count"
+    SPRINT_SPEED = "sprint_speed"
     HIGH_INTENSITY_RUN_RATE = "high_intensity_run_rate"
     MOMENTUM = "momentum"
     CONTROL_CHAOS = "control_chaos"
@@ -156,6 +157,7 @@ DEFAULT_THRESHOLD_KIND: dict[Metric, ThresholdKind] = {
     Metric.PASS_DIFFICULTY: ThresholdKind.ABSOLUTE,
     Metric.XG: ThresholdKind.SIGMA,
     Metric.SPRINT_COUNT: ThresholdKind.RELATIVE,
+    Metric.SPRINT_SPEED: ThresholdKind.ABSOLUTE,
     Metric.HIGH_INTENSITY_RUN_RATE: ThresholdKind.RELATIVE,
     Metric.MOMENTUM: ThresholdKind.SIGMA,
     Metric.CONTROL_CHAOS: ThresholdKind.SIGMA,

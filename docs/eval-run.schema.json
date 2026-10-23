@@ -69,6 +69,54 @@
       "title": "ExclusionRule",
       "type": "string"
     },
+    "FlagSet": {
+      "description": "The frozen not_observable flags of one planted suite split, with their provenance.\n\nEvery planted EvalRun embeds the same flag set, frozen before either variant ran, so\nboth variants exclude the same scripts and the scoreboard can show why.",
+      "properties": {
+        "split": {
+          "$ref": "#/$defs/Split"
+        },
+        "scripts": {
+          "description": "every planted match considered",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Scripts",
+          "type": "array"
+        },
+        "paired_seeds": {
+          "additionalProperties": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array"
+          },
+          "description": "per script, the seeds measured",
+          "title": "Paired Seeds",
+          "type": "object"
+        },
+        "frozen_at_ms": {
+          "minimum": 0,
+          "title": "Frozen At Ms",
+          "type": "integer"
+        },
+        "exclusions": {
+          "items": {
+            "$ref": "#/$defs/Exclusion"
+          },
+          "title": "Exclusions",
+          "type": "array"
+        }
+      },
+      "required": [
+        "split",
+        "scripts",
+        "paired_seeds",
+        "frozen_at_ms"
+      ],
+      "title": "FlagSet",
+      "type": "object"
+    },
     "Metric": {
       "enum": [
         "ppda",
@@ -84,6 +132,7 @@
         "pass_difficulty",
         "xg",
         "sprint_count",
+        "sprint_speed",
         "high_intensity_run_rate",
         "momentum",
         "control_chaos",
@@ -304,13 +353,17 @@
       "default": null,
       "title": "Foundry Eval Run"
     },
-    "not_observable": {
-      "description": "planted scripts excluded from recall (spec \u00a77.2)",
-      "items": {
-        "$ref": "#/$defs/Exclusion"
-      },
-      "title": "Not Observable",
-      "type": "array"
+    "flags": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/FlagSet"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "the planted suite's frozen not_observable flags (spec \u00a77.2)"
     },
     "notes": {
       "default": "",

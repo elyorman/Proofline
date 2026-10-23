@@ -1,13 +1,16 @@
 """Evaluation run record. Every number in the README comes from one of these."""
 
+import hashlib
+import json
 from enum import StrEnum
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, computed_field, model_validator
 
 from contracts.prediction import Direction
 from contracts.taxonomy import Cause, Metric
 
 VISIBILITY_SDS = 2.0  # spec §7.2: separation a script needs on at least one observable
+MIN_SEED_PAIRS = 20  # spec §7.2: each script is estimated over 20-30 seed pairs
 
 
 class Variant(StrEnum):
@@ -114,6 +117,46 @@ class Exclusion(BaseModel):
         return self
 
 
+class FlagSet(BaseModel):
+    """The frozen not_observable flags of one planted suite split, with their provenance.
+
+    Every planted EvalRun embeds the same flag set, frozen before either variant ran, so
+    both variants exclude the same scripts and the scoreboard can show why.
+    """
+
+    split: Split
+    scripts: list[str] = Field(min_length=1, description="every planted match considered")
+    paired_seeds: dict[str, list[int]] = Field(description="per script, the seeds measured")
+    frozen_at_ms: int = Field(ge=0)
+    exclusions: list[Exclusion] = Field(default_factory=list)
+
+    @computed_field
+    @property
+    def flag_set_id(self) -> str:
+        content = self.model_dump(
+            mode="json", include={"split", "scripts", "paired_seeds", "exclusions"}
+        )
+        digest = hashlib.sha256(json.dumps(content, sort_keys=True).encode()).hexdigest()
+        return f"flags-{digest[:16]}"
+
+    @model_validator(mode="after")
+    def _covers_its_scripts(self) -> "FlagSet":
+        if len(self.scripts) != len(set(self.scripts)):
+            raise ValueError("each planted script is listed once")
+        if set(self.paired_seeds) != set(self.scripts):
+            raise ValueError("every planted script, and only those, has its paired seeds")
+        thin = sorted(s for s, seeds in self.paired_seeds.items() if len(seeds) < MIN_SEED_PAIRS)
+        if thin:
+            raise ValueError(f"fewer than {MIN_SEED_PAIRS} seed pairs for {thin}")
+        excluded = [x.script_id for x in self.exclusions]
+        if len(excluded) != len(set(excluded)):
+            raise ValueError("each excluded script is listed once")
+        unknown = sorted(set(excluded) - set(self.scripts))
+        if unknown:
+            raise ValueError(f"exclusions name scripts outside the set: {unknown}")
+        return self
+
+
 class EvalRun(BaseModel):
     run_id: str
     variant: Variant
@@ -128,8 +171,8 @@ class EvalRun(BaseModel):
     output_tokens: int = Field(default=0, ge=0)
     cost_usd: float | None = Field(default=None, ge=0)
     foundry_eval_run: str | None = None
-    not_observable: list[Exclusion] = Field(
-        default_factory=list, description="planted scripts excluded from recall (spec §7.2)"
+    flags: FlagSet | None = Field(
+        default=None, description="the planted suite's frozen not_observable flags (spec §7.2)"
     )
     notes: str = ""
 
@@ -147,12 +190,15 @@ class EvalRun(BaseModel):
         return self
 
     @model_validator(mode="after")
-    def _exclusions_from_planted_runs(self) -> "EvalRun":
-        if self.not_observable and Suite.PLANTED not in self.suites:
-            raise ValueError("only a run of the planted suite excludes scripts")
-        ids = [x.script_id for x in self.not_observable]
-        if len(ids) != len(set(ids)):
-            raise ValueError("each excluded script is listed once")
+    def _planted_runs_carry_frozen_flags(self) -> "EvalRun":
+        planted = Suite.PLANTED in self.suites
+        if planted != (self.flags is not None):
+            raise ValueError("a planted-suite run carries its flag set, and only such a run")
+        if self.flags is not None:
+            if self.flags.split != self.split:
+                raise ValueError("the flag set is for another split")
+            if self.flags.frozen_at_ms > self.started_at_ms:
+                raise ValueError("flags must be frozen before the run starts")
         return self
 
 

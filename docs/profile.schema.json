@@ -33,6 +33,7 @@
         "pass_difficulty",
         "xg",
         "sprint_count",
+        "sprint_speed",
         "high_intensity_run_rate",
         "momentum",
         "control_chaos",

@@ -38,7 +38,7 @@ from contracts.card import (
 )
 from contracts.case import CaseStage, Checkpoint, TriggerMetric
 from contracts.cue import ShowAt
-from contracts.eval_run import MetricEstimate, Split, Suite, Variant, VariantComparison
+from contracts.eval_run import FlagSet, MetricEstimate, Split, Suite, Variant, VariantComparison
 from contracts.event import CoordinateShift, EventType, Outcome, PassQualifiers, Point
 from contracts.prediction import (
     CrossExamination,
@@ -177,6 +177,7 @@ def test_every_metric_has_a_pinned_threshold_kind():
     assert set(DEFAULT_THRESHOLD_KIND) == set(Metric)
     assert DEFAULT_THRESHOLD_KIND[Metric.PRESSURE_RATE] == ThresholdKind.ABSOLUTE
     assert DEFAULT_THRESHOLD_KIND[Metric.CHANNEL_SHARE_RIGHT] == ThresholdKind.ABSOLUTE
+    assert DEFAULT_THRESHOLD_KIND[Metric.SPRINT_SPEED] == ThresholdKind.ABSOLUTE
 
 
 def _prediction(**overrides):
@@ -755,6 +756,17 @@ def _estimate(**overrides):
     return MetricEstimate(**base)
 
 
+def _flags(*exclusions, scripts=("p07-s1",)):
+    seeds = {s: list(range(2500, 2520)) for s in scripts}
+    return dict(
+        split="heldout",
+        scripts=list(scripts),
+        paired_seeds=seeds,
+        frozen_at_ms=0,
+        exclusions=list(exclusions),
+    )
+
+
 def _eval_run(metrics):
     return EvalRun(
         run_id="r1",
@@ -766,6 +778,7 @@ def _eval_run(metrics):
         metrics=metrics,
         started_at_ms=0,
         finished_at_ms=10,
+        flags=FlagSet(**_flags()),
     )
 
 
@@ -798,10 +811,10 @@ def _exclusion(rule, *checks, **check):
 
 
 def _with_exclusions(exclusions, suite=Suite.PLANTED):
-    run = _eval_run([_estimate()]).model_dump()
+    run = _eval_run([_estimate()]).model_dump(exclude={"flags"})
     metrics = [_estimate(suite=suite).model_dump()]
     return EvalRun.model_validate(
-        dict(run, suites=[suite], metrics=metrics, not_observable=exclusions)
+        dict(run, suites=[suite], metrics=metrics, flags=_flags(*exclusions))
     )
 
 
@@ -821,7 +834,7 @@ UP = dict(metric=Metric.PRESSURE_RATE, subject="Harbour City", direction=Directi
     ],
 )
 def test_excluded_scripts_carry_the_numbers_that_excluded_them(exclusion):
-    assert _with_exclusions([exclusion]).not_observable[0].rule == exclusion["rule"]
+    assert _with_exclusions([exclusion]).flags.exclusions[0].rule == exclusion["rule"]
 
 
 @pytest.mark.parametrize(
@@ -850,8 +863,41 @@ def test_an_exclusion_must_fit_its_rule(exclusion, message):
 def test_exclusions_belong_to_planted_runs_and_are_listed_once():
     with pytest.raises(ValidationError, match="listed once"):
         _with_exclusions([_exclusion("no_separation")] * 2)
-    with pytest.raises(ValidationError, match="planted suite"):
+    with pytest.raises(ValidationError, match="carries its flag set, and only such a run"):
         _with_exclusions([_exclusion("no_separation")], suite=Suite.DECOYS)
+
+
+def test_a_flag_set_names_its_provenance_and_changes_id_with_it():
+    flags = FlagSet(**_flags())
+    assert flags.flag_set_id.startswith("flags-")
+    assert FlagSet(**_flags()).flag_set_id == flags.flag_set_id
+    excluding = FlagSet(**_flags(_exclusion("no_separation")))
+    assert excluding.flag_set_id != flags.flag_set_id
+    assert FlagSet.model_validate_json(excluding.model_dump_json()) == excluding
+
+
+@pytest.mark.parametrize(
+    "overrides,message",
+    [
+        (dict(paired_seeds={"p07-s1": list(range(19))}), "fewer than 20 seed pairs"),
+        (dict(paired_seeds={}), "has its paired seeds"),
+        (dict(scripts=["p07-s1", "p07-s1"]), "listed once"),
+        (dict(exclusions=[_exclusion("no_separation") | {"script_id": "p99"}]), "outside the set"),
+    ],
+)
+def test_a_flag_set_covers_exactly_its_scripts(overrides, message):
+    with pytest.raises(ValidationError, match=message):
+        FlagSet(**(_flags() | overrides))
+
+
+def test_a_planted_run_carries_flags_frozen_before_it_for_its_split():
+    run = _eval_run([_estimate()]).model_dump()
+    with pytest.raises(ValidationError, match="carries its flag set"):
+        EvalRun.model_validate(dict(run, flags=None))
+    with pytest.raises(ValidationError, match="another split"):
+        EvalRun.model_validate(dict(run, flags=_flags() | {"split": "dev"}))
+    with pytest.raises(ValidationError, match="frozen before the run starts"):
+        EvalRun.model_validate(dict(run, flags=_flags() | {"frozen_at_ms": 5}, started_at_ms=1))
 
 
 def _comparison(variant_b):

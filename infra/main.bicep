@@ -77,6 +77,7 @@ output AZURE_KEY_VAULT_ENDPOINT string = resources.outputs.keyVaultEndpoint
 output AZURE_FOUNDRY_ENDPOINT string = resources.outputs.foundryEndpoint
 output AZURE_FOUNDRY_PROJECT_ENDPOINT string = resources.outputs.foundryProjectEndpoint
 output AZURE_OPENAI_DEPLOYMENT string = resources.outputs.modelDeployment
+output AZURE_VERIFIER_DEPLOYMENT string = resources.outputs.verifierDeployment
 output APPLICATIONINSIGHTS_CONNECTION_STRING string = resources.outputs.appInsightsConnectionString
 output API_URL string = resources.outputs.apiUrl
 output WEB_URL string = resources.outputs.webUrl

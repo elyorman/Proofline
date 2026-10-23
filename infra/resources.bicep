@@ -19,6 +19,9 @@ param principalType string = 'User'
 @description('gpt-5-mini capacity in thousands of tokens per minute (trial quota is 500)')
 param modelCapacity int = 100
 
+@description('Thousands of tokens per minute for the verifier model; the Free Trial grants 20')
+param verifierCapacity int = 20
+
 // Built-in role definition ids
 var roles = {
   acrPull: '7f951dda-4ed3-4680-a7ca-43fe172d538d'
@@ -256,6 +259,19 @@ resource modelDeployment 'Microsoft.CognitiveServices/accounts/deployments@2025-
   dependsOn: [foundryProject] // the account accepts one change at a time
 }
 
+// The Verifier's semantic check runs on a different model family from the agents, so it
+// does not share their blind spots (spec §9.2). DeepSeek-V3.2 has no Free Trial quota;
+// its Speciale variant does.
+resource verifierDeployment 'Microsoft.CognitiveServices/accounts/deployments@2025-06-01' = {
+  parent: foundry
+  name: 'DeepSeek-V3.2-Speciale'
+  sku: { name: 'GlobalStandard', capacity: verifierCapacity }
+  properties: {
+    model: { format: 'DeepSeek', name: 'DeepSeek-V3.2-Speciale', version: '1' }
+  }
+  dependsOn: [modelDeployment] // one change at a time
+}
+
 // --- access --------------------------------------------------------------------
 
 var appRoles = [
@@ -329,6 +345,7 @@ output keyVaultEndpoint string = keyVault.properties.vaultUri
 output foundryEndpoint string = foundry.properties.endpoint
 output foundryProjectEndpoint string = 'https://${foundry.properties.customSubDomainName}.services.ai.azure.com/api/projects/${foundryProject.name}'
 output modelDeployment string = modelDeployment.name
+output verifierDeployment string = verifierDeployment.name
 output appInsightsConnectionString string = appInsights.properties.ConnectionString
 output apiUrl string = 'https://${api.properties.configuration.ingress.fqdn}'
 output webUrl string = 'https://${web.properties.defaultHostname}'

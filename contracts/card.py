@@ -7,7 +7,7 @@ with role "primary". The Evaluator, Verifier and Narrator all read it there.
 from enum import StrEnum
 from typing import Literal
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from contracts.clock import MatchClock, Window
 from contracts.prediction import Direction
@@ -56,11 +56,15 @@ Proposition = ChangeProposition | AttributionProposition
 
 
 class Baseline(BaseModel):
+    model_config = ConfigDict(allow_inf_nan=False)
+
     window: BaselineScope
     value: float
 
 
 class Evidence(BaseModel):
+    model_config = ConfigDict(allow_inf_nan=False)
+
     metric: Metric
     subject: str
     window: Window
@@ -168,6 +172,8 @@ class Subject(BaseModel):
 
 
 class BroadcastCueSpec(BaseModel):
+    model_config = ConfigDict(allow_inf_nan=False)
+
     template: OverlayTemplate
     priority: Literal["low", "normal", "high"] = "normal"
     show_at: Literal["immediate", "next_dead_ball"] = "next_dead_ball"

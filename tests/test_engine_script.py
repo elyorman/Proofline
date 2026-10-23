@@ -76,8 +76,8 @@ def test_bad_interventions_are_rejected(intervention, message):
         (_amendment(at="50:00"), "before its window ends"),
         (_amendment(y_max=48), "leaves the pitch"),
         (_amendment(dx=3.0), "lateral only"),
-        (_amendment(dy=float("nan")), "finite, non-zero"),
-        (_amendment(dy=float("inf")), "finite, non-zero"),
+        (_amendment(dy=float("nan")), "finite number"),
+        (_amendment(dy=float("inf")), "finite number"),
         (_amendment(dy=0), "finite, non-zero"),
     ],
 )

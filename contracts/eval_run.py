@@ -37,6 +37,8 @@ SEED_RANGES = {Split.DEV: range(1000, 2000), Split.HELDOUT: range(2000, 3000)}
 
 
 class MetricEstimate(BaseModel):
+    model_config = ConfigDict(allow_inf_nan=False)
+
     name: str
     suite: Suite
     value: float

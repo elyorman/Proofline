@@ -584,6 +584,19 @@
       "title": "N Events",
       "type": "integer"
     },
+    "insufficient_data": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "why no value could be computed (no sprints, an empty window); never NaN",
+      "title": "Insufficient Data"
+    },
     "evidence_set_id": {
       "title": "Evidence Set Id",
       "type": "string"

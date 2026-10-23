@@ -3,7 +3,7 @@
 from enum import StrEnum
 from typing import Literal
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from contracts.clock import MatchClock
 from contracts.taxonomy import LanguageLevel, OverlayTemplate
@@ -39,6 +39,8 @@ class ShowAt(BaseModel):
 
 
 class Cue(BaseModel):
+    model_config = ConfigDict(allow_inf_nan=False)
+
     cue_id: str
     match_id: str
     insight_id: str | None = None

@@ -10,7 +10,7 @@ relocates events changes x/y.
 
 from enum import StrEnum
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from contracts.clock import MatchClock
 
@@ -52,11 +52,15 @@ class Outcome(StrEnum):
 
 
 class Point(BaseModel):
+    model_config = ConfigDict(allow_inf_nan=False)
+
     x: float = Field(ge=0, le=PITCH_LENGTH_M)
     y: float = Field(ge=0, le=PITCH_WIDTH_M)
 
 
 class PassQualifiers(BaseModel):
+    model_config = ConfigDict(allow_inf_nan=False)
+
     distance_m: float = Field(ge=0)
     ball_speed_kmh: float = Field(ge=0)
     pressure_on_passer: float = Field(ge=0, le=1)
@@ -64,6 +68,8 @@ class PassQualifiers(BaseModel):
 
 
 class ShotQualifiers(BaseModel):
+    model_config = ConfigDict(allow_inf_nan=False)
+
     shot_speed_kmh: float = Field(ge=0)
     distance_m: float = Field(ge=0)
     angle_deg: float = Field(ge=0, le=180)
@@ -71,6 +77,8 @@ class ShotQualifiers(BaseModel):
 
 
 class Event(BaseModel):
+    model_config = ConfigDict(allow_inf_nan=False)
+
     event_id: str
     version: int = Field(default=1, ge=1)
     match_id: str
@@ -110,6 +118,8 @@ class TrackingSample(BaseModel):
     """Not stored in Cosmos: kept in Blob or in memory per match and reduced
     to per-window aggregates by the State Builder."""
 
+    model_config = ConfigDict(allow_inf_nan=False)
+
     match_id: str
     clock: MatchClock
     player_id: str
@@ -122,6 +132,8 @@ class TrackingSample(BaseModel):
 class CoordinateShift(BaseModel):
     """Relocate events by a delta in metres; the usual provider re-sync."""
 
+    model_config = ConfigDict(allow_inf_nan=False)
+
     dx_m: float = 0.0
     dy_m: float = 0.0
 
@@ -132,6 +144,8 @@ class EventAmendment(BaseModel):
     Exactly one of `shift` or `set` applies to every event in `event_ids`,
     and each affected event's `version` is incremented.
     """
+
+    model_config = ConfigDict(allow_inf_nan=False)
 
     amendment_id: str
     match_id: str

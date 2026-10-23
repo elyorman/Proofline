@@ -318,7 +318,7 @@ The planted suite plants the six classes the engine has a mechanism for (`contra
 
 ### 8.1 Match State Builder
 
-Pure analytics, exposed as MCP tools. Every call returns the value, window, event IDs and versions used, `n_events` and a `tool_call_id`, as a `ToolResult` whose required fields depend on the tool: `compare` adds the second window and an effect size, `shape`, `player_load` and `game_state` return named `values`, and `events` returns the events at their versions.
+Pure analytics, exposed as MCP tools. Every call returns the value, window, event IDs and versions used, `n_events` and a `tool_call_id`, as a `ToolResult` whose required fields depend on the tool: `compare` adds the second window and an effect size, `shape`, `player_load` and `game_state` return named `values`, and `events` returns the events at their versions. A call that cannot compute a value (an empty window, a zero denominator, no sprints) says so in `insufficient_data` with its `n_events`, and carries no numbers; no tool result holds NaN or infinity.
 
 | Metric | Definition | Status |
 |---|---|---|

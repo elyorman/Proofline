@@ -8,7 +8,7 @@ that path was taken and is shown on the Analyst Console.
 from enum import StrEnum
 from typing import Literal
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from contracts.clock import Window
 from contracts.taxonomy import AgentRole, CaseOutcome, Metric, MomentType
@@ -36,6 +36,8 @@ class Checkpoint(BaseModel):
 
 
 class TriggerMetric(BaseModel):
+    model_config = ConfigDict(allow_inf_nan=False)
+
     metric: Metric
     subject: str
     value: float

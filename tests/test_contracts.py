@@ -493,6 +493,23 @@ def test_tool_result_requires_the_fields_its_tool_returns():
         )
 
 
+def test_a_tool_result_is_finite_or_says_why_it_has_no_value():
+    speed = dict(metric=Metric.SPRINT_SPEED, subject="HC-04", window="70:00-90:00")
+    for broken in (float("nan"), float("inf")):
+        with pytest.raises(ValidationError, match="finite number"):
+            _tool_result("metric", **speed, value=broken)
+        with pytest.raises(ValidationError, match="finite number"):
+            _tool_result("player_load", subject="NV-03", window="58:00-63:00", values={"x": broken})
+    empty = _tool_result("metric", **speed, insufficient_data="no sprints in the window")
+    assert ToolResult.model_validate_json(empty.model_dump_json()) == empty
+    with pytest.raises(ValidationError, match="carries no computed numbers"):
+        _tool_result("metric", **speed, value=0.0, insufficient_data="no sprints in the window")
+    with pytest.raises(ValidationError, match="needs subject"):
+        _tool_result(
+            "metric", metric=Metric.SPRINT_SPEED, window="70:00-90:00", insufficient_data="x"
+        )
+
+
 def test_tool_name_is_from_the_catalog():
     with pytest.raises(ValidationError):
         _tool_result(

@@ -9,7 +9,7 @@ on it, so the Correction Watcher finds dependents with one lookup.
 
 from enum import StrEnum
 
-from pydantic import BaseModel, Field, computed_field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, computed_field, model_validator
 
 from contracts.clock import MatchClock, Window
 from contracts.event import Event, EventRef
@@ -39,6 +39,8 @@ REQUIRED_FIELDS: dict[ToolName, tuple[str, ...]] = {
     ToolName.GAME_STATE: ("at", "values"),
     ToolName.DISTRIBUTION: ("metric", "subject", "window", "value", "std"),
 }
+# The numbers a tool computes; an insufficient-data result carries none of them.
+OUTPUTS = ("value", "values", "baseline", "compared_with", "effect_size", "std")
 
 
 class EvidenceSet(BaseModel):
@@ -53,6 +55,8 @@ class EvidenceSet(BaseModel):
 
 
 class BaselineValue(BaseModel):
+    model_config = ConfigDict(allow_inf_nan=False)
+
     scope: BaselineScope
     value: float
     n_events: int = Field(ge=0)
@@ -64,6 +68,8 @@ class BaselineValue(BaseModel):
 class WindowValue(BaseModel):
     """The second window of a `compare` call; its events are in the call's evidence set."""
 
+    model_config = ConfigDict(allow_inf_nan=False)
+
     window: Window
     value: float
     n_events: int = Field(ge=0)
@@ -71,6 +77,8 @@ class WindowValue(BaseModel):
 
 class ToolResult(BaseModel):
     """One result shape for the whole catalog; REQUIRED_FIELDS says what each tool fills."""
+
+    model_config = ConfigDict(allow_inf_nan=False)
 
     tool_call_id: str
     tool: ToolName
@@ -89,12 +97,21 @@ class ToolResult(BaseModel):
     std: float | None = Field(default=None, ge=0, description="from distribution, for sigma")
     events: list[Event] = Field(default_factory=list, description="events tool, at their versions")
     n_events: int = Field(ge=0)
+    insufficient_data: str | None = Field(
+        default=None,
+        description="why no value could be computed (no sprints, an empty window); never NaN",
+    )
     evidence_set_id: str
     computed_at_ms: int = Field(ge=0)
 
     @model_validator(mode="after")
     def _fields_for_tool(self) -> "ToolResult":
-        missing = [f for f in REQUIRED_FIELDS[self.tool] if getattr(self, f) in (None, {})]
+        required = REQUIRED_FIELDS[self.tool]
+        if self.insufficient_data is not None:
+            if any(getattr(self, f) not in (None, {}) for f in OUTPUTS):
+                raise ValueError("an insufficient-data result carries no computed numbers")
+            required = tuple(f for f in required if f not in OUTPUTS)
+        missing = [f for f in required if getattr(self, f) in (None, {})]
         if missing:
             raise ValueError(f"{self.tool} result needs {', '.join(missing)}")
         return self

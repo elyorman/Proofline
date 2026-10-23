@@ -1,0 +1,264 @@
+"""Planted and decoy suites, with their sealed ground truth and frozen flags (spec §7.3).
+
+Each planted match carries one intervention whose mechanism belongs to one plantable
+class; the class itself is written only to the sealed ground truth. Match ids are
+opaque, so nothing a product package can see names the cause. Seeds come from the
+split's own range (spec §11.1), and a match seed is used only when the planted change
+is unambiguous there: a press change is not planted while the score gives the team a
+game-state reason for it, and a score-triggered change must actually start in time.
+"""
+
+import random
+import time
+from dataclasses import dataclass
+from multiprocessing import Pool
+from pathlib import Path
+
+import yaml
+
+from contracts.clock import MatchClock
+from contracts.eval_run import FlagSet, Split, Suite
+from contracts.planted import CAUSE_OBSERVABLES, GroundTruth, PlantedTruth
+from contracts.taxonomy import Cause
+from engine.paired import LATEST_START, judge, measure, resolve, window_after
+from engine.script import Intervention, MatchScript, TeamSpec
+from engine.sim import MatchSim
+from engine.teams import FORMATIONS, UNIT_OF_ROLE
+
+SPLIT_BASE = {Split.DEV: 1000, Split.HELDOUT: 2000}  # spec §11.1
+MATCH_OFFSET, DECOY_OFFSET, PAIRED_OFFSET = 0, 300, 500
+PER_CLASS = {Split.DEV: 2, Split.HELDOUT: 5}
+DECOYS = {Split.DEV: 4, Split.HELDOUT: 10}
+PAIRS = 30
+SCAN = 200  # seeds tried before a planted match or its pairs are given up
+
+# Minutes after the change starts in which its effect is measured.
+WINDOW = {
+    Cause.PRESS_INTENSITY_UP: (0, 8),
+    Cause.PRESS_INTENSITY_DOWN: (0, 8),
+    Cause.CHASING_RESULT: (0, 8),
+    Cause.PROTECTING_LEAD: (0, 8),
+    Cause.UNIT_FATIGUE: (7, 27),
+    Cause.PLAYER_FATIGUE: (7, 27),
+}
+
+HOME = TeamSpec(name="Harbour City", code="HC", formation="4-3-3")
+AWAY = TeamSpec(name="Northvale", code="NV", formation="4-2-3-1")
+
+
+def _clock(rng: random.Random, lo: int, hi: int) -> str:
+    return f"{rng.randint(lo, hi)}:00"
+
+
+def _r(rng: random.Random, lo: float, hi: float) -> float:
+    return round(rng.uniform(lo, hi), 2)
+
+
+def _template(cause: Cause, rng: random.Random, team: TeamSpec) -> tuple[dict, dict]:
+    """(the scripted team's starting parameters, its intervention) for one class."""
+    if cause == Cause.PRESS_INTENSITY_UP:
+        return {"press_height": _r(rng, 0.25, 0.4)}, {
+            "at": _clock(rng, 55, 65),
+            "ramp": "2m",
+            "set": {"press_height": _r(rng, 0.8, 0.95)},
+        }
+    if cause == Cause.PRESS_INTENSITY_DOWN:
+        return {"press_height": _r(rng, 0.65, 0.8)}, {
+            "at": _clock(rng, 55, 65),
+            "ramp": "2m",
+            "set": {"press_height": _r(rng, 0.15, 0.3)},
+        }
+    if cause == Cause.CHASING_RESULT:
+        return {"press_height": _r(rng, 0.35, 0.5)}, {
+            "at": "55:00",
+            "when": "trailing",
+            "ramp": "2m",
+            "set": {"press_height": _r(rng, 0.85, 0.95), "directness": _r(rng, 0.4, 0.5)},
+        }
+    if cause == Cause.PROTECTING_LEAD:
+        return {"press_height": _r(rng, 0.6, 0.7)}, {
+            "at": "55:00",
+            "when": "leading",
+            "ramp": "2m",
+            "set": {"press_height": _r(rng, 0.05, 0.15), "directness": _r(rng, 0.4, 0.5)},
+        }
+    if cause == Cause.UNIT_FATIGUE:
+        return {}, {
+            "at": _clock(rng, 55, 62),
+            "ramp": "4m",
+            "unit": rng.choice(["defence", "midfield"]),
+            "set": {"stamina_decay": _r(rng, 7.0, 9.0)},
+        }
+    if cause == Cause.PLAYER_FATIGUE:
+        outfield = [
+            f"{team.code}-{i:02d}"
+            for i, (role, _, _) in enumerate(FORMATIONS[team.formation], start=1)
+            if UNIT_OF_ROLE[role] in ("midfield", "attack")
+        ]
+        return {}, {
+            "at": _clock(rng, 55, 62),
+            "ramp": "4m",
+            "player": rng.choice(outfield),
+            "set": {"stamina_decay": _r(rng, 9.0, 10.0)},
+        }
+    raise ValueError(f"{cause} cannot be planted")
+
+
+def _teams(rng: random.Random) -> dict:
+    return {
+        side: spec.model_copy(
+            update={"press_height": _r(rng, 0.45, 0.6), "quality": _r(rng, 0.4, 0.6)}
+        )
+        for side, spec in (("home", HOME), ("away", AWAY))
+    }
+
+
+def _score_at(events: list, team: str, clock: MatchClock) -> int:
+    return sum(e.type == "goal" and e.team == team and e.clock < clock for e in events)
+
+
+def _unambiguous(cause: Cause, script: MatchScript, sim: MatchSim, events: list) -> bool:
+    """The planted change is the only fair answer in this match."""
+    iv = script.scripts[0]
+    start = sim.params.started[iv.id]
+    if start is None or LATEST_START < start:
+        return False
+    team = script.teams[iv.team].name
+    rival = next(t.name for t in script.teams.values() if t.name != team)
+    lead = _score_at(events, team, iv.at) - _score_at(events, rival, iv.at)
+    if cause == Cause.PRESS_INTENSITY_UP:
+        return lead >= 0  # trailing would make chasing the result a fair answer
+    if cause == Cause.PRESS_INTENSITY_DOWN:
+        return lead <= 0  # leading would make protecting the lead a fair answer
+    return True
+
+
+@dataclass
+class BuiltSuite:
+    suite: Suite
+    split: Split
+    scripts: list[MatchScript]
+    truth: GroundTruth
+    flags: FlagSet | None = None
+
+
+def _planted_match(args: tuple) -> tuple[MatchScript, PlantedTruth]:
+    split, cause, k, match_id = args
+    rng = random.Random(f"planted:{split}:{cause}:{k}")
+    teams = _teams(rng)
+    side = rng.choice(["home", "away"])
+    params, fields = _template(cause, rng, teams[side])
+    teams[side] = teams[side].model_copy(update=params)
+    iv = Intervention.model_validate({"id": "s1", "team": side, **fields})
+    first = SPLIT_BASE[split] + MATCH_OFFSET + 20 * k + 7 * list(CAUSE_OBSERVABLES).index(cause)
+    for seed in range(first, first + SCAN):
+        script = MatchScript(match_id=match_id, seed=seed, teams=teams, scripts=[iv])
+        sim = MatchSim(script)
+        events = sim.run()
+        if _unambiguous(cause, script, sim, events):
+            start = sim.params.started[iv.id]
+            truth = PlantedTruth(
+                match_id=match_id,
+                cause=cause,
+                team=teams[side].name,
+                script_id=iv.id,
+                started=start,
+                window=window_after(start, WINDOW[cause]),
+                observables=resolve(cause, script, iv),
+            )
+            return script, truth
+    raise ValueError(f"{match_id}: no seed from {first} plants {cause} unambiguously")
+
+
+def _flag(args: tuple):
+    split, script, truth, pairs = args
+    first = SPLIT_BASE[split] + PAIRED_OFFSET
+    checks, seeds = measure(
+        script,
+        truth.script_id,
+        truth.observables,
+        WINDOW[truth.cause],
+        range(first, first + SCAN),
+        pairs,
+    )
+    return judge(script.match_id, truth.cause, checks), seeds
+
+
+def planted(
+    split: Split, per_class: int | None = None, pairs: int = PAIRS, processes: int | None = None
+) -> BuiltSuite:
+    """`per_class` scripts of every plantable class, in a deterministic shuffled order, each
+    flagged from `pairs` seed pairs."""
+    per_class = PER_CLASS[split] if per_class is None else per_class
+    jobs = [(c, k) for c in CAUSE_OBSERVABLES for k in range(per_class)]
+    random.Random(f"order:{split}").shuffle(jobs)
+    prefix = "p-d" if split == Split.DEV else "p-h"
+    args = [(split, c, k, f"{prefix}-{i:02d}") for i, (c, k) in enumerate(jobs, start=1)]
+    with Pool(processes) as pool:
+        built = pool.map(_planted_match, args)
+        flagged = pool.map(_flag, [(split, s, t, pairs) for s, t in built])
+    scripts = [s for s, _ in built]
+    flags = FlagSet(
+        split=split,
+        scripts=[s.match_id for s in scripts],
+        paired_seeds={s.match_id: seeds for s, (_, seeds) in zip(scripts, flagged, strict=True)},
+        frozen_at_ms=int(time.time() * 1000),
+        exclusions=[x for x, _ in flagged if x is not None],
+    )
+    truth = GroundTruth(suite=Suite.PLANTED, split=split, entries=[t for _, t in built])
+    return BuiltSuite(Suite.PLANTED, split, scripts, truth, flags)
+
+
+def decoys(split: Split, count: int | None = None) -> BuiltSuite:
+    """Matches with nothing planted: natural swings only."""
+    count = DECOYS[split] if count is None else count
+    prefix = "d-d" if split == Split.DEV else "d-h"
+    scripts, entries = [], []
+    for k in range(count):
+        rng = random.Random(f"decoy:{split}:{k}")
+        match_id = f"{prefix}-{k + 1:02d}"
+        seed = SPLIT_BASE[split] + DECOY_OFFSET + k
+        scripts.append(MatchScript(match_id=match_id, seed=seed, teams=_teams(rng)))
+        entries.append(PlantedTruth(match_id=match_id, cause=Cause.NONE))
+    truth = GroundTruth(suite=Suite.DECOYS, split=split, entries=entries)
+    return BuiltSuite(Suite.DECOYS, split, scripts, truth)
+
+
+def dump_script(script: MatchScript) -> str:
+    """The script as YAML in the hand-written style: clocks as quoted text."""
+
+    def intervention(iv: Intervention) -> dict:
+        out = {"id": iv.id, "at": str(iv.at), "ramp": iv.ramp, "team": iv.team}
+        for key in ("player", "unit", "when"):
+            if getattr(iv, key) is not None:
+                out[key] = getattr(iv, key)
+        return out | {"set": iv.set}
+
+    doc = {
+        "match_id": script.match_id,
+        "seed": script.seed,
+        "teams": {side: t.model_dump() for side, t in script.teams.items()},
+        "scripts": [intervention(iv) for iv in script.scripts],
+    }
+    return yaml.safe_dump(doc, sort_keys=False)
+
+
+def write(built: BuiltSuite, root: Path) -> Path:
+    """root/<suite>/<split>/: scripts/*.yaml, ground_truth.yaml and, for the planted
+    suite, ground_truth_flags.json. All of it is sealed from product code."""
+    out = Path(root) / built.suite / built.split
+    (out / "scripts").mkdir(parents=True, exist_ok=True)
+    for script in built.scripts:
+        (out / "scripts" / f"{script.match_id}.yaml").write_text(
+            dump_script(script), encoding="utf-8"
+        )
+    truth = built.truth.model_dump(mode="json", exclude_none=True)
+    for raw, entry in zip(truth["entries"], built.truth.entries, strict=True):
+        if entry.started is not None:  # clocks as the text a reader writes
+            raw["started"], raw["window"] = str(entry.started), str(entry.window)
+    (out / "ground_truth.yaml").write_text(yaml.safe_dump(truth, sort_keys=False), encoding="utf-8")
+    if built.flags is not None:
+        (out / "ground_truth_flags.json").write_text(
+            built.flags.model_dump_json(indent=2) + "\n", encoding="utf-8"
+        )
+    return out

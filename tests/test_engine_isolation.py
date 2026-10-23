@@ -63,3 +63,12 @@ def test_root_level_files_are_checked(tmp_path):
     (repo / "app.py").write_text("import engine\n")
     found = guard.scan(repo)
     assert len(found) == 1 and "app.py" in found[0]
+
+
+def test_engine_scripts_and_suites_are_sealed_too(tmp_path):
+    guard = _load()
+    repo = _repo(tmp_path)
+    (repo / "state" / "peek.py").write_text('p = "engine/suites/planted/heldout/scripts"\n')
+    (repo / "state" / "demo.py").write_text('p = "engine/scripts/planted/m01.yaml"\n')
+    found = guard.scan(repo)
+    assert len(found) == 2 and all("engine scripts or suites" in v for v in found)

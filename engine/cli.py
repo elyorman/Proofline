@@ -6,9 +6,11 @@ import sys
 import yaml
 from pydantic import ValidationError
 
+from contracts.eval_run import Split
 from engine.io import write_match
 from engine.script import load_script
 from engine.sim import MatchSim
+from engine.suite_builder import decoys, planted, write
 
 
 def _seed(text: str) -> int:
@@ -25,7 +27,16 @@ def main(argv: list[str] | None = None) -> int:
     gen.add_argument("--script", required=True, help="path to a tactical script (YAML)")
     gen.add_argument("--seed", type=_seed, default=None, help="overrides the script's seed")
     gen.add_argument("--out", required=True, help="output directory")
+    suite = sub.add_parser("suite", help="build a planted or decoy suite with sealed ground truth")
+    suite.add_argument("--suite", choices=["planted", "decoys"], required=True)
+    suite.add_argument("--split", choices=["dev", "heldout"], required=True)
+    suite.add_argument("--out", default="engine/suites", help="suites root directory")
+    suite.add_argument(
+        "--size", type=_seed, default=None, help="scripts per class (planted) or matches (decoys)"
+    )
     args = parser.parse_args(argv)
+    if args.command == "suite":
+        return _suite(parser, args)
 
     try:
         script = load_script(args.script)
@@ -42,6 +53,19 @@ def main(argv: list[str] | None = None) -> int:
         f"{script.match_id} seed {sim.seed}: {len(events)} events, "
         f"{home} {sim.score['home']}-{sim.score['away']} {away}"
     )
+    return 0
+
+
+def _suite(parser: argparse.ArgumentParser, args: argparse.Namespace) -> int:
+    split = Split(args.split)
+    built = planted(split, args.size) if args.suite == "planted" else decoys(split, args.size)
+    try:
+        out = write(built, args.out)
+    except OSError as exc:
+        parser.error(f"cannot write {args.out}: {exc}")
+    excluded = len(built.flags.exclusions) if built.flags else 0
+    print(f"{args.suite} {args.split}: {len(built.scripts)} matches, {excluded} not observable")
+    print(f"written to {out}")
     return 0
 
 

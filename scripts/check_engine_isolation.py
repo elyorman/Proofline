@@ -17,6 +17,8 @@ ROOT = Path(__file__).resolve().parents[1]
 EXEMPT = {"engine", "eval", "tests", "scripts"}
 NOT_PYTHON = {"docs", "infra", "data", "node_modules", ".git", ".venv", ".github"}
 GROUND_TRUTH_RE = re.compile(r"ground_truth[^\s\"']*\.(ya?ml|json)")
+# A script reveals its planted moment as plainly as ground truth does.
+ENGINE_DATA_RE = re.compile(r"engine/(scripts|suites)/")
 
 
 def product_dirs(root: Path = ROOT) -> list[Path]:
@@ -46,6 +48,8 @@ def violations_in(path: Path) -> list[str]:
     for i, line in enumerate(text.splitlines(), 1):
         if GROUND_TRUTH_RE.search(line):
             out.append(f"{path}:{i}: references a ground-truth file")
+        elif ENGINE_DATA_RE.search(line):
+            out.append(f"{path}:{i}: references engine scripts or suites")
     return out
 
 

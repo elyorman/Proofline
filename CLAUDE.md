@@ -56,7 +56,8 @@ make tune-detector                        # re-tune detector thresholds on the d
 uv run proofline case --match m01 --minute 63 --variant B --record tests/fixtures/cases/m01-063-B   # one case end to end, live (gpt-5-mini + verifier); --replay DIR answers from fixtures
 uv run proofline case --match m01 --minute 63 --variant A --kill-agent physical   # the recovery beat: an agent stopped mid-case, retried from its checkpoint
 uv run proofline run --mode studio --match m01   # local pipeline against the deployed ledger
-uv run proofline eval --suite planted,decoys,corrections --variant A,B --split heldout
+uv run proofline batch --data data/dev --variant A --out runs/dev   # every detected case of a split through one variant (resumable)
+uv run python -m eval --runs runs/dev --split dev --variant A       # score a batch against the sealed truth; --compare A B for the paired difference
 azd up                                    # provision + deploy everything
 azd env get-values                        # endpoints and resource names
 pnpm --dir surfaces/web dev

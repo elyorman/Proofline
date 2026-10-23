@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from agents import narrator
+from agents import llm, narrator
 from agents.investigation import Tools, cause_team, rank, register, run_test
 from agents.llm import Recording, Replay, Usage
 from agents.outputs import Proposal, Ranking, Registration
@@ -246,6 +246,28 @@ def test_a_semantic_check_that_gives_no_answer_keeps_the_card_off_every_surface(
     assert verdict.card.status == "rejected" and verdict.report is None
     assert verdict.card.verification.semantic_check == "failed"
     assert "gave no answer" in verdict.card.verification.rejection_reason
+
+
+class Slow:
+    async def run(self, prompt, options):
+        await asyncio.sleep(1)
+
+
+def test_a_reply_slower_than_the_limit_counts_as_no_answer(monkeypatch):
+    monkeypatch.setattr(llm, "MODEL_TIMEOUT_S", 0.01)
+    with pytest.raises(ValueError, match="no SemanticReport within"):
+        asyncio.run(llm._run(Slow(), "p", {}, SemanticReport))
+
+
+def test_a_ranking_that_gives_no_answer_falls_back_to_the_strongest_margin(m01):
+    feed, case = m01
+    tools, _ = case_tools(case, feed)
+    survivors = [asyncio.run(run_test(tools, _hypothesis(case)))]
+    score = {"home_goals": 1.0, "away_goals": 3.0}
+    ranking, _ = asyncio.run(
+        rank(Unanswering(), AgentRole.SINGLE, case, feed.meta, score, survivors)
+    )
+    assert ranking.primary == "hyp-1" and "no Ranking in the reply" in ranking.why
 
 
 def test_a_reply_with_no_answer_is_recorded_and_replayed_as_one(tmp_path):

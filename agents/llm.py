@@ -6,6 +6,7 @@ and never call a model (CLAUDE.md). A fixture is keyed by a hash of the role, in
 prompt and answer schema, so a changed prompt fails loudly until it is re-recorded.
 """
 
+import asyncio
 import hashlib
 import json
 import os
@@ -20,6 +21,7 @@ from pydantic import BaseModel
 
 T = TypeVar("T", bound=BaseModel)
 MAX_TEXT_TOKENS = 8000  # the verifier's whole reply: its checks, then the JSON
+MODEL_TIMEOUT_S = 90  # one reply; a slower one counts as no answer, so a case never hangs
 
 
 @dataclass(frozen=True)
@@ -59,6 +61,13 @@ def last_json[T: BaseModel](text: str, schema: type[T]) -> T:
     raise ValueError(f"no {schema.__name__} in the reply: {text[-200:]!r}")
 
 
+async def _run(agent: Agent, prompt: str, options: dict, schema: type[BaseModel]):
+    try:
+        return await asyncio.wait_for(agent.run(prompt, options=options), MODEL_TIMEOUT_S)
+    except TimeoutError as exc:
+        raise ValueError(f"no {schema.__name__} within {MODEL_TIMEOUT_S} s") from exc
+
+
 @dataclass
 class FoundryModel:
     """A deployment on the Foundry project: gpt-5-mini for the agents, which honours a
@@ -88,7 +97,7 @@ class FoundryModel:
             )
         if self.structured:
             agent = Agent(self._client, instructions=instructions, name=role)
-            response = await agent.run(prompt, options={"response_format": schema})
+            response = await _run(agent, prompt, {"response_format": schema}, schema)
             value = response.value if response.value is not None else response.text
             answer = value if isinstance(value, schema) else schema.model_validate_json(str(value))
             return answer, _usage(response)
@@ -101,7 +110,7 @@ class FoundryModel:
         )
         total = Usage()
         for _ in range(2):  # one retry for a reply with no parsable answer
-            response = await agent.run(prompt, options={"max_tokens": MAX_TEXT_TOKENS})
+            response = await _run(agent, prompt, {"max_tokens": MAX_TEXT_TOKENS}, schema)
             total = total + _usage(response)
             try:
                 return last_json(response.text, schema), total

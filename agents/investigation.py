@@ -240,9 +240,12 @@ async def rank(
     if not survivors:
         return Ranking(outcome="none", primary=None, secondary=[], why="nothing survived"), Usage()
     listed = [_summary(t) | (extra or {}).get(t.hypothesis.hypothesis_id, {}) for t in survivors]
-    answer, usage = await model.ask(
-        role.value, prompts.RANKING, prompts.ranking_prompt(case, listed, score, meta), Ranking
-    )
+    try:
+        answer, usage = await model.ask(
+            role.value, prompts.RANKING, prompts.ranking_prompt(case, listed, score, meta), Ranking
+        )
+    except ValueError as exc:  # no answer, or none in time: ranked like an answer that fits none
+        answer, usage = Ranking(outcome="", primary=None, secondary=[], why=str(exc)), Usage()
     ids = [t.hypothesis.hypothesis_id for t in survivors]
     valid = (
         answer.outcome in {o.value for o in CaseOutcome}

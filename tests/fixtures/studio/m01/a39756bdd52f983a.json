@@ -5,24 +5,24 @@
     "hypotheses": [
       {
         "cause": "tactical.block_deeper",
-        "metric": "channel_share_centre",
-        "subject": "Northvale",
-        "direction": "up",
-        "min_change": 0.1,
-        "why": "Sitting deeper tends to relieve pressure via long balls aimed centrally, increasing centre-channel share."
-      },
-      {
-        "cause": "tactical.press_intensity_down",
         "metric": "pressure_rate",
         "subject": "Northvale",
         "direction": "down",
         "min_change": 0.15,
-        "why": "Protecting a lead often means reducing high pressing, so Northvale's pressure rate in the opponent half would fall."
+        "why": "If Northvale sat deeper to protect the lead they would register fewer pressures in the opponent's final 60%, lowering their pressure_rate."
+      },
+      {
+        "cause": "tactical.press_intensity_down",
+        "metric": "sprint_count",
+        "subject": "Northvale.midfield",
+        "direction": "down",
+        "min_change": 0.3,
+        "why": "A deliberate drop in pressing intensity would reduce high-effort pressing runs from Northvale's midfield, cutting their sprint_count."
       }
     ]
   },
   "usage": {
     "input_tokens": 1144,
-    "output_tokens": 1943
+    "output_tokens": 1349
   }
 }

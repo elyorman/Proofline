@@ -11,12 +11,12 @@
         "subject": "Northvale",
         "compare_to": "first_half",
         "min_change": 1.0,
-        "reason": "Fatigue should lower mean sprint speed; protecting a lead would more likely cut sprint count without necessarily reducing sprint speed."
+        "reason": "If unit fatigue caused the lower sprint count, mean sprint speed should also fall; protecting a lead would cut sprint count without necessarily reducing sprint speed."
       }
     ]
   },
   "usage": {
     "input_tokens": 1600,
-    "output_tokens": 1344
+    "output_tokens": 1044
   }
 }

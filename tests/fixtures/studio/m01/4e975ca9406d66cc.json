@@ -9,7 +9,7 @@
         "subject": "Harbour City",
         "direction": "up",
         "min_change": 0.2,
-        "why": "A team chasing the game often plays more direct to create quick chances, increasing its share of long passes."
+        "why": "Trailing after half-time, Harbour City will play more long balls to create quick attacking opportunities."
       },
       {
         "cause": "game_state.protecting_lead",
@@ -17,12 +17,12 @@
         "subject": "Northvale",
         "direction": "down",
         "min_change": 0.1,
-        "why": "A team protecting a lead typically reduces pressing in the opponent half, lowering its pressure rate."
+        "why": "Leading, Northvale will reduce high pressing to sit deeper and manage the game."
       }
     ]
   },
   "usage": {
     "input_tokens": 1131,
-    "output_tokens": 1112
+    "output_tokens": 1672
   }
 }

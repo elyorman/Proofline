@@ -47,5 +47,9 @@ class ClaudeModel:
             raise ValueError(f"no {schema.__name__} within {TIMEOUT_S} s") from exc
         if response.stop_reason == "refusal" or response.parsed_output is None:
             raise ValueError(f"no {schema.__name__} in the reply ({response.stop_reason})")
-        usage = Usage(response.usage.input_tokens, response.usage.output_tokens)
+        u = response.usage  # cache writes and reads are input too, reported apart
+        read_in = (
+            u.input_tokens + (u.cache_creation_input_tokens or 0) + (u.cache_read_input_tokens or 0)
+        )
+        usage = Usage(read_in, u.output_tokens)
         return response.parsed_output, usage

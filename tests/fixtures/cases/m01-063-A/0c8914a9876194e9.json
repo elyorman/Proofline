@@ -1,0 +1,32 @@
+{
+  "role": "physical",
+  "prompt": "Cross-examine these hypotheses.\n{\n \"moment\": \"58:00-63:00\",\n \"state_at_detection\": {\n  \"Harbour City\": {\n   \"goals\": 1,\n   \"sent_off\": 0,\n   \"substitutions\": 0\n  },\n  \"Northvale\": {\n   \"goals\": 3,\n   \"sent_off\": 0,\n   \"substitutions\": 0\n  }\n },\n \"hypotheses\": [\n  {\n   \"hypothesis_id\": \"hyp-tactics-01\",\n   \"by\": \"tactics\",\n   \"cause\": \"tactical.press_intensity_up\",\n   \"claim\": \"pressure_rate of Harbour City up by at least 0.2 in 58:00-63:00 against the first half\",\n   \"predicts_the_detected_change\": true,\n   \"result\": \"pressure_rate of Harbour City: 0.320 in the first half, 0.833 in 58:00-63:00, a change of +0.513 against a claim of up by 0.2\"\n  },\n  {\n   \"hypothesis_id\": \"hyp-tactics-02\",\n   \"by\": \"tactics\",\n   \"cause\": \"tactical.block_higher\",\n   \"claim\": \"long_ball_share of Northvale up by at least 0.08 in 58:00-63:00 against the first half\",\n   \"predicts_the_detected_change\": false,\n   \"result\": \"long_ball_share of Northvale: 0.111 in the first half, 0.588 in 58:00-63:00, a change of +0.477 against a claim of up by 0.08\"\n  },\n  {\n   \"hypothesis_id\": \"hyp-game_state-01\",\n   \"by\": \"game_state\",\n   \"cause\": \"game_state.chasing_result\",\n   \"claim\": \"pressure_rate of Harbour City up by at least 0.25 in 58:00-63:00 against the first half\",\n   \"predicts_the_detected_change\": true,\n   \"result\": \"pressure_rate of Harbour City: 0.320 in the first half, 0.833 in 58:00-63:00, a change of +0.513 against a claim of up by 0.25\"\n  }\n ],\n \"match\": {\n  \"home\": {\n   \"team\": \"Harbour City\",\n   \"players\": [\n    \"HC-01 GK (goalkeeper)\",\n    \"HC-02 RB (defence)\",\n    \"HC-03 RCB (defence)\",\n    \"HC-04 LCB (defence)\",\n    \"HC-05 LB (defence)\",\n    \"HC-06 RCM (midfield)\",\n    \"HC-07 CM (midfield)\",\n    \"HC-08 LCM (midfield)\",\n    \"HC-09 RW (attack)\",\n    \"HC-10 ST (attack)\",\n    \"HC-11 LW (attack)\"\n   ]\n  },\n  \"away\": {\n   \"team\": \"Northvale\",\n   \"players\": [\n    \"NV-01 GK (goalkeeper)\",\n    \"NV-02 RB (defence)\",\n    \"NV-03 RCB (defence)\",\n    \"NV-04 LCB (defence)\",\n    \"NV-05 LB (defence)\",\n    \"NV-06 RDM (midfield)\",\n    \"NV-07 LDM (midfield)\",\n    \"NV-08 RAM (midfield)\",\n    \"NV-09 CAM (midfield)\",\n    \"NV-10 LAM (midfield)\",\n    \"NV-11 ST (attack)\"\n   ]\n  }\n }\n}",
+  "answer": {
+    "counters": [
+      {
+        "hypothesis_id": "hyp-tactics-01",
+        "kind": "corollary",
+        "metric": "sprint_count",
+        "direction": "up",
+        "subject": "Harbour City.midfield",
+        "compare_to": "first_half",
+        "min_change": 0.3,
+        "reason": "A coached increase in press intensity should show as substantially more high-intensity runs from the midfield; if the tactic drove the pressure, midfield sprint count should rise by \u226530% vs the first half."
+      },
+      {
+        "hypothesis_id": "hyp-game_state-01",
+        "kind": "corollary",
+        "metric": "sprint_count",
+        "direction": "up",
+        "subject": "Harbour City.attack",
+        "compare_to": "first_half",
+        "min_change": 0.3,
+        "reason": "If Harbour City are chasing the score, attackers typically make more sprints into advanced areas; chasing should therefore produce a \u226530% rise in attack sprint count vs the first half."
+      }
+    ]
+  },
+  "usage": {
+    "input_tokens": 1862,
+    "output_tokens": 2390
+  }
+}

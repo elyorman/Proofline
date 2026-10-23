@@ -9,7 +9,7 @@
         "subject": "Harbour City",
         "direction": "up",
         "min_change": 0.15,
-        "why": "As the trailing team, Harbour City would increase high pressing to regain possession and try to score."
+        "why": "Trailing by two, Harbour City would press higher and more often to try to recover the score."
       },
       {
         "cause": "game_state.protecting_lead",
@@ -17,12 +17,12 @@
         "subject": "Northvale",
         "direction": "down",
         "min_change": 0.1,
-        "why": "Leading by two, Northvale would sit deeper and reduce their high pressing in the opponent's final third."
+        "why": "Northvale, leading by two, would sit deeper and reduce pressures in the opponent half to protect the lead."
       }
     ]
   },
   "usage": {
     "input_tokens": 1130,
-    "output_tokens": 1307
+    "output_tokens": 1384
   }
 }

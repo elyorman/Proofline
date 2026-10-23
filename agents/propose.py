@@ -116,6 +116,9 @@ def propose(finding: Finding, feed: Feed) -> InsightCard | None:
         x.during.tool_call_id: (x.exam.counter_prediction, x.during, x.before) for x in corroborated
     }
     refuted = {e.hypothesis_id: e for e in finding.exams if e.result == "refuted"}
+    # A cause the card names is never also ruled out: one registered twice, with one of its
+    # predictions failing, still stands on the other.
+    claimed = {(b.hypothesis.taxonomy, cause_team(feed.meta, b.hypothesis)) for b in backing}
     rejected = [
         RejectedAlternative(
             hypothesis_id=t.hypothesis.hypothesis_id,
@@ -131,7 +134,9 @@ def propose(finding: Finding, feed: Feed) -> InsightCard | None:
             else t.test.tool_call_id,
         )
         for t in finding.tested
-        if t not in backing and (not t.supported or t.hypothesis.hypothesis_id in refuted)
+        if t not in backing
+        and (not t.supported or t.hypothesis.hypothesis_id in refuted)
+        and (t.hypothesis.taxonomy, cause_team(feed.meta, t.hypothesis)) not in claimed
     ]
     who = resolve(feed.meta, p.subject)
     team = cause_team(feed.meta, primary.hypothesis)

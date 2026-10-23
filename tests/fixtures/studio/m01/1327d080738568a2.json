@@ -5,16 +5,24 @@
     "hypotheses": [
       {
         "cause": "tactical.press_intensity_up",
-        "metric": "pressure_rate",
+        "metric": "sprint_count",
         "subject": "Harbour City",
         "direction": "up",
-        "min_change": 0.2,
-        "why": "Harbour City, trailing 1-3, increased their pressing in the opponent half to chase the result."
+        "min_change": 0.3,
+        "why": "Chasing the score typically raises collective pressing, producing notably more sprints per minute across the team."
+      },
+      {
+        "cause": "tactical.block_higher",
+        "metric": "channel_share_centre",
+        "subject": "Harbour City",
+        "direction": "up",
+        "min_change": 0.1,
+        "why": "Pushing the defensive block higher usually compresses play into central channels, increasing the share of actions starting in the centre."
       }
     ]
   },
   "usage": {
     "input_tokens": 1144,
-    "output_tokens": 1979
+    "output_tokens": 1904
   }
 }

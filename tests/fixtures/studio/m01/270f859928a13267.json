@@ -11,22 +11,22 @@
         "subject": "Harbour City",
         "compare_to": "first_half",
         "min_change": 1.0,
-        "reason": "If Harbour City's lower sprint count comes from player fatigue, their mean sprint speed should fall noticeably versus the first half."
+        "reason": "If unit fatigue caused the lower sprint_count, mean sprint speed should also fall noticeably."
       },
       {
         "hypothesis_id": "hyp-game_state-01",
         "kind": "corollary",
-        "metric": "sprint_count",
+        "metric": "pressure_rate",
         "direction": "up",
-        "subject": "Harbour City.attack",
+        "subject": "Harbour City",
         "compare_to": "first_half",
-        "min_change": 0.2,
-        "reason": "If Harbour City truly shifted into chasing mode, their attackers should record more sprints per minute than in the first half."
+        "min_change": 0.15,
+        "reason": "If Harbour City truly chased the result, they should press higher and more often in the opponent's final 60% (raising pressure_rate)."
       }
     ]
   },
   "usage": {
     "input_tokens": 1747,
-    "output_tokens": 2702
+    "output_tokens": 1641
   }
 }

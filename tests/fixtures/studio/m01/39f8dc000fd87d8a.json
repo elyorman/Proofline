@@ -9,20 +9,20 @@
         "subject": "Northvale",
         "direction": "up",
         "min_change": 0.2,
-        "why": "Leading team shifts possession to a flank to hold the ball and run down the clock, increasing right-channel share."
+        "why": "Leading team shifts possession toward the right flank to relieve pressure and run down the clock, raising their right-channel share."
       },
       {
         "cause": "game_state.chasing_result",
         "metric": "pressure_rate",
         "subject": "Harbour City",
         "direction": "up",
-        "min_change": 0.1,
-        "why": "Trailing team increases high-side pressures in the opponent half to regain possession and create scoring chances."
+        "min_change": 0.15,
+        "why": "Trailing team pushes higher and applies more pressure in the opponent's half to chase the score, increasing their pressure rate."
       }
     ]
   },
   "usage": {
     "input_tokens": 1130,
-    "output_tokens": 1309
+    "output_tokens": 1340
   }
 }

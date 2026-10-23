@@ -4,17 +4,25 @@
   "answer": {
     "hypotheses": [
       {
+        "cause": "tactical.press_intensity_up",
+        "metric": "pressure_rate",
+        "subject": "Harbour City",
+        "direction": "up",
+        "min_change": 0.15,
+        "why": "Harbour City is behind and would press higher, increasing their pressures in the opponent's first 60% and forcing Northvale into more long balls."
+      },
+      {
         "cause": "tactical.block_deeper",
         "metric": "pressure_rate",
         "subject": "Northvale",
         "direction": "down",
         "min_change": 0.15,
-        "why": "Leading team likely sat deeper and played more long balls, so their pressures in the opponent half should fall."
+        "why": "Northvale is protecting a lead and would sit deeper, reducing their pressures in the opponent's first 60% and relying more on long clearances."
       }
     ]
   },
   "usage": {
     "input_tokens": 1144,
-    "output_tokens": 1387
+    "output_tokens": 1781
   }
 }

@@ -5,24 +5,24 @@
     "hypotheses": [
       {
         "cause": "tactical.formation_change",
-        "metric": "sprint_count",
-        "subject": "Harbour City.attack",
+        "metric": "long_ball_share",
+        "subject": "Harbour City",
         "direction": "up",
-        "min_change": 0.3,
-        "why": "A tactical shift to chase the game (more forwards) would produce noticeably more attacking sprints as attackers make forward runs."
+        "min_change": 0.2,
+        "why": "Switching to a more direct formation or target-man focus will increase the share of long forward passes. "
       },
       {
-        "cause": "tactical.flank_overload",
-        "metric": "channel_share_right",
+        "cause": "tactical.press_intensity_up",
+        "metric": "pressure_rate",
         "subject": "Harbour City",
         "direction": "up",
         "min_change": 0.15,
-        "why": "If Harbour City began sending more long diagonals to the right flank, the share of actions originating in the right channel would increase."
+        "why": "Chasing the game when behind often increases high pressing, which raises pressures in the opponent half. "
       }
     ]
   },
   "usage": {
     "input_tokens": 1145,
-    "output_tokens": 2424
+    "output_tokens": 1385
   }
 }

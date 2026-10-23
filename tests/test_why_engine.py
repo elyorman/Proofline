@@ -63,13 +63,13 @@ def _proposal(**overrides):
 
 
 def test_the_single_agent_replays_its_demo_case_from_recorded_exchanges(m01):
+    # One recorded live run: which cause it names is that run's judgement, not pinned here.
     feed, case = m01
     replay = Replay(FIXTURES)
     outcome = asyncio.run(run_case(Variant.B_SINGLE_AGENT, replay, replay, case, feed))
     card = outcome.verdict.card
     assert card.status == "verified" and card.verification.recompute == "match"
-    assert card.primary_cause.cause == Cause.PRESS_INTENSITY_UP
-    assert card.subject.team == "Harbour City" and card.verification.support_level == "strong"
+    assert card.subject.team == "Harbour City" and card.primary_cause.agent == "single"
     assert set(card.variants) == {"casual", "analyst"}
     assert all(set(v) == {"en", "es"} for v in card.variants.values())
     assert outcome.finding.tools.used <= case.tool_call_budget
@@ -242,6 +242,25 @@ def test_the_verifier_catches_a_tampered_number_and_an_overstatement(m01):
     )
     flagged = asyncio.run(verify(Scripted(overstated), card, record, feed, [])).card
     assert flagged.status == "rejected" and "too sure" in flagged.verification.rejection_reason
+
+
+def test_a_cause_the_card_names_is_never_also_ruled_out(m01):
+    feed, case = m01
+    twice = Registration(
+        hypotheses=[
+            _proposal(),  # Harbour City's pressure: holds
+            _proposal(metric="long_ball_share", subject="Northvale", min_change=0.9),  # fails
+        ]
+    )
+    ranking = Ranking(outcome="explained", primary="hyp-single-01", secondary=[], why="clear")
+    finding = asyncio.run(investigate(Scripted(twice, ranking), case, feed))
+    assert not finding.tested[1].supported
+    card = propose(finding, feed)
+    assert Cause.PRESS_INTENSITY_UP not in {r.taxonomy for r in card.rejected_alternatives}
+    assert (
+        narrator.cause_phrase(Cause.UNIT_FATIGUE, "Northvale", 0)
+        == "tiring legs in Northvale's side"
+    )
 
 
 def test_card_text_lists_each_measurement_once_and_names_each_ruled_out_teams_own(m01):

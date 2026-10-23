@@ -5,24 +5,16 @@
     "hypotheses": [
       {
         "cause": "tactical.flank_overload",
-        "metric": "sprint_count",
-        "subject": "NV-08",
+        "metric": "channel_share_right",
+        "subject": "Northvale",
         "direction": "up",
         "min_change": 0.3,
-        "why": "A right\u2011flank overload would manifest as substantially more high\u2011speed runs from the right attacking midfielder/winger."
-      },
-      {
-        "cause": "tactical.formation_change",
-        "metric": "channel_share_centre",
-        "subject": "Northvale",
-        "direction": "down",
-        "min_change": 0.12,
-        "why": "Shifting the formation to favour the right flank would reduce the share of actions starting through the central channel."
+        "why": "A deliberate right\u2011side overload concentrates passes, carries and dribbles into the right channel, markedly increasing its share."
       }
     ]
   },
   "usage": {
     "input_tokens": 1144,
-    "output_tokens": 1765
+    "output_tokens": 1257
   }
 }

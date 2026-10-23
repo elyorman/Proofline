@@ -45,9 +45,11 @@ def test_every_case_of_the_match_is_filed_and_every_card_scheduled(ledger):
     filed = {f.case.card_id for f in files} - {None}
     assert filed == {c.id for c in cards if c.lane == "full"}
     assert sum(c.lane == "fast" for c in cards) == 5  # the goals
-    for c in cards:
-        shown = c.timing.published_at is not None
-        assert shown == (c.status in ("shown", "revised", "withdrawn") or c.lane == "fast")
+    for c in cards:  # a correction to a card the fan never saw stays on the console
+        if c.timing.published_at is not None:
+            assert c.status in ("shown", "revised", "withdrawn") or c.lane == "fast"
+        if c.status == "shown":
+            assert c.timing.published_at is not None
     assert all(Cue.model_validate(c) for c in ledger["cues"])
     (a1,) = [EventAmendment.model_validate(a) for a in ledger["amendments"]]
     assert a1.amendment_id == "a1" and len(a1.event_ids) == 54

@@ -8,8 +8,8 @@
         "metric": "pressure_rate",
         "subject": "Harbour City",
         "direction": "up",
-        "min_change": 0.15,
-        "why": "Harbour City are trailing and would increase high pressures to create chances, raising their pressure_rate."
+        "min_change": 0.25,
+        "why": "Harbour City are behind and would increase high pressing in the opponent third to try to recover, raising their pressure rate."
       },
       {
         "cause": "game_state.protecting_lead",
@@ -17,12 +17,12 @@
         "subject": "Northvale",
         "direction": "down",
         "min_change": 0.15,
-        "why": "Northvale are ahead and would sit deeper and reduce pressing, lowering their pressure_rate."
+        "why": "Northvale are ahead and may drop deeper and reduce high pressing, lowering their pressure rate in the opponent third."
       }
     ]
   },
   "usage": {
     "input_tokens": 1130,
-    "output_tokens": 1424
+    "output_tokens": 1609
   }
 }

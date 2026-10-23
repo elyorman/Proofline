@@ -9,20 +9,20 @@
         "subject": "Harbour City",
         "direction": "down",
         "min_change": 0.3,
-        "why": "If the whole team is fatigued they will perform substantially fewer sprints, which can force simpler long passes rather than sustained short build-up."
+        "why": "If the whole team is fatigued they will sprint less and resort to more long balls to bypass midfield."
       },
       {
         "cause": "physical.player_fatigue",
         "metric": "sprint_count",
         "subject": "HC-07",
         "direction": "down",
-        "min_change": 0.3,
-        "why": "If a key midfielder is tired they will sprint much less, reducing short passing combinations and increasing reliance on long balls."
+        "min_change": 0.5,
+        "why": "If a key central midfielder becomes tired his individual sprinting will drop and the team may play more long passes to avoid him."
       }
     ]
   },
   "usage": {
     "input_tokens": 1129,
-    "output_tokens": 1322
+    "output_tokens": 1504
   }
 }

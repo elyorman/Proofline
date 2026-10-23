@@ -4,25 +4,25 @@
   "answer": {
     "hypotheses": [
       {
-        "cause": "game_state.protecting_lead",
-        "metric": "long_ball_share (team)",
-        "subject": "Northvale",
+        "cause": "game_state.chasing_result",
+        "metric": "pressure_rate",
+        "subject": "Harbour City",
         "direction": "up",
-        "min_change": 0.25,
-        "why": "A team protecting a multi-goal lead will play more long clearances/balls to relieve pressure and run down the clock, raising long-ball share."
+        "min_change": 0.15,
+        "why": "Harbour City, trailing by two, would increase pressures in the opponent's half when chasing the game."
       },
       {
         "cause": "game_state.protecting_lead",
-        "metric": "pressure_rate (team)",
+        "metric": "pressure_rate",
         "subject": "Northvale",
         "direction": "down",
         "min_change": 0.15,
-        "why": "With a comfortable lead, the team will usually ease off aggressive pressing in the opponent's final third, reducing pressure rate."
+        "why": "Northvale, leading by two, would sit deeper and reduce their high-pressure actions to protect the lead."
       }
     ]
   },
   "usage": {
     "input_tokens": 1130,
-    "output_tokens": 1135
+    "output_tokens": 1326
   }
 }

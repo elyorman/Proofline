@@ -1,0 +1,16 @@
+{
+  "role": "synthesis",
+  "prompt": "Rank these surviving hypotheses.\n{\n \"moment\": \"pressure_shift\",\n \"window\": \"46:00-51:00\",\n \"state_at_detection\": {\n  \"Harbour City\": {\n   \"goals\": 1,\n   \"sent_off\": 0,\n   \"substitutions\": 0\n  },\n  \"Northvale\": {\n   \"goals\": 2,\n   \"sent_off\": 0,\n   \"substitutions\": 0\n  }\n },\n \"survivors\": [\n  {\n   \"hypothesis_id\": \"hyp-tactics-01\",\n   \"cause\": \"tactical.formation_change\",\n   \"agent\": \"tactics\",\n   \"prediction\": \"long_ball_share of Harbour City up by at least 0.2\",\n   \"predicts_the_detected_change\": true,\n   \"result\": \"long_ball_share of Harbour City: 0.119 in the first half, 0.455 in 46:00-51:00, a change of +0.336 against a claim of up by 0.2\",\n   \"cross_examination\": [\n    \"physical control: long_ball_share of Northvale up by 0.2, measured -0.111; result: holds (If the long-ball rise is a shared match-wide factor rather than Harbour City's formation change, Northvale's long_ball_share would also rise by as much.)\"\n   ]\n  },\n  {\n   \"hypothesis_id\": \"hyp-physical-01\",\n   \"cause\": \"physical.unit_fatigue\",\n   \"agent\": \"physical\",\n   \"prediction\": \"sprint_count of Harbour City down by at least 0.3\",\n   \"predicts_the_detected_change\": false,\n   \"result\": \"sprint_count of Harbour City: 4.060 in the first half, 2.800 in 46:00-51:00, a change of -0.310 against a claim of down by 0.3\",\n   \"cross_examination\": [\n    \"tactics corollary: sprint_speed of Harbour City down by 1, measured -0.236; result: weakened (If unit fatigue caused the lower sprint_count, mean sprint speed should also fall noticeably.)\",\n    \"game_state corollary: sprint_speed of Harbour City down by 1, measured -0.236; result: weakened (If unit fatigue caused the fall in sprint count, mean sprint speed should also fall noticeably.)\"\n   ]\n  }\n ]\n}",
+  "answer": {
+    "outcome": "explained",
+    "primary": "hyp-tactics-01",
+    "secondary": [
+      "hyp-physical-01"
+    ],
+    "why": "Tactical formation change is primary because it directly produced the large +0.336 rise in Harbour City's long-ball share with a control rejecting a match-wide cause, while unit fatigue also occurred but its sprint-speed corollaries were weaker."
+  },
+  "usage": {
+    "input_tokens": 853,
+    "output_tokens": 813
+  }
+}

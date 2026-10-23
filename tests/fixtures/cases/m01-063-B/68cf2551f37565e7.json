@@ -5,11 +5,19 @@
     "hypotheses": [
       {
         "cause": "tactical.press_intensity_up",
+        "metric": "sprint_count",
+        "subject": "Harbour City.midfield",
+        "direction": "up",
+        "min_change": 0.3,
+        "why": "Higher pressing requires midfielders to make more sprints per minute."
+      },
+      {
+        "cause": "tactical.block_higher",
         "metric": "pressure_rate",
         "subject": "Harbour City",
         "direction": "up",
         "min_change": 0.15,
-        "why": "A deliberate increase in pressing raises the team's pressures in the opponent's first 60% of the pitch."
+        "why": "Moving the defensive block higher increases pressures in the opponent's build-up area, raising pressure_rate."
       },
       {
         "cause": "game_state.chasing_result",
@@ -17,28 +25,20 @@
         "subject": "Harbour City",
         "direction": "up",
         "min_change": 0.1,
-        "why": "Trailed by two goals, the team is likely to play more direct, increasing the share of long passes."
+        "why": "A team that is behind typically plays more direct, longer passes to get forward quickly."
       },
       {
-        "cause": "tactical.block_higher",
-        "metric": "sprint_count",
-        "subject": "Harbour City.defence",
-        "direction": "up",
-        "min_change": 0.3,
-        "why": "Pushing the defensive line higher forces defenders to make more high-intensity movements and recovery sprints."
-      },
-      {
-        "cause": "tactical.formation_change",
-        "metric": "channel_share_centre",
+        "cause": "tactical.flank_overload",
+        "metric": "channel_share_right",
         "subject": "Harbour City",
         "direction": "up",
         "min_change": 0.1,
-        "why": "A formation shift to a narrower shape would increase actions through the central channel."
+        "why": "Overloading a flank concentrates more passes, carries and dribbles down that wing, increasing that channel's share."
       }
     ]
   },
   "usage": {
     "input_tokens": 1200,
-    "output_tokens": 1591
+    "output_tokens": 2062
   }
 }

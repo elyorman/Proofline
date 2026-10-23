@@ -6,23 +6,23 @@
       {
         "cause": "physical.unit_fatigue",
         "metric": "sprint_count",
-        "subject": "Harbour City",
+        "subject": "Northvale",
         "direction": "down",
         "min_change": 0.3,
-        "why": "If Harbour City's outfield unit is fatigued they'd register substantially fewer sprints, reducing pressing and allowing Northvale to use more long passes."
+        "why": "If the whole Northvale team is fatigued their collective sprinting rate would fall, pushing them toward more long passes."
       },
       {
         "cause": "physical.player_fatigue",
-        "metric": "sprint_speed",
-        "subject": "HC-07",
+        "metric": "sprint_count",
+        "subject": "NV-09 CAM",
         "direction": "down",
-        "min_change": 1.0,
-        "why": "If HC-07 is individually tired their mean sprint speed would drop, weakening central pressing and making it easier for Northvale to execute long balls."
+        "min_change": 0.4,
+        "why": "If the central creator (NV-09) is individually fatigued his personal sprint rate would drop, reducing short combination play and increasing team long balls."
       }
     ]
   },
   "usage": {
     "input_tokens": 1128,
-    "output_tokens": 1940
+    "output_tokens": 2265
   }
 }

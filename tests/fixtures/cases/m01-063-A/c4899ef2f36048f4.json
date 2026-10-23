@@ -9,20 +9,20 @@
         "subject": "Northvale",
         "direction": "down",
         "min_change": 0.3,
-        "why": "If Northvale were tiring as a unit they'd make noticeably fewer sprints, making it easier for Harbour City to register more pressures."
+        "why": "If Northvale are collectively fatigued they will record noticeably fewer sprints, making them slower to evade presses and so Harbour City's pressure_rate rises."
       },
       {
         "cause": "physical.player_fatigue",
         "metric": "sprint_count",
-        "subject": "NV-06",
+        "subject": "NV-09",
         "direction": "down",
-        "min_change": 0.4,
-        "why": "If Northvale's RDM (NV-06) was individually fatigued his sprinting would drop, reducing the side's defensive reach and enabling Harbour City's pressure surge."
+        "min_change": 0.3,
+        "why": "If Northvale's CAM (NV-09) is tired he will sprint less and fail to escape Harbour City's pressure, increasing Harbour City's measured pressure_rate."
       }
     ]
   },
   "usage": {
     "input_tokens": 1128,
-    "output_tokens": 1939
+    "output_tokens": 2491
   }
 }

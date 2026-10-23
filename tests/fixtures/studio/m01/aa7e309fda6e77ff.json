@@ -1,0 +1,22 @@
+{
+  "role": "physical",
+  "prompt": "Cross-examine these hypotheses.\n{\n \"moment\": \"58:00-63:00\",\n \"state_at_detection\": {\n  \"Harbour City\": {\n   \"goals\": 1,\n   \"sent_off\": 0,\n   \"substitutions\": 0\n  },\n  \"Northvale\": {\n   \"goals\": 3,\n   \"sent_off\": 0,\n   \"substitutions\": 0\n  }\n },\n \"hypotheses\": [\n  {\n   \"hypothesis_id\": \"hyp-game_state-01\",\n   \"by\": \"game_state\",\n   \"cause\": \"game_state.chasing_result\",\n   \"claim\": \"pressure_rate of Harbour City up by at least 0.15 in 58:00-63:00 against the first half\",\n   \"predicts_the_detected_change\": true,\n   \"result\": \"pressure_rate of Harbour City: 0.320 in the first half, 0.833 in 58:00-63:00, a change of +0.513 against a claim of up by 0.15\"\n  }\n ],\n \"match\": {\n  \"home\": {\n   \"team\": \"Harbour City\",\n   \"players\": [\n    \"HC-01 GK (goalkeeper)\",\n    \"HC-02 RB (defence)\",\n    \"HC-03 RCB (defence)\",\n    \"HC-04 LCB (defence)\",\n    \"HC-05 LB (defence)\",\n    \"HC-06 RCM (midfield)\",\n    \"HC-07 CM (midfield)\",\n    \"HC-08 LCM (midfield)\",\n    \"HC-09 RW (attack)\",\n    \"HC-10 ST (attack)\",\n    \"HC-11 LW (attack)\"\n   ]\n  },\n  \"away\": {\n   \"team\": \"Northvale\",\n   \"players\": [\n    \"NV-01 GK (goalkeeper)\",\n    \"NV-02 RB (defence)\",\n    \"NV-03 RCB (defence)\",\n    \"NV-04 LCB (defence)\",\n    \"NV-05 LB (defence)\",\n    \"NV-06 RDM (midfield)\",\n    \"NV-07 LDM (midfield)\",\n    \"NV-08 RAM (midfield)\",\n    \"NV-09 CAM (midfield)\",\n    \"NV-10 LAM (midfield)\",\n    \"NV-11 ST (attack)\"\n   ]\n  }\n }\n}",
+  "answer": {
+    "counters": [
+      {
+        "hypothesis_id": "hyp-game_state-01",
+        "kind": "corollary",
+        "metric": "sprint_count",
+        "direction": "up",
+        "subject": "Harbour City",
+        "compare_to": "first_half",
+        "min_change": 0.3,
+        "reason": "If Harbour City is chasing the result they should raise high-intensity work \u2014 more sprints per minute \u2014 versus the first half; absence of that rise would weaken the chasing-result explanation."
+      }
+    ]
+  },
+  "usage": {
+    "input_tokens": 1597,
+    "output_tokens": 1431
+  }
+}

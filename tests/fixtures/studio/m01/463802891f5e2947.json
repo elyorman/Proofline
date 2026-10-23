@@ -4,29 +4,19 @@
   "answer": {
     "counters": [
       {
-        "hypothesis_id": "hyp-tactical-press-01",
+        "hypothesis_id": "hyp-game_state-01",
         "kind": "corollary",
-        "metric": "pressure_rate",
+        "metric": "long_ball_share",
         "direction": "up",
         "subject": "Harbour City",
         "compare_to": "first_half",
-        "min_change": 0.15,
-        "reason": "If Harbour City has increased their pressing intensity while chasing, their pressure rate in the opponent half should rise materially versus the first half."
-      },
-      {
-        "hypothesis_id": "hyp-game_state-01",
-        "kind": "corollary",
-        "metric": "sprint_count",
-        "direction": "up",
-        "subject": "Harbour City.attack",
-        "compare_to": "first_half",
-        "min_change": 0.3,
-        "reason": "If the change is driven by game-state chasing (urgency to score), we should also see a clear rise in attacking sprints; a pure increase in pressing intensity need not produce that same rise in attack sprint frequency."
+        "min_change": 0.1,
+        "reason": "If Harbour City are chasing the result they commonly switch to more direct long balls; absence of a rise in long_ball_share would weaken 'chasing_result' as the primary cause."
       }
     ]
   },
   "usage": {
     "input_tokens": 1613,
-    "output_tokens": 2881
+    "output_tokens": 3375
   }
 }

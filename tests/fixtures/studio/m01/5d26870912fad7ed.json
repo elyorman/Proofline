@@ -9,12 +9,20 @@
         "subject": "Northvale",
         "direction": "down",
         "min_change": 0.3,
-        "why": "Team-wide tired legs reduce overall sprinting, so the side uses more long passes to relieve pressure and conserve effort."
+        "why": "If Northvale were collectively fatigued they'd perform fewer sprints, lowering team sprint_count and encouraging more long passes."
+      },
+      {
+        "cause": "physical.unit_fatigue",
+        "metric": "pressure_rate",
+        "subject": "Harbour City",
+        "direction": "down",
+        "min_change": 0.15,
+        "why": "If Harbour City's players were tired while chasing the game their pressing would drop, reducing their pressure_rate and allowing Northvale to play more long balls."
       }
     ]
   },
   "usage": {
     "input_tokens": 1128,
-    "output_tokens": 2145
+    "output_tokens": 2102
   }
 }

@@ -63,8 +63,8 @@ CAUSE = {  # {team} is the team the cause is about
     Cause.BLOCK_HIGHER: ("{team} pushing their block higher", "{team} adelantando su bloque"),
     Cause.FORMATION_CHANGE: ("a change of shape by {team}", "un cambio de sistema de {team}"),
     Cause.FLANK_OVERLOAD: ("{team} overloading one flank", "{team} sobrecargando una banda"),
-    Cause.UNIT_FATIGUE: ("tiring legs", "piernas cansadas"),
-    Cause.PLAYER_FATIGUE: ("a tiring player", "un jugador que se cansa"),
+    Cause.UNIT_FATIGUE: ("tiring legs in {team}'s side", "el cansancio en {team}"),
+    Cause.PLAYER_FATIGUE: ("a tiring {team} player", "un jugador de {team} que se cansa"),
     Cause.FRESH_LEGS_SUBSTITUTION: (
         "fresh legs off {team}'s bench",
         "piernas frescas del banquillo de {team}",

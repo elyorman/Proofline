@@ -1,0 +1,30 @@
+{
+  "role": "verifier",
+  "prompt": "{\n \"facts\": {\n  \"change\": {\n   \"metric\": \"sprint_count\",\n   \"subject\": \"Northvale\",\n   \"direction\": \"down\",\n   \"window\": \"73:00-78:00\",\n   \"compared_with\": \"first_half\"\n  },\n  \"causes\": [\n   {\n    \"cause\": \"physical.unit_fatigue\",\n    \"role\": \"primary\",\n    \"plain\": \"tiring legs in Northvale's side\"\n   }\n  ],\n  \"evidence\": [\n   {\n    \"metric\": \"sprint_count\",\n    \"subject\": \"Northvale\",\n    \"first_half\": \"3.74\",\n    \"window\": \"2.60\"\n   },\n   {\n    \"metric\": \"sprint_speed\",\n    \"subject\": \"Northvale\",\n    \"first_half\": \"32.5 km/h\",\n    \"window\": \"31.2 km/h\"\n   }\n  ],\n  \"ruled_out\": [\n   \"Northvale sitting in a deeper block\",\n   \"a deliberate drop in Northvale's press\",\n   \"tiring legs in Harbour City's side\"\n  ],\n  \"names\": {\n   \"Northvale\": \"Northvale\"\n  },\n  \"team_the_cause_is_about\": \"Northvale\",\n  \"support_level\": \"weak\",\n  \"language_level\": \"tentative\",\n  \"published_at\": \"78:00\"\n },\n \"sentences\": [\n  \"Northvale are sprinting less since 73'.\",\n  \"Northvale are sprinting less since 73'. It may be tiring legs in Northvale's side.\",\n  \"Sprints a minute (Northvale): 3.74 \\u2192 2.60; Sprint speed (Northvale): 32.5 km/h \\u2192 31.2 km/h, 73'-78' against the first half. It may be tiring legs in Northvale's side. Ruled out: Northvale sitting in a deeper block, a deliberate drop in Northvale's press, tiring legs in Harbour City's side. Support: weak.\"\n ]\n}",
+  "answer": {
+    "sentences": [
+      {
+        "sentence": "Northvale are sprinting less since 73'.",
+        "entailed": true,
+        "overstated": false,
+        "reason": "Narrates sprint_count metric change direction."
+      },
+      {
+        "sentence": "Northvale are sprinting less since 73'. It may be tiring legs in Northvale's side.",
+        "entailed": true,
+        "overstated": false,
+        "reason": "Contains tentative language, matches cause 'tiring legs'."
+      },
+      {
+        "sentence": "Sprints a minute (Northvale): 3.74 \u2192 2.60; Sprint speed (Northvale): 32.5 km/h \u2192 31.2 km/h, 73'-78' against the first half. It may be tiring legs in Northvale's side. Ruled out: Northvale sitting in a deeper block, a deliberate drop in Northvale's press, tiring legs in Harbour City's side. Support: weak.",
+        "entailed": true,
+        "overstated": false,
+        "reason": "Correctly details all metrics, causes, and ruled out alternatives."
+      }
+    ]
+  },
+  "usage": {
+    "input_tokens": 895,
+    "output_tokens": 262
+  }
+}

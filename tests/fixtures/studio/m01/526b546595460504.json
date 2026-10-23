@@ -1,0 +1,14 @@
+{
+  "role": "synthesis",
+  "prompt": "Rank these surviving hypotheses.\n{\n \"moment\": \"pressure_shift\",\n \"window\": \"58:00-63:00\",\n \"state_at_detection\": {\n  \"Harbour City\": {\n   \"goals\": 1,\n   \"sent_off\": 0,\n   \"substitutions\": 0\n  },\n  \"Northvale\": {\n   \"goals\": 3,\n   \"sent_off\": 0,\n   \"substitutions\": 0\n  }\n },\n \"survivors\": [\n  {\n   \"hypothesis_id\": \"hyp-game_state-01\",\n   \"cause\": \"game_state.chasing_result\",\n   \"agent\": \"game_state\",\n   \"prediction\": \"pressure_rate of Harbour City up by at least 0.15\",\n   \"predicts_the_detected_change\": true,\n   \"result\": \"pressure_rate of Harbour City: 0.320 in the first half, 0.833 in 58:00-63:00, a change of +0.513 against a claim of up by 0.15\",\n   \"cross_examination\": [\n    \"tactics corollary: long_ball_share of Harbour City up by 0.1, measured +0.071; result: weakened (If Harbour City are chasing the result they commonly switch to more direct long balls; absence of a rise in long_ball_share would weaken 'chasing_result' as the primary cause.)\",\n    \"physical corollary: sprint_count of Harbour City up by 0.3, measured -0.212; result: weakened (If Harbour City is chasing the result they should raise high-intensity work \\u2014 more sprints per minute \\u2014 versus the first half; absence of that rise would weaken the chasing-result explanation.)\"\n   ]\n  }\n ]\n}",
+  "answer": {
+    "outcome": "explained",
+    "primary": "hyp-game_state-01",
+    "secondary": [],
+    "why": "Hypothesis predicted the observed large rise in Harbour City's pressure_rate (+0.513) but tactics and physical corollaries weakened confidence in it as the sole cause."
+  },
+  "usage": {
+    "input_tokens": 711,
+    "output_tokens": 393
+  }
+}

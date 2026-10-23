@@ -4,17 +4,25 @@
   "answer": {
     "hypotheses": [
       {
+        "cause": "game_state.chasing_result",
+        "metric": "pressure_rate (team)",
+        "subject": "Harbour City",
+        "direction": "up",
+        "min_change": 0.15,
+        "why": "A trailing Harbour City would increase pressures in the opponent's half to chase an equaliser, raising their pressure_rate."
+      },
+      {
         "cause": "game_state.protecting_lead",
-        "metric": "long_ball_share",
+        "metric": "long_ball_share (team)",
         "subject": "Northvale",
         "direction": "up",
         "min_change": 0.2,
-        "why": "A team protecting a lead often plays more direct and increases long passes/clearances to relieve pressure."
+        "why": "A leading Northvale would use more long balls to relieve pressure and run down the clock, increasing their long_ball_share."
       }
     ]
   },
   "usage": {
     "input_tokens": 1130,
-    "output_tokens": 1060
+    "output_tokens": 1541
   }
 }

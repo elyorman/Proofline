@@ -5,11 +5,11 @@
     "hypotheses": [
       {
         "cause": "physical.unit_fatigue",
-        "metric": "pressure_rate",
-        "subject": "Harbour City",
+        "metric": "sprint_count",
+        "subject": "Harbour City.defence",
         "direction": "down",
-        "min_change": 0.1,
-        "why": "If Harbour City are tiring while chasing the game their pressure in the opponent half will drop, allowing Northvale to operate more down their right."
+        "min_change": 0.3,
+        "why": "A tired Harbour City defensive unit would make fewer defensive sprints, letting Northvale exploit the right channel more."
       },
       {
         "cause": "physical.player_fatigue",
@@ -17,12 +17,12 @@
         "subject": "HC-05",
         "direction": "down",
         "min_change": 0.3,
-        "why": "Fatigue of Harbour City's left-back would reduce his defensive sprints and open Northvale's right channel."
+        "why": "If Harbour City's left back (HC-05) is fatigued his individual sprint count would fall, opening space on Northvale's right flank."
       }
     ]
   },
   "usage": {
     "input_tokens": 1128,
-    "output_tokens": 2817
+    "output_tokens": 2680
   }
 }

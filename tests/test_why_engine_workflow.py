@@ -11,13 +11,14 @@ from agents.llm import Replay, Usage
 from agents.outputs import Proposal, Ranking, Registration
 from agents.verifier.semantic import SemanticReport, SentenceCheck
 from contracts.case import CaseStage
+from contracts.case_file import CaseFile
 from contracts.eval_run import Variant
 from contracts.taxonomy import AgentRole, Cause
 from detector.cusum import detect
 from engine.io import match_meta
 from engine.script import load_script
 from engine.sim import MatchSim
-from orchestration.case import run_case
+from orchestration.case import case_file, run_case
 from orchestration.workflow import investigate
 from state.tools import Feed
 
@@ -92,13 +93,15 @@ def test_the_demo_case_is_cross_examined_and_verified_from_recorded_exchanges(m0
     finding, card = outcome.finding, outcome.verdict.card
     assert finding.agents == [AgentRole.TACTICS, AgentRole.PHYSICAL, AgentRole.GAME_STATE]
     # Recorded live: unprompted, two challengers asked whether Northvale's fall in sprints
-    # also slowed them (a corollary of fatigue; it did not fully), and one ran a control on
-    # Harbour City's press against Northvale's (it held).
-    kinds = sorted((e.challenger, kind_of(e), e.result) for e in finding.exams)
+    # also slowed them (a corollary of fatigue; it did not fully), Physical asked whether
+    # chasing brought more long balls (it did not fully), and Physical's control found
+    # Northvale did not press harder too, so Harbour City's press held.
+    kinds = sorted((e.challenger, kind_of(e), e.hypothesis_id, e.result) for e in finding.exams)
     assert kinds == [
-        (AgentRole.GAME_STATE, "corollary", "weakened"),
-        (AgentRole.PHYSICAL, "control", "holds"),
-        (AgentRole.TACTICS, "corollary", "weakened"),
+        (AgentRole.GAME_STATE, "corollary", "hyp-physical-02", "weakened"),
+        (AgentRole.PHYSICAL, "control", "hyp-tactics-01", "holds"),
+        (AgentRole.PHYSICAL, "corollary", "hyp-game_state-01", "weakened"),
+        (AgentRole.TACTICS, "corollary", "hyp-physical-02", "weakened"),
     ]
     assert [c.stage for c in finding.checkpoints] == [
         CaseStage.PREREGISTERED,
@@ -106,12 +109,12 @@ def test_the_demo_case_is_cross_examined_and_verified_from_recorded_exchanges(m0
         CaseStage.CROSS_EXAMINED,
         CaseStage.SYNTHESIZED,
     ]
-    # Harbour City trail 1-3; the synthesis agent read their press as chasing the result.
-    assert card.status == "verified" and card.primary_cause.cause == Cause.CHASING_RESULT
+    assert card.status == "verified" and card.primary_cause.cause == Cause.PRESS_INTENSITY_UP
     assert card.subject.team == "Harbour City" and not finding.recovered
     changes = {p.id: (p.metric, p.subject) for p in card.propositions if p.type == "change"}
-    (secondary,) = [p for p in card.propositions if getattr(p, "role", None) == "secondary"]
-    assert changes[secondary.effect] == ("sprint_count", "Northvale")  # its own change
+    fatigue = next(p for p in card.propositions if getattr(p, "cause", None) == Cause.UNIT_FATIGUE)
+    assert fatigue.role == "secondary"
+    assert changes[fatigue.effect] == ("sprint_count", "Northvale")  # its own change
 
 
 def test_a_control_on_the_other_team_is_run_and_scored_by_code(m01):
@@ -150,6 +153,34 @@ def test_a_corollary_another_agent_asks_for_corroborates_the_press_on_the_card(m
         card.investigation.cross_examination
     )
     assert card.status == "verified"
+
+
+def test_the_case_file_holds_the_whole_investigation_for_the_console(m01):
+    feed, case = m01
+    corollary = Counter(
+        hypothesis_id="hyp-tactics-01",
+        kind="corollary",
+        metric="long_ball_share",
+        direction="up",
+        subject="Northvale",
+        compare_to="first_half",
+        min_change=0.1,
+        reason="a real press forces the other side long",
+    )
+    script = SCRIPT | {("game_state", "Counters"): Counters(counters=[corollary])}
+    outcome = asyncio.run(run_case(Variant.A_PROOFLINE, ByRole(script), ByRole(script), case, feed))
+    filed = case_file(outcome, Variant.A_PROOFLINE)
+    assert CaseFile.model_validate_json(filed.model_dump_json()) == filed
+    assert filed.case.stage == "closed" and filed.case.card_id == outcome.verdict.card.id
+    assert [h.agent for h in filed.hypotheses] == [AgentRole.TACTICS, AgentRole.PHYSICAL]
+    assert {e.challenger for e in filed.cross_examinations} == {
+        AgentRole.PHYSICAL,
+        AgentRole.GAME_STATE,
+    }
+    assert any(e.corollary and e.result == "holds" for e in filed.cross_examinations)
+    assert len(filed.tool_calls) == outcome.finding.tools.used
+    assert filed.tool_calls[0].tool == "game_state" and filed.tool_calls[0].values
+    assert [c.stage for c in filed.case.checkpoints][-1] == CaseStage.SYNTHESIZED
 
 
 def test_an_agent_stopped_once_is_retried_from_its_checkpoint(m01):

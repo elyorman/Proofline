@@ -22,11 +22,12 @@ level allows. The support level the Verifier assigned is a fact. 'assertive' may
 state the cause as fact; 'measured' may say it looks like or \
 is consistent with the cause; 'tentative' may only say it may be the cause. The card is \
 published when its window ends, so 'since <start>' with the window's start is entailed. \
-Each subject is written as 'names' gives it. The first sentence states only the change: it \
-names no cause, so it cannot overstate one. Plain words for a change ('pressing harder', \
-'going long more often', 'sprinting less') narrate its metric and are entailed when the \
-metric moved that way. A rejected alternative is a cause the investigation ruled out; \
-naming it as ruled out is entailed. Keep each reason under 20 words."""
+Each subject is written as 'names' gives it. A sentence that names no cause cannot \
+overstate one; a sentence that names one is held to the language level. Plain words for a \
+change ('pressing harder', 'going long more often', 'sprinting less') narrate its metric \
+and are entailed when the metric moved that way. A rejected alternative is a cause the \
+investigation ruled out; naming it as ruled out is entailed. Keep each reason under 20 \
+words."""
 
 
 class SentenceCheck(BaseModel):

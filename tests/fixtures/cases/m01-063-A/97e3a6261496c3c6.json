@@ -9,20 +9,12 @@
         "subject": "Harbour City",
         "direction": "up",
         "min_change": 0.15,
-        "why": "Trailing by two, Harbour City are likely pushing higher and pressing more in the opponent's final 60% to chase the game."
-      },
-      {
-        "cause": "game_state.protecting_lead",
-        "metric": "pressure_rate",
-        "subject": "Northvale",
-        "direction": "down",
-        "min_change": 0.15,
-        "why": "Northvale are leading by two and may sit deeper and ease off high pressing to protect the lead, reducing their pressure rate."
+        "why": "Trailing by two, Harbour City would press higher and more often in the opponent half when chasing the result."
       }
     ]
   },
   "usage": {
     "input_tokens": 1044,
-    "output_tokens": 1451
+    "output_tokens": 723
   }
 }

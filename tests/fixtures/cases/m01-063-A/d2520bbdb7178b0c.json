@@ -6,10 +6,10 @@
       {
         "cause": "physical.fresh_legs_substitution",
         "metric": "sprint_count",
-        "subject": "Harbour City.attack",
+        "subject": "Harbour City",
         "direction": "up",
         "min_change": 0.3,
-        "why": "An attacking substitution would raise Harbour City's sprint frequency in the attacking third, enabling more high presses."
+        "why": "A fresh substitution for Harbour City would raise the team's sprinting rate, enabling the big jump in pressures."
       },
       {
         "cause": "physical.unit_fatigue",
@@ -17,12 +17,12 @@
         "subject": "Northvale",
         "direction": "down",
         "min_change": 0.25,
-        "why": "If Northvale are collectively tiring, their team sprint rate would drop, leaving them slower in buildup and more susceptible to Harbour City's increased pressing."
+        "why": "Fatigue in Northvale's outfield unit would reduce their sprinting and reactive coverage, making them easier to press."
       }
     ]
   },
   "usage": {
     "input_tokens": 1042,
-    "output_tokens": 1851
+    "output_tokens": 1742
   }
 }

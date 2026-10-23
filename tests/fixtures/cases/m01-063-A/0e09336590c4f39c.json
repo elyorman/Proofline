@@ -1,0 +1,17 @@
+{
+  "role": "synthesis",
+  "prompt": "Rank these surviving hypotheses.\n{\n \"moment\": \"pressure_shift\",\n \"window\": \"58:00-63:00\",\n \"score_at_detection\": {\n  \"Harbour City\": 1,\n  \"Northvale\": 3\n },\n \"survivors\": [\n  {\n   \"hypothesis_id\": \"hyp-tactics-01\",\n   \"cause\": \"tactical.press_intensity_up\",\n   \"agent\": \"tactics\",\n   \"prediction\": \"pressure_rate of Harbour City up by at least 0.15\",\n   \"result\": \"pressure_rate of Harbour City: 0.320 in the first half, 0.833 in 58:00-63:00, a change of +0.513 against a claim of up by 0.15\",\n   \"cross_examination\": [\n    \"physical control: pressure_rate of Northvale up by 0.15, measured -0.025; result: holds (If Northvale's pressure_rate rose by the same amount, the increase is shared across both teams and does not uniquely indicate Harbour City's tactical instruction.)\"\n   ]\n  },\n  {\n   \"hypothesis_id\": \"hyp-physical-02\",\n   \"cause\": \"physical.unit_fatigue\",\n   \"agent\": \"physical\",\n   \"prediction\": \"sprint_count of Northvale down by at least 0.25\",\n   \"result\": \"sprint_count of Northvale: 3.741 in the first half, 2.600 in 58:00-63:00, a change of -0.305 against a claim of down by 0.25\",\n   \"cross_examination\": [\n    \"tactics corollary: sprint_speed of Northvale down by 1, measured -0.974; result: weakened (If unit_fatigue caused the sprint_count drop, mean sprint_speed should also fall by at least 1 km/h; a purely tactical reduction in pressing frequency need not reduce sprint speed.)\",\n    \"game_state corollary: sprint_speed of Northvale down by 1, measured -0.974; result: weakened (If the drop in sprint_count is caused by player fatigue, mean sprint speed should also fall; a tactical decision to sit deeper would reduce counts without necessarily reducing sprint speed.)\"\n   ]\n  },\n  {\n   \"hypothesis_id\": \"hyp-game_state-01\",\n   \"cause\": \"game_state.chasing_result\",\n   \"agent\": \"game_state\",\n   \"prediction\": \"pressure_rate of Harbour City up by at least 0.15\",\n   \"result\": \"pressure_rate of Harbour City: 0.320 in the first half, 0.833 in 58:00-63:00, a change of +0.513 against a claim of up by 0.15\",\n   \"cross_examination\": [\n    \"physical corollary: long_ball_share of Harbour City up by 0.1, measured +0.071; result: weakened (When a team chases a deficit they often increase direct/long balls; a purely tactical press-intensity change would not necessarily raise long-ball share.)\"\n   ]\n  }\n ]\n}",
+  "answer": {
+    "outcome": "explained",
+    "primary": "hyp-tactics-01",
+    "secondary": [
+      "hyp-physical-02",
+      "hyp-game_state-01"
+    ],
+    "why": "Harbour City's pressure jump is large and specific to them (supports a tactical instruction); Northvale fatigue and Harbour's chasing motive are plausible contributors but are less directly supported by their corollaries."
+  },
+  "usage": {
+    "input_tokens": 915,
+    "output_tokens": 886
+  }
+}

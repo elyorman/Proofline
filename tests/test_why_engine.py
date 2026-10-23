@@ -8,7 +8,7 @@ import pytest
 
 from agents import narrator
 from agents.investigation import Tools, cause_team, rank, register, run_test
-from agents.llm import Replay, Usage
+from agents.llm import Recording, Replay, Usage
 from agents.outputs import Proposal, Ranking, Registration
 from agents.propose import propose
 from agents.single import case_tools, investigate
@@ -246,6 +246,14 @@ def test_a_semantic_check_that_gives_no_answer_keeps_the_card_off_every_surface(
     assert verdict.card.status == "rejected" and verdict.report is None
     assert verdict.card.verification.semantic_check == "failed"
     assert "gave no answer" in verdict.card.verification.rejection_reason
+
+
+def test_a_reply_with_no_answer_is_recorded_and_replayed_as_one(tmp_path):
+    recorded = Recording(Unanswering(), tmp_path)
+    with pytest.raises(ValueError, match="no SemanticReport"):
+        asyncio.run(recorded.ask("verifier", "i", "p", SemanticReport))
+    with pytest.raises(ValueError, match="no SemanticReport"):
+        asyncio.run(Replay(tmp_path).ask("verifier", "i", "p", SemanticReport))
 
 
 def test_a_seeded_false_number_in_the_text_fails_the_number_check(m01):

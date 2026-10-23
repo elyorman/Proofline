@@ -19,7 +19,7 @@ from ledger.eventhubs import consume
 from ledger.ingest import Ingest
 from ledger.store import CosmosLedger
 from orchestration.batch import run_batch
-from orchestration.case import models, run_case
+from orchestration.case import case_file, models, run_case
 from tools_server.server import DirectorySource
 
 ENV = ("AZURE_EVENTHUBS_NAMESPACE", "AZURE_EVENTHUB_NAME", "AZURE_COSMOS_ENDPOINT")
@@ -125,6 +125,10 @@ def _case(parser: argparse.ArgumentParser, args: argparse.Namespace) -> int:
         print("  recovered_from_checkpoint: an agent was retried from its stage's checkpoint")
     print(f"  ranking: {f.ranking.outcome}, primary {f.ranking.primary}: {f.ranking.why}")
     print(f"  {f.tools.used} tool calls, {f.usage.input_tokens}+{f.usage.output_tokens} tokens")
+    filed = Path("runs") / f"{found[0].case_id}-{args.variant}.json"
+    filed.parent.mkdir(exist_ok=True)
+    filed.write_text(case_file(outcome, Variant(args.variant)).model_dump_json(indent=2) + "\n")
+    print(f"  case file written to {filed}")
     if outcome.verdict is None:
         print("  no card: the case closes as", f.ranking.outcome)
         return 0

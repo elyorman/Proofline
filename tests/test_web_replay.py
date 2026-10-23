@@ -4,9 +4,7 @@ import asyncio
 import copy
 import json
 from pathlib import Path
-from types import SimpleNamespace
 from unittest.mock import patch
-from uuid import UUID
 
 import pytest
 
@@ -34,40 +32,10 @@ def replayed():
     feed = Feed(meta=match_meta(sim), events=events, data_version="feed-1")
     case = next(c for c in detect(feed.meta, events) if c.window.end.minute == 63)
     replay = Replay(ROOT / "tests/fixtures/cases/m01-063-A")
+    # Tool-call ids name their question, so a replay reproduces the card but its trace id.
     with patch("agents.llm.FoundryModel.ask", side_effect=AssertionError("No model calls")):
         outcome = asyncio.run(run_case(Variant.A_PROOFLINE, replay, replay, case, feed))
-        # The tool server also allocates random identifiers. Pin only that UUID
-        # factory for comparison, never a returned metric, model answer or card.
-        # A preliminary fresh run supplies the allocation order and unused ids.
-        stored = next(
-            c for c in json.loads(LEDGER.read_text())["cards"] if c["id"] == outcome.verdict.card.id
-        )
-        fresh = outcome.verdict.card.model_dump(mode="json")
-        ids = {}
-        for field in ("evidence", "rejected_alternatives"):
-            for actual, expected in zip(fresh[field], stored[field], strict=True):
-                if actual.get("tool_call_id") and expected.get("tool_call_id"):
-                    ids[actual["tool_call_id"]] = expected["tool_call_id"]
-        for actual, expected in zip(
-            fresh["depends_on"]["evidence_sets"], stored["depends_on"]["evidence_sets"], strict=True
-        ):
-            ids[actual.removeprefix("es-")] = expected.removeprefix("es-")
-        allocated = iter(
-            UUID(
-                hex=ids.get(
-                    entry["result"]["tool_call_id"], entry["result"]["tool_call_id"]
-                ).removeprefix("tc-")
-                + "0" * 20
-            )
-            for entry in outcome.finding.tools.log
-            if "result" in entry
-        )
-        with patch("tools_server.server.uuid", SimpleNamespace(uuid4=lambda: next(allocated))):
-            pinned = asyncio.run(run_case(Variant.A_PROOFLINE, replay, replay, case, feed))
-        assert [(e["tool"], e["arguments"]) for e in pinned.finding.tools.log] == [
-            (e["tool"], e["arguments"]) for e in outcome.finding.tools.log
-        ]
-    return feed, pinned.verdict.card
+    return feed, outcome.verdict.card
 
 
 def test_committed_ledger_validates_every_card_and_cue():

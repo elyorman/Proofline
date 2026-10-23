@@ -127,15 +127,17 @@ class Recording:
     async def ask(
         self, role: str, instructions: str, prompt: str, schema: type[T]
     ) -> tuple[T, Usage]:
-        answer, usage = await self.model.ask(role, instructions, prompt, schema)
         Path(self.folder).mkdir(parents=True, exist_ok=True)
-        record = {
-            "role": role,
-            "prompt": prompt,
-            "answer": answer.model_dump(mode="json"),
-            "usage": {"input_tokens": usage.input_tokens, "output_tokens": usage.output_tokens},
-        }
         path = Path(self.folder) / f"{fixture_key(role, instructions, prompt, schema)}.json"
+        record: dict = {"role": role, "prompt": prompt}
+        try:
+            answer, usage = await self.model.ask(role, instructions, prompt, schema)
+        except ValueError as exc:  # a reply with no answer is recorded too, so replay repeats it
+            record["error"] = str(exc)
+            path.write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
+            raise
+        record["answer"] = answer.model_dump(mode="json")
+        record["usage"] = {"input_tokens": usage.input_tokens, "output_tokens": usage.output_tokens}
         path.write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
         return answer, usage
 
@@ -154,4 +156,6 @@ class Replay:
         if not path.exists():
             raise MissingFixture(f"no recorded answer for {role} ({key}); re-record the case")
         record = json.loads(path.read_text(encoding="utf-8"))
+        if "error" in record:
+            raise ValueError(record["error"])
         return schema.model_validate(record["answer"]), Usage(**record["usage"])

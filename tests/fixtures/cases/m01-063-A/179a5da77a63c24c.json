@@ -1,0 +1,30 @@
+{
+  "role": "verifier",
+  "prompt": "{\n \"facts\": {\n  \"change\": {\n   \"metric\": \"pressure_rate\",\n   \"subject\": \"Harbour City\",\n   \"direction\": \"up\",\n   \"window\": \"58:00-63:00\",\n   \"compared_with\": \"first_half\"\n  },\n  \"causes\": [\n   {\n    \"cause\": \"tactical.press_intensity_up\",\n    \"role\": \"primary\",\n    \"plain\": \"a deliberate step up in Harbour City's press\"\n   },\n   {\n    \"cause\": \"physical.unit_fatigue\",\n    \"role\": \"secondary\",\n    \"plain\": \"tiring legs\"\n   },\n   {\n    \"cause\": \"game_state.chasing_result\",\n    \"role\": \"secondary\",\n    \"plain\": \"Harbour City chasing the result\"\n   }\n  ],\n  \"evidence\": [\n   {\n    \"metric\": \"pressure_rate\",\n    \"subject\": \"Harbour City\",\n    \"first_half\": \"0.32\",\n    \"window\": \"0.83\"\n   },\n   {\n    \"metric\": \"sprint_count\",\n    \"subject\": \"Northvale\",\n    \"first_half\": \"3.74\",\n    \"window\": \"2.60\"\n   }\n  ],\n  \"ruled_out\": [\n   \"fresh legs off Harbour City's bench\"\n  ],\n  \"names\": {\n   \"Harbour City\": \"Harbour City\",\n   \"Northvale\": \"Northvale\"\n  },\n  \"team_the_cause_is_about\": \"Harbour City\",\n  \"support_level\": \"strong\",\n  \"language_level\": \"assertive\",\n  \"published_at\": \"63:00\"\n },\n \"sentences\": [\n  \"Harbour City are pressing harder since 58'.\",\n  \"Harbour City are pressing harder since 58'. That is a deliberate step up in Harbour City's press.\",\n  \"Pressure rate (Harbour City): 0.32 \\u2192 0.83; Sprints a minute (Northvale): 3.74 \\u2192 2.60, 58'-63' against the first half. That is a deliberate step up in Harbour City's press. Ruled out: fresh legs off Harbour City's bench. Support: strong.\"\n ]\n}",
+  "answer": {
+    "sentences": [
+      {
+        "sentence": "Harbour City are pressing harder since 58'.",
+        "entailed": true,
+        "overstated": false,
+        "reason": "Pressure rate went up from 0.32 to 0.83."
+      },
+      {
+        "sentence": "Harbour City are pressing harder since 58'. That is a deliberate step up in Harbour City's press.",
+        "entailed": true,
+        "overstated": false,
+        "reason": "'Deliberate step up' as primary cause fits 'assertive' level."
+      },
+      {
+        "sentence": "Pressure rate (Harbour City): 0.32 \u2192 0.83; Sprints a minute (Northvale): 3.74 \u2192 2.60, 58'-63' against the first half. That is a deliberate step up in Harbour City's press. Ruled out: fresh legs off Harbour City's bench. Support: strong.",
+        "entailed": true,
+        "overstated": false,
+        "reason": "All data and conclusions align with facts."
+      }
+    ]
+  },
+  "usage": {
+    "input_tokens": 926,
+    "output_tokens": 247
+  }
+}

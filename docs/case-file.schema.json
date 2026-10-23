@@ -1,0 +1,798 @@
+{
+  "$defs": {
+    "AgentRole": {
+      "enum": [
+        "tactics",
+        "physical",
+        "game_state",
+        "synthesis",
+        "single"
+      ],
+      "title": "AgentRole",
+      "type": "string"
+    },
+    "BaselineScope": {
+      "enum": [
+        "first_half",
+        "match_so_far",
+        "season_average"
+      ],
+      "title": "BaselineScope",
+      "type": "string"
+    },
+    "Case": {
+      "properties": {
+        "case_id": {
+          "title": "Case Id",
+          "type": "string"
+        },
+        "match_id": {
+          "title": "Match Id",
+          "type": "string"
+        },
+        "moment_type": {
+          "$ref": "#/$defs/MomentType"
+        },
+        "origin": {
+          "default": "auto",
+          "enum": [
+            "auto",
+            "on_demand"
+          ],
+          "title": "Origin",
+          "type": "string"
+        },
+        "window": {
+          "$ref": "#/$defs/Window"
+        },
+        "triggers": {
+          "items": {
+            "$ref": "#/$defs/TriggerMetric"
+          },
+          "minItems": 1,
+          "title": "Triggers",
+          "type": "array"
+        },
+        "stage": {
+          "$ref": "#/$defs/CaseStage",
+          "default": "open"
+        },
+        "outcome": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CaseOutcome"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "hypothesis_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Hypothesis Ids",
+          "type": "array"
+        },
+        "checkpoints": {
+          "items": {
+            "$ref": "#/$defs/Checkpoint"
+          },
+          "title": "Checkpoints",
+          "type": "array"
+        },
+        "recovered_from_checkpoint": {
+          "default": false,
+          "title": "Recovered From Checkpoint",
+          "type": "boolean"
+        },
+        "tool_calls_used": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Tool Calls Used",
+          "type": "integer"
+        },
+        "tool_call_budget": {
+          "default": 16,
+          "minimum": 1,
+          "title": "Tool Call Budget",
+          "type": "integer"
+        },
+        "card_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Card Id"
+        }
+      },
+      "required": [
+        "case_id",
+        "match_id",
+        "moment_type",
+        "window",
+        "triggers"
+      ],
+      "title": "Case",
+      "type": "object"
+    },
+    "CaseOutcome": {
+      "description": "What the investigation concluded. Drives which card variant renders.",
+      "enum": [
+        "explained",
+        "other",
+        "none"
+      ],
+      "title": "CaseOutcome",
+      "type": "string"
+    },
+    "CaseRanking": {
+      "properties": {
+        "outcome": {
+          "$ref": "#/$defs/CaseOutcome"
+        },
+        "primary": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Primary"
+        },
+        "secondary": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Secondary",
+          "type": "array"
+        },
+        "why": {
+          "title": "Why",
+          "type": "string"
+        }
+      },
+      "required": [
+        "outcome",
+        "primary",
+        "secondary",
+        "why"
+      ],
+      "title": "CaseRanking",
+      "type": "object"
+    },
+    "CaseStage": {
+      "enum": [
+        "open",
+        "preregistered",
+        "tested",
+        "cross_examined",
+        "synthesized",
+        "proposed",
+        "closed"
+      ],
+      "title": "CaseStage",
+      "type": "string"
+    },
+    "Cause": {
+      "enum": [
+        "tactical.press_intensity_up",
+        "tactical.press_intensity_down",
+        "tactical.block_deeper",
+        "tactical.block_higher",
+        "tactical.formation_change",
+        "tactical.flank_overload",
+        "physical.unit_fatigue",
+        "physical.player_fatigue",
+        "physical.fresh_legs_substitution",
+        "game_state.protecting_lead",
+        "game_state.chasing_result",
+        "game_state.numerical_change",
+        "other",
+        "none"
+      ],
+      "title": "Cause",
+      "type": "string"
+    },
+    "Checkpoint": {
+      "properties": {
+        "stage": {
+          "$ref": "#/$defs/CaseStage"
+        },
+        "wall_clock_ms": {
+          "minimum": 0,
+          "title": "Wall Clock Ms",
+          "type": "integer"
+        },
+        "agents_completed": {
+          "items": {
+            "$ref": "#/$defs/AgentRole"
+          },
+          "title": "Agents Completed",
+          "type": "array"
+        },
+        "agents_failed": {
+          "items": {
+            "$ref": "#/$defs/AgentRole"
+          },
+          "title": "Agents Failed",
+          "type": "array"
+        },
+        "note": {
+          "default": "",
+          "title": "Note",
+          "type": "string"
+        }
+      },
+      "required": [
+        "stage",
+        "wall_clock_ms"
+      ],
+      "title": "Checkpoint",
+      "type": "object"
+    },
+    "CrossExamination": {
+      "description": "A challenger's counter-test, scored by code: if the counter-prediction holds, the\nhypothesis is refuted; if it reaches half its threshold, weakened; otherwise it holds.\n\nA control (the claim repeated on another subject) is scored on what it leaves of the\nhypothesis's own change: another team tiring too does not rule out a unit tiring more.\nThe hypothesis holds if its claim still holds beyond the control's change, is weakened\nif half of it does, and is refuted otherwise.\n\nA corollary is something else the hypothesis's cause would move if it were real, on\nanother metric: the hypothesis holds if the corollary moved as predicted, is refuted if\nit moved the other way by as much, and is weakened in between.",
+      "properties": {
+        "hypothesis_id": {
+          "title": "Hypothesis Id",
+          "type": "string"
+        },
+        "challenger": {
+          "$ref": "#/$defs/AgentRole"
+        },
+        "counter_prediction": {
+          "$ref": "#/$defs/Prediction"
+        },
+        "tool_call_id": {
+          "title": "Tool Call Id",
+          "type": "string"
+        },
+        "observed_change": {
+          "description": "signed, in the counter-prediction's units",
+          "title": "Observed Change",
+          "type": "number"
+        },
+        "hypothesis_change": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "controls only: the hypothesis subject's own change over the same window and baseline, filled by code from the hypothesis's test",
+          "title": "Hypothesis Change"
+        },
+        "corollary": {
+          "default": false,
+          "description": "the counter-prediction is what the hypothesis implies on another metric, so it holds when the hypothesis does",
+          "title": "Corollary",
+          "type": "boolean"
+        },
+        "reason": {
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "hypothesis_id",
+        "challenger",
+        "counter_prediction",
+        "tool_call_id",
+        "observed_change",
+        "reason"
+      ],
+      "title": "CrossExamination",
+      "type": "object"
+    },
+    "Direction": {
+      "enum": [
+        "up",
+        "down",
+        "flat"
+      ],
+      "title": "Direction",
+      "type": "string"
+    },
+    "Hypothesis": {
+      "properties": {
+        "hypothesis_id": {
+          "title": "Hypothesis Id",
+          "type": "string"
+        },
+        "case_id": {
+          "title": "Case Id",
+          "type": "string"
+        },
+        "agent": {
+          "$ref": "#/$defs/AgentRole"
+        },
+        "taxonomy": {
+          "$ref": "#/$defs/Cause"
+        },
+        "prediction": {
+          "$ref": "#/$defs/Prediction"
+        }
+      },
+      "required": [
+        "hypothesis_id",
+        "case_id",
+        "agent",
+        "taxonomy",
+        "prediction"
+      ],
+      "title": "Hypothesis",
+      "type": "object"
+    },
+    "HypothesisTest": {
+      "properties": {
+        "hypothesis_id": {
+          "title": "Hypothesis Id",
+          "type": "string"
+        },
+        "tool_call_id": {
+          "title": "Tool Call Id",
+          "type": "string"
+        },
+        "observed_change": {
+          "description": "signed, in the prediction's threshold units",
+          "title": "Observed Change",
+          "type": "number"
+        },
+        "outcome": {
+          "$ref": "#/$defs/TestOutcome"
+        },
+        "reason": {
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "hypothesis_id",
+        "tool_call_id",
+        "observed_change",
+        "outcome",
+        "reason"
+      ],
+      "title": "HypothesisTest",
+      "type": "object"
+    },
+    "MatchClock": {
+      "description": "Period plus elapsed minute and second within that period's own numbering.\n\n`minute` is the on-screen minute: 0-45+ in the first half, 45-90+ in the second.",
+      "properties": {
+        "period": {
+          "enum": [
+            1,
+            2
+          ],
+          "title": "Period",
+          "type": "integer"
+        },
+        "minute": {
+          "maximum": 130,
+          "minimum": 0,
+          "title": "Minute",
+          "type": "integer"
+        },
+        "second": {
+          "maximum": 59,
+          "minimum": 0,
+          "title": "Second",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "period",
+        "minute",
+        "second"
+      ],
+      "title": "MatchClock",
+      "type": "object"
+    },
+    "Metric": {
+      "enum": [
+        "ppda",
+        "press_intensity",
+        "pressure_rate",
+        "long_ball_share",
+        "field_tilt",
+        "channel_share_left",
+        "channel_share_centre",
+        "channel_share_right",
+        "pass_accuracy",
+        "pass_accuracy_under_pressure",
+        "pass_difficulty",
+        "xg",
+        "sprint_count",
+        "sprint_speed",
+        "high_intensity_run_rate",
+        "momentum",
+        "control_chaos",
+        "rhythm",
+        "line_height",
+        "ball_speed",
+        "shot_speed",
+        "possession_share",
+        "distance_covered"
+      ],
+      "title": "Metric",
+      "type": "string"
+    },
+    "MomentType": {
+      "enum": [
+        "pressure_shift",
+        "momentum_swing",
+        "control_to_chaos",
+        "chaos_to_control",
+        "shape_change",
+        "fatigue_signal",
+        "individual_spike",
+        "milestone",
+        "key_event"
+      ],
+      "title": "MomentType",
+      "type": "string"
+    },
+    "Prediction": {
+      "properties": {
+        "metric": {
+          "$ref": "#/$defs/Metric"
+        },
+        "subject": {
+          "description": "team, team.unit, or player id",
+          "minLength": 1,
+          "title": "Subject",
+          "type": "string"
+        },
+        "window": {
+          "$ref": "#/$defs/Window"
+        },
+        "compare_to": {
+          "$ref": "#/$defs/BaselineScope"
+        },
+        "direction": {
+          "$ref": "#/$defs/Direction"
+        },
+        "threshold_kind": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ThresholdKind"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "defaults to the metric's pinned kind"
+        },
+        "min_change": {
+          "description": "relative fraction, absolute units, or sigmas; for flat, the tolerance",
+          "exclusiveMinimum": 0,
+          "title": "Min Change",
+          "type": "number"
+        }
+      },
+      "required": [
+        "metric",
+        "subject",
+        "window",
+        "compare_to",
+        "direction",
+        "min_change"
+      ],
+      "title": "Prediction",
+      "type": "object"
+    },
+    "RefusedProposal": {
+      "description": "A hypothesis the orchestrator refused before testing, with the reason.",
+      "properties": {
+        "agent": {
+          "$ref": "#/$defs/AgentRole"
+        },
+        "cause": {
+          "title": "Cause",
+          "type": "string"
+        },
+        "metric": {
+          "title": "Metric",
+          "type": "string"
+        },
+        "subject": {
+          "title": "Subject",
+          "type": "string"
+        },
+        "reason": {
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "agent",
+        "cause",
+        "metric",
+        "subject",
+        "reason"
+      ],
+      "title": "RefusedProposal",
+      "type": "object"
+    },
+    "TestOutcome": {
+      "enum": [
+        "supported",
+        "failed"
+      ],
+      "title": "TestOutcome",
+      "type": "string"
+    },
+    "ThresholdKind": {
+      "description": "How a predicted change is measured against its baseline. Changes are signed.\n\nRELATIVE: (value - baseline) / |baseline|; only for metrics pinned relative,\ni.e. ratios and counts with a baseline well above zero.\nABSOLUTE: value - baseline, in the metric's own units; shares and rates bounded in\n0-1 (long-ball share, pressure rate, channel shares) are pinned absolute.\nSIGMA: (value - baseline) / std from the `distribution` tool; the default\nfor signed or near-zero metrics such as momentum.",
+      "enum": [
+        "relative",
+        "absolute",
+        "sigma"
+      ],
+      "title": "ThresholdKind",
+      "type": "string"
+    },
+    "ToolCall": {
+      "description": "One call to the State Builder over MCP, as logged.",
+      "properties": {
+        "tool": {
+          "title": "Tool",
+          "type": "string"
+        },
+        "arguments": {
+          "additionalProperties": true,
+          "title": "Arguments",
+          "type": "object"
+        },
+        "tool_call_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "None when the call was refused",
+          "title": "Tool Call Id"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Value"
+        },
+        "baseline": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Baseline"
+        },
+        "n_events": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "N Events"
+        },
+        "values": {
+          "additionalProperties": {
+            "type": "number"
+          },
+          "description": "game_state's score",
+          "title": "Values",
+          "type": "object"
+        },
+        "insufficient_data": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Insufficient Data"
+        },
+        "error": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Error"
+        }
+      },
+      "required": [
+        "tool",
+        "arguments"
+      ],
+      "title": "ToolCall",
+      "type": "object"
+    },
+    "TriggerMetric": {
+      "properties": {
+        "metric": {
+          "$ref": "#/$defs/Metric"
+        },
+        "subject": {
+          "title": "Subject",
+          "type": "string"
+        },
+        "value": {
+          "title": "Value",
+          "type": "number"
+        },
+        "baseline_value": {
+          "title": "Baseline Value",
+          "type": "number"
+        },
+        "n_events": {
+          "minimum": 0,
+          "title": "N Events",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "metric",
+        "subject",
+        "value",
+        "baseline_value",
+        "n_events"
+      ],
+      "title": "TriggerMetric",
+      "type": "object"
+    },
+    "Variant": {
+      "enum": [
+        "A",
+        "B",
+        "C"
+      ],
+      "title": "Variant",
+      "type": "string"
+    },
+    "Window": {
+      "description": "Half-open match-clock window [start, end). Accepts \"58:00-63:00\".",
+      "properties": {
+        "start": {
+          "$ref": "#/$defs/MatchClock"
+        },
+        "end": {
+          "$ref": "#/$defs/MatchClock"
+        }
+      },
+      "required": [
+        "start",
+        "end"
+      ],
+      "title": "Window",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "case": {
+      "$ref": "#/$defs/Case"
+    },
+    "variant": {
+      "$ref": "#/$defs/Variant"
+    },
+    "agents": {
+      "items": {
+        "$ref": "#/$defs/AgentRole"
+      },
+      "title": "Agents",
+      "type": "array"
+    },
+    "hypotheses": {
+      "items": {
+        "$ref": "#/$defs/Hypothesis"
+      },
+      "title": "Hypotheses",
+      "type": "array"
+    },
+    "refused": {
+      "items": {
+        "$ref": "#/$defs/RefusedProposal"
+      },
+      "title": "Refused",
+      "type": "array"
+    },
+    "tests": {
+      "items": {
+        "$ref": "#/$defs/HypothesisTest"
+      },
+      "title": "Tests",
+      "type": "array"
+    },
+    "cross_examinations": {
+      "items": {
+        "$ref": "#/$defs/CrossExamination"
+      },
+      "title": "Cross Examinations",
+      "type": "array"
+    },
+    "unrun": {
+      "description": "counter-tests refused or not measurable, with why",
+      "items": {
+        "type": "string"
+      },
+      "title": "Unrun",
+      "type": "array"
+    },
+    "ranking": {
+      "$ref": "#/$defs/CaseRanking"
+    },
+    "tool_calls": {
+      "items": {
+        "$ref": "#/$defs/ToolCall"
+      },
+      "title": "Tool Calls",
+      "type": "array"
+    },
+    "input_tokens": {
+      "minimum": 0,
+      "title": "Input Tokens",
+      "type": "integer"
+    },
+    "output_tokens": {
+      "minimum": 0,
+      "title": "Output Tokens",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "case",
+    "variant",
+    "agents",
+    "hypotheses",
+    "refused",
+    "tests",
+    "cross_examinations",
+    "unrun",
+    "ranking",
+    "tool_calls",
+    "input_tokens",
+    "output_tokens"
+  ],
+  "title": "CaseFile",
+  "type": "object"
+}

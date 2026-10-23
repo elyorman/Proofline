@@ -6,8 +6,9 @@ not happened. Every call stores its evidence set before it returns its result.
 """
 
 import argparse
+import hashlib
+import json
 import time
-import uuid
 from collections.abc import Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass, field
@@ -87,11 +88,16 @@ def build_server(source: Source, sink: EvidenceSink, cutoffs: dict[str, MatchClo
         "from one of these tools; never compute or estimate one yourself.",
     )
 
-    def call(match_id: str) -> Call:
+    def call(match_id: str, tool: str, **arguments: Any) -> Call:
+        """The call's clock and id. The id names the question (match, data version, cutoff,
+        tool and arguments), so asking it again, or replaying a recorded case, gives the same
+        id, and an amended feed gives new ones."""
         if match_id not in cutoffs:
             raise ValueError(f"no open case on {match_id}")
+        asked = [match_id, source.feed(match_id).data_version, str(cutoffs[match_id]), tool]
+        digest = hashlib.sha256(json.dumps(asked + [arguments], default=str).encode())
         return Call(
-            tool_call_id=f"tc-{uuid.uuid4().hex[:12]}",
+            tool_call_id=f"tc-{digest.hexdigest()[:12]}",
             as_of=cutoffs[match_id],
             now_ms=int(time.time() * 1000),
         )
@@ -106,7 +112,8 @@ def build_server(source: Source, sink: EvidenceSink, cutoffs: dict[str, MatchClo
         """One metric over a finished window such as "58:00-63:00", for a team
         ("Northvale"), one of its units ("Northvale.defence") or a player ("NV-04")."""
         with _refusals():
-            at, span = call(match_id), Window.model_validate(window)
+            at = call(match_id, "metric", name=name, subject=subject, window=window)
+            span = Window.model_validate(window)
             return done(tools.metric(source.feed(match_id), name, subject, span, at))
 
     @server.tool()
@@ -114,14 +121,14 @@ def build_server(source: Source, sink: EvidenceSink, cutoffs: dict[str, MatchClo
         """The same metric over the first half or the match so far, to compare a window
         against."""
         with _refusals():
-            at = call(match_id)
+            at = call(match_id, "baseline", name=name, subject=subject, scope=scope)
             return done(tools.baseline(source.feed(match_id), name, subject, scope, at))
 
     @server.tool()
     def game_state(match_id: str) -> dict[str, Any]:
         """The score at the case's clock, from the goals scored so far."""
         with _refusals():
-            at = call(match_id)
+            at = call(match_id, "game_state")
             return done(tools.game_state(source.feed(match_id), at))
 
     return server

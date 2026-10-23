@@ -59,3 +59,17 @@ def test_an_agent_cannot_measure_past_its_case_or_outside_the_match(data, argume
     request = {"match_id": "m01", "name": "pressure_rate", "subject": "Harbour City"} | arguments
     with pytest.raises(ToolError, match=message):
         asyncio.run(server.call_tool("metric", request))
+
+
+def test_a_call_is_named_by_its_question_so_a_replay_names_it_the_same(data):
+    def server(cutoff):
+        return build_server(DirectorySource(data), MemorySink(), {"m01": MatchClock.parse(cutoff)})
+
+    press = dict(name="pressure_rate", subject="Harbour City", window="58:00-63:00")
+    first = _call(server("63:00"), "metric", **press)
+    again = _call(server("63:00"), "metric", **press)
+    assert first.tool_call_id == again.tool_call_id
+    assert first.evidence_set_id == again.evidence_set_id
+    other = _call(server("63:00"), "metric", **press | {"subject": "Northvale"})
+    later = _call(server("64:00"), "metric", **press)
+    assert len({first.tool_call_id, other.tool_call_id, later.tool_call_id}) == 3

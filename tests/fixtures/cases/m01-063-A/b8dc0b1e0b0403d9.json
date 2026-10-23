@@ -11,12 +11,12 @@
         "subject": "Northvale",
         "compare_to": "first_half",
         "min_change": 1.0,
-        "reason": "If fatigue caused the sprint_count drop, mean sprint speed should fall; a tactical sit-deeper would cut counts without similarly slowing sprint speed."
+        "reason": "If unit_fatigue caused the sprint_count drop, mean sprint_speed should also fall by at least 1 km/h; a purely tactical reduction in pressing frequency need not reduce sprint speed."
       }
     ]
   },
   "usage": {
     "input_tokens": 1576,
-    "output_tokens": 2073
+    "output_tokens": 1727
   }
 }

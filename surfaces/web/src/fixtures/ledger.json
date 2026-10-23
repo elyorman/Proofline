@@ -432,11 +432,11 @@
         {
           "id": "p2",
           "type": "attribution",
-          "cause": "game_state.chasing_result",
+          "cause": "tactical.press_intensity_up",
           "effect": "p1",
           "role": "primary",
-          "hypothesis_id": "hyp-game_state-01",
-          "agent": "game_state"
+          "hypothesis_id": "hyp-tactics-01",
+          "agent": "tactics"
         },
         {
           "id": "p3",
@@ -466,6 +466,15 @@
           "role": "secondary",
           "hypothesis_id": "hyp-physical-02",
           "agent": "physical"
+        },
+        {
+          "id": "p5",
+          "type": "attribution",
+          "cause": "game_state.chasing_result",
+          "effect": "p1",
+          "role": "secondary",
+          "hypothesis_id": "hyp-game_state-01",
+          "agent": "game_state"
         }
       ],
       "claim": "Harbour City are pressing harder since 58'.",
@@ -491,7 +500,7 @@
             "value": 0.32
           },
           "n_events": 18,
-          "tool_call_id": "tc-551ef8fa2379"
+          "tool_call_id": "tc-14dde21557cb"
         },
         {
           "metric": "sprint_count",
@@ -514,15 +523,15 @@
             "value": 3.7407013815090333
           },
           "n_events": 13,
-          "tool_call_id": "tc-11b053783358"
+          "tool_call_id": "tc-381c843d73de"
         }
       ],
       "depends_on": {
         "evidence_sets": [
-          "es-tc-551ef8fa2379",
-          "es-tc-3a551a651a51",
-          "es-tc-11b053783358",
-          "es-tc-973777273e6e"
+          "es-tc-14dde21557cb",
+          "es-tc-0bc44cc13b7f",
+          "es-tc-381c843d73de",
+          "es-tc-b88f55a5e306"
         ],
         "data_version": "feed-1"
       },
@@ -532,18 +541,9 @@
           "taxonomy": "physical.fresh_legs_substitution",
           "agent": "physical",
           "team": "Harbour City",
-          "reason": "sprint_count of Harbour City.attack: 1.488 in the first half, 1.400 in 58:00-63:00, a change of -0.059 against a claim of up by 0.3",
+          "reason": "sprint_count of Harbour City: 4.060 in the first half, 3.200 in 58:00-63:00, a change of -0.212 against a claim of up by 0.3",
           "rejected_by": "test",
-          "tool_call_id": "tc-c8e33dc212b6"
-        },
-        {
-          "hypothesis_id": "hyp-game_state-02",
-          "taxonomy": "game_state.protecting_lead",
-          "agent": "game_state",
-          "team": "Northvale",
-          "reason": "pressure_rate of Northvale: 0.395 in the first half, 0.370 in 58:00-63:00, a change of -0.025 against a claim of down by 0.15",
-          "rejected_by": "test",
-          "tool_call_id": "tc-ed5d0ca0ef2f"
+          "tool_call_id": "tc-9b0e3b945806"
         }
       ],
       "investigation": {
@@ -553,9 +553,9 @@
           "game_state"
         ],
         "preregistered_predictions": 4,
-        "tool_calls": 11,
+        "tool_calls": 13,
         "budget": 16,
-        "cross_examination": "tactics corollary on physical's physical.unit_fatigue: weakened; physical control on game_state's game_state.chasing_result: holds; game_state corollary on physical's physical.unit_fatigue: weakened",
+        "cross_examination": "tactics corollary on physical's physical.unit_fatigue: weakened; physical control on tactics's tactical.press_intensity_up: holds; physical corollary on game_state's game_state.chasing_result: weakened; game_state corollary on physical's physical.unit_fatigue: weakened",
         "recovered_from_checkpoint": false
       },
       "verification": {
@@ -574,12 +574,12 @@
       "salience": "medium",
       "variants": {
         "casual": {
-          "en": "Harbour City are pressing harder since 58'. That is Harbour City chasing the result.",
-          "es": "Harbour City presiona con más intensidad desde el minuto 58. Es Harbour City buscando el resultado."
+          "en": "Harbour City are pressing harder since 58'. That is a deliberate step up in Harbour City's press.",
+          "es": "Harbour City presiona con más intensidad desde el minuto 58. Es un aumento deliberado de la presión de Harbour City."
         },
         "analyst": {
-          "en": "Pressure rate (Harbour City): 0.32 → 0.83; Sprints a minute (Northvale): 3.74 → 2.60, 58'-63' against the first half. That is Harbour City chasing the result. Ruled out: fresh legs off Harbour City's bench, Northvale protecting their lead. Support: strong.",
-          "es": "Tasa de presión (Harbour City): 0.32 → 0.83; Esprints por minuto (Northvale): 3.74 → 2.60, 58'-63' frente a la primera parte. Es Harbour City buscando el resultado. Descartado: piernas frescas del banquillo de Harbour City, Northvale protegiendo su ventaja. Apoyo: fuerte."
+          "en": "Pressure rate (Harbour City): 0.32 → 0.83; Sprints a minute (Northvale): 3.74 → 2.60, 58'-63' against the first half. That is a deliberate step up in Harbour City's press. Ruled out: fresh legs off Harbour City's bench. Support: strong.",
+          "es": "Tasa de presión (Harbour City): 0.32 → 0.83; Esprints por minuto (Northvale): 3.74 → 2.60, 58'-63' frente a la primera parte. Es un aumento deliberado de la presión de Harbour City. Descartado: piernas frescas del banquillo de Harbour City. Apoyo: fuerte."
         }
       },
       "broadcast_cue": null,
@@ -587,7 +587,7 @@
       "supersedes": null,
       "superseded_by": null,
       "provenance": {
-        "trace_id": "b4d904a0c1e44c2780eb95c6bf32e6d7",
+        "trace_id": "b48b3a2126c8432da911a05697338e14",
         "foundry_eval_run": null
       }
     }
@@ -619,7 +619,7 @@
         "team": "Harbour City",
         "before": 0.32,
         "after": 0.8333333333333334,
-        "headline": "Harbour City are pressing harder since 58'. That is Harbour City chasing the result.",
+        "headline": "Harbour City are pressing harder since 58'. That is a deliberate step up in Harbour City's press.",
         "stat_label": "pressure_rate",
         "metric": "pressure_rate"
       },

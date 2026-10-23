@@ -17,6 +17,7 @@ from contracts import (
     ToolResult,
     VariantComparison,
 )
+from contracts.case_file import CaseFile
 from contracts.prediction import Hypothesis
 
 DOCS = Path(__file__).resolve().parents[1] / "docs"
@@ -28,6 +29,7 @@ SCHEMAS = {
     "tool-result": ToolResult,
     "hypothesis": Hypothesis,
     "case": Case,
+    "case-file": CaseFile,
     "insight-card": InsightCard,
     "cue": Cue,
     "profile": Profile,

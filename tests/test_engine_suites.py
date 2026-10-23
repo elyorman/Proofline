@@ -7,7 +7,7 @@ from contracts.planted import CAUSE_OBSERVABLES, GroundTruth
 from contracts.taxonomy import Cause
 from engine.script import load_script
 from engine.sim import MatchSim
-from engine.suite_builder import decoys, dump_script, planted, write
+from engine.suite_builder import FAIR_LEAD, decoys, dump_script, planted, write
 
 ROOT = Path(__file__).resolve().parents[1] / "engine" / "suites"
 
@@ -26,8 +26,15 @@ def test_a_small_planted_suite_plants_every_class_unambiguously(tmp_path):
         # The script and its match id name a mechanism, never the class it stands for.
         assert truth.cause.value.split(".")[1] not in text and "." not in script.match_id
         sim = MatchSim(_load(tmp_path, text))
-        sim.run()
+        events = sim.run()
         assert sim.params.started["s1"] == truth.started
+        # The score gives no other fair answer from the start to the end of the window.
+        goals = [e for e in events if e.type == "goal" and e.clock <= truth.window.end]
+        signed = [1 if g.team == truth.team else -1 for g in goals]
+        leads = [sum(signed[: i + 1]) for i, g in enumerate(goals) if truth.started <= g.clock]
+        leads.append(sum(s for s, g in zip(signed, goals, strict=True) if g.clock < truth.started))
+        fair = FAIR_LEAD.get(truth.cause, lambda lead: True)
+        assert all(fair(lead) for lead in leads), (truth.match_id, leads)
     assert built.flags.match_ids == [s.match_id for s in built.scripts]
     out = write(built, tmp_path)
     names = sorted(p.name for p in out.iterdir())

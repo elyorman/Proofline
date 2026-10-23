@@ -4,8 +4,9 @@ Each planted match carries one intervention whose mechanism belongs to one plant
 class; the class itself is written only to the sealed ground truth. Match ids are
 opaque, so nothing a product package can see names the cause. Seeds come from the
 split's own range (spec §11.1), and a match seed is used only when the planted change
-is unambiguous there: a press change is not planted while the score gives the team a
-game-state reason for it, and a score-triggered change must actually start in time.
+is unambiguous there, from its start to the end of its window: a press change is not
+planted while the score gives the team a game-state reason for it, and a score-triggered
+change must start in time and keep the score that triggered it.
 """
 
 import random
@@ -116,20 +117,38 @@ def _score_at(events: list, team: str, clock: MatchClock) -> int:
     return sum(e.type == "goal" and e.team == team and e.clock < clock for e in events)
 
 
+def _leads(events: list, team: str, rival: str, since: MatchClock, until: MatchClock) -> list:
+    """The team's goal difference at `since`, then after each goal up to `until`."""
+    lead = _score_at(events, team, since) - _score_at(events, rival, since)
+    leads = [lead]
+    for e in events:
+        if e.type == "goal" and since <= e.clock <= until:
+            lead += 1 if e.team == team else -1
+            leads.append(lead)
+    return leads
+
+
+# The goal differences under which each class is the only fair answer.
+FAIR_LEAD = {
+    Cause.PRESS_INTENSITY_UP: lambda lead: lead >= 0,  # trailing: chasing would fit
+    Cause.PRESS_INTENSITY_DOWN: lambda lead: lead <= 0,  # leading: protecting would fit
+    Cause.CHASING_RESULT: lambda lead: lead < 0,
+    Cause.PROTECTING_LEAD: lambda lead: lead > 0,
+}
+
+
 def _unambiguous(cause: Cause, script: MatchScript, sim: MatchSim, events: list) -> bool:
-    """The planted change is the only fair answer in this match."""
+    """The planted change is the only fair answer in this match, through its window."""
     iv = script.scripts[0]
     start = sim.params.started[iv.id]
     if start is None or LATEST_START < start:
         return False
+    if cause not in FAIR_LEAD:
+        return True
     team = script.teams[iv.team].name
     rival = next(t.name for t in script.teams.values() if t.name != team)
-    lead = _score_at(events, team, iv.at) - _score_at(events, rival, iv.at)
-    if cause == Cause.PRESS_INTENSITY_UP:
-        return lead >= 0  # trailing would make chasing the result a fair answer
-    if cause == Cause.PRESS_INTENSITY_DOWN:
-        return lead <= 0  # leading would make protecting the lead a fair answer
-    return True
+    end = window_after(start, WINDOW[cause]).end
+    return all(FAIR_LEAD[cause](lead) for lead in _leads(events, team, rival, start, end))
 
 
 @dataclass

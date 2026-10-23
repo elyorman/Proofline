@@ -1,0 +1,14 @@
+{
+  "role": "synthesis",
+  "prompt": "Rank these surviving hypotheses.\n{\n \"moment\": \"pressure_shift\",\n \"window\": \"58:00-63:00\",\n \"state_at_detection\": {\n  \"Harbour City\": {\n   \"goals\": 1,\n   \"sent_off\": 0,\n   \"substitutions\": 0\n  },\n  \"Northvale\": {\n   \"goals\": 3,\n   \"sent_off\": 0,\n   \"substitutions\": 0\n  }\n },\n \"survivors\": [\n  {\n   \"hypothesis_id\": \"hyp-game_state-01\",\n   \"cause\": \"game_state.chasing_result\",\n   \"agent\": \"game_state\",\n   \"prediction\": \"pressure_rate of Harbour City up by at least 0.15\",\n   \"predicts_the_detected_change\": true,\n   \"result\": \"pressure_rate of Harbour City: 0.320 in the first half, 0.833 in 58:00-63:00, a change of +0.513 against a claim of up by 0.15\",\n   \"cross_examination\": [\n    \"tactics corollary: sprint_count of Harbour City.attack up by 0.3, measured -0.059; result: weakened (If the change is driven by game-state chasing (urgency to score), we should also see a clear rise in attacking sprints; a pure increase in pressing intensity need not produce that same rise in attack sprint frequency.)\",\n    \"physical corollary: sprint_count of Harbour City up by 0.3, measured -0.212; result: weakened (If Harbour City were truly chasing the result they would produce noticeably more high-intensity runs across the team than in the first half.)\"\n   ]\n  }\n ]\n}",
+  "answer": {
+    "outcome": "explained",
+    "primary": "hyp-game_state-01",
+    "secondary": [],
+    "why": "The hypothesis predicted the observed large rise in Harbour City\u2019s pressure and the measurement matches, but supporting corollaries (increased attack and team sprints) failed, so game-state chasing is the best-supported but weakened explanation."
+  },
+  "usage": {
+    "input_tokens": 702,
+    "output_tokens": 430
+  }
+}

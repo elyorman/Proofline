@@ -1,0 +1,30 @@
+{
+  "role": "verifier",
+  "prompt": "{\n \"facts\": {\n  \"change\": {\n   \"metric\": \"sprint_count\",\n   \"subject\": \"Harbour City\",\n   \"direction\": \"down\",\n   \"window\": \"52:00-57:00\",\n   \"compared_with\": \"first_half\"\n  },\n  \"causes\": [\n   {\n    \"cause\": \"physical.unit_fatigue\",\n    \"role\": \"primary\",\n    \"plain\": \"tiring legs\"\n   }\n  ],\n  \"evidence\": [\n   {\n    \"metric\": \"sprint_count\",\n    \"subject\": \"Harbour City\",\n    \"first_half\": \"4.06\",\n    \"window\": \"2.60\"\n   },\n   {\n    \"metric\": \"sprint_speed\",\n    \"subject\": \"Harbour City\",\n    \"first_half\": \"32.6 km/h\",\n    \"window\": \"30.8 km/h\"\n   }\n  ],\n  \"ruled_out\": [\n   \"Northvale sitting in a deeper block\",\n   \"a tiring player\"\n  ],\n  \"names\": {\n   \"Harbour City\": \"Harbour City\"\n  },\n  \"team_the_cause_is_about\": \"Harbour City\",\n  \"support_level\": \"weak\",\n  \"language_level\": \"tentative\",\n  \"published_at\": \"57:00\"\n },\n \"sentences\": [\n  \"Harbour City are sprinting less since 52'.\",\n  \"Harbour City are sprinting less since 52'. It may be tiring legs.\",\n  \"Sprints a minute (Harbour City): 4.06 \\u2192 2.60; Sprint speed (Harbour City): 32.6 km/h \\u2192 30.8 km/h, 52'-57' against the first half. It may be tiring legs. Ruled out: Northvale sitting in a deeper block, a tiring player. Support: weak.\"\n ]\n}",
+  "answer": {
+    "sentences": [
+      {
+        "sentence": "Harbour City are sprinting less since 52'.",
+        "entailed": true,
+        "overstated": false,
+        "reason": "Metric moved down during 52'-57', entailed by facts."
+      },
+      {
+        "sentence": "Harbour City are sprinting less since 52'. It may be tiring legs.",
+        "entailed": true,
+        "overstated": false,
+        "reason": "Change direction and tentative language level are consistent with facts."
+      },
+      {
+        "sentence": "Sprints a minute (Harbour City): 4.06 \u2192 2.60; Sprint speed (Harbour City): 32.6 km/h \u2192 30.8 km/h, 52'-57' against the first half. It may be tiring legs. Ruled out: Northvale sitting in a deeper block, a tiring player. Support: weak.",
+        "entailed": true,
+        "overstated": false,
+        "reason": "Factual metrics, ruled-out causes, and support level match facts exactly."
+      }
+    ]
+  },
+  "usage": {
+    "input_tokens": 862,
+    "output_tokens": 250
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "role": "game_state",
+  "prompt": "Pre-register your hypotheses for this moment.\n{\n \"moment\": \"pressure_shift\",\n \"window\": \"46:00-51:00\",\n \"detected_at\": \"51:00\",\n \"state_at_detection\": {\n  \"Harbour City\": {\n   \"goals\": 1,\n   \"sent_off\": 0,\n   \"substitutions\": 0\n  },\n  \"Northvale\": {\n   \"goals\": 2,\n   \"sent_off\": 0,\n   \"substitutions\": 0\n  }\n },\n \"what_the_detector_saw\": [\n  {\n   \"metric\": \"long_ball_share\",\n   \"subject\": \"Harbour City\",\n   \"first_half\": 0.119,\n   \"window\": 0.455,\n   \"sample\": 11\n  }\n ],\n \"match\": {\n  \"home\": {\n   \"team\": \"Harbour City\",\n   \"players\": [\n    \"HC-01 GK (goalkeeper)\",\n    \"HC-02 RB (defence)\",\n    \"HC-03 RCB (defence)\",\n    \"HC-04 LCB (defence)\",\n    \"HC-05 LB (defence)\",\n    \"HC-06 RCM (midfield)\",\n    \"HC-07 CM (midfield)\",\n    \"HC-08 LCM (midfield)\",\n    \"HC-09 RW (attack)\",\n    \"HC-10 ST (attack)\",\n    \"HC-11 LW (attack)\"\n   ]\n  },\n  \"away\": {\n   \"team\": \"Northvale\",\n   \"players\": [\n    \"NV-01 GK (goalkeeper)\",\n    \"NV-02 RB (defence)\",\n    \"NV-03 RCB (defence)\",\n    \"NV-04 LCB (defence)\",\n    \"NV-05 LB (defence)\",\n    \"NV-06 RDM (midfield)\",\n    \"NV-07 LDM (midfield)\",\n    \"NV-08 RAM (midfield)\",\n    \"NV-09 CAM (midfield)\",\n    \"NV-10 LAM (midfield)\",\n    \"NV-11 ST (attack)\"\n   ]\n  }\n }\n}",
+  "answer": {
+    "hypotheses": [
+      {
+        "cause": "game_state.chasing_result",
+        "metric": "long_ball_share",
+        "subject": "Harbour City",
+        "direction": "up",
+        "min_change": 0.2,
+        "why": "A team chasing the game often plays more direct to create quick chances, increasing its share of long passes."
+      },
+      {
+        "cause": "game_state.protecting_lead",
+        "metric": "pressure_rate",
+        "subject": "Northvale",
+        "direction": "down",
+        "min_change": 0.1,
+        "why": "A team protecting a lead typically reduces pressing in the opponent half, lowering its pressure rate."
+      }
+    ]
+  },
+  "usage": {
+    "input_tokens": 1131,
+    "output_tokens": 1112
+  }
+}

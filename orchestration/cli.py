@@ -20,6 +20,7 @@ from ledger.ingest import Ingest
 from ledger.store import CosmosLedger
 from orchestration.batch import run_batch
 from orchestration.case import case_file, models, run_case
+from orchestration.studio import studio, write
 from tools_server.server import DirectorySource
 
 ENV = ("AZURE_EVENTHUBS_NAMESPACE", "AZURE_EVENTHUB_NAME", "AZURE_COSMOS_ENDPOINT")
@@ -61,7 +62,33 @@ def main(argv: list[str] | None = None) -> int:
     batch.add_argument("--out", type=Path, default=Path("runs"), help="results root")
     batch.add_argument("--concurrency", type=int, default=3)
     batch.add_argument("--record", type=Path, help="save every model exchange here")
+    run = sub.add_parser("run", help="run a whole match through the product")
+    run.add_argument("--mode", choices=["studio"], default="studio")
+    run.add_argument("--data", type=Path, default=Path("data"), help="folder of written matches")
+    run.add_argument("--match", required=True)
+    run.add_argument("--variant", choices=["A", "B"], default="A")
+    run.add_argument("--record", type=Path, help="save every model exchange here")
+    run.add_argument("--replay", type=Path, help="answer from saved exchanges only")
+    run.add_argument("--out", type=Path, default=Path("runs/studio"), help="ledger root")
     args = parser.parse_args(argv)
+    if args.command == "run":
+        _quiet()
+        agents, verifier = models(args.record, args.replay)
+        source = DirectorySource(args.data)
+        ledger = asyncio.run(studio(source, args.match, agents, verifier, Variant(args.variant)))
+        shown = [c for c in ledger["cards"] if c["lane"] == "full" and c["timing"]["published_at"]]
+        print(
+            f"{args.match}: {len(ledger['case_files'])} cases, {len(shown)} card revisions "
+            f"shown, {len(ledger['corrections'])} corrections, {len(ledger['cues'])} cues"
+        )
+        for c in shown:
+            at = c["timing"]["published_at"]
+            when = f"{at['minute']}:{at['second']:02d}"
+            print(f"  {when} r{c['revision']} {c['status']}: {c['claim']}")
+        for c in ledger["corrections"]:
+            print(f"  correction: {c['card_id']} {c['decision']} after {c['amendment_id']}")
+        print(f"  written to {write(ledger, args.out)}")
+        return 0
     if args.command == "case":
         return _case(parser, args)
     if args.command == "batch":

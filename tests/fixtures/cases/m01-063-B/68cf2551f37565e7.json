@@ -9,7 +9,7 @@
         "subject": "Harbour City",
         "direction": "up",
         "min_change": 0.15,
-        "why": "A deliberate increase in pressing will raise Harbour City's pressures in the opponent's territory."
+        "why": "A deliberate increase in pressing raises the team's pressures in the opponent's first 60% of the pitch."
       },
       {
         "cause": "game_state.chasing_result",
@@ -17,7 +17,7 @@
         "subject": "Harbour City",
         "direction": "up",
         "min_change": 0.1,
-        "why": "Being two goals behind, Harbour City is likely to play more direct, increasing their share of long passes."
+        "why": "Trailed by two goals, the team is likely to play more direct, increasing the share of long passes."
       },
       {
         "cause": "tactical.block_higher",
@@ -25,20 +25,20 @@
         "subject": "Harbour City.defence",
         "direction": "up",
         "min_change": 0.3,
-        "why": "Raising the defensive line forces defenders into more high-intensity recovery and tracking sprints."
+        "why": "Pushing the defensive line higher forces defenders to make more high-intensity movements and recovery sprints."
       },
       {
-        "cause": "tactical.flank_overload",
-        "metric": "channel_share_right",
+        "cause": "tactical.formation_change",
+        "metric": "channel_share_centre",
         "subject": "Harbour City",
         "direction": "up",
         "min_change": 0.1,
-        "why": "If the pressing shift comes from overloading a flank, actions starting on that wing will increase their channel share."
+        "why": "A formation shift to a narrower shape would increase actions through the central channel."
       }
     ]
   },
   "usage": {
     "input_tokens": 1200,
-    "output_tokens": 2096
+    "output_tokens": 1591
   }
 }

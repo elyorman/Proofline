@@ -4,19 +4,29 @@
   "answer": {
     "counters": [
       {
-        "hypothesis_id": "hyp-game_state-01",
-        "kind": "control",
+        "hypothesis_id": "hyp-tactical-press-01",
+        "kind": "corollary",
         "metric": "pressure_rate",
         "direction": "up",
-        "subject": "Northvale",
+        "subject": "Harbour City",
         "compare_to": "first_half",
         "min_change": 0.15,
-        "reason": "If Northvale's pressure_rate rose by a similar amount the change is a shared tempo/phase shift, not uniquely Harbour City's chasing behaviour."
+        "reason": "If Harbour City has increased their pressing intensity while chasing, their pressure rate in the opponent half should rise materially versus the first half."
+      },
+      {
+        "hypothesis_id": "hyp-game_state-01",
+        "kind": "corollary",
+        "metric": "sprint_count",
+        "direction": "up",
+        "subject": "Harbour City.attack",
+        "compare_to": "first_half",
+        "min_change": 0.3,
+        "reason": "If the change is driven by game-state chasing (urgency to score), we should also see a clear rise in attacking sprints; a pure increase in pressing intensity need not produce that same rise in attack sprint frequency."
       }
     ]
   },
   "usage": {
     "input_tokens": 1613,
-    "output_tokens": 1627
+    "output_tokens": 2881
   }
 }

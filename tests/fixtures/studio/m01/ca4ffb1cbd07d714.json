@@ -1,0 +1,32 @@
+{
+  "role": "game_state",
+  "prompt": "Cross-examine these hypotheses.\n{\n \"moment\": \"52:00-57:00\",\n \"state_at_detection\": {\n  \"Harbour City\": {\n   \"goals\": 1,\n   \"sent_off\": 0,\n   \"substitutions\": 0\n  },\n  \"Northvale\": {\n   \"goals\": 3,\n   \"sent_off\": 0,\n   \"substitutions\": 0\n  }\n },\n \"hypotheses\": [\n  {\n   \"hypothesis_id\": \"hyp-physical-01\",\n   \"by\": \"physical\",\n   \"cause\": \"physical.unit_fatigue\",\n   \"claim\": \"sprint_count of Harbour City down by at least 0.3 in 52:00-57:00 against the first half\",\n   \"predicts_the_detected_change\": false,\n   \"result\": \"sprint_count of Harbour City: 4.060 in the first half, 2.600 in 52:00-57:00, a change of -0.360 against a claim of down by 0.3\"\n  },\n  {\n   \"hypothesis_id\": \"hyp-physical-02\",\n   \"by\": \"physical\",\n   \"cause\": \"physical.player_fatigue\",\n   \"claim\": \"sprint_speed of HC-07 down by at least 1 in 52:00-57:00 against the first half\",\n   \"predicts_the_detected_change\": false,\n   \"result\": \"sprint_speed of HC-07: 32.295 in the first half, 31.167 in 52:00-57:00, a change of -1.128 against a claim of down by 1\"\n  }\n ],\n \"match\": {\n  \"home\": {\n   \"team\": \"Harbour City\",\n   \"players\": [\n    \"HC-01 GK (goalkeeper)\",\n    \"HC-02 RB (defence)\",\n    \"HC-03 RCB (defence)\",\n    \"HC-04 LCB (defence)\",\n    \"HC-05 LB (defence)\",\n    \"HC-06 RCM (midfield)\",\n    \"HC-07 CM (midfield)\",\n    \"HC-08 LCM (midfield)\",\n    \"HC-09 RW (attack)\",\n    \"HC-10 ST (attack)\",\n    \"HC-11 LW (attack)\"\n   ]\n  },\n  \"away\": {\n   \"team\": \"Northvale\",\n   \"players\": [\n    \"NV-01 GK (goalkeeper)\",\n    \"NV-02 RB (defence)\",\n    \"NV-03 RCB (defence)\",\n    \"NV-04 LCB (defence)\",\n    \"NV-05 LB (defence)\",\n    \"NV-06 RDM (midfield)\",\n    \"NV-07 LDM (midfield)\",\n    \"NV-08 RAM (midfield)\",\n    \"NV-09 CAM (midfield)\",\n    \"NV-10 LAM (midfield)\",\n    \"NV-11 ST (attack)\"\n   ]\n  }\n }\n}",
+  "answer": {
+    "counters": [
+      {
+        "hypothesis_id": "hyp-physical-01",
+        "kind": "corollary",
+        "metric": "sprint_speed",
+        "direction": "down",
+        "subject": "Harbour City",
+        "compare_to": "first_half",
+        "min_change": 1.0,
+        "reason": "If unit-level fatigue explains a large drop in team sprint_count, it should also show as a fall in the team's mean sprint speed."
+      },
+      {
+        "hypothesis_id": "hyp-physical-02",
+        "kind": "corollary",
+        "metric": "sprint_count",
+        "direction": "down",
+        "subject": "HC-07",
+        "compare_to": "first_half",
+        "min_change": 0.3,
+        "reason": "If HC-07 is genuinely fatigued enough to lower sprint speed, we should also see a substantial fall in that player's sprint count."
+      }
+    ]
+  },
+  "usage": {
+    "input_tokens": 1730,
+    "output_tokens": 2903
+  }
+}

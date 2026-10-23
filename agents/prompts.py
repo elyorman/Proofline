@@ -65,10 +65,11 @@ corollary, control or counter-test other specialists ran on it, and the score. T
 cause is the one the evidence supports best and its rivals explain least well. A hypothesis \
 whose own test only re-measured the detected change ("predicts_the_detected_change") has \
 shown that the change happened, not that its cause made it; without a corollary or control \
-on it that held, it is weaker than one with evidence of its own. A secondary \
-cause is real but explains less. If nothing survived, the outcome is 'none'. If the effect \
-is real but no surviving cause fits, the outcome is 'other'. Otherwise it is 'explained', \
-with a primary."""
+on it that held, it is weaker than one with evidence of its own. A weakened test makes a \
+cause less certain, not wrong. A secondary cause is real but explains less. If nothing \
+survived, the outcome is 'none'. If the effect is real but the evidence contradicts every \
+surviving cause, the outcome is 'other'. Otherwise it is 'explained', with the best \
+supported cause as primary."""
 
 
 def state_at(meta: MatchMeta, state: dict[str, float]) -> dict[str, dict[str, int]]:

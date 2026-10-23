@@ -92,14 +92,16 @@ def test_the_demo_case_is_cross_examined_and_verified_from_recorded_exchanges(m0
     outcome = asyncio.run(run_case(Variant.A_PROOFLINE, replay, replay, case, feed))
     finding, card = outcome.finding, outcome.verdict.card
     assert finding.agents == [AgentRole.TACTICS, AgentRole.PHYSICAL, AgentRole.GAME_STATE]
-    # Recorded live: Physical asked the press for a sign its own cause needs (attackers
-    # sprinting more; they did not, so it weakened), and two controls found Northvale did
-    # not press harder too. Harbour City trail 1-3, and synthesis read chasing the result.
+    # Recorded live: the challengers asked each other's claims for corollaries (fatigue should
+    # slow sprints too; a higher block should change more than the press), and each came back
+    # weakened. Harbour City trail 1-3; synthesis read their press as chasing the result,
+    # with fatigue and a higher block as secondary.
     kinds = sorted((e.challenger, kind_of(e), e.hypothesis_id, e.result) for e in finding.exams)
     assert kinds == [
-        (AgentRole.GAME_STATE, "control", "hyp-tactics-01", "holds"),
-        (AgentRole.PHYSICAL, "corollary", "hyp-tactics-01", "weakened"),
-        (AgentRole.TACTICS, "control", "hyp-game_state-01", "holds"),
+        (AgentRole.GAME_STATE, "corollary", "hyp-physical-01", "weakened"),
+        (AgentRole.GAME_STATE, "corollary", "hyp-tactics-02", "weakened"),
+        (AgentRole.PHYSICAL, "corollary", "hyp-tactics-02", "weakened"),
+        (AgentRole.TACTICS, "corollary", "hyp-physical-01", "weakened"),
     ]
     assert [c.stage for c in finding.checkpoints] == [
         CaseStage.PREREGISTERED,
@@ -108,7 +110,8 @@ def test_the_demo_case_is_cross_examined_and_verified_from_recorded_exchanges(m0
         CaseStage.SYNTHESIZED,
     ]
     assert card.status == "verified" and card.primary_cause.cause == Cause.CHASING_RESULT
-    assert card.subject.team == "Harbour City" and not finding.recovered
+    assert card.verification.support_level == "strong" and not finding.recovered
+    assert [a.cause for a in card.attributions][1:] == [Cause.UNIT_FATIGUE, Cause.BLOCK_HIGHER]
 
 
 def test_a_control_on_the_other_team_is_run_and_scored_by_code(m01):

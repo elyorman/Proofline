@@ -1,0 +1,16 @@
+{
+  "role": "synthesis",
+  "prompt": "Rank these surviving hypotheses.\n{\n \"moment\": \"shape_change\",\n \"window\": \"48:00-58:00\",\n \"state_at_detection\": {\n  \"Harbour City\": {\n   \"goals\": 1,\n   \"sent_off\": 0,\n   \"substitutions\": 0\n  },\n  \"Northvale\": {\n   \"goals\": 3,\n   \"sent_off\": 0,\n   \"substitutions\": 0\n  }\n },\n \"survivors\": [\n  {\n   \"hypothesis_id\": \"hyp-tactics-01\",\n   \"cause\": \"tactical.flank_overload\",\n   \"agent\": \"tactics\",\n   \"prediction\": \"sprint_count of NV-08 up by at least 0.3\",\n   \"predicts_the_detected_change\": false,\n   \"result\": \"sprint_count of NV-08: 0.255 in the first half, 0.500 in 48:00-58:00, a change of +0.960 against a claim of up by 0.3\",\n   \"cross_examination\": [\n    \"physical corollary: channel_share_right of Northvale up by 0.15, measured +0.397; result: holds (A true flank-overload that raises NV-08's sprints should also shift the team's activity into the right channel.)\"\n   ]\n  },\n  {\n   \"hypothesis_id\": \"hyp-physical-02\",\n   \"cause\": \"physical.player_fatigue\",\n   \"agent\": \"physical\",\n   \"prediction\": \"sprint_count of HC-05 down by at least 0.3\",\n   \"predicts_the_detected_change\": false,\n   \"result\": \"sprint_count of HC-05: 0.340 in the first half, 0.100 in 48:00-58:00, a change of -0.706 against a claim of down by 0.3\",\n   \"cross_examination\": []\n  }\n ]\n}",
+  "answer": {
+    "outcome": "explained",
+    "primary": "hyp-tactics-01",
+    "secondary": [
+      "hyp-physical-02"
+    ],
+    "why": "Both hypotheses are supported by their measurements, but hyp-tactics-01 is the best-supported primary cause because it shows the predicted NV-08 sprint increase and an independent team-level corollary (right-channel shift), while hyp-physical-02 is a real but secondary contributor with no additional corollary."
+  },
+  "usage": {
+    "input_tokens": 758,
+    "output_tokens": 662
+  }
+}

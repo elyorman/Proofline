@@ -5,10 +5,10 @@
     "outcome": "explained",
     "primary": "hyp-single-01",
     "secondary": [],
-    "why": "hyp-single-01 predicted and strongly matched the observed pressure increase (+0.513 vs +0.15) but is supported only by its own re-measurement (no corollary or control evidence), so it is the best-supported cause though evidence is limited."
+    "why": "Harbour City's pressure_rate increased by +0.513 (well above the +0.15 prediction), so this hypothesis best explains the pressure_shift, though evidence is limited to the direct re-measurement without independent corollary or control."
   },
   "usage": {
-    "input_tokens": 541,
-    "output_tokens": 496
+    "input_tokens": 560,
+    "output_tokens": 452
   }
 }

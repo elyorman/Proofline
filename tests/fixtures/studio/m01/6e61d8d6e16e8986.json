@@ -1,0 +1,52 @@
+{
+  "role": "game_state",
+  "prompt": "Cross-examine these hypotheses.\n{\n \"moment\": \"48:00-58:00\",\n \"state_at_detection\": {\n  \"Harbour City\": {\n   \"goals\": 1,\n   \"sent_off\": 0,\n   \"substitutions\": 0\n  },\n  \"Northvale\": {\n   \"goals\": 3,\n   \"sent_off\": 0,\n   \"substitutions\": 0\n  }\n },\n \"hypotheses\": [\n  {\n   \"hypothesis_id\": \"hyp-tactics-01\",\n   \"by\": \"tactics\",\n   \"cause\": \"tactical.flank_overload\",\n   \"claim\": \"sprint_count of NV-08 up by at least 0.3 in 48:00-58:00 against the first half\",\n   \"predicts_the_detected_change\": false,\n   \"result\": \"sprint_count of NV-08: 0.255 in the first half, 0.500 in 48:00-58:00, a change of +0.960 against a claim of up by 0.3\"\n  },\n  {\n   \"hypothesis_id\": \"hyp-physical-02\",\n   \"by\": \"physical\",\n   \"cause\": \"physical.player_fatigue\",\n   \"claim\": \"sprint_count of HC-05 down by at least 0.3 in 48:00-58:00 against the first half\",\n   \"predicts_the_detected_change\": false,\n   \"result\": \"sprint_count of HC-05: 0.340 in the first half, 0.100 in 48:00-58:00, a change of -0.706 against a claim of down by 0.3\"\n  }\n ],\n \"match\": {\n  \"home\": {\n   \"team\": \"Harbour City\",\n   \"players\": [\n    \"HC-01 GK (goalkeeper)\",\n    \"HC-02 RB (defence)\",\n    \"HC-03 RCB (defence)\",\n    \"HC-04 LCB (defence)\",\n    \"HC-05 LB (defence)\",\n    \"HC-06 RCM (midfield)\",\n    \"HC-07 CM (midfield)\",\n    \"HC-08 LCM (midfield)\",\n    \"HC-09 RW (attack)\",\n    \"HC-10 ST (attack)\",\n    \"HC-11 LW (attack)\"\n   ]\n  },\n  \"away\": {\n   \"team\": \"Northvale\",\n   \"players\": [\n    \"NV-01 GK (goalkeeper)\",\n    \"NV-02 RB (defence)\",\n    \"NV-03 RCB (defence)\",\n    \"NV-04 LCB (defence)\",\n    \"NV-05 LB (defence)\",\n    \"NV-06 RDM (midfield)\",\n    \"NV-07 LDM (midfield)\",\n    \"NV-08 RAM (midfield)\",\n    \"NV-09 CAM (midfield)\",\n    \"NV-10 LAM (midfield)\",\n    \"NV-11 ST (attack)\"\n   ]\n  }\n }\n}",
+  "answer": {
+    "counters": [
+      {
+        "hypothesis_id": "gs-protect-01",
+        "kind": "corollary",
+        "metric": "pressure_rate",
+        "direction": "down",
+        "subject": "Northvale",
+        "compare_to": "first_half",
+        "min_change": 0.15,
+        "reason": "A team protecting a two\u2011goal lead usually withdraws high pressing, cutting their pressure rate in the opponent's final 60%."
+      },
+      {
+        "hypothesis_id": "gs-chase-01",
+        "kind": "corollary",
+        "metric": "pressure_rate",
+        "direction": "up",
+        "subject": "Harbour City",
+        "compare_to": "first_half",
+        "min_change": 0.15,
+        "reason": "A team chasing the result typically increases high pressing (more pressures per opponent action) after falling behind."
+      },
+      {
+        "hypothesis_id": "ct-tactics-01",
+        "kind": "corollary",
+        "metric": "channel_share_right",
+        "direction": "up",
+        "subject": "Northvale",
+        "compare_to": "first_half",
+        "min_change": 0.1,
+        "reason": "If NV's claim is a flank overload around NV-08 (a right\u2011side AM), we should see Northvale shift a substantive share of actions into the right channel."
+      },
+      {
+        "hypothesis_id": "ct-physical-02",
+        "kind": "corollary",
+        "metric": "sprint_speed",
+        "direction": "down",
+        "subject": "HC-05",
+        "compare_to": "first_half",
+        "min_change": 1.0,
+        "reason": "True player fatigue would lower HC\u201105's mean sprint speed; a tactical role change might reduce sprint count without lowering sprint speed as much."
+      }
+    ]
+  },
+  "usage": {
+    "input_tokens": 1738,
+    "output_tokens": 3771
+  }
+}

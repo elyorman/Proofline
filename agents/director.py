@@ -158,7 +158,8 @@ def direct(
         at = _ready(card)
         if card.revision == 1:
             if card.status != CardStatus.VERIFIED:
-                continue  # nothing the Verifier rejected reaches a surface
+                cards.append(_as(card, card.status, None))  # the console shows what was rejected
+                continue
             level = card.verification.language_level
             if RANK[level] < RANK[profile.min_language_level] or used[at.period] >= profile.budget:
                 cards.append(_as(card, CardStatus.EXPIRED, None))  # to the recap

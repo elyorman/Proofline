@@ -5,24 +5,24 @@
     "hypotheses": [
       {
         "cause": "tactical.press_intensity_up",
-        "metric": "pressure_rate",
-        "subject": "Harbour City",
+        "metric": "sprint_count",
+        "subject": "Harbour City.attack",
         "direction": "up",
-        "min_change": 0.15,
-        "why": "Chasing team (down 1\u20133) would increase pressures in the opponent's first 60% so their pressure_rate rises substantially."
+        "min_change": 0.3,
+        "why": "Chasing the game will cause attackers/midfielders to make substantially more pressing sprints per minute."
       },
       {
         "cause": "tactical.block_higher",
-        "metric": "sprint_count",
-        "subject": "Harbour City.defence",
+        "metric": "long_ball_share",
+        "subject": "Northvale",
         "direction": "up",
-        "min_change": 0.3,
-        "why": "If the team is holding a higher defensive line, its defenders will need more frequent sprints (covering space and recovery)."
+        "min_change": 0.1,
+        "why": "A higher Harbour City defensive line will push Northvale to play more long passes to bypass the press."
       }
     ]
   },
   "usage": {
     "input_tokens": 1144,
-    "output_tokens": 1248
+    "output_tokens": 1428
   }
 }

@@ -33,3 +33,25 @@ Call 5, request and trimmed response:
 Checks outside the exposed namespaces ran with `az`: the subscription budget (initially 200 in the billing currency, later confirmed as KRW), the Cosmos data-plane role assignments (Built-in Data Contributor for the app identity and the developer), local auth disabled on Cosmos DB, Event Hubs and Foundry, and both public endpoints answering HTTP 200.
 
 On 22 October 2026, Azure CLI confirmed the subscription bills in KRW. The monthly budget was updated to **₩150,000**, preserving its 60% actual-cost alert (**₩90,000**). Infrastructure defaults match this amount. This is an alerting budget, not a spending cap.
+
+## 23 October 2026: gate 2, a scripted match through Event Hubs into Cosmos
+
+`proofline-engine clock` replayed m01 (seed 4434) onto the `match-events` hub as run `gate2-1792733237`; `proofline ingest` read it, wrote the ledger and ran the detector a minute at a time. Both used the developer's Entra ID credential; no keys. The Azure MCP Server then read the result back from Cosmos DB.
+
+| # | Tool and command | Purpose | Result |
+|---|---|---|---|
+| 1 | `cosmos` › `cosmos_database_container_item_query` on `events`: `SELECT VALUE COUNT(1) FROM c WHERE c.match_id = 'm01' AND c.kind = 'event'` | Every delivered event reached the ledger | `[2963]`, all of m01's events |
+| 2 | `cosmos` › `cosmos_database_container_item_get` on `cases`, id `case-m01-063-pressure_shift`, partition `m01` | The detector fired on the planted moment | `pressure_shift`, window 58:00–63:00, trigger `pressure_rate` Harbour City 0.32 → 0.833 over 18 actions, stage `open` |
+
+Call 2, trimmed response:
+
+```json
+{"status": 200, "results": {"item": {"id": "case-m01-063-pressure_shift", "match_id": "m01",
+  "moment_type": "pressure_shift", "origin": "auto",
+  "window": {"start": {"period": 2, "minute": 58, "second": 0}, "end": {"period": 2, "minute": 63, "second": 0}},
+  "triggers": [{"metric": "pressure_rate", "subject": "Harbour City",
+                "value": 0.8333333333333334, "baseline_value": 0.32, "n_events": 18}],
+  "stage": "open", "tool_call_budget": 16}}}
+```
+
+The same run also opened pressure-shift cases at 51', 57' and 78', matching batch detection over the finished match (`tests/test_ingest.py`).

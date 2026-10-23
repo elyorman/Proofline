@@ -23,6 +23,10 @@ azd up        # provision every Azure resource into a new environment
 |---|---|
 | `contracts/` | Pydantic schemas: event, card, proposition, prediction, cue, profile, taxonomy |
 | `engine/` | Match Engine: synthetic matches from tactical scripts (`proofline-engine generate`) and the planted and decoy suites with sealed ground truth (`proofline-engine suite`); never imported by product code |
+| `state/` | State Builder: the planted observables and the score as tool results, each with the evidence set it read, from events delivered by the case's clock |
+| `detector/` | Moment Detector: CUSUM over each watched metric's change from the first half, thresholds tuned on the dev split ([`scripts/tune_detector.py`](scripts/tune_detector.py)) |
+| `tools_server/` | Custom MCP server exposing the State Builder's tools to the agents |
+| `ledger/`, `orchestration/` | Feed ingest into the Cosmos ledger with live detection (`proofline ingest`); the Match Clock replays a match onto Event Hubs (`proofline-engine clock`) |
 | `DATASET.md` | The synthetic dataset: the demo match, the stated rule that picks its seed, and how each planted story is checked for visibility in a single match |
 | `infra/` | Bicep for every Azure resource, deployed with `azd` |
 | `docs/spec.md` | Product spec |
@@ -35,8 +39,9 @@ azd up        # provision every Azure resource into a new environment
 | Technology | Where it lives | Evidence |
 |---|---|---|
 | Microsoft Foundry | [`infra/resources.bicep`](infra/resources.bicep): Foundry project and the `gpt-5-mini` deployment | Deployment verified in [`docs/azure-mcp.md`](docs/azure-mcp.md) |
+| Custom MCP server | [`tools_server/server.py`](tools_server/server.py): `metric`, `baseline` and `game_state` over the State Builder | [`tests/test_tools_server.py`](tests/test_tools_server.py): calls through the server, refusals for minutes that have not happened |
 | Azure MCP Server | Read-only server used to verify every deployment | [`docs/azure-mcp.md`](docs/azure-mcp.md) |
-| Cosmos DB, Event Hubs, Container Apps, Container Registry, Web PubSub, Static Web Apps, App Insights, Key Vault | [`infra/resources.bicep`](infra/resources.bicep), all key-less: local auth disabled, access by managed identity and role | Resource and role listings in [`docs/azure-mcp.md`](docs/azure-mcp.md) |
+| Cosmos DB, Event Hubs, Container Apps, Container Registry, Web PubSub, Static Web Apps, App Insights, Key Vault | [`infra/resources.bicep`](infra/resources.bicep), all key-less: local auth disabled, access by managed identity and role; [`engine/clock.py`](engine/clock.py) and [`ledger/`](ledger/) stream a match through Event Hubs into the Cosmos ledger | Resource and role listings, and the demo match's events and 63' case read back from Cosmos, in [`docs/azure-mcp.md`](docs/azure-mcp.md) |
 | azd, Bicep, GitHub Actions | [`azure.yaml`](azure.yaml), [`infra/`](infra/), [`.github/workflows/ci.yml`](.github/workflows/ci.yml) | One-command `azd up`; CI runs lint, tests, the isolation guard and a schema check |
 
 ## Licence

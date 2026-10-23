@@ -1,0 +1,15 @@
+suite: decoys
+split: dev
+entries:
+- match_id: d-d-01
+  cause: none
+  observables: []
+- match_id: d-d-02
+  cause: none
+  observables: []
+- match_id: d-d-03
+  cause: none
+  observables: []
+- match_id: d-d-04
+  cause: none
+  observables: []

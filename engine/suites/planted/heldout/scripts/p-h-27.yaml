@@ -1,0 +1,25 @@
+match_id: p-h-27
+seed: 2035
+teams:
+  home:
+    name: Harbour City
+    code: HC
+    formation: 4-3-3
+    press_height: 0.45
+    directness: 0.08
+    quality: 0.49
+  away:
+    name: Northvale
+    code: NV
+    formation: 4-2-3-1
+    press_height: 0.57
+    directness: 0.08
+    quality: 0.41
+scripts:
+- id: s1
+  at: '55:00'
+  ramp: 4m
+  team: home
+  player: HC-10
+  set:
+    stamina_decay: 9.11

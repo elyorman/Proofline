@@ -1,0 +1,18 @@
+match_id: d-h-08
+seed: 2307
+teams:
+  home:
+    name: Harbour City
+    code: HC
+    formation: 4-3-3
+    press_height: 0.52
+    directness: 0.08
+    quality: 0.42
+  away:
+    name: Northvale
+    code: NV
+    formation: 4-2-3-1
+    press_height: 0.58
+    directness: 0.08
+    quality: 0.51
+scripts: []

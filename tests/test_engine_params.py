@@ -2,7 +2,7 @@ import pytest
 
 from contracts.clock import MatchClock
 from engine.params import ParamTimeline
-from engine.script import MatchScript
+from engine.script import Intervention, MatchScript
 
 SCRIPT = MatchScript.model_validate(
     {
@@ -146,3 +146,14 @@ def test_a_score_triggered_intervention_waits_for_its_start():
     assert tl.pending() == []
     assert tl.team("home", 2, at(67))["press_height"] == pytest.approx(0.65)  # half the ramp
     assert tl.team("home", 2, at(70))["press_height"] == pytest.approx(0.9)
+
+
+def test_a_later_start_wins_even_when_its_at_is_earlier():
+    fixed = {"id": "fixed", "at": "60:00", "team": "home", "set": {"press_height": 0.6}}
+    script = TRIGGERED.model_copy(
+        update={"scripts": [TRIGGERED.scripts[0], Intervention.model_validate(fixed)]}
+    )
+    tl = ParamTimeline(script)
+    assert tl.team("home", 2, at(65))["press_height"] == pytest.approx(0.6)
+    tl.start(tl.pending()[0], MatchClock.parse("70:00"))  # `at` 55:00, but it starts at 70:00
+    assert tl.team("home", 2, at(75))["press_height"] == pytest.approx(0.9)

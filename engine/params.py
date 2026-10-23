@@ -41,9 +41,14 @@ class ParamTimeline:
     def start(self, iv: Intervention, at: MatchClock) -> None:
         self.started[iv.id] = at
 
+    def _active(self) -> list[Intervention]:
+        """Started interventions in the order they started, so a later start wins."""
+        started = [iv for iv in self._interventions if self.started[iv.id] is not None]
+        return sorted(started, key=lambda iv: self.started[iv.id].sort_key)
+
     def team(self, side: Side, period: int, s: float) -> dict[str, float]:
         values = dict(self._base[side])
-        for iv in self._interventions:
+        for iv in self._active():
             if iv.team == side and iv.player is None and iv.unit is None:
                 self._apply(values, iv, period, s)
         return values
@@ -52,15 +57,12 @@ class ParamTimeline:
         self, side: Side, player_id: str, period: int, s: float, unit: str | None = None
     ) -> dict[str, float]:
         values = dict(PLAYER_DEFAULTS)
-        for iv in self._interventions:
+        for iv in self._active():
             if iv.team == side and (iv.player == player_id or (unit and iv.unit == unit)):
                 self._apply(values, iv, period, s)
         return values
 
     def _apply(self, values: dict[str, float], iv: Intervention, period: int, s: float) -> None:
-        start = self.started[iv.id]
-        if start is None:
-            return
-        p = _progress(start, iv.ramp_seconds, period, s)
+        p = _progress(self.started[iv.id], iv.ramp_seconds, period, s)
         for key, target in iv.set.items():
             values[key] += (target - values[key]) * p

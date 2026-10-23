@@ -5,7 +5,7 @@ ramp a parameter to a new value from a match time. Cause-taxonomy names never
 appear here; the mapping from an intervention to a cause lives in the suite's
 sealed ground-truth file, which only eval/ reads.
 
-Interventions on the same parameter compose in time order, so the later one wins;
+Interventions on the same parameter compose in the order they start, so the later wins;
 a ramp still running at half-time completes at the start of the second half.
 """
 

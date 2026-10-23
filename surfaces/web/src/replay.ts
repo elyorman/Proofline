@@ -51,20 +51,33 @@ export function scoreAt(timeline: Timeline, elapsed: number, teams: string[]): n
     at <= elapsed && event.type === 'goal' && event.team === team).length);
 }
 
+export function displayTime(card: InsightCard): MatchClock {
+  return card.timing.published_at ?? card.timing.detected_at;
+}
+
+export function variantText(card: InsightCard, audience: string, locale: string): string | undefined {
+  // A missing translation may use another supplied variant, never a fabricated claim.
+  return card.variants?.[audience]?.[locale] ?? card.variants?.casual?.[locale]
+    ?? card.variants?.[audience]?.en ?? card.variants?.casual?.en;
+}
+
 export function visibleCards(cards: InsightCard[], elapsed: number, firstHalfSeconds: number): InsightCard[] {
   const latest = new Map<string, InsightCard>();
+  const firstDisplay = new Map<string, number>();
   for (const card of cards) {
-    if (!['shown', 'revised', 'withdrawn'].includes(card.status ?? '')) continue;
-    if (!card.timing.published_at || elapsedAt(card.timing.published_at, firstHalfSeconds) > elapsed) continue;
+    if (!['verified', 'scheduled', 'shown', 'revised', 'withdrawn'].includes(card.status ?? '')) continue;
+    const at = elapsedAt(displayTime(card), firstHalfSeconds);
+    if (at > elapsed) continue;
     if (card.lane !== 'fast' && card.status !== 'withdrawn' && !['passed', 'corrected'].includes(card.verification?.status ?? '')) continue;
     if (card.status === 'withdrawn' && card.verification?.status !== 'rejected') continue;
+    firstDisplay.set(card.id, Math.min(firstDisplay.get(card.id) ?? at, at));
     if ((latest.get(card.id)?.revision ?? 0) < (card.revision ?? 1)) latest.set(card.id, card);
   }
   return [...latest.values()].sort((a, b) =>
-    elapsedAt(b.timing.published_at!, firstHalfSeconds) - elapsedAt(a.timing.published_at!, firstHalfSeconds));
+    firstDisplay.get(b.id)! - firstDisplay.get(a.id)!);
 }
 
-const DEAD_BALL = new Set(['goal', 'foul', 'card', 'set_piece', 'period_end']);
+const DEAD_BALL = new Set(['goal', 'foul', 'set_piece', 'substitution']);
 
 export function cueStart(cue: Cue, firstHalfSeconds: number, events: TimedEvent[] = []): number | undefined {
   const start = elapsedAt(cue.show_at.not_before, firstHalfSeconds);

@@ -3,6 +3,17 @@ import type { ReplayData } from './data';
 import { activityAt, clockAt, formatClock, pitchPoint, type TimedEvent } from './replay';
 import { SectionTitle, useText } from './ui';
 
+export function ShotMarker({ outcome, x = 0, y = 0 }: { outcome: string; x?: number; y?: number }) {
+  const { text } = useText();
+  return <g className="shot-marker" transform={`translate(${x},${y})`} data-outcome={outcome}>
+    <title>{text(`outcome.${outcome}`)}</title>
+    {outcome === 'goal' ? <><circle r="1.8" /><circle r=".7" className="shot-centre" /></>
+      : outcome === 'on_target' ? <><circle r="1.8" fill="none" strokeWidth=".4" /><path d="M-1 0h2M0-1v2" strokeWidth=".35" /></>
+        : outcome === 'blocked' ? <rect x="-1.5" y="-1.5" width="3" height="3" fill="none" strokeWidth=".5" />
+          : <path d="M-1.4-1.4l2.8 2.8m-2.8 0 2.8-2.8" strokeWidth=".5" />}
+  </g>;
+}
+
 export function Pitch({ data, elapsed, player }: { data: ReplayData; elapsed: number; player?: string }) {
   const { text } = useText();
   const recent = data.timeline.events.filter(({ event, at }) => at <= elapsed && at >= elapsed - 25
@@ -29,7 +40,7 @@ export function Pitch({ data, elapsed, player }: { data: ReplayData; elapsed: nu
         return <g key={event.event_id} className={home ? 'home-event' : 'away-event'} opacity={active ? 1 : .18 + i * .035}>
           <title>{`${formatClock(event.clock)} · ${name(event)} · ${text(`event.${event.type}`)}`}</title>
           {event.type === 'pass' && end && <><line x1={start.x} y1={start.y} x2={end.x} y2={end.y} strokeWidth=".35" strokeDasharray="1.1 .8" /><circle cx={end.x} cy={end.y} r=".55" /></>}
-          {event.type === 'shot' ? <path d={`M${start.x - 1.2} ${start.y - 1.2}l2.4 2.4m-2.4 0 2.4-2.4`} strokeWidth=".5" /> : <circle cx={start.x} cy={start.y} r={active ? 1.5 : .8} />}
+          {event.type === 'shot' ? <ShotMarker outcome={event.outcome ?? 'na'} x={start.x} y={start.y} /> : <circle cx={start.x} cy={start.y} r={active ? 1.5 : .8} />}
           {active && <circle cx={start.x} cy={start.y} r="3.2" fill="none" strokeWidth=".25" opacity=".6" />}
         </g>;
       })}
@@ -38,8 +49,11 @@ export function Pitch({ data, elapsed, player }: { data: ReplayData; elapsed: nu
       </g>}
       {!recent.length && <text x="52.5" y="34" className="pitch-empty" textAnchor="middle">{text('pitch.empty')}</text>}
     </svg>
-    <div className="pitch-bottom"><span><i className="team-dot home" />{text('pitch.homeDirection')}</span><span>{text('pitch.scale')}</span><span>{text('pitch.awayDirection')}<i className="team-dot away" /></span></div>
+    <div className="pitch-bottom"><span><i className="team-dot home" />{text('pitch.homeDirection', { team: data.teams[0].name })}</span><span>{text('pitch.scale')}</span><span>{text('pitch.awayDirection', { team: data.teams[1].name })}<i className="team-dot away" /></span></div>
     <div className="pitch-caption">{latest ? <><span>{formatClock(latest.clock)}</span><strong>{name(latest)}</strong><span>{text(`event.${latest.type}`)}{latest.type === 'shot' ? ` · ${text(`outcome.${latest.outcome ?? 'na'}`)}` : ''}</span></> : text('pitch.note')}</div>
+    <div className="shot-legend">{['goal', 'on_target', 'off_target', 'blocked'].map(outcome => <span key={outcome}>
+      <svg viewBox="-3 -3 6 6" aria-hidden="true"><ShotMarker outcome={outcome} /></svg>{text(`outcome.${outcome}`)}
+    </span>)}</div>
   </div>;
 }
 

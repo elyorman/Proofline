@@ -1,5 +1,5 @@
-import { createContext, useContext, useMemo, type ReactNode } from 'react';
-import { t, number, type Locale } from './i18n';
+import { Component, createContext, useContext, useMemo, type ReactNode } from 'react';
+import { t, number, metricNumber, type Locale } from './i18n';
 
 export const LocaleContext = createContext<Locale>('en');
 export function useText() {
@@ -8,13 +8,33 @@ export function useText() {
     locale,
     text: (key: string, values?: Record<string, string | number>) => t(locale, key, values),
     num: (value: number, percent = false) => number(locale, value, percent),
+    metric: (name: string, value: unknown) => metricNumber(locale, name, value),
   }), [locale]);
+}
+
+function ViewFailure({ retry }: { retry: () => void }) {
+  const { text } = useText();
+  return <div className="panel view-error" role="alert">
+    <Empty title={text('view.error')} body={text('view.error.body')} />
+    <button className="button" onClick={retry}>{text('view.retry')}</button>
+  </div>;
+}
+
+export class ViewBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
+  state = { failed: false };
+  static getDerivedStateFromError() { return { failed: true }; }
+  render() {
+    return this.state.failed
+      ? <ViewFailure retry={() => this.setState({ failed: false })} />
+      : this.props.children;
+  }
 }
 
 const icons = {
   fan: <><rect x="3" y="5" width="18" height="14" rx="2" /><path d="M12 5v14M3 9h3v6H3m18-6h-3v6h3" /><circle cx="12" cy="12" r="3" /></>,
   analyst: <><path d="M5 3h11l3 3v15H5zM9 8h5M9 12h6M9 16h3" /></>,
   broadcast: <><rect x="3" y="5" width="15" height="14" rx="2" /><path d="m18 10 4-3v10l-4-3M7 9v6m4-6v6" /></>,
+  overlay: <><rect x="3" y="4" width="18" height="16" rx="2" /><path d="M6 14h12v3H6z" /></>,
   arrow: <path d="M5 12h14m-6-6 6 6-6 6" />,
   play: <path d="m8 5 11 7-11 7z" />,
   pause: <><path d="M8 5v14M16 5v14" /></>,

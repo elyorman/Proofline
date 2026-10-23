@@ -22,7 +22,7 @@ from agent_framework import (
     handler,
 )
 
-from agents.cross_exam import Refusal, challenge, run_counter
+from agents.cross_exam import Examined, Refusal, challenge, describe, run_counter
 from agents.investigation import Refused, Tested, Tools, rank, register, run_test
 from agents.llm import MissingFixture, Model, Usage
 from agents.outputs import Ranking
@@ -58,6 +58,7 @@ class Run:
     usage: Usage = field(default_factory=Usage)
     tested: "TestedAll | None" = None
     exams: list[CrossExamination] = field(default_factory=list)
+    corroborations: list[Examined] = field(default_factory=list)
     unrun: list[str] = field(default_factory=list)
 
     def finding(self, ranking: Ranking) -> Finding:
@@ -73,6 +74,7 @@ class Run:
             evidence=self.evidence,
             usage=self.usage,
             exams=self.exams,
+            corroborations=self.corroborations,
             checkpoints=self.checkpoints,
             unrun=self.unrun,
             recovered=bool(self.retried),
@@ -227,8 +229,11 @@ class Synthesizer(Executor):
             e for c in sorted(challenges, key=lambda c: AGENTS.index(c.role)) for e in c.exams
         ]
         scored = [(e, await run_counter(r.tools, e)) for e in proposed]
-        exams = [x for _, x in scored if x is not None]
+        exams = [x.exam for _, x in scored if x is not None]
         r.exams = exams
+        r.corroborations = [
+            x for _, x in scored if x is not None and x.exam.corollary and x.exam.result == "holds"
+        ]
         r.unrun += [
             f"{c.challenger} on {c.counter.hypothesis_id}: refused, {c.reason}"
             for ch in challenges
@@ -250,15 +255,13 @@ class Synthesizer(Executor):
         notes = {
             t.hypothesis.hypothesis_id: {
                 "cross_examination": [
-                    f"{e.challenger} ran a counter-test: {e.result} ({e.reason})"
-                    for e in exams
-                    if e.hypothesis_id == t.hypothesis.hypothesis_id
+                    describe(e) for e in exams if e.hypothesis_id == t.hypothesis.hypothesis_id
                 ]
             }
             for t in survivors
         }
         ranking, usage = await rank(
-            r.model, AgentRole.SYNTHESIS, r.case, r.feed.meta, r.score, survivors, r.tools, notes
+            r.model, AgentRole.SYNTHESIS, r.case, r.feed.meta, r.score, survivors, notes
         )
         r.usage = r.usage + usage
         r.checkpoint(CaseStage.SYNTHESIZED, ranking.outcome)

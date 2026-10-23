@@ -116,6 +116,10 @@ class CrossExamination(BaseModel):
     hypothesis's own change: another team tiring too does not rule out a unit tiring more.
     The hypothesis holds if its claim still holds beyond the control's change, is weakened
     if half of it does, and is refuted otherwise.
+
+    A corollary is something else the hypothesis's cause would move if it were real, on
+    another metric: the hypothesis holds if the corollary moved as predicted, is refuted if
+    it moved the other way by as much, and is weakened in between.
     """
 
     hypothesis_id: str
@@ -130,6 +134,11 @@ class CrossExamination(BaseModel):
         allow_inf_nan=False,
         description="controls only: the hypothesis subject's own change over the same window "
         "and baseline, filled by code from the hypothesis's test",
+    )
+    corollary: bool = Field(
+        default=False,
+        description="the counter-prediction is what the hypothesis implies on another metric, "
+        "so it holds when the hypothesis does",
     )
     reason: str
 
@@ -152,6 +161,12 @@ class CrossExamination(BaseModel):
     @computed_field
     @property
     def result(self) -> CrossExamResult:
+        if self.corollary:
+            if self.counter_prediction.supported_by(self.observed_change):
+                return CrossExamResult.HOLDS
+            if self.counter_prediction.supported_by(-self.observed_change):
+                return CrossExamResult.REFUTED
+            return CrossExamResult.WEAKENED
         if self.hypothesis_change is not None:
             excess = self.hypothesis_change - self.observed_change
             if self.counter_prediction.supported_by(excess):
@@ -182,16 +197,26 @@ def check_counter_test(hypothesis: Hypothesis, exam: CrossExamination) -> None:
     tighter than the claim. A counter that moves the other way keeps the hypothesis's subject
     and window too. A counter that moves the same way is a control: the claim itself on
     another subject, same window, baseline and threshold, carrying the hypothesis's own change
-    to be scored against. A counter on another metric is refused: no rule yet says when one
-    metric contradicts a claim about another.
+    to be scored against. A counter on another metric is a corollary: a move the hypothesis's
+    cause implies there, over the same window and baseline, scored as holding when it happens.
     """
     claim, counter = hypothesis.prediction, exam.counter_prediction
     if exam.hypothesis_id != hypothesis.hypothesis_id:
         raise ValueError("the counter-test names a different hypothesis")
     if exam.challenger == hypothesis.agent:
         raise ValueError("an agent does not cross-examine its own hypothesis")
+    if exam.corollary:
+        if exam.hypothesis_change is not None:
+            raise ValueError("only a control carries the hypothesis's own change")
+        if counter.metric == claim.metric:
+            raise ValueError("a corollary is on another metric; on the claim's own, use a control")
+        if counter.direction == Direction.FLAT:
+            raise ValueError("a corollary predicts a move")
+        if (counter.window, counter.compare_to) != (claim.window, claim.compare_to):
+            raise ValueError("a corollary keeps the hypothesis's window and baseline")
+        return
     if counter.metric != claim.metric:
-        raise ValueError("a counter-test uses the hypothesis's metric; no other has a rule yet")
+        raise ValueError("a counter-test on another metric is a corollary")
     control = counter.direction == claim.direction
     if control != (exam.hypothesis_change is not None):
         raise ValueError(

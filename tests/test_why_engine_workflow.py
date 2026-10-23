@@ -63,6 +63,8 @@ TIRED = Proposal(
 CONTROL = Counter(
     hypothesis_id="hyp-tactics-01",
     kind="control",
+    metric=None,
+    direction=None,
     subject="Northvale",
     compare_to="first_half",
     min_change=0.15,
@@ -89,7 +91,10 @@ def test_the_demo_press_survives_cross_examination_from_recorded_exchanges(m01):
     outcome = asyncio.run(run_case(Variant.A_PROOFLINE, replay, replay, case, feed))
     finding, card = outcome.finding, outcome.verdict.card
     assert finding.agents == [AgentRole.TACTICS, AgentRole.PHYSICAL, AgentRole.GAME_STATE]
-    assert finding.exams and all(e.result == "holds" for e in finding.exams)
+    # Recorded live: unprompted, the challengers asked for corollaries (fatigue should slow
+    # sprints too; chasing should bring more long balls), and none of them held fully.
+    assert finding.exams and all(e.corollary for e in finding.exams)
+    assert {e.result for e in finding.exams} == {"weakened"}
     assert [c.stage for c in finding.checkpoints] == [
         CaseStage.PREREGISTERED,
         CaseStage.TESTED,
@@ -98,6 +103,9 @@ def test_the_demo_press_survives_cross_examination_from_recorded_exchanges(m01):
     ]
     assert card.status == "verified" and card.primary_cause.cause == Cause.PRESS_INTENSITY_UP
     assert card.subject.team == "Harbour City" and not finding.recovered
+    changes = {p.id: (p.metric, p.subject) for p in card.propositions if p.type == "change"}
+    (secondary,) = [p for p in card.propositions if getattr(p, "role", None) == "secondary"]
+    assert changes[secondary.effect] == ("sprint_count", "Northvale")  # its own change
 
 
 def test_a_control_on_the_other_team_is_run_and_scored_by_code(m01):
@@ -108,6 +116,34 @@ def test_a_control_on_the_other_team_is_run_and_scored_by_code(m01):
     assert exam.hypothesis_change == pytest.approx(0.513, abs=1e-3)
     assert exam.result == "holds"  # Northvale did not press harder too
     assert finding.ranking.primary == "hyp-tactics-01"
+
+
+def test_a_corollary_another_agent_asks_for_corroborates_the_press_on_the_card(m01):
+    feed, case = m01
+    corollary = Counter(
+        hypothesis_id="hyp-tactics-01",
+        kind="corollary",
+        metric="long_ball_share",
+        direction="up",
+        subject="Northvale",
+        compare_to="first_half",
+        min_change=0.1,
+        reason="a real press forces the other side long",
+    )
+    script = SCRIPT | {("game_state", "Counters"): Counters(counters=[corollary])}
+    outcome = asyncio.run(run_case(Variant.A_PROOFLINE, ByRole(script), ByRole(script), case, feed))
+    exam = next(e for e in outcome.finding.exams if e.corollary)
+    assert exam.challenger == AgentRole.GAME_STATE and exam.result == "holds"
+    assert exam.observed_change == pytest.approx(0.477, abs=1e-3)  # 11% to 59%
+    card = outcome.verdict.card
+    assert [(e.metric, e.subject) for e in card.evidence] == [
+        ("pressure_rate", "Harbour City"),
+        ("long_ball_share", "Northvale"),
+    ]
+    assert "game_state corollary on tactics's tactical.press_intensity_up: holds" in (
+        card.investigation.cross_examination
+    )
+    assert card.status == "verified"
 
 
 def test_an_agent_stopped_once_is_retried_from_its_checkpoint(m01):

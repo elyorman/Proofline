@@ -11,7 +11,7 @@ from contracts.taxonomy import LANGUAGE_FOR_SUPPORT, Cause, LanguageLevel, Metri
 from state.subjects import resolve
 
 CHANGE = {  # (metric, direction) -> (English with {is}, Spanish)
-    (Metric.PRESSURE_RATE, Direction.UP): ("{is} pressing higher", "presiona más arriba"),
+    (Metric.PRESSURE_RATE, Direction.UP): ("{is} pressing harder", "presiona con más intensidad"),
     (Metric.PRESSURE_RATE, Direction.DOWN): ("{is} pressing less", "presiona menos"),
     (Metric.LONG_BALL_SHARE, Direction.UP): (
         "{is} going long more often",

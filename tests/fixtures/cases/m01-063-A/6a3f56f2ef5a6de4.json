@@ -9,20 +9,20 @@
         "subject": "Harbour City",
         "direction": "up",
         "min_change": 0.15,
-        "why": "A large observed rise in pressures suggests Harbour City has increased pressing intensity, which would also push Northvale into more long balls."
+        "why": "Being behind, Harbour City would press higher and more often in the opponent half, raising their pressure rate."
       },
       {
-        "cause": "game_state.chasing_result",
-        "metric": "pressure_rate",
-        "subject": "Harbour City",
+        "cause": "tactical.block_higher",
+        "metric": "sprint_count",
+        "subject": "Harbour City.defence",
         "direction": "up",
-        "min_change": 0.15,
-        "why": "Harbour City are two goals down and are likely chasing the result, so they'd increase pressure high up the pitch to create chances."
+        "min_change": 0.3,
+        "why": "A higher defensive line requires defenders to make more recovery sprints, increasing defensive sprint count."
       }
     ]
   },
   "usage": {
-    "input_tokens": 1228,
-    "output_tokens": 1124
+    "input_tokens": 1058,
+    "output_tokens": 1114
   }
 }

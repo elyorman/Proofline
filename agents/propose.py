@@ -4,8 +4,10 @@ alternatives. The card goes to the Verifier; nothing here decides whether it is 
 """
 
 import uuid
+from collections.abc import Callable
 
 from agents import narrator
+from agents.cross_exam import kind_of
 from agents.investigation import Tested, cause_team
 from agents.single import Finding
 from contracts.card import (
@@ -21,29 +23,51 @@ from contracts.card import (
     Subject,
     Timing,
 )
+from contracts.prediction import Prediction
 from contracts.taxonomy import CardStatus, CaseOutcome
+from contracts.tool_result import ToolResult
 from state.subjects import resolve
 from state.tools import Feed
 
 
-def _evidence(t: Tested) -> Evidence:
-    p = t.hypothesis.prediction
+def _evidence(p: Prediction, during: ToolResult, before: ToolResult) -> Evidence:
     return Evidence(
         metric=p.metric,
         subject=p.subject,
         window=p.window,
-        value=t.during.value,
-        baseline=Baseline(window=p.compare_to, value=t.before.baseline.value),
-        n_events=t.during.n_events,
-        tool_call_id=t.during.tool_call_id,
+        value=during.value,
+        baseline=Baseline(window=p.compare_to, value=before.baseline.value),
+        n_events=during.n_events,
+        tool_call_id=during.tool_call_id,
     )
 
 
-def _attribution(t: Tested, pid: str, role: str) -> AttributionProposition:
+def _change(pid: str, p: Prediction) -> ChangeProposition:
+    return ChangeProposition(
+        id=pid,
+        metric=p.metric,
+        subject=p.subject,
+        direction=p.direction,
+        window=p.window,
+        baseline=p.compare_to,
+    )
+
+
+def _cross_examination(finding: Finding) -> str:
+    """Who tested whom, how, and what came of it, in one line per test."""
+    by_id = {h.hypothesis_id: h for h in finding.hypotheses}
+    return "; ".join(
+        f"{e.challenger} {kind_of(e)} on {by_id[e.hypothesis_id].agent}'s "
+        f"{by_id[e.hypothesis_id].taxonomy.value}: {e.result}"
+        for e in finding.exams
+    )
+
+
+def _attribution(t: Tested, pid: str, role: str, effect: str) -> AttributionProposition:
     return AttributionProposition(
         id=pid,
         cause=t.hypothesis.taxonomy,
-        effect="p1",
+        effect=effect,
         role=role,
         hypothesis_id=t.hypothesis.hypothesis_id,
         agent=t.hypothesis.agent,
@@ -58,18 +82,37 @@ def propose(finding: Finding, feed: Feed) -> InsightCard | None:
     primary = finding.tested_by_id(ranking.primary)
     secondary = [finding.tested_by_id(s) for s in ranking.secondary]
     p = primary.hypothesis.prediction
-    change = ChangeProposition(
-        id="p1",
-        metric=p.metric,
-        subject=p.subject,
-        direction=p.direction,
-        window=p.window,
-        baseline=p.compare_to,
+    propositions: list[ChangeProposition | AttributionProposition] = []
+
+    def add(make: Callable[[str], ChangeProposition | AttributionProposition]) -> str:
+        pid = f"p{len(propositions) + 1}"
+        propositions.append(make(pid))
+        return pid
+
+    changes = {(p.metric, p.subject, p.direction): add(lambda pid: _change(pid, p))}
+    add(
+        lambda pid: _attribution(primary, pid, "primary", changes[p.metric, p.subject, p.direction])
     )
-    propositions = [change, _attribution(primary, "p2", "primary")]
-    propositions += [_attribution(t, f"p{i}", "secondary") for i, t in enumerate(secondary, 3)]
+    for t in secondary:  # a secondary cause points at its own change
+        q = t.hypothesis.prediction
+        key = (q.metric, q.subject, q.direction)
+        if key not in changes:
+            changes[key] = add(lambda pid, q=q: _change(pid, q))
+        add(lambda pid, t=t, e=changes[key]: _attribution(t, pid, "secondary", e))
+    # A corollary a challenger asked for that held is evidence for the primary cause too.
+    corroborated = [
+        x
+        for x in finding.corroborations
+        if x.exam.hypothesis_id == primary.hypothesis.hypothesis_id
+    ]
+    for x in corroborated:
+        add(lambda pid, x=x: _change(pid, x.exam.counter_prediction))
     backing = [primary, *secondary]
-    measured = list({t.test.tool_call_id: t for t in backing}.values())  # one line per call
+    measured = {  # one evidence line per tool call
+        t.during.tool_call_id: (t.hypothesis.prediction, t.during, t.before) for t in backing
+    } | {
+        x.during.tool_call_id: (x.exam.counter_prediction, x.during, x.before) for x in corroborated
+    }
     refuted = {e.hypothesis_id: e for e in finding.exams if e.result == "refuted"}
     rejected = [
         RejectedAlternative(
@@ -101,10 +144,12 @@ def propose(finding: Finding, feed: Feed) -> InsightCard | None:
         timing=Timing(change_window=case.window, detected_at=case.window.end),
         propositions=propositions,
         claim="",
-        evidence=[_evidence(t) for t in measured],
+        evidence=[_evidence(*m) for m in measured.values()],
         depends_on=DependsOn(
             evidence_sets=[
-                s for t in measured for s in (t.during.evidence_set_id, t.before.evidence_set_id)
+                s
+                for _, during, before in measured.values()
+                for s in (during.evidence_set_id, before.evidence_set_id)
             ],
             data_version=feed.data_version,
         ),
@@ -114,7 +159,7 @@ def propose(finding: Finding, feed: Feed) -> InsightCard | None:
             preregistered_predictions=len(finding.hypotheses),
             tool_calls=finding.tools.used,
             budget=case.tool_call_budget,
-            cross_examination=f"{len(finding.exams)} counter-tests" if finding.exams else "",
+            cross_examination=_cross_examination(finding),
         ),
         provenance=Provenance(trace_id=uuid.uuid4().hex),
     )

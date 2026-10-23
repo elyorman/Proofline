@@ -5,7 +5,6 @@ import json
 
 from contracts.case import Case
 from contracts.meta import MatchMeta
-from contracts.planted import CAUSE_OBSERVABLES
 from contracts.taxonomy import DOMAIN_OF_AGENT, AgentRole, Cause
 
 METRICS = """\
@@ -21,26 +20,16 @@ sprints per minute of play. min_change is a fraction of the first-half rate, e.g
 a 30% fall.
 - sprint_speed (same subjects): mean sprint speed in km/h. Absolute units, e.g. 1.0."""
 
-SIGNATURES = "\n".join(
-    f"- {cause.value}: "
-    + "; ".join(f"{o.metric.value} of the {o.subject} {o.direction.value}" for o in observed)
-    for cause, observed in CAUSE_OBSERVABLES.items()
-)
-
-RULES = f"""\
+RULES = """\
 You never compute or estimate a number. You pre-register predictions; code tests each one \
 with deterministic tools, comparing the case's window with the first half, and judges it.
 Each hypothesis names one cause and one prediction that would hold if that cause were \
 present: the metric, whose metric it is, the direction, and the smallest change that would \
-count. What each cause moves, for the team the cause is about, its opponent, or one of its \
-units or players:
-{SIGNATURES}
-Game state follows the score: a team chases the result only when behind and protects a \
-lead only when ahead, and code refuses either otherwise. A team can also change its press \
-for its own reasons whatever the score, so when the case allows both, register both.
-Before ranking, code measures every observable of each surviving cause, so a hypothesis is \
-judged on its whole signature as well as its own prediction. Register nothing for a cause \
-the case gives no reason to suspect."""
+count. Think about what the cause would do on the pitch, to both teams, and choose the \
+prediction that would hold under it but not under the other causes that could explain what \
+the detector saw: a prediction every candidate shares proves little.
+A team chases the result only when behind and protects a lead only when ahead; code refuses \
+either otherwise. Register nothing for a cause the case gives no reason to suspect."""
 
 
 def _causes(role: AgentRole) -> list[str]:
@@ -67,14 +56,16 @@ def instructions(role: AgentRole, max_hypotheses: int) -> str:
 RANKING = """\
 You rank the hypotheses that survived testing for one detected moment in a football match.
 Code has already tested each one against deterministic tools; you never compute or change a \
-number. Code has also measured each survivor's whole signature, every observable its cause \
-moves, against natural variation. The primary cause is the one whose signature held most \
-clearly; a cause with an observable moving the other way beyond natural variation is not \
-primary. When two causes' signatures held about as clearly, the score decides: chasing the \
-result (a team behind) or protecting a lead (a team ahead) over a press change by the same \
-team, which a team makes when the score gives it no such reason. A secondary cause is real \
-but explains less. If nothing survived, the outcome is 'none'. If the effect is real but no \
-surviving cause fits, the outcome is 'other'. Otherwise it is 'explained', with a primary."""
+number. Weigh everything the investigation found: each hypothesis's own test, every \
+corollary, control or counter-test other specialists ran on it, and the score. The primary \
+cause is the one the evidence supports best and its rivals explain least well; a secondary \
+cause is real but explains less. If nothing survived, the outcome is 'none'. If the effect \
+is real but no surviving cause fits, the outcome is 'other'. Otherwise it is 'explained', \
+with a primary."""
+
+
+def scoreline(meta: MatchMeta, score: dict[str, float]) -> dict[str, int]:
+    return {meta.teams[s].name: int(score[f"{s}_goals"]) for s in ("home", "away")}
 
 
 def match(meta: MatchMeta) -> dict:
@@ -92,9 +83,7 @@ def case_prompt(case: Case, meta: MatchMeta, score: dict[str, float]) -> str:
         "moment": case.moment_type.value,
         "window": str(case.window),
         "detected_at": str(case.window.end),
-        "score_at_detection": {
-            meta.teams[s].name: int(score[f"{s}_goals"]) for s in ("home", "away")
-        },
+        "score_at_detection": scoreline(meta, score),
         "what_the_detector_saw": [
             {
                 "metric": t.metric.value,
@@ -117,9 +106,7 @@ def ranking_prompt(
         {
             "moment": case.moment_type.value,
             "window": str(case.window),
-            "score_at_detection": {
-                meta.teams[s].name: int(score[f"{s}_goals"]) for s in ("home", "away")
-            },
+            "score_at_detection": scoreline(meta, score),
             "survivors": survivors,
         },
         indent=1,

@@ -5,24 +5,24 @@
     "hypotheses": [
       {
         "cause": "physical.fresh_legs_substitution",
-        "metric": "pressure_rate",
+        "metric": "sprint_count",
         "subject": "Harbour City",
         "direction": "up",
-        "min_change": 0.15,
-        "why": "A fresh substitution could increase Harbour City's pressure rate in the opponent half, matching the detected pressure spike."
+        "min_change": 0.3,
+        "why": "A chasing substitution would raise Harbour City's high-intensity actions, increasing team sprints per minute."
       },
       {
-        "cause": "physical.fresh_legs_substitution",
+        "cause": "physical.unit_fatigue",
         "metric": "sprint_count",
-        "subject": "Harbour City.attack",
-        "direction": "up",
+        "subject": "Northvale",
+        "direction": "down",
         "min_change": 0.3,
-        "why": "Introducing fresh attackers would likely raise sprint frequency from the attack unit, enabling the higher pressing observed."
+        "why": "Fatigue across Northvale's unit would lower their sprint output, making them easier to press and explaining Harbour City's higher pressure rate."
       }
     ]
   },
   "usage": {
-    "input_tokens": 1212,
-    "output_tokens": 1494
+    "input_tokens": 1042,
+    "output_tokens": 1664
   }
 }

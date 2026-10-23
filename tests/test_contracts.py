@@ -365,7 +365,7 @@ def _hypothesis(agent, cause):
         # Opposite-way counters from minutes or teams the hypothesis never mentioned.
         (dict(direction="up", window="10:00-15:00"), False),
         (dict(direction="up", subject="Harbour City"), False),
-        # Another metric: nothing yet says when it contradicts a claim about sprints.
+        # Another metric is only a corollary, never a contradiction by itself.
         (dict(metric=Metric.SPRINT_SPEED, subject="Harbour City"), False),
     ],
 )
@@ -410,6 +410,48 @@ def test_only_a_control_carries_the_hypothesis_change():
     flat = dict(subject="Northvale", direction="flat", compare_to="season_average")
     with pytest.raises(ValueError, match="no other counter-test does"):
         check_counter_test(fatigue, exam(-0.2, **flat, min_change=0.1))
+
+
+def _corollary(observed_change, **counter):
+    # Northvale's defence tiring (sprints down 15%) implies its sprints are slower too.
+    slower = dict(metric=Metric.SPRINT_SPEED, subject="Northvale", min_change=1.0) | counter
+    return CrossExamination(
+        hypothesis_id="hyp-1",
+        challenger=AgentRole.TACTICS,
+        counter_prediction=_prediction(**slower),
+        tool_call_id="tc-1",
+        observed_change=observed_change,
+        corollary=True,
+        reason="tired legs sprint slower too",
+    )
+
+
+def test_a_corollary_holds_when_what_the_cause_implies_happens():
+    assert _corollary(-1.4).result == "holds"
+    assert _corollary(-0.4).result == "weakened"  # the right way, short of the threshold
+    assert _corollary(0.3).result == "weakened"
+    assert _corollary(1.2).result == "refuted"  # the other way by as much
+    assert CrossExamination.model_validate_json(_corollary(1.2).model_dump_json()).corollary
+
+
+@pytest.mark.parametrize(
+    "counter,fair",
+    [
+        (dict(), True),
+        (dict(subject="Harbour City"), True),  # a corollary may name another subject
+        (dict(metric=Metric.SPRINT_COUNT), False),  # the claim's own metric: a control
+        (dict(direction="flat", min_change=0.5), False),
+        (dict(window="57:00-63:00"), False),
+        (dict(compare_to=BaselineScope.MATCH_SO_FAR), False),
+    ],
+)
+def test_a_corollary_is_another_metric_over_the_hypothesis_window(counter, fair):
+    fatigue = _hypothesis(AgentRole.PHYSICAL, Cause.UNIT_FATIGUE)
+    if fair:
+        check_counter_test(fatigue, _corollary(0.0, **counter))
+    else:
+        with pytest.raises(ValueError):
+            check_counter_test(fatigue, _corollary(0.0, **counter))
 
 
 def test_a_challenger_never_examines_its_own_hypothesis():

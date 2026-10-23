@@ -6,6 +6,7 @@ survives. There is no cross-examination: that is what variant A adds.
 
 from dataclasses import dataclass, field
 
+from agents.cross_exam import Examined
 from agents.investigation import Refused, Tested, Tools, rank, register, run_test
 from agents.llm import Model, Usage
 from agents.outputs import Ranking
@@ -34,6 +35,7 @@ class Finding:
     evidence: dict[str, EvidenceSet]
     usage: Usage
     exams: list[CrossExamination] = field(default_factory=list)
+    corroborations: list[Examined] = field(default_factory=list)  # corollaries that held
     checkpoints: list[Checkpoint] = field(default_factory=list)
     unrun: list[str] = field(default_factory=list)  # counter-tests refused or not measurable
     recovered: bool = False  # an agent was retried from its checkpoint
@@ -56,7 +58,7 @@ async def investigate(model: Model, case: Case, feed: Feed) -> Finding:
     hypotheses, refused, usage = await register(model, role, case, feed.meta, score, MAX_HYPOTHESES)
     tested = [await run_test(tools, h) for h in hypotheses]
     survivors = [t for t in tested if t.supported]
-    ranking, ranked = await rank(model, role, case, feed.meta, score, survivors, tools)
+    ranking, ranked = await rank(model, role, case, feed.meta, score, survivors)
     return Finding(
         case=case,
         agents=[role],

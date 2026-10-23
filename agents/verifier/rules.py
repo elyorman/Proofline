@@ -26,15 +26,25 @@ NATURAL_P90: dict[tuple[Metric, str, int], float] = {
     (Metric.SPRINT_SPEED, "unit", 10): 1.764,
     (Metric.SPRINT_SPEED, "player", 5): 2.693,
     (Metric.SPRINT_SPEED, "player", 10): 2.311,
+    (Metric.CHANNEL_SHARE_LEFT, "team", 5): 0.348,
+    (Metric.CHANNEL_SHARE_LEFT, "team", 10): 0.260,
+    (Metric.CHANNEL_SHARE_CENTRE, "team", 5): 0.237,
+    (Metric.CHANNEL_SHARE_CENTRE, "team", 10): 0.181,
+    (Metric.CHANNEL_SHARE_RIGHT, "team", 5): 0.340,
+    (Metric.CHANNEL_SHARE_RIGHT, "team", 10): 0.261,
 }
 
 # The sample a number rests on, at least: opponent actions in the zone, passes, sprints in
-# the first half (a fall in sprints thins the window by design), sprints in the window.
+# the first half (a fall in sprints thins the window by design), sprints in the window, and
+# on-ball actions for a channel share.
 MIN_SAMPLE: dict[Metric, int] = {
     Metric.PRESSURE_RATE: 8,
     Metric.LONG_BALL_SHARE: 8,
     Metric.SPRINT_COUNT: 10,
     Metric.SPRINT_SPEED: 3,
+    Metric.CHANNEL_SHARE_LEFT: 20,
+    Metric.CHANNEL_SHARE_CENTRE: 20,
+    Metric.CHANNEL_SHARE_RIGHT: 20,
 }
 
 

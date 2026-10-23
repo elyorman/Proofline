@@ -41,6 +41,12 @@ WATCHES = (
     Watch(MomentType.PRESSURE_SHIFT, Metric.PRESSURE_RATE, 5, k=0.212, h=0.424, min_n=8),
     Watch(MomentType.PRESSURE_SHIFT, Metric.LONG_BALL_SHARE, 5, k=0.154, h=0.231, min_n=8),
     Watch(MomentType.FATIGUE_SIGNAL, Metric.SPRINT_COUNT, 10, 0.755, 2.265, min_n=0, ways=(-1,)),
+    # No class plants a flank change, so a flank watch is as sensitive as 0.2 natural cases
+    # a match allows: play shifting onto one wing.
+    Watch(MomentType.SHAPE_CHANGE, Metric.CHANNEL_SHARE_LEFT, 10, 0.26, 0.52, min_n=8, ways=(1,)),
+    Watch(
+        MomentType.SHAPE_CHANGE, Metric.CHANNEL_SHARE_RIGHT, 10, 0.261, 0.522, min_n=8, ways=(1,)
+    ),
 )
 UNITS = ("defence", "midfield", "attack")
 

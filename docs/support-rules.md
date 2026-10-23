@@ -10,8 +10,9 @@ The Verifier sets a card's support level from its primary cause's evidence (spec
 | Long-ball share | team | 0.145 | 0.117 |
 | Sprint count (relative) | team / unit / player | 0.491 / 0.630 / 1.000 | 0.415 / 0.541 / 0.763 |
 | Sprint speed (km/h) | team / unit / player | 1.67 / 2.11 / 2.69 | 1.44 / 1.76 / 2.31 |
+| Channel share, left / centre / right | team | 0.348 / 0.237 / 0.340 | 0.260 / 0.181 / 0.261 |
 
-**Minimum samples.** Pressure rate: 8 opponent actions in the zone. Long-ball share: 8 passes. Sprint count: 10 sprints by the subject in the first half, since a fall in sprints thins the window by design. Sprint speed: 3 sprints in the window. Channel shares have no band yet and are not published.
+**Minimum samples.** Pressure rate: 8 opponent actions in the zone. Long-ball share: 8 passes. Sprint count: 10 sprints by the subject in the first half, since a fall in sprints thins the window by design. Sprint speed: 3 sprints in the window. Channel shares: 20 on-ball actions in the window.
 
 | Support level | Rule |
 |---|---|

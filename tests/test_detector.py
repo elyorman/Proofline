@@ -44,3 +44,23 @@ def test_the_demo_press_opens_a_case_at_63_minutes():
     )
     assert round(trigger.baseline_value, 2) == 0.32 and round(trigger.value, 2) == 0.83
     assert all(c.window.start.period == 2 for c in cases)  # the first half is the baseline
+
+
+def test_a_flank_shown_wrongly_opens_a_case_that_its_correction_takes_away(tmp_path):
+    from engine.io import write_match
+    from tools_server.server import DirectorySource
+
+    sim = MatchSim(load_script(M01))
+    write_match(sim, sim.run(), tmp_path / "m01")
+    source = DirectorySource(tmp_path)
+    shown = source.feed("m01")
+    fixed = shown.amended(source.amendments("m01")[0])
+    (flank,) = [c for c in detect(shown.meta, shown.events) if c.moment_type == "shape_change"]
+    assert flank.case_id == "case-m01-058-shape_change" and str(flank.window) == "48:00-58:00"
+    (trigger,) = flank.triggers
+    assert (trigger.metric, trigger.subject, round(trigger.value, 3)) == (
+        "channel_share_right",
+        "Northvale",
+        0.636,
+    )
+    assert not [c for c in detect(fixed.meta, fixed.events) if c.moment_type == "shape_change"]

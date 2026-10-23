@@ -118,7 +118,7 @@ class MatchSim:
             press = self.params.team(side, self.period, start)["press_height"]
             for p in self.lineups[side]:
                 pid = p.player_id
-                decay = self.params.player(side, pid, self.period, start)["stamina_decay"]
+                decay = self.params.player(side, pid, self.period, start, p.unit)["stamina_decay"]
                 p.energy = max(0.2, p.energy - FATIGUE_PER_MIN * decay)
                 if not self.rng.chance(f"sprint:{pid}", m, SPRINT_RATE[p.unit] * p.energy**2):
                     continue
@@ -164,7 +164,18 @@ class MatchSim:
             att, ball = self._possession(att, ball, end)
         self._emit(EventType.PERIOD_END, "home", None, start=None)
 
+    def _start_triggered(self) -> None:
+        """Start each score-triggered intervention the first time its condition holds."""
+        now = clock_at(self.period, self.t)
+        for iv in self.params.pending():
+            if now < iv.at:
+                continue
+            own, them = self.score[iv.team], self.score[other(iv.team)]
+            if (iv.when == "trailing" and own < them) or (iv.when == "leading" and own > them):
+                self.params.start(iv, now)
+
     def _possession(self, att: Side, ball: tuple[float, float], end: float):
+        self._start_triggered()
         deff = other(att)
         self.att, self.ball = att, ball
         carrier = self._nearest(att, ball)

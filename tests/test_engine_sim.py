@@ -123,3 +123,33 @@ def test_a_ball_over_a_touchline_comes_back_as_a_throw_in():
                 line = 67.5 if prev.end.y == 0.0 else 0.5  # the same touchline, other frame
                 assert _close(e.start, Point(x=105 - prev.end.x, y=line)), e.event_id
         assert throw_ins > 0
+
+
+def test_a_score_triggered_change_starts_when_its_condition_first_holds():
+    leading = Intervention.model_validate(
+        {
+            "id": "sit",
+            "at": "50:00",
+            "team": "home",
+            "when": "leading",
+            "set": {"press_height": 0.1},
+        }
+    )
+    script = M01.model_copy(update={"scripts": [leading]})
+    for seed in (3, 4, 5, 6, 7, 8):
+        sim = MatchSim(script, seed=seed)
+        events = sim.run()
+        started = sim.params.started["sit"]
+        goals = [e for e in events if e.type == "goal"]
+
+        def lead_at(clock, goals=goals):
+            ours = sum(g.team == "Harbour City" and g.clock < clock for g in goals)
+            return ours - sum(g.team == "Northvale" and g.clock < clock for g in goals)
+
+        if started is None:
+            later = [g.clock for g in goals if g.clock >= leading.at] + [leading.at]
+            assert all(lead_at(c) <= 0 for c in later), seed
+        else:
+            assert started >= leading.at and lead_at(started) > 0, seed
+            # nothing between `at` and the start already had them ahead at a goal
+            assert all(lead_at(g.clock) <= 0 for g in goals if leading.at <= g.clock < started)

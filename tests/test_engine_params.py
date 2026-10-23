@@ -1,5 +1,6 @@
 import pytest
 
+from contracts.clock import MatchClock
 from engine.params import ParamTimeline
 from engine.script import MatchScript
 
@@ -98,3 +99,50 @@ def test_a_first_half_stoppage_start_ramps_within_stoppage():
     start = 47 * 60 + 10  # 45+2:10, in first-half seconds
     assert EDGE_TL.team("away", 1, start - 1)["quality"] == pytest.approx(0.5)
     assert EDGE_TL.team("away", 1, start + 30)["quality"] == pytest.approx(0.7)
+
+
+TRIGGERED = MatchScript.model_validate(
+    {
+        "match_id": "t03",
+        "seed": 1,
+        "teams": {
+            "home": {"name": "Harbour City", "code": "HC", "press_height": 0.4},
+            "away": {"name": "Northvale", "code": "NV"},
+        },
+        "scripts": [
+            {
+                "id": "chase",
+                "at": "55:00",
+                "ramp": "2m",
+                "team": "home",
+                "when": "trailing",
+                "set": {"press_height": 0.9},
+            },
+            {
+                "id": "legs",
+                "at": "60:00",
+                "team": "away",
+                "unit": "defence",
+                "set": {"stamina_decay": 8.0},
+            },
+        ],
+    }
+)
+
+
+def test_a_unit_intervention_reaches_every_player_of_that_unit_only():
+    tl = ParamTimeline(TRIGGERED)
+    assert tl.player("away", "NV-02", 2, at(61), unit="defence")["stamina_decay"] == 8.0
+    assert tl.player("away", "NV-07", 2, at(61), unit="midfield")["stamina_decay"] == 1.0
+    assert tl.player("home", "HC-02", 2, at(61), unit="defence")["stamina_decay"] == 1.0
+
+
+def test_a_score_triggered_intervention_waits_for_its_start():
+    tl = ParamTimeline(TRIGGERED)
+    assert tl.started == {"chase": None, "legs": MatchClock.parse("60:00")}
+    assert [iv.id for iv in tl.pending()] == ["chase"]
+    assert tl.team("home", 2, at(70))["press_height"] == pytest.approx(0.4)
+    tl.start(tl.pending()[0], MatchClock.parse("66:00"))
+    assert tl.pending() == []
+    assert tl.team("home", 2, at(67))["press_height"] == pytest.approx(0.65)  # half the ramp
+    assert tl.team("home", 2, at(70))["press_height"] == pytest.approx(0.9)

@@ -28,23 +28,39 @@ class ParamTimeline:
             for side, t in script.teams.items()
         }
         self._interventions = sorted(script.scripts, key=lambda iv: iv.at.sort_key)
+        # When each intervention started: its `at`, or, for a score-triggered one, the
+        # moment the simulator saw its condition hold (None until then).
+        self.started: dict[str, MatchClock | None] = {
+            iv.id: None if iv.when else iv.at for iv in self._interventions
+        }
+
+    def pending(self) -> list[Intervention]:
+        """Score-triggered interventions that have not started yet."""
+        return [iv for iv in self._interventions if self.started[iv.id] is None]
+
+    def start(self, iv: Intervention, at: MatchClock) -> None:
+        self.started[iv.id] = at
 
     def team(self, side: Side, period: int, s: float) -> dict[str, float]:
         values = dict(self._base[side])
         for iv in self._interventions:
-            if iv.team == side and iv.player is None:
-                _apply(values, iv, period, s)
+            if iv.team == side and iv.player is None and iv.unit is None:
+                self._apply(values, iv, period, s)
         return values
 
-    def player(self, side: Side, player_id: str, period: int, s: float) -> dict[str, float]:
+    def player(
+        self, side: Side, player_id: str, period: int, s: float, unit: str | None = None
+    ) -> dict[str, float]:
         values = dict(PLAYER_DEFAULTS)
         for iv in self._interventions:
-            if iv.team == side and iv.player == player_id:
-                _apply(values, iv, period, s)
+            if iv.team == side and (iv.player == player_id or (unit and iv.unit == unit)):
+                self._apply(values, iv, period, s)
         return values
 
-
-def _apply(values: dict[str, float], iv: Intervention, period: int, s: float) -> None:
-    p = _progress(iv.at, iv.ramp_seconds, period, s)
-    for key, target in iv.set.items():
-        values[key] += (target - values[key]) * p
+    def _apply(self, values: dict[str, float], iv: Intervention, period: int, s: float) -> None:
+        start = self.started[iv.id]
+        if start is None:
+            return
+        p = _progress(start, iv.ramp_seconds, period, s)
+        for key, target in iv.set.items():
+            values[key] += (target - values[key]) * p

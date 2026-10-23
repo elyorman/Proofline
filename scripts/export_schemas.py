@@ -11,6 +11,7 @@ from contracts import (
     Event,
     EventAmendment,
     InsightCard,
+    MatchMeta,
     Profile,
     ToolResult,
     VariantComparison,
@@ -21,6 +22,7 @@ DOCS = Path(__file__).resolve().parents[1] / "docs"
 SCHEMAS = {
     "event": Event,
     "event-amendment": EventAmendment,
+    "match-meta": MatchMeta,
     "tool-result": ToolResult,
     "hypothesis": Hypothesis,
     "case": Case,

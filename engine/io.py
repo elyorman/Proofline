@@ -1,26 +1,31 @@
-"""Write a generated match to disk: events.jsonl plus meta.json (rosters, score).
+"""Write a generated match to disk: events.jsonl plus meta.json (`contracts.meta`).
 
-Nothing here reveals the script's interventions; those stay in the YAML and the
-sealed ground truth.
+Nothing here reveals the script's interventions, which stay in the YAML and the sealed
+ground truth, or anything the events have not yet delivered: meta.json names the teams
+and rosters only.
 """
 
-import json
 from pathlib import Path
 
 from contracts.event import Event
+from contracts.meta import MatchMeta
 from engine.sim import MatchSim
+
+
+def _write(path: Path, text: str) -> None:
+    """Write whole or not at all, so a reader never sees a truncated file."""
+    tmp = path.with_name(path.name + ".tmp")
+    tmp.write_text(text, encoding="utf-8")
+    tmp.replace(path)
 
 
 def write_match(sim: MatchSim, events: list[Event], out_dir: str | Path) -> Path:
     out = Path(out_dir)
     out.mkdir(parents=True, exist_ok=True)
-    with (out / "events.jsonl").open("w", encoding="utf-8") as f:
-        for event in events:
-            f.write(event.model_dump_json() + "\n")
-    meta = {
-        "match_id": sim.script.match_id,
-        "seed": sim.seed,
-        "teams": {
+    _write(out / "events.jsonl", "".join(e.model_dump_json() + "\n" for e in events))
+    meta = MatchMeta(
+        match_id=sim.script.match_id,
+        teams={
             side: {
                 "name": team.name,
                 "code": team.code,
@@ -32,12 +37,13 @@ def write_match(sim: MatchSim, events: list[Event], out_dir: str | Path) -> Path
             }
             for side, team in sim.script.teams.items()
         },
-        "period_lengths_s": sim.period_lengths,
-        "score": sim.score,
-        "events": len(events),
-    }
-    (out / "meta.json").write_text(json.dumps(meta, indent=2) + "\n", encoding="utf-8")
+    )
+    _write(out / "meta.json", meta.model_dump_json(indent=2) + "\n")
     return out
+
+
+def read_meta(path: str | Path) -> MatchMeta:
+    return MatchMeta.model_validate_json(Path(path).read_text(encoding="utf-8"))
 
 
 def read_events(path: str | Path) -> list[Event]:

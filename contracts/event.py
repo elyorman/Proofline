@@ -39,6 +39,13 @@ class EventType(StrEnum):
     PERIOD_END = "period_end"
 
 
+class SetPieceKind(StrEnum):
+    KICK_OFF = "kick_off"
+    THROW_IN = "throw_in"
+    FREE_KICK = "free_kick"
+    GOAL_KICK = "goal_kick"
+
+
 class Outcome(StrEnum):
     COMPLETE = "complete"
     INCOMPLETE = "incomplete"
@@ -102,6 +109,15 @@ class Event(BaseModel):
             raise ValueError("pass events require pass_q")
         if self.type == EventType.SHOT and self.shot_q is None:
             raise ValueError("shot events require shot_q")
+        if self.type == EventType.SPRINT:
+            for key in ("speed_kmh", "distance_m"):
+                value = self.qualifiers.get(key)
+                if isinstance(value, bool) or not isinstance(value, int | float) or value < 0:
+                    raise ValueError(f"a sprint carries {key} as a number of zero or more")
+        if self.type == EventType.SET_PIECE and self.qualifiers.get("kind") not in set(
+            SetPieceKind
+        ):
+            raise ValueError(f"a set piece's kind is one of {', '.join(SetPieceKind)}")
         return self
 
 

@@ -1,0 +1,102 @@
+{
+  "$defs": {
+    "RosterPlayer": {
+      "additionalProperties": false,
+      "properties": {
+        "player_id": {
+          "title": "Player Id",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "role": {
+          "description": "position in the formation, e.g. RB or ST",
+          "title": "Role",
+          "type": "string"
+        },
+        "unit": {
+          "enum": [
+            "goalkeeper",
+            "defence",
+            "midfield",
+            "attack"
+          ],
+          "title": "Unit",
+          "type": "string"
+        }
+      },
+      "required": [
+        "player_id",
+        "name",
+        "role",
+        "unit"
+      ],
+      "title": "RosterPlayer",
+      "type": "object"
+    },
+    "TeamMeta": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "code": {
+          "description": "player id prefix, e.g. HC",
+          "pattern": "^[A-Z]{2}$",
+          "title": "Code",
+          "type": "string"
+        },
+        "formation": {
+          "title": "Formation",
+          "type": "string"
+        },
+        "players": {
+          "items": {
+            "$ref": "#/$defs/RosterPlayer"
+          },
+          "maxItems": 11,
+          "minItems": 11,
+          "title": "Players",
+          "type": "array"
+        }
+      },
+      "required": [
+        "name",
+        "code",
+        "formation",
+        "players"
+      ],
+      "title": "TeamMeta",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "match_id": {
+      "title": "Match Id",
+      "type": "string"
+    },
+    "teams": {
+      "additionalProperties": {
+        "$ref": "#/$defs/TeamMeta"
+      },
+      "propertyNames": {
+        "enum": [
+          "home",
+          "away"
+        ]
+      },
+      "title": "Teams",
+      "type": "object"
+    }
+  },
+  "required": [
+    "match_id",
+    "teams"
+  ],
+  "title": "MatchMeta",
+  "type": "object"
+}

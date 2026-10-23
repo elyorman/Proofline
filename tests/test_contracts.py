@@ -18,6 +18,7 @@ from contracts import (
     InsightCard,
     LanguageLevel,
     MatchClock,
+    MatchMeta,
     Prediction,
     Profile,
     SupportLevel,
@@ -1038,3 +1039,58 @@ def test_profile_budget_defaults_by_expertise():
 def test_cause_domains():
     assert Cause.PRESS_INTENSITY_UP.domain == "tactical"
     assert Cause.OTHER.domain == "fallback"
+
+
+# --- match metadata and qualifiers -------------------------------------------
+
+
+def _roster(code):
+    roles = ["GK", "RB", "RCB", "LCB", "LB", "DM", "CM", "CM", "RW", "ST", "LW"]
+    units = ["goalkeeper"] + ["defence"] * 4 + ["midfield"] * 3 + ["attack"] * 3
+    return [
+        {"player_id": f"{code}-{i:02d}", "name": f"P{i}", "role": r, "unit": u}
+        for i, (r, u) in enumerate(zip(roles, units, strict=True), start=1)
+    ]
+
+
+def _meta(**overrides):
+    teams = {
+        side: {"name": name, "code": code, "formation": "4-3-3", "players": _roster(code)}
+        for side, name, code in (("home", "Harbour City", "HC"), ("away", "Northvale", "NV"))
+    }
+    return dict(match_id="m01", teams=teams) | overrides
+
+
+def test_match_meta_names_the_teams_and_nothing_the_events_deliver():
+    assert MatchMeta(**_meta()).teams["away"].players[0].player_id == "NV-01"
+    for leak in ("seed", "score", "period_lengths_s"):
+        with pytest.raises(ValidationError, match="Extra inputs are not permitted"):
+            MatchMeta(**_meta(**{leak: 1}))
+    teams = _meta()["teams"]
+    with pytest.raises(ValidationError, match="start with HC-"):
+        MatchMeta(**_meta(teams=teams | {"home": teams["home"] | {"players": _roster("NV")}}))
+    with pytest.raises(ValidationError, match="different names"):
+        MatchMeta(**_meta(teams=teams | {"away": teams["home"]}))
+
+
+def _event(type_, **qualifiers):
+    return dict(
+        event_id="e1",
+        match_id="m01",
+        clock="10:00",
+        wall_clock_ms=0,
+        type=type_,
+        team="Harbour City",
+        qualifiers=qualifiers,
+    )
+
+
+def test_sprint_and_set_piece_qualifiers_are_typed():
+    assert Event(**_event("sprint", speed_kmh=31.2, distance_m=18.5))
+    assert Event(**_event("set_piece", kind="throw_in"))
+    half = _event("sprint", speed_kmh=31.2)
+    for broken in (half, _event("sprint", speed_kmh="fast", distance_m=1)):
+        with pytest.raises(ValidationError, match="sprint carries"):
+            Event(**broken)
+    with pytest.raises(ValidationError, match="set piece's kind"):
+        Event(**_event("set_piece", kind="corner"))

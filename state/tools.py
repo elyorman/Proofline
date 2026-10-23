@@ -9,7 +9,7 @@ how long a half runs until it ends.
 from dataclasses import dataclass
 
 from contracts.clock import MatchClock, Window
-from contracts.event import Event, EventRef, EventType
+from contracts.event import Event, EventAmendment, EventRef, EventType
 from contracts.meta import MatchMeta
 from contracts.taxonomy import BaselineScope, Metric
 from contracts.tool_result import BaselineValue, EvidenceSet, ToolName, ToolResult
@@ -37,6 +37,28 @@ class Feed:
 
     def delivered(self, as_of: MatchClock) -> list[Event]:
         return [e for e in self.events if not as_of < e.clock]
+
+    def amended(self, amendment: EventAmendment) -> "Feed":
+        """The feed after a batch amendment: its events moved or re-attributed, their versions
+        bumped, and a new data version. Coordinates keep the feed's 0.1 m resolution."""
+        ids = set(amendment.event_ids)
+        if missing := ids - {e.event_id for e in self.events}:
+            raise ValueError(
+                f"{amendment.amendment_id} names events the feed lacks: {sorted(missing)}"
+            )
+
+        def moved(e: Event) -> Event:
+            if e.event_id not in ids:
+                return e
+            update: dict = dict(amendment.set or {}) | {"version": e.version + 1}
+            if s := amendment.shift:
+                for end in ("start", "end"):
+                    if (at := getattr(e, end)) is not None:
+                        update[end] = {"x": round(at.x + s.dx_m, 1), "y": round(at.y + s.dy_m, 1)}
+            return Event.model_validate(e.model_dump() | update)
+
+        version = f"{self.data_version}+{amendment.amendment_id}"
+        return Feed(meta=self.meta, events=[moved(e) for e in self.events], data_version=version)
 
 
 @dataclass(frozen=True)

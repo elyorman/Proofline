@@ -7,8 +7,9 @@ and rosters only.
 
 from pathlib import Path
 
-from contracts.event import Event
+from contracts.event import Event, EventAmendment
 from contracts.meta import MatchMeta
+from engine.amend import first_delivered
 from engine.sim import MatchSim
 
 
@@ -20,10 +21,29 @@ def _write(path: Path, text: str) -> None:
 
 
 def write_match(sim: MatchSim, events: list[Event], out_dir: str | Path) -> Path:
+    """Write the events as the feed first delivered them and, for a script with amendments,
+    the batches that later correct them in amendments.jsonl, in the order they arrive."""
     out = Path(out_dir)
     out.mkdir(parents=True, exist_ok=True)
-    _write(out / "events.jsonl", "".join(e.model_dump_json() + "\n" for e in events))
+    delivered, corrected = first_delivered(sim.script, events)
+    _write(out / "events.jsonl", "".join(e.model_dump_json() + "\n" for e in delivered))
     _write(out / "meta.json", match_meta(sim).model_dump_json(indent=2) + "\n")
+    batches = [
+        EventAmendment(
+            amendment_id=a.id,
+            match_id=sim.script.match_id,
+            at=a.at,
+            event_ids=corrected[a.id],
+            shift=a.batch.shift,
+            reason=a.reason,
+        )
+        for a in sorted(sim.script.amendments, key=lambda a: a.at.sort_key)
+    ]
+    path = out / "amendments.jsonl"
+    if batches:
+        _write(path, "".join(b.model_dump_json() + "\n" for b in batches))
+    else:
+        path.unlink(missing_ok=True)
     return out
 
 

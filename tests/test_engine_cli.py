@@ -4,6 +4,7 @@ from pathlib import Path
 
 import pytest
 
+from engine.amend import first_delivered
 from engine.cli import main
 from engine.io import read_events, read_meta
 from engine.script import load_script
@@ -16,7 +17,10 @@ def test_generate_round_trips_events_and_writes_meta(tmp_path, capsys):
     assert main(["generate", "--script", str(M01), "--seed", "7", "--out", str(tmp_path)]) == 0
     events = read_events(tmp_path / "events.jsonl")
     meta = read_meta(tmp_path / "meta.json")
-    assert events == MatchSim(load_script(M01), seed=7).run()
+    script = load_script(M01)
+    # what the feed first delivered: a1's events displaced until its 68' batch corrects them
+    assert events == first_delivered(script, MatchSim(script, seed=7).run())[0]
+    assert (tmp_path / "amendments.jsonl").exists()
     assert meta.match_id == "m01" and len(meta.teams["home"].players) == 11
     assert "Harbour City" in capsys.readouterr().out
 
@@ -56,4 +60,6 @@ def test_the_demo_match_is_pinned(tmp_path, capsys):
     moved = "the demo match changed: if intended, update this pin and re-check the demo beats"
     assert out == "m01 seed 4434: 2963 events, Harbour City 2-3 Northvale", moved
     digest = hashlib.sha256((tmp_path / "events.jsonl").read_bytes()).hexdigest()
-    assert digest == "fe4a2b2f7fac83443c3828ba3e22e893d31c99b7661f9939bec6804da3e45424", moved
+    assert digest == "e84a27ec047a5400831148e5804db46c9fc45bf6152c61d770e944ea5c43bfac", moved
+    batch = hashlib.sha256((tmp_path / "amendments.jsonl").read_bytes()).hexdigest()
+    assert batch == "be0263380c9958caf4fa204b8fe0f7e4fcc735cb8ac8853c5a02c1c5e679b7ca", moved

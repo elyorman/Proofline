@@ -19,7 +19,7 @@ from mcp.server.mcpserver import MCPServer
 from mcp.server.mcpserver.exceptions import ToolError
 
 from contracts.clock import MatchClock, Window
-from contracts.event import Event
+from contracts.event import Event, EventAmendment
 from contracts.meta import MatchMeta
 from contracts.taxonomy import BaselineScope, Metric
 from contracts.tool_result import EvidenceSet
@@ -48,6 +48,14 @@ class DirectorySource:
         with (folder / "events.jsonl").open(encoding="utf-8") as f:
             events = [Event.model_validate_json(line) for line in f if line.strip()]
         return Feed(meta=meta, events=events, data_version=self.data_version)
+
+    def amendments(self, match_id: str) -> list[EventAmendment]:
+        """The batches that later correct the match's feed, in the order they arrive."""
+        path = Path(self.root) / match_id / "amendments.jsonl"
+        if not path.exists():
+            return []
+        with path.open(encoding="utf-8") as f:
+            return [EventAmendment.model_validate_json(line) for line in f if line.strip()]
 
 
 @dataclass

@@ -75,3 +75,40 @@ def test_overlapping_amendments_are_refused():
     twice = SCRIPT.model_copy(update={"amendments": [A1, A1.model_copy(update={"id": "a2"})]})
     with pytest.raises(ValueError, match="a2 corrects events already amended"):
         first_delivered(twice, [_carry("in")])
+
+
+def test_a_written_match_carries_its_first_delivered_feed_and_the_batch_that_corrects_it(
+    tmp_path,
+):
+    from pathlib import Path
+
+    from contracts.clock import MatchClock, Window
+    from contracts.taxonomy import Metric
+    from engine.io import write_match
+    from engine.script import load_script
+    from engine.sim import MatchSim
+    from state.tools import Call, metric
+    from tools_server.server import DirectorySource
+
+    script = load_script(Path(__file__).resolve().parents[1] / "engine/scripts/planted/m01.yaml")
+    sim = MatchSim(script)
+    truth = sim.run()
+    write_match(sim, truth, tmp_path / "m01")
+    source = DirectorySource(tmp_path)
+    shown = source.feed("m01")
+    (a1,) = source.amendments("m01")
+    assert a1.amendment_id == "a1" and a1.at == MatchClock.parse("68:00") and a1.shift.dy_m == -22
+    fixed = shown.amended(a1)
+    true_by_id = {e.event_id: e for e in truth}
+    for e in fixed.events:
+        assert (e.start, e.end) == (true_by_id[e.event_id].start, true_by_id[e.event_id].end)
+        assert e.version == (2 if e.event_id in a1.event_ids else 1)
+    assert fixed.data_version == "feed-1+a1" and len(a1.event_ids) == 54
+
+    def right_share(feed):
+        call = Call(tool_call_id="tc-1", as_of=MatchClock.parse("68:00"), now_ms=0)
+        window = Window.model_validate("45:00-55:00")
+        result, _ = metric(feed, Metric.CHANNEL_SHARE_RIGHT, "Northvale", window, call)
+        return round(result.value, 3)
+
+    assert (right_share(shown), right_share(fixed)) == (0.625, 0.375)

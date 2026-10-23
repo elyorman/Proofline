@@ -1943,6 +1943,8 @@ git commit -m "List the Match Engine in the README"
 
 ## Follow-ups for later plans
 
+> Open items are tracked in [`docs/backlog.md`](../backlog.md) from 2026-10-23; this list is kept as history.
+
 Found by the per-task reviews while executing this plan; each belongs to the plan named.
 
 > Resolved by `docs/plans/2026-10-22-planted-signal.md`: the demo seed (now chosen by a stated rule), the touchline pile-up, the 55' flank card, pinning the demo match, and rejecting a NaN `dy_m`. Flank bands are superseded: channels are equal thirds of the width, defined in spec §8.1.

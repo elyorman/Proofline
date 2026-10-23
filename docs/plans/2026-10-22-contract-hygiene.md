@@ -646,6 +646,8 @@ git commit -m "Record what the contract-hygiene plan resolved" -m "The planted-s
 
 ## Follow-ups for later plans
 
+> Open items are tracked in [`docs/backlog.md`](../backlog.md) from 2026-10-23; this list is kept as history.
+
 **Paired-run tooling (rest of plan 2)**
 - **Where flags came from.** *Resolved by the planted-suites plan (`4fbc23c`, `a97ef83`), except that `VariantComparison` does not yet compare flag sets; that is carried there.* A frozen flag-set record (id, split, seeds, number of seed pairs, `frozen_at_ms`, the exclusions) that every planted `EvalRun` points to, frozen before either variant starts; a `VariantComparison` refuses two runs with different flag sets. An empty `not_observable` list cannot yet tell "nothing excluded" from "flags never attached".
 - **Each class's observables.** *Pinned in `contracts/planted.py` by the planted-suites plan (`ea0a428`); checking an exclusion against them is carried there.* Pin them, with directions, as data in `contracts/taxonomy.py`, and check that an exclusion lists exactly its class's set: leaving out the one observable that clears zero, or recording a wrong direction, would hide a script today.

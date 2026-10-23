@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-> **Status:** executed on branch `planted-suites` in October 2026, with a spec check and a code-quality review of Tasks 1–2 and 3–6. The code blocks show each task as dispatched; the fixes listed under "Review fixes during execution" changed the code after the task named. Do not re-run it; later plans pick up the follow-ups at the end.
+> **Status:** executed on branch `planted-suites` in October 2026, with a spec check, code-quality reviews of Tasks 1–2 and 3–6, a final branch review and an outside audit. The code blocks show each task as dispatched; the fixes listed under "Review fixes during execution" changed the code after the task named. Do not re-run it; later plans pick up the follow-ups at the end.
 
 **Goal:** Give the evaluator planted and decoy suites whose causes span all three agents' domains, each with sealed ground truth and frozen, provenance-carrying `not_observable` flags.
 
@@ -1493,10 +1493,14 @@ git commit -m "Document the planted suites and the new script features" -m "The 
 | 5 | Players are recognised by the player-id pattern and units by name, so a team named with a hyphen or a dot still counts its sprints; a rate without a first-half `period_end` says why it fails | `f5ba243` |
 | 6 | Seeds run until every observable has the pairs asked for, so sprint speed never rests on fewer than the record claims; the interval uses the t quantile for its seed count; a window must start in the second half and end by 90:00; `resolve` refuses a class whose unit or player the intervention does not name | `382da8f` |
 | 7 | The score rule that makes a class the only fair answer holds from the change's start to the end of its window, so a team protecting a lead cannot concede inside it | `86b60b5` |
+| 7 | Match ids come from one seeded shuffle across suites and splits (`m417`), since `p-`/`d-` prefixes told product code whether anything was planted. Every planted match has seeds of its own (three pairs per split shared one, with identical sprint streams). Game-state changes draw `at` from 55–64' and every planted change starts by 65:00, so start time no longer tells game state apart (all ten held-out game-state matches had started at 55'). A rebuild replaces the whole suite; sizes are bounded; `dump_script` refuses amendments | `9ce5f4e` |
+| 7 | The isolation guard catches `Path("engine") / "suites"` and joined spellings; the sdist excludes the suites too; dotted team names work in the opponent lookup and the planted-truth subject check; the committed-suites test re-simulates every match and checks the score rule | `5b6b8ce`, `9ce5f4e` |
 
-The suites came out as the prototype measured: dev 12 planted with one excluded (`p-d-12`, player fatigue), held-out 30 with two excluded (`p-h-06` and `p-h-29`, press down), all for no separation; 4 and 10 decoys.
+The suites came out as the prototype measured, before and after the final round: dev 12 planted with one excluded (player fatigue), held-out 30 with two excluded (press down), all for no separation; 4 and 10 decoys.
 
 ## Follow-ups for later plans
+
+> Open items are tracked in [`docs/backlog.md`](../backlog.md) from 2026-10-23; this list is kept as history.
 
 **Evaluator**
 - **One flag set per comparison.** `VariantComparison` should carry the `flag_set_id` and refuse two runs whose flag sets differ.
@@ -1506,6 +1510,5 @@ The suites came out as the prototype measured: dev 12 planted with one excluded 
 - **Name the suite version a run scored.** The scripts and ground truth have no digest an `EvalRun` can cite, as it cites its flag set.
 
 **Engine**
-- **Planted match seeds repeat across classes:** five pairs in held-out and two in dev. The matches differ in team parameters and the planted change but share random draws, so they are not fully independent cases. Give each planted match its own seed block, and regenerate the suites, before the final scoreboard.
 - **First-half planted changes** are refused: spec §7.2 measures them against the minutes before the change, which `engine/visibility.py` does not do yet.
 - **Per-observable seed counts** are not recorded: the flag set lists every seed run, and each observable rests on at least the requested pairs among them.

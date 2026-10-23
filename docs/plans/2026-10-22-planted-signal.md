@@ -1353,6 +1353,8 @@ Each review finding that changed the code or the docs, after the task named. The
 
 ## Follow-ups for later plans
 
+> Open items are tracked in [`docs/backlog.md`](../backlog.md) from 2026-10-23; this list is kept as history.
+
 > Resolved by `docs/plans/2026-10-22-contract-hygiene.md`: channel share and pressure rate in the contracts, and spec §5's example card (now the demo match's measured card, with fatigue rejected by a control counter-test that holds on it). In this plan, "held-out seeds" means seeds 100–139, now called validation seeds; spec §11.1 gives "held-out" to the evaluation suites' 2000–2999.
 
 **Plan 2 (rest): engine proof tooling**

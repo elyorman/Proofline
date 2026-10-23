@@ -18,6 +18,7 @@ from contracts import (
     VariantComparison,
 )
 from contracts.case_file import CaseFile
+from contracts.eval_run import SeededRun
 from contracts.prediction import Hypothesis
 
 DOCS = Path(__file__).resolve().parents[1] / "docs"
@@ -35,6 +36,7 @@ SCHEMAS = {
     "profile": Profile,
     "eval-run": EvalRun,
     "variant-comparison": VariantComparison,
+    "seeded-run": SeededRun,
 }
 
 

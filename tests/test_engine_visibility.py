@@ -10,6 +10,7 @@ from engine.visibility import (
     change,
     clears,
     first_half,
+    first_half_minutes,
     long_ball_share,
     observable,
     pressure_rate,
@@ -151,6 +152,24 @@ def test_sprints_are_counted_per_minute_for_a_team_a_unit_or_a_player():
 def test_sprint_speed_is_the_mean_and_undefined_without_sprints():
     assert change(sprint_speed("Harbour City"), SPRINTS, CARD) == pytest.approx(28.0 - 31.0)
     assert math.isnan(change(sprint_speed("Northvale"), SPRINTS, CARD))
+
+
+def test_team_names_with_dots_or_hyphens_are_still_teams():
+    sprints = [
+        _sprint("St. Orrin", "SO-02", "RB", 30.0, "60:00"),
+        _sprint("Kell-on-Sea", "KS-10", "ST", 30.0, "60:00"),
+        *SPRINTS[-1:],
+    ]
+    for team in ("St. Orrin", "Kell-on-Sea"):
+        assert change(sprint_count(team), sprints, CARD) == pytest.approx(1 / 5)
+    assert change(sprint_count("St. Orrin.defence"), sprints, CARD) == pytest.approx(1 / 5)
+    assert change(sprint_count("St. Orrin.attack"), sprints, CARD) == 0
+    assert change(sprint_count("SO-02"), sprints, CARD) == pytest.approx(1 / 5)
+
+
+def test_a_rate_needs_the_first_halfs_length():
+    with pytest.raises(ValueError, match="no first-half period_end"):
+        first_half_minutes(SPRINTS[:-1])
 
 
 def test_a_window_spanning_half_time_is_refused():

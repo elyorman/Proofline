@@ -9,14 +9,17 @@ when the observable rose. A story clears when its change goes far enough in its 
 direction. Counts compared across windows of different lengths are rates per minute of play.
 """
 
+import re
 import statistics
 from collections.abc import Callable
+from typing import get_args
 
 from contracts.clock import Window
 from contracts.eval_run import VISIBILITY_SDS
 from contracts.event import Event
 from contracts.prediction import Direction
 from contracts.taxonomy import Metric
+from engine.script import PLAYER_ID, Unit
 from engine.teams import UNIT_OF_ROLE
 
 ON_BALL = ("pass", "carry", "dribble")
@@ -39,7 +42,9 @@ def first_half(e: Event) -> bool:
 
 def first_half_minutes(events: list[Event]) -> float:
     """The first half's played length, stoppage included, from its period_end event."""
-    end = next(e for e in events if e.type == "period_end" and e.clock.period == 1)
+    end = next((e for e in events if e.type == "period_end" and e.clock.period == 1), None)
+    if end is None:
+        raise ValueError("no first-half period_end: the first half's length is unknown")
     return end.clock.seconds_in_period / 60
 
 
@@ -121,9 +126,11 @@ def right_channel_share(team: str) -> Observable:
 def _sprints_of(subject: str) -> Callable[[Event], bool]:
     """Sprints by a team ("Harbour City"), one of its units ("Harbour City.defence") or a
     player ("HC-10")."""
-    team, _, unit = subject.partition(".")
-    if "-" in subject and not unit:
+    if re.fullmatch(PLAYER_ID, subject):
         return lambda e: e.type == "sprint" and e.player_id == subject
+    team, _, unit = subject.rpartition(".")
+    if unit not in get_args(Unit):
+        team, unit = subject, ""
     return lambda e: (
         e.type == "sprint" and e.team == team and (not unit or UNIT_OF_ROLE[e.position] == unit)
     )

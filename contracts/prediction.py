@@ -110,7 +110,13 @@ class CrossExamResult(StrEnum):
 
 class CrossExamination(BaseModel):
     """A challenger's counter-test, scored by code: if the counter-prediction holds, the
-    hypothesis is refuted; if it reaches half its threshold, weakened; otherwise it holds."""
+    hypothesis is refuted; if it reaches half its threshold, weakened; otherwise it holds.
+
+    A control (the claim repeated on another subject) is scored on what it leaves of the
+    hypothesis's own change: another team tiring too does not rule out a unit tiring more.
+    The hypothesis holds if its claim still holds beyond the control's change, is weakened
+    if half of it does, and is refuted otherwise.
+    """
 
     hypothesis_id: str
     challenger: AgentRole
@@ -118,6 +124,12 @@ class CrossExamination(BaseModel):
     tool_call_id: str
     observed_change: float = Field(
         allow_inf_nan=False, description="signed, in the counter-prediction's units"
+    )
+    hypothesis_change: float | None = Field(
+        default=None,
+        allow_inf_nan=False,
+        description="controls only: the hypothesis subject's own change over the same window "
+        "and baseline, filled by code from the hypothesis's test",
     )
     reason: str
 
@@ -140,6 +152,13 @@ class CrossExamination(BaseModel):
     @computed_field
     @property
     def result(self) -> CrossExamResult:
+        if self.hypothesis_change is not None:
+            excess = self.hypothesis_change - self.observed_change
+            if self.counter_prediction.supported_by(excess):
+                return CrossExamResult.HOLDS
+            if self.counter_prediction.supported_by(excess, share=0.5):
+                return CrossExamResult.WEAKENED
+            return CrossExamResult.REFUTED
         if self.counter_prediction.supported_by(self.observed_change):
             return CrossExamResult.REFUTED
         if self.counter_prediction.supported_by(self.observed_change, share=0.5):
@@ -161,9 +180,10 @@ def check_counter_test(hypothesis: Hypothesis, exam: CrossExamination) -> None:
     and, if it predicts a move, a move at least as large. A flat counter asks whether the
     hypothesis's own change is normal: same subject and window, another baseline, a tolerance
     tighter than the claim. A counter that moves the other way keeps the hypothesis's subject
-    and window too. A counter that moves the same way is a control: another subject,
-    same window and baseline. Counters on other metrics need per-metric minimum thresholds
-    (to be pinned in docs/support-rules.md) before they can be checked here.
+    and window too. A counter that moves the same way is a control: the claim itself on
+    another subject, same window, baseline and threshold, carrying the hypothesis's own change
+    to be scored against. A counter on another metric is refused: no rule yet says when one
+    metric contradicts a claim about another.
     """
     claim, counter = hypothesis.prediction, exam.counter_prediction
     if exam.hypothesis_id != hypothesis.hypothesis_id:
@@ -171,7 +191,13 @@ def check_counter_test(hypothesis: Hypothesis, exam: CrossExamination) -> None:
     if exam.challenger == hypothesis.agent:
         raise ValueError("an agent does not cross-examine its own hypothesis")
     if counter.metric != claim.metric:
-        return
+        raise ValueError("a counter-test uses the hypothesis's metric; no other has a rule yet")
+    control = counter.direction == claim.direction
+    if control != (exam.hypothesis_change is not None):
+        raise ValueError(
+            "a same-way counter-test is a control and carries the hypothesis's own change; "
+            "no other counter-test does"
+        )
     if counter.threshold_kind != claim.threshold_kind:
         raise ValueError("a counter-test on the hypothesis's metric uses its threshold kind")
     if counter.direction == Direction.FLAT:
@@ -193,12 +219,13 @@ def check_counter_test(hypothesis: Hypothesis, exam: CrossExamination) -> None:
         raise ValueError(
             "a counter-test on the hypothesis's metric claims at least as large a move"
         )
-    if counter.direction == claim.direction and (
+    if control and (
         _same_family(counter.subject, claim.subject)
-        or (counter.window, counter.compare_to) != (claim.window, claim.compare_to)
+        or (counter.window, counter.compare_to, counter.min_change)
+        != (claim.window, claim.compare_to, claim.min_change)
     ):
         raise ValueError(
-            "a same-way counter-test is a control: another subject, same window and baseline"
+            "a control is the claim on another subject: same window, baseline and threshold"
         )
     if counter.direction != claim.direction and (
         not _same_family(counter.subject, claim.subject) or counter.window != claim.window

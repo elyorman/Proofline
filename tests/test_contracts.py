@@ -236,27 +236,60 @@ def test_cross_examination_is_scored_by_its_counter_test():
 
 
 def test_an_up_or_down_counter_test_is_scored_against_its_threshold():
-    fell_too = _prediction(metric=Metric.SPRINT_COUNT, subject="Harbour City", min_change=0.15)
+    rose = _prediction(
+        metric=Metric.SPRINT_COUNT,
+        subject="Northvale",
+        compare_to=BaselineScope.SEASON_AVERAGE,
+        direction=Direction.UP,
+        min_change=0.15,
+    )
 
     def result(observed):
         return CrossExamination(
             hypothesis_id="hyp-physical-01",
             challenger=AgentRole.TACTICS,
-            counter_prediction=fell_too,
+            counter_prediction=rose,
             tool_call_id="tc-8850",
             observed_change=observed,
-            reason="Harbour City's sprints fell too",
+            reason="Northvale sprint more than usual for these minutes",
         ).result
 
-    scored = {x: result(x) for x in (-0.25, -0.15, -0.10, -0.075, -0.05, 0.30)}
+    scored = {x: result(x) for x in (0.25, 0.15, 0.10, 0.075, 0.05, -0.30)}
     assert scored == {
-        -0.25: "refuted",
-        -0.15: "refuted",  # exactly the threshold
-        -0.10: "weakened",
-        -0.075: "weakened",  # exactly half of it
-        -0.05: "holds",
-        0.30: "holds",
+        0.25: "refuted",
+        0.15: "refuted",  # exactly the threshold
+        0.10: "weakened",
+        0.075: "weakened",  # exactly half of it
+        0.05: "holds",
+        -0.30: "holds",
     }
+
+
+def _control(hypothesis_change, control_change, min_change=0.15):
+    fell_too = _prediction(
+        metric=Metric.SPRINT_COUNT, subject="Harbour City", min_change=min_change
+    )
+    return CrossExamination(
+        hypothesis_id="hyp-physical-01",
+        challenger=AgentRole.TACTICS,
+        counter_prediction=fell_too,
+        tool_call_id="tc-8850",
+        observed_change=control_change,
+        hypothesis_change=hypothesis_change,
+        reason="Harbour City's sprints fell too",
+    ).result
+
+
+def test_a_control_is_scored_on_what_it_leaves_of_the_hypothesis():
+    # A planted unit fatigue (dev): the defence's sprints fall far more than a tiring
+    # opponent's, so the shared decline does not explain it away.
+    assert _control(-0.735, -0.325) == "holds"
+    assert _control(-0.30, 0.0) == "holds"  # the control did not move at all
+    # The demo match: Northvale -30.5%, Harbour City -21.2% since the first half. Most of the
+    # fall is shared; how much survives depends on how much the hypothesis claimed.
+    assert _control(-0.305, -0.212, min_change=0.15) == "weakened"  # 9.3 points left of 15
+    assert _control(-0.305, -0.212, min_change=0.20) == "refuted"  # less than half of 20
+    assert _control(-0.30, -0.40) == "refuted"  # the control fell further
 
 
 def test_a_stored_cross_examination_round_trips_and_cannot_be_rewritten():
@@ -317,8 +350,9 @@ def _hypothesis(agent, cause):
         (dict(compare_to=BaselineScope.MATCH_SO_FAR, min_change=0.001), False),
         (dict(window="57:00-63:00", min_change=0.001), False),
         (dict(subject="Northvale.defence"), False),
-        # Controls that are trivially easy, or flat tolerances that swallow the claim.
+        # Controls with their own threshold, or flat tolerances that swallow the claim.
         (dict(subject="Harbour City", min_change=0.001), False),
+        (dict(subject="Harbour City", min_change=0.3), False),
         (dict(subject="Harbour City", direction="flat", min_change=0.149), False),
         (dict(window="00:00-05:00", direction="flat", min_change=0.149), False),
         (dict(direction="flat", min_change=0.149), False),
@@ -330,17 +364,21 @@ def _hypothesis(agent, cause):
         # Opposite-way counters from minutes or teams the hypothesis never mentioned.
         (dict(direction="up", window="10:00-15:00"), False),
         (dict(direction="up", subject="Harbour City"), False),
+        # Another metric: nothing yet says when it contradicts a claim about sprints.
+        (dict(metric=Metric.SPRINT_SPEED, subject="Harbour City"), False),
     ],
 )
 def test_a_counter_test_must_be_able_to_contradict_its_hypothesis(counter, fair):
     fatigue = _hypothesis(AgentRole.PHYSICAL, Cause.UNIT_FATIGUE)  # Northvale sprints down 15%
     sprints = dict(metric=Metric.SPRINT_COUNT, subject="Northvale", min_change=0.15) | counter
+    prediction = _prediction(**sprints)
     exam = CrossExamination(
         hypothesis_id="hyp-1",
         challenger=AgentRole.TACTICS,
-        counter_prediction=_prediction(**sprints),
+        counter_prediction=prediction,
         tool_call_id="tc-1",
         observed_change=0.0,
+        hypothesis_change=-0.2 if prediction.direction == Direction.DOWN else None,
         reason="r",
     )
     if fair:
@@ -348,6 +386,29 @@ def test_a_counter_test_must_be_able_to_contradict_its_hypothesis(counter, fair)
     else:
         with pytest.raises(ValueError):
             check_counter_test(fatigue, exam)
+
+
+def test_only_a_control_carries_the_hypothesis_change():
+    fatigue = _hypothesis(AgentRole.PHYSICAL, Cause.UNIT_FATIGUE)
+
+    def exam(hypothesis_change, **counter):
+        sprints = dict(metric=Metric.SPRINT_COUNT, subject="Harbour City", min_change=0.15)
+        return CrossExamination(
+            hypothesis_id="hyp-1",
+            challenger=AgentRole.TACTICS,
+            counter_prediction=_prediction(**sprints | counter),
+            tool_call_id="tc-1",
+            observed_change=0.0,
+            hypothesis_change=hypothesis_change,
+            reason="r",
+        )
+
+    check_counter_test(fatigue, exam(-0.2))
+    with pytest.raises(ValueError, match="carries the hypothesis's own change"):
+        check_counter_test(fatigue, exam(None))
+    flat = dict(subject="Northvale", direction="flat", compare_to="season_average")
+    with pytest.raises(ValueError, match="no other counter-test does"):
+        check_counter_test(fatigue, exam(-0.2, **flat, min_change=0.1))
 
 
 def test_a_challenger_never_examines_its_own_hypothesis():

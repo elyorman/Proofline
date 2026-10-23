@@ -112,7 +112,7 @@ The Insight Card is the single unit of truth every surface renders. The example 
 
   "rejected_alternatives": [
     { "hypothesis_id": "hyp-physical-01", "taxonomy": "physical.unit_fatigue", "agent": "physical",
-      "reason": "Harbour City's sprints fell too (-21%, against Northvale's -30% since the first half): a decline both teams share, not one that singles out Northvale.",
+      "reason": "Harbour City's sprints fell too (-21%, against Northvale's -30% since the first half): the 9 points that single out Northvale are less than half the 20% fall the hypothesis claimed.",
       "rejected_by": "cross_examination", "tool_call_id": "tc-8850" }
   ],
 
@@ -147,7 +147,7 @@ The Insight Card is the single unit of truth every surface renders. The example 
       "es": "El Harbour City presiona mucho más arriba y el Northvale juega en largo mucho más a menudo."
     },
     "analyst": {
-      "en": "Pressure rate 0.32 → 0.83 since 58'. Northvale long-ball share 11% → 59%. Consistent with the press disrupting their build-up. Fatigue ruled out: Harbour City's sprints fell too. Support: moderate."
+      "en": "Pressure rate 0.32 → 0.83 since 58'. Northvale long-ball share 11% → 59%. Consistent with the press disrupting their build-up. Fatigue ruled out: Harbour City's sprints fell almost as much. Support: moderate."
     }
   },
 
@@ -411,7 +411,7 @@ Validation: metric exists, subject resolves, window and baseline are standard sc
 1. **Open.** The case is written to the ledger with its trigger metrics and window.
 2. **Pre-register** (agents in parallel). Each agent decides whether the case touches its domain and registers up to two hypotheses, each a cause in its own domain; `other` and `none` are synthesis outcomes, never hypotheses.
 3. **Test.** Each agent spends its budget on tool calls of its choosing. Predictions are scored mechanically; failed hypotheses are discarded with the reason.
-4. **Cross-examine.** Each surviving hypothesis goes to the other agents, who may each register and run one structured counter-test. Before it runs, the orchestrator refuses a counter-test that cannot fairly contradict the hypothesis (`check_counter_test`). A counter-test on the hypothesis's own metric uses its threshold kind; if it predicts a move, the move is at least as large as the claim. A counter-test that moves the other way, or stays flat, keeps the hypothesis's subject (or a team it is a unit of, or a unit of it) and window and may change only the baseline; a flat one also needs a tolerance tighter than the claim. A counter-test that moves the same way is a control: a subject that is neither the hypothesis's subject, a team it is a unit of, nor a unit of it, in the same window against the same baseline. Counter-tests on other metrics are not checked until per-metric minimums are pinned in `docs/support-rules.md`. Code scores the result from the counter-test, not any agent: refuted when the counter-prediction holds; weakened when it reaches half its threshold (a flat one: when the change stays within twice its tolerance); holds otherwise.
+4. **Cross-examine.** Each surviving hypothesis goes to the other agents, who may each register and run one structured counter-test. Before it runs, the orchestrator refuses a counter-test that cannot fairly contradict the hypothesis (`check_counter_test`). A counter-test on the hypothesis's own metric uses its threshold kind; if it predicts a move, the move is at least as large as the claim. A counter-test that moves the other way, or stays flat, keeps the hypothesis's subject (or a team it is a unit of, or a unit of it) and window and may change only the baseline; a flat one also needs a tolerance tighter than the claim. A counter-test that moves the same way is a control: the claim itself on a subject that is neither the hypothesis's subject, a team it is a unit of, nor a unit of it, with the same window, baseline and threshold. A counter-test on another metric is refused: nothing yet says when one metric contradicts a claim about another. Code scores the result from the counter-test, not any agent: refuted when the counter-prediction holds; weakened when it reaches half its threshold (a flat one: when the change stays within twice its tolerance); holds otherwise. A control is scored on what it leaves of the hypothesis's own change, since another team tiring does not rule out a unit tiring more: the hypothesis holds if its claim still holds on its change minus the control's, is weakened if half of it does, and is refuted otherwise.
 5. **Attribute.** A synthesis step ranks survivors into primary and secondary. Nothing survives: `none`. A real effect with no fitting class: `other`.
 6. **Propose.** The card, its propositions and the full trace go to the Verifier.
 

@@ -2,8 +2,9 @@
 
 Each planted match carries one intervention whose mechanism belongs to one plantable
 class; the class itself is written only to the sealed ground truth. Match ids are
-opaque, so nothing a product package can see names the cause. Seeds come from the
-split's own range (spec §11.1), and a match seed is used only when the planted change
+opaque: they name neither the cause, nor whether anything was planted, nor the split.
+Seeds come from the split's own range (spec §11.1), every match has seeds of its own,
+and a match seed is used only when the planted change
 is unambiguous there, from its start to the end of its window: a press change is not
 planted while the score gives the team a game-state reason for it, and a score-triggered
 change must start in time and keep the score that triggered it.
@@ -30,7 +31,25 @@ MATCH_OFFSET, DECOY_OFFSET, PAIRED_OFFSET = 0, 300, 500
 PER_CLASS = {Split.DEV: 2, Split.HELDOUT: 5}
 DECOYS = {Split.DEV: 4, Split.HELDOUT: 10}
 PAIRS = 30
-SCAN = 200  # seeds tried before a planted match or its pairs are given up
+SCAN = 200  # seeds tried before a planted match's pairs are given up
+ID_BLOCK = 200  # the most matches one suite split can hold
+
+# Match ids are drawn from one seeded shuffle for every suite and split, so an id says
+# nothing about which it belongs to.
+_ID_SLOT = {
+    (Suite.PLANTED, Split.DEV): 0,
+    (Suite.DECOYS, Split.DEV): 1,
+    (Suite.PLANTED, Split.HELDOUT): 2,
+    (Suite.DECOYS, Split.HELDOUT): 3,
+}
+_IDS = random.Random("match-ids").sample(range(100, 1000), len(_ID_SLOT) * ID_BLOCK)
+
+
+def match_id(suite: Suite, split: Split, k: int) -> str:
+    if not 0 <= k < ID_BLOCK:
+        raise ValueError(f"a suite split holds at most {ID_BLOCK} matches")
+    return f"m{_IDS[_ID_SLOT[suite, split] * ID_BLOCK + k]}"
+
 
 # Minutes after the change starts in which its effect is measured.
 WINDOW = {
@@ -68,16 +87,17 @@ def _template(cause: Cause, rng: random.Random, team: TeamSpec) -> tuple[dict, d
             "ramp": "2m",
             "set": {"press_height": _r(rng, 0.15, 0.3)},
         }
+    # Score-triggered classes start at the first possession from `at`, by 65:00.
     if cause == Cause.CHASING_RESULT:
         return {"press_height": _r(rng, 0.35, 0.5)}, {
-            "at": "55:00",
+            "at": _clock(rng, 55, 64),
             "when": "trailing",
             "ramp": "2m",
             "set": {"press_height": _r(rng, 0.85, 0.95), "directness": _r(rng, 0.4, 0.5)},
         }
     if cause == Cause.PROTECTING_LEAD:
         return {"press_height": _r(rng, 0.6, 0.7)}, {
-            "at": "55:00",
+            "at": _clock(rng, 55, 64),
             "when": "leading",
             "ramp": "2m",
             "set": {"press_height": _r(rng, 0.05, 0.15), "directness": _r(rng, 0.4, 0.5)},
@@ -161,23 +181,25 @@ class BuiltSuite:
 
 
 def _planted_match(args: tuple) -> tuple[MatchScript, PlantedTruth]:
-    split, cause, k, match_id = args
+    """Match `i` of `n` tries seeds i, i + n, i + 2n, ... of the split's match block, so no
+    two matches share a seed."""
+    split, cause, k, i, n = args
+    mid = match_id(Suite.PLANTED, split, i)
     rng = random.Random(f"planted:{split}:{cause}:{k}")
     teams = _teams(rng)
     side = rng.choice(["home", "away"])
     params, fields = _template(cause, rng, teams[side])
     teams[side] = teams[side].model_copy(update=params)
     iv = Intervention.model_validate({"id": "s1", "team": side, **fields})
-    base = SEED_RANGES[split].start + MATCH_OFFSET
-    first = base + 20 * k + 7 * list(CAUSE_OBSERVABLES).index(cause)
-    for seed in range(first, first + SCAN):
-        script = MatchScript(match_id=match_id, seed=seed, teams=teams, scripts=[iv])
+    first, block_end = (SEED_RANGES[split].start + o for o in (MATCH_OFFSET, DECOY_OFFSET))
+    for seed in range(first + i, block_end, n):
+        script = MatchScript(match_id=mid, seed=seed, teams=teams, scripts=[iv])
         sim = MatchSim(script)
         events = sim.run()
         if _unambiguous(cause, script, sim, events):
             start = sim.params.started[iv.id]
             truth = PlantedTruth(
-                match_id=match_id,
+                match_id=mid,
                 cause=cause,
                 team=teams[side].name,
                 script_id=iv.id,
@@ -186,7 +208,7 @@ def _planted_match(args: tuple) -> tuple[MatchScript, PlantedTruth]:
                 observables=resolve(cause, script, iv),
             )
             return script, truth
-    raise ValueError(f"{match_id}: no seed from {first} plants {cause} unambiguously")
+    raise ValueError(f"{mid}: no seed of its own plants {cause} unambiguously")
 
 
 def _flag(args: tuple):
@@ -210,9 +232,10 @@ def planted(
     flagged from `pairs` seed pairs."""
     per_class = PER_CLASS[split] if per_class is None else per_class
     jobs = [(c, k) for c in CAUSE_OBSERVABLES for k in range(per_class)]
+    if not 0 < len(jobs) <= ID_BLOCK:
+        raise ValueError(f"a planted suite split holds 1 to {ID_BLOCK} matches")
     random.Random(f"order:{split}").shuffle(jobs)
-    prefix = "p-d" if split == Split.DEV else "p-h"
-    args = [(split, c, k, f"{prefix}-{i:02d}") for i, (c, k) in enumerate(jobs, start=1)]
+    args = [(split, c, k, i, len(jobs)) for i, (c, k) in enumerate(jobs)]
     with Pool(processes) as pool:
         built = pool.map(_planted_match, args)
         flagged = pool.map(_flag, [(split, s, t, pairs) for s, t in built])
@@ -231,20 +254,23 @@ def planted(
 def decoys(split: Split, count: int | None = None) -> BuiltSuite:
     """Matches with nothing planted: natural swings only."""
     count = DECOYS[split] if count is None else count
-    prefix = "d-d" if split == Split.DEV else "d-h"
+    if not 0 < count <= PAIRED_OFFSET - DECOY_OFFSET:
+        raise ValueError(f"a decoy suite split holds 1 to {PAIRED_OFFSET - DECOY_OFFSET} matches")
     scripts, entries = [], []
     for k in range(count):
         rng = random.Random(f"decoy:{split}:{k}")
-        match_id = f"{prefix}-{k + 1:02d}"
+        mid = match_id(Suite.DECOYS, split, k)
         seed = SEED_RANGES[split].start + DECOY_OFFSET + k
-        scripts.append(MatchScript(match_id=match_id, seed=seed, teams=_teams(rng)))
-        entries.append(PlantedTruth(match_id=match_id, cause=Cause.NONE))
+        scripts.append(MatchScript(match_id=mid, seed=seed, teams=_teams(rng)))
+        entries.append(PlantedTruth(match_id=mid, cause=Cause.NONE))
     truth = GroundTruth(suite=Suite.DECOYS, split=split, entries=entries)
     return BuiltSuite(Suite.DECOYS, split, scripts, truth)
 
 
 def dump_script(script: MatchScript) -> str:
     """The script as YAML in the hand-written style: clocks as quoted text."""
+    if script.amendments:
+        raise ValueError(f"{script.match_id}: amendments are not written yet")
 
     def intervention(iv: Intervention) -> dict:
         out = {"id": iv.id, "at": str(iv.at), "ramp": iv.ramp, "team": iv.team}
@@ -267,6 +293,8 @@ def write(built: BuiltSuite, root: Path) -> Path:
     suite, ground_truth_flags.json. All of it is sealed from product code."""
     out = Path(root) / built.suite / built.split
     (out / "scripts").mkdir(parents=True, exist_ok=True)
+    for old in (out / "scripts").glob("*.yaml"):  # a rebuild replaces the whole suite
+        old.unlink()
     for script in built.scripts:
         (out / "scripts" / f"{script.match_id}.yaml").write_text(
             dump_script(script), encoding="utf-8"

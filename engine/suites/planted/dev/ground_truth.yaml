@@ -1,7 +1,7 @@
 suite: planted
 split: dev
 entries:
-- match_id: p-d-01
+- match_id: m767
   cause: tactical.press_intensity_down
   team: Northvale
   script_id: s1
@@ -14,7 +14,7 @@ entries:
   - metric: long_ball_share
     subject: Harbour City
     direction: down
-- match_id: p-d-02
+- match_id: m742
   cause: physical.player_fatigue
   team: Harbour City
   script_id: s1
@@ -27,7 +27,7 @@ entries:
   - metric: sprint_speed
     subject: HC-09
     direction: down
-- match_id: p-d-03
+- match_id: m654
   cause: physical.unit_fatigue
   team: Harbour City
   script_id: s1
@@ -40,12 +40,12 @@ entries:
   - metric: sprint_speed
     subject: Harbour City.defence
     direction: down
-- match_id: p-d-04
+- match_id: m346
   cause: game_state.chasing_result
   team: Northvale
   script_id: s1
-  started: '55:02'
-  window: 55:02-63:02
+  started: '62:11'
+  window: 62:11-70:11
   observables:
   - metric: pressure_rate
     subject: Northvale
@@ -53,12 +53,12 @@ entries:
   - metric: long_ball_share
     subject: Northvale
     direction: up
-- match_id: p-d-05
+- match_id: m216
   cause: game_state.chasing_result
   team: Harbour City
   script_id: s1
-  started: '72:30'
-  window: 72:30-80:30
+  started: '60:17'
+  window: 60:17-68:17
   observables:
   - metric: pressure_rate
     subject: Harbour City
@@ -66,12 +66,12 @@ entries:
   - metric: long_ball_share
     subject: Harbour City
     direction: up
-- match_id: p-d-06
+- match_id: m481
   cause: game_state.protecting_lead
   team: Harbour City
   script_id: s1
-  started: '55:00'
-  window: 55:00-63:00
+  started: '58:07'
+  window: 58:07-66:07
   observables:
   - metric: pressure_rate
     subject: Harbour City
@@ -79,7 +79,7 @@ entries:
   - metric: long_ball_share
     subject: Harbour City
     direction: up
-- match_id: p-d-07
+- match_id: m931
   cause: tactical.press_intensity_down
   team: Harbour City
   script_id: s1
@@ -92,7 +92,7 @@ entries:
   - metric: long_ball_share
     subject: Northvale
     direction: down
-- match_id: p-d-08
+- match_id: m193
   cause: tactical.press_intensity_up
   team: Northvale
   script_id: s1
@@ -105,7 +105,7 @@ entries:
   - metric: long_ball_share
     subject: Harbour City
     direction: up
-- match_id: p-d-09
+- match_id: m186
   cause: tactical.press_intensity_up
   team: Northvale
   script_id: s1
@@ -118,12 +118,12 @@ entries:
   - metric: long_ball_share
     subject: Harbour City
     direction: up
-- match_id: p-d-10
+- match_id: m194
   cause: game_state.protecting_lead
   team: Harbour City
   script_id: s1
-  started: '55:06'
-  window: 55:06-63:06
+  started: '63:03'
+  window: 63:03-71:03
   observables:
   - metric: pressure_rate
     subject: Harbour City
@@ -131,7 +131,7 @@ entries:
   - metric: long_ball_share
     subject: Harbour City
     direction: up
-- match_id: p-d-11
+- match_id: m163
   cause: physical.unit_fatigue
   team: Harbour City
   script_id: s1
@@ -144,7 +144,7 @@ entries:
   - metric: sprint_speed
     subject: Harbour City.defence
     direction: down
-- match_id: p-d-12
+- match_id: m225
   cause: physical.player_fatigue
   team: Northvale
   script_id: s1

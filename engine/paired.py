@@ -20,7 +20,9 @@ from engine.sim import MatchSim
 from engine.visibility import change, observable
 
 Z95 = 1.959964
-LATEST_START = MatchClock.parse("75:00")  # later starts leave too little match to measure
+# Every planted change starts by 65:00, the latest a fixed-time one can, so that a late
+# start never tells a score-triggered class apart.
+LATEST_START = MatchClock.parse("65:00")
 LAST_WINDOW_END = MatchClock.parse("90:00")  # every match plays at least this far
 
 
@@ -72,10 +74,14 @@ def resolve(cause: Cause, script: MatchScript, intervention: Intervention) -> li
     ]
 
 
-def _opponent(script: MatchScript, subject: str) -> str:
+def _opponent(script: MatchScript, subject: str, side: str) -> str:
+    """The other team of `subject`: a team, one of its units, or a player of `side`."""
     names = [t.name for t in script.teams.values()]
-    team = subject.partition(".")[0]
-    return next((n for n in names if n != team), names[0])
+    team = next(
+        (n for n in names if subject == n or subject.startswith(f"{n}.")),
+        script.teams[side].name,
+    )
+    return next(n for n in names if n != team)
 
 
 def measure(
@@ -95,7 +101,9 @@ def measure(
     """
     iv = next(s for s in script.scripts if s.id == script_id)
     without = script.model_copy(update={"scripts": [s for s in script.scripts if s.id != iv.id]})
-    measures = [observable(o.metric, o.subject, _opponent(script, o.subject)) for o in observables]
+    measures = [
+        observable(o.metric, o.subject, _opponent(script, o.subject, iv.team)) for o in observables
+    ]
     story: list[list[float]] = [[] for _ in observables]
     natural: list[list[float]] = [[] for _ in observables]
     used: list[int] = []

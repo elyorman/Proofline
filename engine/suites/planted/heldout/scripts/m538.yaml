@@ -1,0 +1,26 @@
+match_id: m538
+seed: 2017
+teams:
+  home:
+    name: Harbour City
+    code: HC
+    formation: 4-3-3
+    press_height: 0.38
+    directness: 0.08
+    quality: 0.49
+  away:
+    name: Northvale
+    code: NV
+    formation: 4-2-3-1
+    press_height: 0.56
+    directness: 0.08
+    quality: 0.6
+scripts:
+- id: s1
+  at: '60:00'
+  ramp: 2m
+  team: home
+  when: trailing
+  set:
+    press_height: 0.86
+    directness: 0.45

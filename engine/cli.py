@@ -20,6 +20,13 @@ def _seed(text: str) -> int:
     return value
 
 
+def _size(text: str) -> int:
+    value = int(text)
+    if value < 1:
+        raise argparse.ArgumentTypeError("size must be at least 1")
+    return value
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="proofline-engine", description=__doc__)
     sub = parser.add_subparsers(dest="command", required=True)
@@ -32,7 +39,7 @@ def main(argv: list[str] | None = None) -> int:
     suite.add_argument("--split", choices=["dev", "heldout"], required=True)
     suite.add_argument("--out", default="engine/suites", help="suites root directory")
     suite.add_argument(
-        "--size", type=_seed, default=None, help="scripts per class (planted) or matches (decoys)"
+        "--size", type=_size, default=None, help="scripts per class (planted) or matches (decoys)"
     )
     args = parser.parse_args(argv)
     if args.command == "suite":
@@ -58,7 +65,10 @@ def main(argv: list[str] | None = None) -> int:
 
 def _suite(parser: argparse.ArgumentParser, args: argparse.Namespace) -> int:
     split = Split(args.split)
-    built = planted(split, args.size) if args.suite == "planted" else decoys(split, args.size)
+    try:
+        built = planted(split, args.size) if args.suite == "planted" else decoys(split, args.size)
+    except ValueError as exc:
+        parser.error(str(exc))
     try:
         out = write(built, args.out)
     except OSError as exc:

@@ -7,7 +7,7 @@ from contracts.eval_run import ExclusionRule
 from contracts.planted import TruthObservable
 from contracts.prediction import Direction
 from contracts.taxonomy import Cause, Metric
-from engine.paired import judge, measure, resolve, t95, window_after
+from engine.paired import _opponent, judge, measure, resolve, t95, window_after
 from engine.script import Intervention, load_script
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -54,6 +54,18 @@ def test_observables_are_named_for_the_script():
     ]
     with pytest.raises(ValueError, match="measured on a unit; s1 names none"):
         resolve(Cause.UNIT_FATIGUE, M01, M01.scripts[0])
+
+
+def test_the_opponent_is_found_for_teams_units_and_players_whatever_their_names():
+    teams = {
+        "home": M01.teams["home"].model_copy(update={"name": "St. Orrin"}),
+        "away": M01.teams["away"].model_copy(update={"name": "Kell-on-Sea"}),
+    }
+    script = M01.model_copy(update={"teams": teams})
+    assert _opponent(script, "St. Orrin", "home") == "Kell-on-Sea"
+    assert _opponent(script, "St. Orrin.defence", "home") == "Kell-on-Sea"
+    assert _opponent(script, "Kell-on-Sea", "home") == "St. Orrin"
+    assert _opponent(script, "SO-04", "home") == "Kell-on-Sea"  # a player of the home side
 
 
 def test_the_demo_press_counts_toward_recall():

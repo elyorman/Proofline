@@ -41,6 +41,14 @@ def test_bad_input_is_a_usage_error(tmp_path, capsys, args):
     assert "proofline-engine" in capsys.readouterr().err
 
 
+@pytest.mark.parametrize("size,message", [("0", "size must be at least 1"), ("400", "holds 1 to")])
+def test_a_suite_size_out_of_range_is_a_usage_error(tmp_path, capsys, size, message):
+    args = ["suite", "--suite", "decoys", "--split", "dev", "--size", size]
+    with pytest.raises(SystemExit) as exit_info:
+        main([*args, "--out", str(tmp_path)])
+    assert exit_info.value.code == 2 and message in capsys.readouterr().err
+
+
 def test_the_demo_match_is_pinned(tmp_path, capsys):
     """The video's match. A change that moves it must update these lines on purpose."""
     main(["generate", "--script", str(M01), "--out", str(tmp_path)])

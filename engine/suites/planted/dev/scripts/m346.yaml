@@ -1,0 +1,26 @@
+match_id: m346
+seed: 1003
+teams:
+  home:
+    name: Harbour City
+    code: HC
+    formation: 4-3-3
+    press_height: 0.6
+    directness: 0.08
+    quality: 0.59
+  away:
+    name: Northvale
+    code: NV
+    formation: 4-2-3-1
+    press_height: 0.43
+    directness: 0.08
+    quality: 0.44
+scripts:
+- id: s1
+  at: '62:00'
+  ramp: 2m
+  team: away
+  when: trailing
+  set:
+    press_height: 0.86
+    directness: 0.47

@@ -5,6 +5,7 @@ logged and counted against the case's budget. A prediction is judged by code on 
 results, never by the agent that made it.
 """
 
+import json
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -30,21 +31,26 @@ class BudgetSpent(RuntimeError):
 
 @dataclass
 class Tools:
-    """The State Builder's tools for one case, through MCP, within the case's budget."""
+    """The State Builder's tools for one case, through MCP, within the case's budget. A call
+    identical to an earlier one is answered from it and not charged again."""
 
     server: MCPServer
     match_id: str
     budget: int
     log: list[dict[str, Any]] = field(default_factory=list)
+    _answers: dict[str, ToolResult] = field(default_factory=dict)
 
     @property
     def used(self) -> int:
         return len(self.log)
 
     async def call(self, tool: str, **arguments: Any) -> ToolResult:
+        request = {"match_id": self.match_id, **arguments}
+        key = json.dumps([tool, request], sort_keys=True, default=str)
+        if key in self._answers:
+            return self._answers[key]
         if self.used >= self.budget:
             raise BudgetSpent(f"the case's {self.budget} tool calls are spent")
-        request = {"match_id": self.match_id, **arguments}
         entry: dict[str, Any] = {"tool": tool, "arguments": request}
         self.log.append(entry)
         try:
@@ -54,6 +60,7 @@ class Tools:
             raise
         result = ToolResult.model_validate(response.structured_content)
         entry["result"] = result.model_dump(mode="json", exclude_none=True)
+        self._answers[key] = result
         return result
 
 

@@ -65,7 +65,7 @@ nothing survived, the outcome is 'none'. If the effect is real but no surviving 
 the outcome is 'other'. Otherwise it is 'explained', with a primary."""
 
 
-def _match(meta: MatchMeta) -> dict:
+def match(meta: MatchMeta) -> dict:
     return {
         side: {
             "team": team.name,
@@ -93,7 +93,7 @@ def case_prompt(case: Case, meta: MatchMeta, score: dict[str, float]) -> str:
             }
             for t in case.triggers
         ],
-        "match": _match(meta),
+        "match": match(meta),
     }
     return "Pre-register your hypotheses for this moment.\n" + json.dumps(moment, indent=1)
 

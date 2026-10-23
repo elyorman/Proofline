@@ -12,6 +12,8 @@ from agents.verifier.checks import Record
 from agents.verifier.verify import Verdict, verify
 from contracts.case import Case
 from contracts.eval_run import Variant
+from contracts.taxonomy import AgentRole
+from orchestration import workflow
 from state.tools import Feed
 
 
@@ -22,11 +24,20 @@ class Outcome:
 
 
 async def run_case(
-    variant: Variant, agents: Model, verifier: Model, case: Case, feed: Feed
+    variant: Variant,
+    agents: Model,
+    verifier: Model,
+    case: Case,
+    feed: Feed,
+    stop: dict[AgentRole, int] | None = None,
 ) -> Outcome:
-    if variant != Variant.B_SINGLE_AGENT:
-        raise NotImplementedError(f"variant {variant} is not built yet")
-    finding = await single.investigate(agents, case, feed)
+    """Investigate with variant A (the workflow) or B (one agent), then propose and verify."""
+    if variant == Variant.A_PROOFLINE:
+        finding = await workflow.investigate(agents, case, feed, stop)
+    elif variant == Variant.B_SINGLE_AGENT:
+        finding = await single.investigate(agents, case, feed)
+    else:
+        raise NotImplementedError(f"variant {variant} is a stretch, not built")
     card = propose(finding, feed)
     if card is None:
         return Outcome(finding, None)

@@ -1,0 +1,16 @@
+{
+  "role": "synthesis",
+  "prompt": "Rank these surviving hypotheses.\n{\n \"moment\": \"pressure_shift\",\n \"window\": \"58:00-63:00\",\n \"score_at_detection\": {\n  \"Harbour City\": 1,\n  \"Northvale\": 3\n },\n \"survivors\": [\n  {\n   \"hypothesis_id\": \"hyp-tactics-01\",\n   \"cause\": \"tactical.press_intensity_up\",\n   \"agent\": \"tactics\",\n   \"prediction\": \"pressure_rate of Harbour City up by at least 0.15\",\n   \"result\": \"pressure_rate of Harbour City: 0.320 in the first half, 0.833 in 58:00-63:00, a change of +0.513 against a claim of up by 0.15\",\n   \"cross_examination\": [\n    \"physical ran a counter-test: holds (If Northvale's pressure_rate rose by at least the same amount, the increase is shared and not uniquely Harbour City's tactical press.)\"\n   ]\n  },\n  {\n   \"hypothesis_id\": \"hyp-tactics-02\",\n   \"cause\": \"tactical.block_higher\",\n   \"agent\": \"tactics\",\n   \"prediction\": \"long_ball_share of Northvale up by at least 0.1\",\n   \"result\": \"long_ball_share of Northvale: 0.111 in the first half, 0.588 in 58:00-63:00, a change of +0.477 against a claim of up by 0.1\",\n   \"cross_examination\": [\n    \"physical ran a counter-test: holds (If Harbour City's long_ball_share rose similarly, the spike likely reflects match-wide conditions rather than a Northvale-specific tactical shift.)\",\n    \"game_state ran a counter-test: holds (If Harbour City's long_ball_share also rose by \\u22650.1, the long-ball increase is shared and does not single out Northvale's tactical block higher.)\"\n   ]\n  }\n ]\n}",
+  "answer": {
+    "outcome": "explained",
+    "primary": "hyp-tactics-01",
+    "secondary": [
+      "hyp-tactics-02"
+    ],
+    "why": "Harbour City's pressure_rate increase (+0.513 vs predicted +0.15) most directly matches the detected pressure shift; Northvale's large long-ball rise is real but appears partly shared across teams per counter-tests."
+  },
+  "usage": {
+    "input_tokens": 679,
+    "output_tokens": 810
+  }
+}

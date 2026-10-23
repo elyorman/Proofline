@@ -24,7 +24,7 @@ The one list of open work, grouped in the order the work is expected to reach it
 
 ## Why Engine
 
-1. **Variant A.** Three domain agents, cross-examination with `check_counter_test`, a synthesis agent and checkpoint recovery, as an Agent Framework workflow; then the first A-vs-B number on dev. [gate 3]
+1. **The first A-vs-B number on dev.** Variant A runs as an Agent Framework workflow; run A and B over the dev suites and score them with the Evaluator. Recovery today retries within a run; resuming a killed process from Agent Framework's stored checkpoints is not built. [gate 3]
 2. **Narration.** Templates repeat the team ("Harbour City are pressing higher… in Harbour City's press"); a model-written narrator with the templates as fallback, and the semantic check in Spanish. A case ranked `other` closes without a card today. [gate 3]
 3. **Record each case in the ledger**: hypotheses, tests, tool calls and the card, with stage checkpoints in `cases`, and tokens per case (the verifier model reports none through the client today). [gate 3]
 4. **`sigma` thresholds** need the `distribution` tool; until then a sigma prediction fails its test. [gate 3]

@@ -13,6 +13,7 @@ from pathlib import Path
 
 from contracts.case import Case
 from contracts.eval_run import Variant
+from contracts.taxonomy import AgentRole
 from detector.cusum import detect
 from ledger.eventhubs import consume
 from ledger.ingest import Ingest
@@ -46,6 +47,13 @@ def main(argv: list[str] | None = None) -> int:
     case.add_argument("--variant", choices=["A", "B"], default="B")
     case.add_argument("--record", type=Path, help="save every model exchange here")
     case.add_argument("--replay", type=Path, help="answer from saved exchanges only")
+    case.add_argument(
+        "--kill-agent",
+        action="append",
+        default=[],
+        choices=["tactics", "physical", "game_state"],
+        help="stop this agent once mid-case, to show recovery from its checkpoint (variant A)",
+    )
     args = parser.parse_args(argv)
     if args.command == "case":
         return _case(parser, args)
@@ -73,18 +81,29 @@ def main(argv: list[str] | None = None) -> int:
 def _case(parser: argparse.ArgumentParser, args: argparse.Namespace) -> int:
     logging.getLogger("httpx").setLevel(logging.WARNING)
     logging.getLogger("azure").setLevel(logging.WARNING)
+    logging.getLogger("agent_framework").setLevel(logging.WARNING)
     feed = DirectorySource(Path(args.data)).feed(args.match)
     found = [c for c in detect(feed.meta, feed.events) if c.window.end.minute == args.minute]
     if not found:
         parser.error(f"no case on {args.match} opened at {args.minute}'")
     agents, verifier = models(args.record, args.replay)
-    outcome = asyncio.run(run_case(Variant(args.variant), agents, verifier, found[0], feed))
+    stop = {AgentRole(a): 1 for a in args.kill_agent}
+    outcome = asyncio.run(run_case(Variant(args.variant), agents, verifier, found[0], feed, stop))
     f = outcome.finding
     print(f"{found[0].case_id}: {len(f.hypotheses)} hypotheses, {len(f.refused)} refused")
     for r in f.refused:
         print(f"  refused {r.proposal.cause} {r.proposal.metric}: {r.reason}")
     for t in f.tested:
         print(f"  {t.test.outcome:9s} {t.hypothesis.taxonomy}: {t.test.reason}")
+    for e in f.exams:
+        print(f"  counter-test by {e.challenger} on {e.hypothesis_id}: {e.result} ({e.reason})")
+    for line in f.unrun:
+        print(f"  counter-test {line}")
+    for c in f.checkpoints:
+        failed = f", failed: {', '.join(c.agents_failed)}" if c.agents_failed else ""
+        print(f"  checkpoint {c.stage}: {c.note}{failed}")
+    if f.recovered:
+        print("  recovered_from_checkpoint: an agent was retried from its stage's checkpoint")
     print(f"  ranking: {f.ranking.outcome}, primary {f.ranking.primary}: {f.ranking.why}")
     print(f"  {f.tools.used} tool calls, {f.usage.input_tokens}+{f.usage.output_tokens} tokens")
     if outcome.verdict is None:

@@ -9,7 +9,7 @@ from dataclasses import dataclass, field
 from agents.investigation import Refused, Tested, Tools, rank, register, run_test
 from agents.llm import Model, Usage
 from agents.outputs import Ranking
-from contracts.case import Case
+from contracts.case import Case, Checkpoint
 from contracts.prediction import CrossExamination, Hypothesis
 from contracts.taxonomy import AgentRole
 from contracts.tool_result import EvidenceSet
@@ -34,6 +34,9 @@ class Finding:
     evidence: dict[str, EvidenceSet]
     usage: Usage
     exams: list[CrossExamination] = field(default_factory=list)
+    checkpoints: list[Checkpoint] = field(default_factory=list)
+    unrun: list[str] = field(default_factory=list)  # counter-tests refused or not measurable
+    recovered: bool = False  # an agent was retried from its checkpoint
 
     def tested_by_id(self, hypothesis_id: str) -> Tested:
         return next(t for t in self.tested if t.hypothesis.hypothesis_id == hypothesis_id)

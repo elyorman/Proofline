@@ -84,6 +84,9 @@ class MatchSim:
         self._pending: list[tuple[int, float, int, dict]] = []
 
     def run(self) -> list[Event]:
+        """Play the match. A simulator plays one match; build a new one for another run."""
+        if self.period_lengths:
+            raise RuntimeError(f"{self.script.match_id}: this simulator has already played")
         for period in (1, 2):
             self._play_period(period)
         self._pending.sort(key=lambda e: (e[0], e[1], e[2]))

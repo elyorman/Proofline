@@ -2,6 +2,8 @@ import math
 from itertools import pairwise
 from pathlib import Path
 
+import pytest
+
 from contracts.event import Point
 from engine.script import Intervention, load_script
 from engine.sim import MatchSim
@@ -33,6 +35,13 @@ def _dump(events):
 
 def test_same_script_and_seed_is_deterministic():
     assert _dump(MatchSim(M01, seed=3).run()) == _dump(MatchSim(M01, seed=3).run())
+
+
+def test_a_simulator_plays_one_match():
+    sim = MatchSim(M01, seed=3)
+    sim.run()
+    with pytest.raises(RuntimeError, match="already played"):
+        sim.run()
 
 
 def test_seed_changes_the_match():

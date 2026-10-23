@@ -221,6 +221,21 @@ def test_card_text_lists_each_measurement_once_and_names_each_ruled_out_teams_ow
     assert "Ruled out: Northvale protecting their lead." in verdict.card.variants["analyst"]["en"]
 
 
+class Unanswering:
+    async def ask(self, role, instructions, prompt, schema):
+        raise ValueError(f"no {schema.__name__} in the reply")
+
+
+def test_a_semantic_check_that_gives_no_answer_keeps_the_card_off_every_surface(m01):
+    feed, case = m01
+    finding, card = _proposed(feed, case, _proposal())
+    record = Record.of(finding.tools.log, finding.evidence)
+    verdict = asyncio.run(verify(Unanswering(), card, record, feed, []))
+    assert verdict.card.status == "rejected" and verdict.report is None
+    assert verdict.card.verification.semantic_check == "failed"
+    assert "gave no answer" in verdict.card.verification.rejection_reason
+
+
 def test_a_seeded_false_number_in_the_text_fails_the_number_check(m01):
     feed, case = m01
     finding, card = _proposed(feed, case, _proposal())

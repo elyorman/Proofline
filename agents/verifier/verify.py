@@ -84,8 +84,12 @@ async def verify(
     every = [card.claim] + [t for by_locale in texts.values() for t in by_locale.values()]
     numbers = CheckResult.PASSED if numbers_match(card, every) else CheckResult.FAILED
     english = [card.claim] + [by_locale["en"] for by_locale in texts.values()]
-    report, usage = await semantic.check(model, card, english, level)
-    sound = all(s.entailed and not s.overstated for s in report.sentences)
+    try:
+        report, usage = await semantic.check(model, card, english, level)
+    except ValueError as exc:  # no answer is no verification: the card is not published
+        report, usage = None, Usage()
+        unanswered = f"the semantic check gave no answer ({str(exc)[:80]})"
+    sound = report is not None and all(s.entailed and not s.overstated for s in report.sentences)
     semantic_result = CheckResult.PASSED if sound else CheckResult.FAILED
     if numbers == CheckResult.PASSED and sound:
         verification = Verification(
@@ -97,7 +101,11 @@ async def verify(
             support_level=level,
         )
         return Verdict(_done(card, verification, variants=texts), report, usage)
-    flagged = [s.reason for s in report.sentences if not s.entailed or s.overstated]
+    flagged = (
+        [s.reason for s in report.sentences if not s.entailed or s.overstated]
+        if report
+        else [unanswered]
+    )
     verification = Verification(
         status="rejected",
         **common,

@@ -1,5 +1,49 @@
 {
   "$defs": {
+    "CardOutcome": {
+      "description": "One final published card's result, retained for precision scoring.",
+      "properties": {
+        "card_id": {
+          "title": "Card Id",
+          "type": "string"
+        },
+        "revision": {
+          "minimum": 1,
+          "title": "Revision",
+          "type": "integer"
+        },
+        "outcome": {
+          "$ref": "#/$defs/CaseOutcome"
+        },
+        "correct": {
+          "title": "Correct",
+          "type": "boolean"
+        },
+        "reason": {
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "card_id",
+        "revision",
+        "outcome",
+        "correct",
+        "reason"
+      ],
+      "title": "CardOutcome",
+      "type": "object"
+    },
+    "CaseOutcome": {
+      "description": "What the investigation concluded. Drives which card variant renders.",
+      "enum": [
+        "explained",
+        "other",
+        "none"
+      ],
+      "title": "CaseOutcome",
+      "type": "string"
+    },
     "Cause": {
       "enum": [
         "tactical.press_intensity_up",
@@ -118,6 +162,58 @@
       "title": "FlagSet",
       "type": "object"
     },
+    "MatchOutcome": {
+      "properties": {
+        "match_id": {
+          "title": "Match Id",
+          "type": "string"
+        },
+        "suite": {
+          "$ref": "#/$defs/Suite"
+        },
+        "correct": {
+          "title": "Correct",
+          "type": "boolean"
+        },
+        "reason": {
+          "title": "Reason",
+          "type": "string"
+        },
+        "excluded": {
+          "default": false,
+          "title": "Excluded",
+          "type": "boolean"
+        },
+        "cards": {
+          "items": {
+            "$ref": "#/$defs/CardOutcome"
+          },
+          "title": "Cards",
+          "type": "array"
+        },
+        "case_errors": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "Case Errors",
+          "type": "object"
+        },
+        "failed_cases": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Failed Cases",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "match_id",
+        "suite",
+        "correct",
+        "reason"
+      ],
+      "title": "MatchOutcome",
+      "type": "object"
+    },
     "Metric": {
       "enum": [
         "ppda",
@@ -154,7 +250,16 @@
           "type": "string"
         },
         "suite": {
-          "$ref": "#/$defs/Suite"
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Suite"
+            },
+            {
+              "const": "combined",
+              "type": "string"
+            }
+          ],
+          "title": "Suite"
         },
         "value": {
           "title": "Value",
@@ -269,6 +374,7 @@
   },
   "properties": {
     "run_id": {
+      "minLength": 1,
       "title": "Run Id",
       "type": "string"
     },
@@ -367,6 +473,104 @@
       ],
       "default": null,
       "description": "the planted suite's frozen not_observable flags (spec \u00a77.2)"
+    },
+    "outcomes": {
+      "items": {
+        "$ref": "#/$defs/MatchOutcome"
+      },
+      "title": "Outcomes",
+      "type": "array"
+    },
+    "suite_digest": {
+      "anyOf": [
+        {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "SHA-256 of scripts and truth",
+      "title": "Suite Digest"
+    },
+    "batch_digest": {
+      "anyOf": [
+        {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "SHA-256 of scored batch files",
+      "title": "Batch Digest"
+    },
+    "failed_cases": {
+      "default": 0,
+      "minimum": 0,
+      "title": "Failed Cases",
+      "type": "integer"
+    },
+    "model_id": {
+      "anyOf": [
+        {
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Model Id"
+    },
+    "tool_call_budget": {
+      "anyOf": [
+        {
+          "minimum": 1,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Tool Call Budget"
+    },
+    "wall_time_budget_s": {
+      "anyOf": [
+        {
+          "exclusiveMinimum": 0,
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Wall Time Budget S"
+    },
+    "bootstrap_seed": {
+      "default": 0,
+      "title": "Bootstrap Seed",
+      "type": "integer"
+    },
+    "bootstrap_resamples": {
+      "default": 2000,
+      "minimum": 1,
+      "title": "Bootstrap Resamples",
+      "type": "integer"
+    },
+    "undefined_metrics": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Undefined Metrics",
+      "type": "array"
     },
     "notes": {
       "default": "",

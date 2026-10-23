@@ -909,7 +909,20 @@ def _check(**overrides):
 
 def _exclusion(rule, *checks, **check):
     observables = list(checks) or [_check(**check)]
-    return dict(match_id="p-h-07", cause=Cause.PLAYER_FATIGUE, rule=rule, observables=observables)
+    cause = (
+        Cause.PRESS_INTENSITY_UP
+        if observables[0]["metric"] == Metric.PRESSURE_RATE
+        else Cause.PLAYER_FATIGUE
+    )
+    if not checks:
+        other = dict(observables[0])
+        other["metric"] = (
+            Metric.LONG_BALL_SHARE if cause == Cause.PRESS_INTENSITY_UP else Metric.SPRINT_SPEED
+        )
+        if cause == Cause.PRESS_INTENSITY_UP:
+            other["subject"] = "Northvale"
+        observables.append(other)
+    return dict(match_id="p-h-07", cause=cause, rule=rule, observables=observables)
 
 
 def _with_exclusions(exclusions, suite=Suite.PLANTED):

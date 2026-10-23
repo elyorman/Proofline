@@ -7,7 +7,16 @@
           "type": "string"
         },
         "suite": {
-          "$ref": "#/$defs/Suite"
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Suite"
+            },
+            {
+              "const": "combined",
+              "type": "string"
+            }
+          ],
+          "title": "Suite"
         },
         "value": {
           "title": "Value",
@@ -108,6 +117,68 @@
     },
     "difference": {
       "$ref": "#/$defs/MetricEstimate"
+    },
+    "flag_set_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Flag Set Id"
+    },
+    "suite_digest": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Suite Digest"
+    },
+    "match_ids": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Match Ids",
+      "type": "array"
+    },
+    "bootstrap_seed": {
+      "default": 0,
+      "title": "Bootstrap Seed",
+      "type": "integer"
+    },
+    "bootstrap_resamples": {
+      "default": 2000,
+      "minimum": 1,
+      "title": "Bootstrap Resamples",
+      "type": "integer"
+    },
+    "unverified_configuration": {
+      "description": "configuration absent from both batch inputs",
+      "items": {
+        "type": "string"
+      },
+      "title": "Unverified Configuration",
+      "type": "array"
+    },
+    "failed_cases_a": {
+      "default": 0,
+      "minimum": 0,
+      "title": "Failed Cases A",
+      "type": "integer"
+    },
+    "failed_cases_b": {
+      "default": 0,
+      "minimum": 0,
+      "title": "Failed Cases B",
+      "type": "integer"
     }
   },
   "required": [

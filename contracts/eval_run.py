@@ -3,11 +3,12 @@
 import hashlib
 import json
 from enum import StrEnum
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, computed_field, model_validator
 
 from contracts.prediction import Direction
-from contracts.taxonomy import Cause, Metric
+from contracts.taxonomy import CaseOutcome, Cause, Metric
 
 VISIBILITY_SDS = 2.0  # spec §7.2: separation a script needs on at least one observable
 MIN_SEED_PAIRS = 20  # spec §7.2: each script is estimated over 20-30 seed pairs
@@ -40,7 +41,7 @@ class MetricEstimate(BaseModel):
     model_config = ConfigDict(allow_inf_nan=False)
 
     name: str
-    suite: Suite
+    suite: Suite | Literal["combined"]
     value: float
     ci_low: float | None = None
     ci_high: float | None = None
@@ -112,6 +113,11 @@ class Exclusion(BaseModel):
     def _rule_fits_numbers(self) -> "Exclusion":
         if self.cause.domain == "fallback":
             raise ValueError("'other' and 'none' are outcomes, never planted causes")
+        # Imported here because planted truth also uses Suite and Split from this module.
+        from contracts.planted import CAUSE_OBSERVABLES
+
+        if self.cause not in CAUSE_OBSERVABLES:
+            raise ValueError(f"{self.match_id}: {self.cause} cannot be planted")
         cleared = any(o.clears_zero for o in self.observables)
         if self.rule == ExclusionRule.NO_PAIRED_EFFECT and cleared:
             raise ValueError(f"{self.match_id}: an observable's CI clears zero its way")
@@ -120,6 +126,17 @@ class Exclusion(BaseModel):
                 raise ValueError(f"{self.match_id}: the paired-effect rule applies first")
             if any(o.separates for o in self.observables):
                 raise ValueError(f"{self.match_id}: an observable separates enough to count")
+        expected = CAUSE_OBSERVABLES[self.cause]
+        if [(o.metric, o.direction) for o in self.observables] != [
+            (o.metric, o.direction) for o in expected
+        ]:
+            raise ValueError(f"{self.match_id}: observables must be {self.cause}'s, in order")
+        subjects: dict[str, str] = {}
+        for role, observable in zip(expected, self.observables, strict=True):
+            if subjects.setdefault(role.subject, observable.subject) != observable.subject:
+                raise ValueError("observables for the same role must use the same subject")
+        if len(set(subjects.values())) != len(subjects):
+            raise ValueError("observables for different roles must use different subjects")
         return self
 
 
@@ -167,8 +184,35 @@ class FlagSet(BaseModel):
         return self
 
 
+class CardOutcome(BaseModel):
+    """One final published card's result, retained for precision scoring."""
+
+    card_id: str
+    revision: int = Field(ge=1)
+    outcome: CaseOutcome
+    correct: bool
+    reason: str
+
+
+class MatchOutcome(BaseModel):
+    match_id: str
+    suite: Suite
+    correct: bool
+    reason: str
+    excluded: bool = False
+    cards: list[CardOutcome] = Field(default_factory=list)
+    case_errors: dict[str, str] = Field(default_factory=dict)
+    failed_cases: int = Field(default=0, ge=0)
+
+    @model_validator(mode="after")
+    def _failure_count(self) -> "MatchOutcome":
+        if self.failed_cases != len(self.case_errors):
+            raise ValueError("failed_cases must count the recorded case errors")
+        return self
+
+
 class EvalRun(BaseModel):
-    run_id: str
+    run_id: str = Field(min_length=1)
     variant: Variant
     suites: list[Suite] = Field(min_length=1)
     split: Split
@@ -184,6 +228,20 @@ class EvalRun(BaseModel):
     flags: FlagSet | None = Field(
         default=None, description="the planted suite's frozen not_observable flags (spec §7.2)"
     )
+    outcomes: list[MatchOutcome] = Field(default_factory=list)
+    suite_digest: str | None = Field(
+        default=None, pattern=r"^[0-9a-f]{64}$", description="SHA-256 of scripts and truth"
+    )
+    batch_digest: str | None = Field(
+        default=None, pattern=r"^[0-9a-f]{64}$", description="SHA-256 of scored batch files"
+    )
+    failed_cases: int = Field(default=0, ge=0)
+    model_id: str | None = Field(default=None, min_length=1)
+    tool_call_budget: int | None = Field(default=None, ge=1)
+    wall_time_budget_s: float | None = Field(default=None, gt=0, allow_inf_nan=False)
+    bootstrap_seed: int = 0
+    bootstrap_resamples: int = Field(default=2000, ge=1)
+    undefined_metrics: list[str] = Field(default_factory=list)
     notes: str = ""
 
     @model_validator(mode="after")
@@ -194,9 +252,48 @@ class EvalRun(BaseModel):
 
     @model_validator(mode="after")
     def _metrics_from_run_suites(self) -> "EvalRun":
+        if len(set(self.suites)) != len(self.suites):
+            raise ValueError("each evaluated suite is listed once")
+        keys = [(m.name, m.suite) for m in self.metrics]
+        if len(set(keys)) != len(keys):
+            raise ValueError("each metric is recorded once per suite")
+        if len(set(self.undefined_metrics)) != len(self.undefined_metrics) or set(
+            self.undefined_metrics
+        ) & {m.name for m in self.metrics}:
+            raise ValueError("undefined metrics are distinct and carry no estimate")
         for m in self.metrics:
+            if m.suite == "combined" and len(self.suites) > 1:
+                continue
             if m.suite not in self.suites:
                 raise ValueError(f"metric {m.name} is from {m.suite}, a suite this run did not run")
+        return self
+
+    @model_validator(mode="after")
+    def _outcomes_cover_cohort(self) -> "EvalRun":
+        if len(set(self.match_ids)) != len(self.match_ids):
+            raise ValueError("each evaluated match is listed once")
+        if self.outcomes:
+            configuration = (self.model_id, self.tool_call_budget, self.wall_time_budget_s)
+            if self.suite_digest is None or (
+                self.batch_digest is None and any(value is None for value in configuration)
+            ):
+                raise ValueError("scored outcomes require suite, model and budget provenance")
+            if self.failed_cases != sum(o.failed_cases for o in self.outcomes):
+                raise ValueError("run failed_cases must count every match's failed cases")
+            ids = [o.match_id for o in self.outcomes]
+            if len(set(ids)) != len(ids) or set(ids) != set(self.match_ids):
+                raise ValueError("outcomes must cover the cohort exactly once")
+            if any(o.suite not in self.suites for o in self.outcomes):
+                raise ValueError("an outcome belongs to a suite this run did not run")
+            if self.flags is not None:
+                planted = {o.match_id for o in self.outcomes if o.suite == Suite.PLANTED}
+                excluded = {o.match_id for o in self.outcomes if o.excluded}
+                if planted != set(self.flags.match_ids) or excluded != {
+                    e.match_id for e in self.flags.exclusions
+                }:
+                    raise ValueError("outcomes must reconcile with the frozen flags")
+            elif any(o.excluded for o in self.outcomes):
+                raise ValueError("only frozen flags can exclude a match")
         return self
 
     @model_validator(mode="after")
@@ -230,9 +327,21 @@ class VariantComparison(BaseModel):
     variant_b: Variant
     split: Split
     difference: MetricEstimate
+    flag_set_id: str | None = None
+    suite_digest: str | None = None
+    match_ids: list[str] = Field(default_factory=list)
+    bootstrap_seed: int = 0
+    bootstrap_resamples: int = Field(default=2000, ge=1)
+    unverified_configuration: list[str] = Field(
+        default_factory=list, description="configuration absent from both batch inputs"
+    )
+    failed_cases_a: int = Field(default=0, ge=0)
+    failed_cases_b: int = Field(default=0, ge=0)
 
     @model_validator(mode="after")
     def _two_variants(self) -> "VariantComparison":
+        if self.run_a == self.run_b:
+            raise ValueError("a comparison needs two different runs")
         if self.variant_a == self.variant_b:
             raise ValueError("a comparison needs two different variants")
         return self

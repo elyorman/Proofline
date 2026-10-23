@@ -107,7 +107,7 @@ LOCALES = ("en", "es")
 
 def number(metric: Metric, value: float) -> str:
     """How a value of `metric` is written, everywhere it appears."""
-    if metric == Metric.LONG_BALL_SHARE:
+    if "share" in metric.value:  # long-ball and channel shares
         return f"{round(value * 100)}%"
     if metric == Metric.SPRINT_SPEED:
         return f"{value:.1f} km/h"
@@ -174,3 +174,43 @@ def variants(
             text += f" Apoyo: {strength}."
         out["analyst"][locale] = text
     return out
+
+
+WITHDRAWN = (
+    "Corrected data no longer show that {sentence} This card is withdrawn.",
+    "Los datos corregidos ya no muestran que {sentence} Retiramos esta tarjeta.",
+)
+WAS = ("was", "antes")
+UPDATED = ("Updated after a data correction: ", "Actualizado tras una corrección de datos: ")
+
+
+def withdrawal(
+    card: InsightCard, was: InsightCard, meta: MatchMeta
+) -> tuple[str, dict[str, dict[str, str]]]:
+    """(claim, variants) for a card the corrected feed no longer supports: the change it
+    claimed, and each number now against what was shown. Deterministic facts only."""
+    shown = {(e.metric, e.subject): e for e in was.evidence}
+    out: dict[str, dict[str, str]] = {"casual": {}, "analyst": {}}
+    for i, locale in enumerate(LOCALES):
+        notice = WITHDRAWN[i].format(sentence=_sentence(card, meta, i))
+        facts = []
+        for ev in card.evidence:
+            line = (
+                f"{LABEL[ev.metric][i]} ({who(meta, ev.subject)[0]}): "
+                f"{number(ev.metric, ev.baseline.value)} → {number(ev.metric, ev.value)}"
+            )
+            before = shown.get((ev.metric, ev.subject))
+            if before and before.value != ev.value:
+                line += f", {WAS[i]} {number(ev.metric, before.value)}"
+            facts.append(line)
+        out["casual"][locale] = notice
+        out["analyst"][locale] = f"{'; '.join(facts)}. {notice}"
+    return out["casual"]["en"], out
+
+
+def updated(variants: dict[str, dict[str, str]]) -> dict[str, dict[str, str]]:
+    """A revision's text, marked as an update so every surface shows it replaced the card."""
+    return {
+        audience: {locale: UPDATED[LOCALES.index(locale)] + text for locale, text in texts.items()}
+        for audience, texts in variants.items()
+    }

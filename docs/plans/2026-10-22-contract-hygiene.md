@@ -647,10 +647,10 @@ git commit -m "Record what the contract-hygiene plan resolved" -m "The planted-s
 ## Follow-ups for later plans
 
 **Paired-run tooling (rest of plan 2)**
-- **Where flags came from.** A frozen flag-set record (id, split, seeds, number of seed pairs, `frozen_at_ms`, the exclusions) that every planted `EvalRun` points to, frozen before either variant starts; a `VariantComparison` refuses two runs with different flag sets. An empty `not_observable` list cannot yet tell "nothing excluded" from "flags never attached".
-- **Each class's observables.** Pin them, with directions, as data in `contracts/taxonomy.py`, and check that an exclusion lists exactly its class's set: leaving out the one observable that clears zero, or recording a wrong direction, would hide a script today.
+- **Where flags came from.** *Resolved by the planted-suites plan (`4fbc23c`, `a97ef83`), except that `VariantComparison` does not yet compare flag sets; that is carried there.* A frozen flag-set record (id, split, seeds, number of seed pairs, `frozen_at_ms`, the exclusions) that every planted `EvalRun` points to, frozen before either variant starts; a `VariantComparison` refuses two runs with different flag sets. An empty `not_observable` list cannot yet tell "nothing excluded" from "flags never attached".
+- **Each class's observables.** *Pinned in `contracts/planted.py` by the planted-suites plan (`ea0a428`); checking an exclusion against them is carried there.* Pin them, with directions, as data in `contracts/taxonomy.py`, and check that an exclusion lists exactly its class's set: leaving out the one observable that clears zero, or recording a wrong direction, would hide a script today.
 - **Recall denominators.** Fixed metric names for headline and all-script recall, and a check that the headline's count plus the exclusions equals the all-script count.
-- **One threshold.** `engine/visibility.py` should use `contracts.eval_run.VISIBILITY_SDS`.
+- **One threshold.** *Resolved: `engine/visibility.py` imports it (`479e689`).* `engine/visibility.py` should use `contracts.eval_run.VISIBILITY_SDS`.
 
 **Agents and orchestration**
 - **Per-metric minimum thresholds** in `docs/support-rules.md`, for hypotheses and counter-tests alike; `check_counter_test` then checks counters on other metrics, which it skips today.

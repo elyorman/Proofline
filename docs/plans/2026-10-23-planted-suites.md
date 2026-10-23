@@ -2,6 +2,8 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
+> **Status:** executed on branch `planted-suites` in October 2026, with a spec check and a code-quality review of Tasks 1–2 and 3–6. The code blocks show each task as dispatched; the fixes listed under "Review fixes during execution" changed the code after the task named. Do not re-run it; later plans pick up the follow-ups at the end.
+
 **Goal:** Give the evaluator planted and decoy suites whose causes span all three agents' domains, each with sealed ground truth and frozen, provenance-carrying `not_observable` flags.
 
 **Architecture:** Two new script features let the engine plant causes beyond the press: a player parameter can target a whole unit, and an intervention can wait for the score (`when: trailing | leading`), with the simulator recording when it actually started. `contracts/planted.py` fixes what each plantable class looks like (its observables and their directions) and the sealed ground-truth record; `contracts/eval_run.py` gains a frozen `FlagSet` every planted run embeds. `engine/paired.py` measures each script over seed pairs and judges it under spec §7.2; `engine/suite_builder.py` and `proofline-engine suite` build the suites from per-split seed ranges, choosing only matches where the planted change is the one fair answer.
@@ -1479,3 +1481,31 @@ git commit -m "Document the planted suites and the new script features" -m "The 
 ### Task 10: Record what this plan resolved
 
 - [ ] Add a status line to this plan, a "Review fixes during execution" table and the follow-ups the reviews find; in `docs/plans/2026-10-22-contract-hygiene.md` mark resolved: where flags came from, each class's observables, and the visibility threshold coming from the contracts. Verify with `uv sync --locked && uv run ruff check . && uv run ruff format --check . && uv run python scripts/check_engine_isolation.py && uv run pytest -q`, and commit both plans: `git commit -m "Record what the planted-suites plan resolved" -m "..."`.
+
+## Review fixes during execution
+
+| Task | Fix | Commit |
+|---|---|---|
+| 1 | A flag set's fields are `match_ids` and an exclusion's is `match_id`: both hold suite match ids, while a planted truth's `script_id` is the intervention inside the match. A planted run must score every match its flag set lists. Paired seeds must be distinct and inside the split's spec §11.1 range, now `SEED_RANGES` in the contracts and used by the suite builder | `a97ef83` |
+| 2 | A planted truth's observables must be measured on the right subject: the team itself, its own unit, or an opponent or player that is not the team. Ground truth is kept only for the planted and decoy suites. `Role` is `SubjectRole` | `a97ef83` |
+| 4 | Interventions apply in the order they actually start, so a triggered change with an early `at` but a late start is not overridden by one that began before it | `0592b8b` |
+| 4 | The trigger test finds when the condition first holds, after each goal as well as before, and requires the start within 90 seconds of it | `bad2bcf` |
+| 5 | Players are recognised by the player-id pattern and units by name, so a team named with a hyphen or a dot still counts its sprints; a rate without a first-half `period_end` says why it fails | `f5ba243` |
+| 6 | Seeds run until every observable has the pairs asked for, so sprint speed never rests on fewer than the record claims; the interval uses the t quantile for its seed count; a window must start in the second half and end by 90:00; `resolve` refuses a class whose unit or player the intervention does not name | `382da8f` |
+| 7 | The score rule that makes a class the only fair answer holds from the change's start to the end of its window, so a team protecting a lead cannot concede inside it | `86b60b5` |
+
+The suites came out as the prototype measured: dev 12 planted with one excluded (`p-d-12`, player fatigue), held-out 30 with two excluded (`p-h-06` and `p-h-29`, press down), all for no separation; 4 and 10 decoys.
+
+## Follow-ups for later plans
+
+**Evaluator**
+- **One flag set per comparison.** `VariantComparison` should carry the `flag_set_id` and refuse two runs whose flag sets differ.
+- **An exclusion lists its class's observables exactly.** Check an `Exclusion`'s observables against `CAUSE_OBSERVABLES`, as `PlantedTruth` already is, so one cannot leave out the observable that clears zero.
+- **Recall denominators** (carried from the contract-hygiene plan): fixed metric names for headline and all-script recall, and a check that the headline's count plus the exclusions equals the all-script count.
+- **Match the team, not only the class.** A press-up card about the other team must not count toward recall.
+- **Name the suite version a run scored.** The scripts and ground truth have no digest an `EvalRun` can cite, as it cites its flag set.
+
+**Engine**
+- **Planted match seeds repeat across classes:** five pairs in held-out and two in dev. The matches differ in team parameters and the planted change but share random draws, so they are not fully independent cases. Give each planted match its own seed block, and regenerate the suites, before the final scoreboard.
+- **First-half planted changes** are refused: spec §7.2 measures them against the minutes before the change, which `engine/visibility.py` does not do yet.
+- **Per-observable seed counts** are not recorded: the flag set lists every seed run, and each observable rests on at least the requested pairs among them.

@@ -10,7 +10,14 @@ from mcp.server.mcpserver.exceptions import ToolError
 from pydantic import BaseModel, Field, ValidationError
 
 from agents import prompts
-from agents.investigation import BudgetSpent, Tested, Tools, change_of, too_few
+from agents.investigation import (
+    BudgetSpent,
+    Tested,
+    Tools,
+    change_of,
+    predicts_the_detected_change,
+    too_few,
+)
 from agents.llm import Model, Usage
 from contracts.case import Case
 from contracts.meta import MatchMeta
@@ -26,8 +33,9 @@ over the hypothesis's own window, and is one of:
 - corollary: something else the hypothesis's cause would move if it were real, on another \
 metric, against the first half: whose metric, which way, and the smallest move that would \
 count. If it moved that way, the hypothesis holds; if it moved the other way by as much, it \
-is refuted; anything in between weakens it. Ask for the sign the cause would leave and its \
-rivals, your own domain's included, would not.
+is refuted; anything in between weakens it. It must follow from the hypothesis's own cause, \
+not from a rival: to show your own cause fits better, ask the hypothesis for a sign its cause \
+needs and yours does not, and if that sign is missing it weakens.
 - control: the same claim on another subject (the other team, or another team's unit). If \
 it moves as much, the change is shared and does not single out the hypothesis's subject. \
 Same baseline and threshold as the claim.
@@ -35,6 +43,8 @@ Same baseline and threshold as the claim.
 predicting no change beyond a tolerance smaller than the claim.
 - opposite: the hypothesis's own subject against another baseline, moving the other way by \
 at least as much as the claim.
+A hypothesis whose prediction is the detected change has only shown that the change \
+happened, not which cause made it: if you doubt it, ask it for a corollary.
 Challenge only what your own expertise gives you reason to doubt; leave the rest."""
 
 
@@ -141,6 +151,9 @@ async def challenge(
             "by": t.hypothesis.agent.value,
             "cause": t.hypothesis.taxonomy.value,
             "claim": _claim(t.hypothesis.prediction),
+            "predicts_the_detected_change": predicts_the_detected_change(
+                case, t.hypothesis.prediction
+            ),
             "result": t.test.reason,
         }
         for t in others
@@ -152,7 +165,7 @@ async def challenge(
         + json.dumps(
             {
                 "moment": str(case.window),
-                "score_at_detection": prompts.scoreline(meta, score),
+                "state_at_detection": prompts.state_at(meta, score),
                 "hypotheses": listed,
                 "match": prompts.match(meta),
             },

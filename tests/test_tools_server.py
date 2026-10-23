@@ -42,7 +42,10 @@ def test_agents_get_the_state_builders_numbers_with_their_evidence(data):
     score = _call(server, "game_state")
     assert (round(press.value, 2), press.n_events) == (0.83, 18)
     assert round(first.baseline.value, 2) == 0.32
-    assert score.values == {"home_goals": 1.0, "away_goals": 3.0}  # 77:09 has not happened
+    assert {k: v for k, v in score.values.items() if k.endswith("_goals")} == {
+        "home_goals": 1.0,
+        "away_goals": 3.0,  # 77:09 has not happened
+    }
     assert set(sink.evidence) == {r.evidence_set_id for r in (press, first, score)}
 
 

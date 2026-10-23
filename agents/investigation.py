@@ -20,7 +20,7 @@ from agents.verifier.rules import MIN_SAMPLE
 from contracts.case import Case
 from contracts.meta import MatchMeta
 from contracts.planted import CAUSE_OBSERVABLES
-from contracts.prediction import Hypothesis, HypothesisTest, Prediction, TestOutcome
+from contracts.prediction import Direction, Hypothesis, HypothesisTest, Prediction, TestOutcome
 from contracts.taxonomy import AgentRole, BaselineScope, CaseOutcome, Cause, Metric, ThresholdKind
 from contracts.tool_result import ToolResult
 from state.subjects import opponent, resolve
@@ -103,14 +103,33 @@ def _goal_difference(meta: MatchMeta, team: str, score: dict[str, float]) -> flo
     return score[f"{side}_goals"] - score[f"{other}_goals"]
 
 
-def _score_gives_reason(meta: MatchMeta, hypothesis: Hypothesis, score: dict[str, float]) -> None:
-    needed = SCORE_NEEDED.get(hypothesis.taxonomy)
-    if needed is None:
-        return
-    team = cause_team(meta, hypothesis)
-    lead = _goal_difference(meta, team, score)
-    if (lead >= 0) if needed == "behind" else (lead <= 0):
-        raise ValueError(f"{team} is not {needed}, so the score gives no reason for this cause")
+def _facts_allow(meta: MatchMeta, hypothesis: Hypothesis, state: dict[str, float]) -> None:
+    """Refuse a cause the match's facts rule out (`state` is game_state's values): chasing
+    needs the team behind and protecting a lead needs it ahead; a change in numbers needs a
+    sending-off, and fresh legs need a substitution by the team."""
+    cause, team = hypothesis.taxonomy, cause_team(meta, hypothesis)
+    side = next(s for s, t in meta.teams.items() if t.name == team)
+    if needed := SCORE_NEEDED.get(cause):
+        lead = _goal_difference(meta, team, state)
+        if (lead >= 0) if needed == "behind" else (lead <= 0):
+            raise ValueError(f"{team} is not {needed}, so the score gives no reason for this cause")
+    if cause == Cause.NUMERICAL_CHANGE and not any(
+        state.get(f"{s}_sent_off", 0) for s in meta.teams
+    ):
+        raise ValueError("no one has been sent off, so the numbers on the pitch have not changed")
+    if cause == Cause.FRESH_LEGS_SUBSTITUTION and not state.get(f"{side}_substitutions", 0):
+        raise ValueError(f"{team} have made no substitution, so no fresh legs came on")
+
+
+def predicts_the_detected_change(case: Case, p: Prediction) -> bool:
+    """Whether a prediction is the change the detector saw: it shows the change happened, not
+    which cause made it."""
+    return any(
+        t.metric == p.metric
+        and t.subject == p.subject
+        and (t.value > t.baseline_value) == (p.direction == Direction.UP)
+        for t in case.triggers
+    )
 
 
 async def register(
@@ -149,7 +168,7 @@ async def register(
                     min_change=proposal.min_change,
                 ),
             )
-            _score_gives_reason(meta, hypothesis, score)
+            _facts_allow(meta, hypothesis, score)
         except (ValidationError, ValueError) as exc:
             refused.append(Refused(proposal, role, str(exc).splitlines()[0][:200]))
             continue
@@ -216,13 +235,14 @@ async def run_test(tools: Tools, hypothesis: Hypothesis) -> Tested:
     return Tested(hypothesis, record, during, before)
 
 
-def _summary(t: Tested) -> dict[str, Any]:
+def _summary(t: Tested, case: Case) -> dict[str, Any]:
     p = t.hypothesis.prediction
     return {
         "hypothesis_id": t.hypothesis.hypothesis_id,
         "cause": t.hypothesis.taxonomy.value,
         "agent": t.hypothesis.agent.value,
         "prediction": f"{p.metric} of {p.subject} {p.direction} by at least {p.min_change:g}",
+        "predicts_the_detected_change": predicts_the_detected_change(case, p),
         "result": t.test.reason,
     }
 
@@ -239,7 +259,9 @@ async def rank(
     """Order the survivors; with none, the outcome is `none` and no model is asked."""
     if not survivors:
         return Ranking(outcome="none", primary=None, secondary=[], why="nothing survived"), Usage()
-    listed = [_summary(t) | (extra or {}).get(t.hypothesis.hypothesis_id, {}) for t in survivors]
+    listed = [
+        _summary(t, case) | (extra or {}).get(t.hypothesis.hypothesis_id, {}) for t in survivors
+    ]
     try:
         answer, usage = await model.ask(
             role.value, prompts.RANKING, prompts.ranking_prompt(case, listed, score, meta), Ranking

@@ -92,16 +92,14 @@ def test_the_demo_case_is_cross_examined_and_verified_from_recorded_exchanges(m0
     outcome = asyncio.run(run_case(Variant.A_PROOFLINE, replay, replay, case, feed))
     finding, card = outcome.finding, outcome.verdict.card
     assert finding.agents == [AgentRole.TACTICS, AgentRole.PHYSICAL, AgentRole.GAME_STATE]
-    # Recorded live: unprompted, two challengers asked whether Northvale's fall in sprints
-    # also slowed them (a corollary of fatigue; it did not fully), Physical asked whether
-    # chasing brought more long balls (it did not fully), and Physical's control found
-    # Northvale did not press harder too, so Harbour City's press held.
+    # Recorded live: Physical asked the press for a sign its own cause needs (attackers
+    # sprinting more; they did not, so it weakened), and two controls found Northvale did
+    # not press harder too. Harbour City trail 1-3, and synthesis read chasing the result.
     kinds = sorted((e.challenger, kind_of(e), e.hypothesis_id, e.result) for e in finding.exams)
     assert kinds == [
-        (AgentRole.GAME_STATE, "corollary", "hyp-physical-02", "weakened"),
-        (AgentRole.PHYSICAL, "control", "hyp-tactics-01", "holds"),
-        (AgentRole.PHYSICAL, "corollary", "hyp-game_state-01", "weakened"),
-        (AgentRole.TACTICS, "corollary", "hyp-physical-02", "weakened"),
+        (AgentRole.GAME_STATE, "control", "hyp-tactics-01", "holds"),
+        (AgentRole.PHYSICAL, "corollary", "hyp-tactics-01", "weakened"),
+        (AgentRole.TACTICS, "control", "hyp-game_state-01", "holds"),
     ]
     assert [c.stage for c in finding.checkpoints] == [
         CaseStage.PREREGISTERED,
@@ -109,12 +107,8 @@ def test_the_demo_case_is_cross_examined_and_verified_from_recorded_exchanges(m0
         CaseStage.CROSS_EXAMINED,
         CaseStage.SYNTHESIZED,
     ]
-    assert card.status == "verified" and card.primary_cause.cause == Cause.PRESS_INTENSITY_UP
+    assert card.status == "verified" and card.primary_cause.cause == Cause.CHASING_RESULT
     assert card.subject.team == "Harbour City" and not finding.recovered
-    changes = {p.id: (p.metric, p.subject) for p in card.propositions if p.type == "change"}
-    fatigue = next(p for p in card.propositions if getattr(p, "cause", None) == Cause.UNIT_FATIGUE)
-    assert fatigue.role == "secondary"
-    assert changes[fatigue.effect] == ("sprint_count", "Northvale")  # its own change
 
 
 def test_a_control_on_the_other_team_is_run_and_scored_by_code(m01):

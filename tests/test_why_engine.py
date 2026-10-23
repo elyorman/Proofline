@@ -63,15 +63,16 @@ def _proposal(**overrides):
 
 
 def test_the_single_agent_replays_its_demo_case_from_recorded_exchanges(m01):
-    # Recorded live: with no table of what each cause moves, the single agent predicted a
-    # press through midfield sprints, and nothing it registered survived its own test.
     feed, case = m01
     replay = Replay(FIXTURES)
     outcome = asyncio.run(run_case(Variant.B_SINGLE_AGENT, replay, replay, case, feed))
-    finding = outcome.finding
-    assert finding.ranking.outcome == CaseOutcome.NONE and outcome.verdict is None
-    assert finding.tested and not any(t.supported for t in finding.tested)
-    assert finding.tools.used <= case.tool_call_budget
+    card = outcome.verdict.card
+    assert card.status == "verified" and card.verification.recompute == "match"
+    assert card.primary_cause.cause == Cause.PRESS_INTENSITY_UP
+    assert card.subject.team == "Harbour City" and card.verification.support_level == "strong"
+    assert set(card.variants) == {"casual", "analyst"}
+    assert all(set(v) == {"en", "es"} for v in card.variants.values())
+    assert outcome.finding.tools.used <= case.tool_call_budget
 
 
 def test_vague_or_misplaced_predictions_are_refused_before_testing(m01):
@@ -111,6 +112,36 @@ def test_a_game_state_cause_needs_the_score_to_give_its_team_the_reason(m01):
     assert [r.reason for r in refused] == [
         "Northvale is not behind, so the score gives no reason for this cause",
         "Harbour City is not ahead, so the score gives no reason for this cause",
+    ]
+
+
+def test_a_change_in_numbers_or_fresh_legs_needs_the_event_that_causes_it(m01):
+    feed, case = m01  # nobody has been sent off or substituted by 63'
+    state = {"home_goals": 1.0, "away_goals": 3.0}
+    ten_men = Registration(hypotheses=[_proposal(cause="game_state.numerical_change")])
+    subs = Registration(
+        hypotheses=[
+            _proposal(
+                cause="physical.fresh_legs_substitution", metric="sprint_count", min_change=0.3
+            )
+        ]
+    )
+    _, game_state, _ = asyncio.run(
+        register(Scripted(ten_men), AgentRole.GAME_STATE, case, feed.meta, state, 2)
+    )
+    _, physical, _ = asyncio.run(
+        register(Scripted(subs), AgentRole.PHYSICAL, case, feed.meta, state, 2)
+    )
+    assert [r.reason for r in game_state + physical] == [
+        "no one has been sent off, so the numbers on the pitch have not changed",
+        "Harbour City have made no substitution, so no fresh legs came on",
+    ]
+    sent_off = state | {"away_sent_off": 1.0, "home_substitutions": 2.0}
+    assert asyncio.run(
+        register(Scripted(ten_men), AgentRole.GAME_STATE, case, feed.meta, sent_off, 2)
+    )[0]
+    assert asyncio.run(register(Scripted(subs), AgentRole.PHYSICAL, case, feed.meta, sent_off, 2))[
+        0
     ]
 
 

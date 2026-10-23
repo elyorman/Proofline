@@ -28,8 +28,10 @@ present: the metric, whose metric it is, the direction, and the smallest change 
 count. Think about what the cause would do on the pitch, to both teams, and choose the \
 prediction that would hold under it but not under the other causes that could explain what \
 the detector saw: a prediction every candidate shares proves little.
-A team chases the result only when behind and protects a lead only when ahead; code refuses \
-either otherwise. Register nothing for a cause the case gives no reason to suspect."""
+The match's facts limit the causes: a team chases the result only when behind and protects \
+a lead only when ahead, a change in numbers needs a sending-off, and fresh legs need a \
+substitution by that team; code refuses each otherwise. Register nothing for a cause the \
+case gives no reason to suspect, even if that leaves you nothing to register."""
 
 
 def _causes(role: AgentRole) -> list[str]:
@@ -53,19 +55,28 @@ def instructions(role: AgentRole, max_hypotheses: int) -> str:
     )
 
 
+STATE_KEYS = ("goals", "sent_off", "substitutions")
+
 RANKING = """\
 You rank the hypotheses that survived testing for one detected moment in a football match.
 Code has already tested each one against deterministic tools; you never compute or change a \
 number. Weigh everything the investigation found: each hypothesis's own test, every \
 corollary, control or counter-test other specialists ran on it, and the score. The primary \
-cause is the one the evidence supports best and its rivals explain least well; a secondary \
+cause is the one the evidence supports best and its rivals explain least well. A hypothesis \
+whose own test only re-measured the detected change ("predicts_the_detected_change") has \
+shown that the change happened, not that its cause made it; without a corollary or control \
+on it that held, it is weaker than one with evidence of its own. A secondary \
 cause is real but explains less. If nothing survived, the outcome is 'none'. If the effect \
 is real but no surviving cause fits, the outcome is 'other'. Otherwise it is 'explained', \
 with a primary."""
 
 
-def scoreline(meta: MatchMeta, score: dict[str, float]) -> dict[str, int]:
-    return {meta.teams[s].name: int(score[f"{s}_goals"]) for s in ("home", "away")}
+def state_at(meta: MatchMeta, state: dict[str, float]) -> dict[str, dict[str, int]]:
+    """Each team's goals, players sent off and substitutions so far."""
+    return {
+        meta.teams[s].name: {k: int(state.get(f"{s}_{k}", 0)) for k in STATE_KEYS}
+        for s in ("home", "away")
+    }
 
 
 def match(meta: MatchMeta) -> dict:
@@ -83,7 +94,7 @@ def case_prompt(case: Case, meta: MatchMeta, score: dict[str, float]) -> str:
         "moment": case.moment_type.value,
         "window": str(case.window),
         "detected_at": str(case.window.end),
-        "score_at_detection": scoreline(meta, score),
+        "state_at_detection": state_at(meta, score),
         "what_the_detector_saw": [
             {
                 "metric": t.metric.value,
@@ -106,7 +117,7 @@ def ranking_prompt(
         {
             "moment": case.moment_type.value,
             "window": str(case.window),
-            "score_at_detection": scoreline(meta, score),
+            "state_at_detection": state_at(meta, score),
             "survivors": survivors,
         },
         indent=1,

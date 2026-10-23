@@ -162,21 +162,36 @@ def baseline(
     return result, evidence
 
 
+SENT_OFF = ("red", "second_yellow")  # a card event's `card` qualifier
+
+
 def game_state(feed: Feed, call: Call) -> tuple[ToolResult, EvidenceSet]:
-    """`game_state(at)`: the score from the goals delivered by `as_of`."""
-    goals = [e for e in feed.delivered(call.as_of) if e.type == EventType.GOAL]
-    values = {
-        f"{side}_goals": float(sum(g.team == team.name for g in goals))
-        for side, team in feed.meta.teams.items()
+    """`game_state(at)`: the score, and how many players each side has had sent off or
+    substituted, from the events delivered by `as_of`."""
+    delivered = feed.delivered(call.as_of)
+    counted = {
+        "goals": [e for e in delivered if e.type == EventType.GOAL],
+        "sent_off": [
+            e
+            for e in delivered
+            if e.type == EventType.CARD and e.qualifiers.get("card") in SENT_OFF
+        ],
+        "substitutions": [e for e in delivered if e.type == EventType.SUBSTITUTION],
     }
-    evidence = _evidence(feed, call, goals)
+    values = {
+        f"{side}_{what}": float(sum(e.team == team.name for e in events))
+        for side, team in feed.meta.teams.items()
+        for what, events in counted.items()
+    }
+    read = [e for events in counted.values() for e in events]
+    evidence = _evidence(feed, call, read)
     result = ToolResult(
         tool_call_id=call.tool_call_id,
         tool=ToolName.GAME_STATE,
         match_id=feed.meta.match_id,
         at=call.as_of,
         values=values,
-        n_events=len(goals),
+        n_events=len(read),
         evidence_set_id=evidence.evidence_set_id,
         computed_at_ms=call.now_ms,
     )

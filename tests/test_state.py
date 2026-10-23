@@ -128,8 +128,22 @@ def test_a_tool_reads_only_what_the_clock_has_delivered():
     assert so_far.baseline.n_events == 1 and len(evidence.events) == 1
 
 
-def test_game_state_counts_only_goals_already_scored():
-    feed = _feed(_e("goal", "Northvale", "12:30"), _e("goal", "St. Orrin", "77:09"))
+def test_game_state_counts_goals_sendings_off_and_substitutions_so_far():
+    feed = _feed(
+        _e("goal", "Northvale", "12:30"),
+        _e("card", "Northvale", "30:00", card="yellow"),
+        _e("card", "St. Orrin", "50:00", card="red"),
+        _e("substitution", "Northvale", "60:00"),
+        _e("goal", "St. Orrin", "77:09"),
+    )
     at_63 = Call(tool_call_id="tc-3", as_of=MatchClock.parse("63:00"), now_ms=0)
-    result, _ = game_state(feed, at_63)
-    assert result.values == {"home_goals": 0.0, "away_goals": 1.0}
+    result, evidence = game_state(feed, at_63)
+    assert result.values == {
+        "home_goals": 0.0,
+        "home_sent_off": 1.0,
+        "home_substitutions": 0.0,
+        "away_goals": 1.0,
+        "away_sent_off": 0.0,
+        "away_substitutions": 1.0,
+    }
+    assert result.n_events == len(evidence.events) == 3  # a yellow card is not counted

@@ -64,6 +64,7 @@ def question_groups(records: list[Record]) -> list[dict]:
                 variants[variant] = [
                     dict(
                         run_id=r.run_id,
+                        record_version=r.record_version,
                         estimate=next(
                             (m.model_dump(mode="json") for m in r.metrics if m.name == name), None
                         ),
@@ -80,6 +81,8 @@ def question_groups(records: list[Record]) -> list[dict]:
                 failed=sum(q.error is not None for q in r.rows),
                 missing=sum(q.outcome == "missing" for q in r.rows),
                 token_usage_complete=r.token_usage_complete,
+                unanswerable=r.unanswerable,
+                premise_rejected=r.premise_rejected,
             )
             for r in sorted(runs, key=lambda r: r.run_id)
         ]
@@ -115,6 +118,8 @@ def citations(record: Record, runs: dict) -> dict:
         missing += record.unverified_configuration
     elif isinstance(record, QuestionRun):
         flags_applicable = False
+        if record.record_version == 1:
+            missing.append("legacy_premise_rejection_definition")
         if record.tool_call_budget is None:
             missing.append("tool_call_budget")
         if not record.suite_origin_verified:
@@ -254,7 +259,12 @@ def render_questions(records: list[Record]) -> list[str]:
                         if item["estimate"]
                         else None
                     )
-                    formatted.append(f"{item['run_id']}: {estimate(metric)}")
+                    legacy = (
+                        " [legacy no-cause definition]"
+                        if item["record_version"] == 1 and row["name"] == "false_premise_rejection"
+                        else ""
+                    )
+                    formatted.append(f"{item['run_id']}: {estimate(metric)}{legacy}")
                 values.append("; ".join(formatted) or "not run")
             lines.append("| " + " | ".join(cell(v) for v in values) + " |")
         lines.append("")
@@ -263,6 +273,8 @@ def render_questions(records: list[Record]) -> list[str]:
                 f"- {cell(coverage['run_id'])}: "
                 f"{coverage['answered']}/{coverage['total']} answered; "
                 f"{coverage['failed']} failed; {coverage['missing']} missing; "
+                f"{coverage['unanswerable']} unanswerable; "
+                f"{coverage['premise_rejected']} premise rejected; "
                 f"token usage {'complete' if coverage['token_usage_complete'] else 'incomplete'}."
             )
     return lines

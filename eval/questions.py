@@ -188,7 +188,9 @@ def claim(
 
 def outcome(answer: Answer | PlainAnswer) -> str:
     if isinstance(answer, PlainAnswer):
-        return "claimed" if answer.claims else "no claim"
+        return (
+            "premise_false" if not answer.happening else "claimed" if answer.claims else "no claim"
+        )
     return answer.outcome
 
 
@@ -224,10 +226,14 @@ def score(
     claims = [r for r in scored if r["claimed"]]
     return {
         "answered_right": f"{sum(r['right'] for r in true_rows)}/{len(true_rows)}",
-        "false_premises_rejected": f"{sum(r['right'] for r in false_rows)}/{len(false_rows)}",
+        "false_premises_rejected": (
+            f"{sum(r['outcome'] == 'premise_false' for r in false_rows)}/{len(false_rows)}"
+        ),
         "false_claims": sum(r["false_claim"] for r in scored),
         "claims_right": f"{sum(r['right'] for r in claims)}/{len(claims)}",
         "missing": sum(r["outcome"] == "missing" for r in scored),
+        "unanswerable": sum(r["outcome"] == "unanswerable" for r in scored),
+        "premise_rejected": sum(r["outcome"] == "premise_false" for r in scored),
         "excluded": [r["question_id"] for r in rows if r["excluded"]],
         "rows": rows,
     }
@@ -247,12 +253,19 @@ def suite_digest(split: str) -> str:
     ).hexdigest()
 
 
-def question_samples(rows: list[QuestionOutcome], metric: str) -> list[tuple[int, int]]:
+def question_samples(
+    rows: list[QuestionOutcome], metric: str, *, explicit_rejection: bool = True
+) -> list[tuple[int, int]]:
     if metric not in QUESTION_METRICS:
         raise ValueError(f"unknown question metric {metric}")
     rows = [r for r in rows if not r.excluded]  # unobservable: listed, never counted
     matches = sorted({r.match_id for r in rows})
-    return [question_counts([r for r in rows if r.match_id == match])[metric] for match in matches]
+    return [
+        question_counts(
+            [r for r in rows if r.match_id == match], explicit_rejection=explicit_rejection
+        )[metric]
+        for match in matches
+    ]
 
 
 def score_run(
@@ -385,7 +398,7 @@ def score_run(
     identity = hashlib.sha256(
         json.dumps(
             [
-                "wilson-v1",
+                "question-v2-wilson",
                 variant,
                 split,
                 qdigest,
@@ -400,6 +413,7 @@ def score_run(
         ).encode()
     ).hexdigest()[:16]
     return QuestionRun(
+        record_version=2,
         run_id=run_id
         or f"questions-{split}-{variant}{'-after-follow-up' if after_follow_up else ''}-{identity}",
         after_follow_up=after_follow_up,

@@ -27,7 +27,14 @@ def compare_questions(
         raise ValueError("provide a known question metric and positive resamples")
     if a.run_id == b.run_id or a.variant == b.variant:
         raise ValueError("a paired question comparison needs different runs and variants")
-    for name in ("split", "question_set_digest", "suite_digest", "model_id", "tool_call_budget"):
+    for name in (
+        "record_version",
+        "split",
+        "question_set_digest",
+        "suite_digest",
+        "model_id",
+        "tool_call_budget",
+    ):
         if getattr(a, name) != getattr(b, name):
             raise ValueError(f"paired question runs need identical {name}")
     by_a, by_b = ({r.question_id: r for r in run.rows} for run in (a, b))
@@ -45,8 +52,12 @@ def compare_questions(
     common = sorted(q for q in by_a if by_a[q].answered and by_b[q].answered)
     if not common:
         raise ValueError("no questions were answered by both variants")
-    rows_a = question_samples([by_a[q] for q in common], metric)
-    rows_b = question_samples([by_b[q] for q in common], metric)
+    rows_a = question_samples(
+        [by_a[q] for q in common], metric, explicit_rejection=a.record_version >= 2
+    )
+    rows_b = question_samples(
+        [by_b[q] for q in common], metric, explicit_rejection=b.record_version >= 2
+    )
     point_a, point_b = ratio(rows_a), ratio(rows_b)
     if point_a is None or point_b is None:
         raise ValueError("comparison metric is undefined over paired answered questions")

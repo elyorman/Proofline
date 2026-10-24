@@ -275,6 +275,15 @@
       "title": "Record Type",
       "type": "string"
     },
+    "record_version": {
+      "default": 1,
+      "enum": [
+        1,
+        2
+      ],
+      "title": "Record Version",
+      "type": "integer"
+    },
     "run_id": {
       "minLength": 1,
       "title": "Run Id",

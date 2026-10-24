@@ -103,8 +103,10 @@ and budget flags only when they describe the actual producer configuration.
 
 Question metrics include missing and failed questions in their applicable
 denominators. True-premise accuracy requires a verified card naming the planted
-class and team. False-premise rejection requires an answer without a published
-cause. False claims per question counts every wrong published cause; lower is
+class and team. False-premise rejection requires an explicit `premise_false` response
+(or `happening=false` for P). An `unanswerable` response is counted separately
+and contributes zero to this rejection metric. Per-question `right` still retains
+the spec's no-published-cause condition on false premises. False claims per question counts every wrong published cause; lower is
 better. Claim precision counts right claims over all claims and is undefined
 when there are no claims. Standalone rates use two-sided 95% Wilson intervals; per-run `n` is the metric
 denominator. These binomial intervals treat denominator trials as independent.
@@ -147,7 +149,7 @@ those values by 100. No undefined rate is replaced with zero.
 | Seeded `types`, `cards` | Per-type counts/estimates; every trial's mutation, verification, `result` and rejecting `checks`; controls include their result/checks |
 | Question `rows` | Every question's text, premise label, answer/claim outcome, missing/error state and available usage |
 | `question_suites[].metrics[].variants` | A/B/P arrays of `{run_id, estimate}`; every run is retained, including multiple configurations |
-| `question_suites[].coverage` | Answered, total, failed and missing counts and token completeness per run |
+| `question_suites[].coverage` | Answered, total, failed, missing, unanswerable and premise-rejected counts and token completeness per run |
 
 Seeded `result` is `caught`, `missed`, `no_answer` or `not_applicable`. No-answer
 counts stay separate for seeds and controls. Sound-control eligibility and
@@ -173,3 +175,9 @@ overlap, so deterministic + semantic - both + unclassified equals total caught.
 No-answer trials count in neither column. JSON retains these counts per type,
 in `catch_counts` totals, and the two flags on each trial. These counts cover
 all tested cards; the headline rate still conditions on sound controls.
+
+Question record version 2 distinguishes explicit premise rejection from
+unanswerable or other no-cause replies. Version 1 records retain their original
+no-cause rate and carry a legacy-definition label; comparisons refuse to mix
+versions. Structured unanswerable responses remain in paired cohorts, contributing
+zero to premise rejection, while errors and missing replies are unpaired.

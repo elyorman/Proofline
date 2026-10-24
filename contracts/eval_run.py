@@ -659,14 +659,20 @@ class QuestionOutcome(BaseModel):
         return self
 
 
-def question_counts(rows: list[QuestionOutcome]) -> dict[str, tuple[int, int]]:
+def question_counts(
+    rows: list[QuestionOutcome], *, explicit_rejection: bool = True
+) -> dict[str, tuple[int, int]]:
     return {
         "true_premise_accuracy": (
             sum(r.right for r in rows if r.premise_true),
             sum(r.premise_true for r in rows),
         ),
         "false_premise_rejection": (
-            sum(r.right for r in rows if not r.premise_true),
+            sum(
+                (r.outcome == "premise_false" if explicit_rejection else r.right)
+                for r in rows
+                if not r.premise_true
+            ),
             sum(not r.premise_true for r in rows),
         ),
         "false_claims_per_question": (sum(r.false_claim for r in rows), len(rows)),
@@ -676,6 +682,7 @@ def question_counts(rows: list[QuestionOutcome]) -> dict[str, tuple[int, int]]:
 
 class QuestionRun(BaseModel):
     record_type: Literal["question_run"] = "question_run"
+    record_version: Literal[1, 2] = 1
     run_id: str = Field(min_length=1)
     variant: QuestionVariant
     split: Split
@@ -699,6 +706,16 @@ class QuestionRun(BaseModel):
     undefined_metrics: list[str] = Field(default_factory=list)
     rows: list[QuestionOutcome] = Field(min_length=1)
 
+    @computed_field
+    @property
+    def unanswerable(self) -> int:
+        return sum(r.outcome == "unanswerable" for r in self.rows)
+
+    @computed_field
+    @property
+    def premise_rejected(self) -> int:
+        return sum(r.outcome == "premise_false" for r in self.rows)
+
     @model_validator(mode="after")
     def _records_agree(self) -> "QuestionRun":
         if self.finished_at_ms < self.started_at_ms:
@@ -706,7 +723,7 @@ class QuestionRun(BaseModel):
         ids = [r.question_id for r in self.rows]
         if len(set(ids)) != len(ids):
             raise ValueError("each question is scored once")
-        counts = question_counts(self.rows)
+        counts = question_counts(self.rows, explicit_rejection=self.record_version >= 2)
         by_name = {m.name: m for m in self.metrics}
         expected_names = {name for name, (_, denominator) in counts.items() if denominator}
         if set(by_name) != expected_names or len(by_name) != len(self.metrics):

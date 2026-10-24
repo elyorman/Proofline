@@ -287,3 +287,55 @@ def test_question_scoreboards_and_json_use_records_only(question_batch, monkeypa
         assert by_id[difference.comparison_id]["differences"] == [
             difference.difference.model_dump(mode="json")
         ]
+
+
+def test_unanswerable_is_counted_apart_from_explicit_premise_rejection(question_batch):
+    from eval.records import save_records
+    from eval.scoreboard import scoreboard
+
+    root, key, _ = question_batch
+    path = root / "A/answers.jsonl"
+    values = [json.loads(line) for line in path.read_text().splitlines()]
+    # One false premise is tested and rejected; all others have no framed premise.
+    values[1].update(
+        outcome="premise_false",
+        premise=dict(
+            metric="pressure_rate",
+            subject="Harbour City",
+            direction="down",
+            since=key[1]
+            .question.asked_at.model_copy(update={"minute": key[1].question.asked_at.minute - 5})
+            .model_dump(mode="json"),
+        ),
+    )
+    path.write_text("".join(json.dumps(v) + "\n" for v in values))
+    run = score_run(root, "dev", "A")
+    assert run.record_version == 2
+    assert run.unanswerable == 3 and run.premise_rejected == 1
+    metric = next(m for m in run.metrics if m.name == "false_premise_rejection")
+    assert metric.value == 0.5 and metric.n == 2
+    records = root / "new-records"
+    save_records([run], records)
+    text = scoreboard(records)
+    assert "3 unanswerable; 1 premise rejected" in text
+    encoded = json.loads(scoreboard(records, json_output=True))
+    coverage = encoded["question_suites"][0]["coverage"][0]
+    assert coverage["unanswerable"] == 3 and coverage["premise_rejected"] == 1
+    # Old records keep their original no-cause definition and remain loadable.
+    legacy = run.model_dump(mode="json")
+    legacy["record_version"] = 1
+    legacy["metrics"] = [
+        dict(m, value=1, ci_low=0.5, ci_high=1) if m["name"] == "false_premise_rejection" else m
+        for m in legacy["metrics"]
+    ]
+    old = QuestionRun.model_validate(legacy)
+    assert next(m for m in old.metrics if m.name == "false_premise_rejection").value == 1
+
+
+def test_plain_no_cause_is_distinct_from_rejecting_the_premise(question_batch):
+    root, _, answers = question_batch
+    answers[3].happening = True  # no cause named, but the premise was accepted
+    (root / "P/answers.jsonl").write_text("".join(a.model_dump_json() + "\n" for a in answers))
+    run = score_run(root, "dev", "P")
+    assert run.unanswerable == 0 and run.premise_rejected == 0
+    assert next(m for m in run.metrics if m.name == "false_premise_rejection").value == 0

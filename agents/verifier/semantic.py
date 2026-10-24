@@ -68,6 +68,7 @@ def facts(card: InsightCard, support: SupportLevel, meta: MatchMeta) -> dict:
                 "subject": ev.subject,
                 "first_half": narrator.number(ev.metric, ev.baseline.value),
                 "window": narrator.number(ev.metric, ev.value),
+                "minutes": str(ev.window),  # a follow-up's readings are over its own minutes
             }
             for ev in card.evidence
         ],

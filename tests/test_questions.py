@@ -207,3 +207,48 @@ def test_whoever_reads_a_viewers_words_sees_the_players_names(m01):
     players = prompts.roster(m01.meta)["home"]["players"]
     first = m01.meta.teams["home"].players[0]
     assert players[0].startswith(f"{first.player_id} {first.name}, ")
+
+
+def test_the_demo_questions_replay_from_their_recorded_exchanges(tmp_path):
+    from agents.llm import Replay
+    from engine.io import write_match
+    from orchestration.question import answer_all
+
+    recorded = ROOT / "tests" / "fixtures" / "questions" / "m01"
+    sim = MatchSim(load_script(ROOT / "engine" / "scripts" / "planted" / "m01.yaml"))
+    write_match(sim, sim.run(), tmp_path / "data" / "m01")
+    replay = Replay(recorded / "exchanges-A")
+    asyncio.run(
+        answer_all(
+            tmp_path / "data",
+            recorded / "questions.jsonl",
+            Variant.A_PROOFLINE,
+            tmp_path / "out",
+            replay,
+            replay,
+        )
+    )
+
+    def answers(path):
+        out = {}
+        for line in path.read_text().splitlines():
+            a = Answer.model_validate_json(line)
+            if a.card:  # a card's trace id is minted per run
+                a = a.model_copy(
+                    update={"card": a.card.model_copy(update={"provenance": None})}, deep=True
+                )
+            out[a.question.question_id] = a.model_dump(
+                mode="json", exclude={"card": {"provenance"}}
+            )
+        return out
+
+    fresh, committed = (
+        answers(tmp_path / "out" / "A" / "answers.jsonl"),
+        answers(recorded / "A" / "answers.jsonl"),
+    )
+    assert fresh == committed
+    assert {a["outcome"] for a in committed.values()} >= {
+        "explained",
+        "premise_false",
+        "unanswerable",
+    }

@@ -82,6 +82,7 @@ def main(argv: list[str] | None = None) -> int:
     asked.add_argument("--out", type=Path, required=True, help="answers go to <out>/<variant>/")
     asked.add_argument("--concurrency", type=int, default=2)
     asked.add_argument("--record", type=Path, help="save every model exchange here")
+    asked.add_argument("--replay", type=Path, help="answer from saved exchanges only")
     run = sub.add_parser("run", help="run a whole match through the product")
     run.add_argument("--mode", choices=["studio"], default="studio")
     run.add_argument("--data", type=Path, default=Path("data"), help="folder of written matches")
@@ -132,7 +133,7 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if args.command == "questions":
         _quiet()
-        agents, verifier = models(args.record)
+        agents, verifier = models(args.record, args.replay)
         asyncio.run(
             answer_all(
                 args.data,

@@ -12,6 +12,7 @@ from agents.llm import Replay
 from contracts.card import InsightCard
 from contracts.case_file import CaseFile
 from contracts.cue import Cue
+from contracts.question import Answer
 from contracts.event import EventAmendment
 from contracts.tool_result import DependencyEntry
 from engine.io import write_match
@@ -104,3 +105,22 @@ def test_export_keeps_every_studio_payload_unchanged(tmp_path, replayed):
     bad["case_files"][0]["case"]["stage"] = "open"
     with pytest.raises(ValueError):
         exporter.validate_studio(bad, "m01")
+
+
+def test_export_validates_and_preserves_recorded_answers(tmp_path, replayed):
+    source, _ = replayed
+    answers_path = ROOT / "tests/fixtures/questions/m01/A/answers.jsonl"
+    answers = [json.loads(line) for line in answers_path.read_text().splitlines()]
+    assert len(answers) == 5
+    for answer in answers:
+        Answer.model_validate(answer)
+    assert json.loads(LEDGER.read_text())["answers"] == answers
+    target = tmp_path / "answers-web.json"
+    exporter.export(source, "m01", tmp_path / "public", [], target, answers_path=answers_path)
+    assert json.loads(target.read_text())["answers"] == answers
+    bad = copy.deepcopy(answers[0])
+    bad["question"]["match_id"] = "other-match"
+    invalid = tmp_path / "bad-answers.jsonl"
+    invalid.write_text(json.dumps(bad) + "\n")
+    with pytest.raises(ValueError, match="match"):
+        exporter.export(source, "m01", tmp_path / "bad", [], target, answers_path=invalid)

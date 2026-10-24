@@ -46,7 +46,7 @@ export function Evidence({ card }: { card: InsightCard }) {
   </div>;
 }
 
-export function Insight({ card, onOpen, mode = 'casual' }: { card: InsightCard; onOpen: (id: string) => void; mode?: string }) {
+export function Insight({ card, onOpen, mode = 'casual' }: { card: InsightCard; onOpen?: (id: string) => void; mode?: string }) {
   const { text } = useText();
   const cardText = useCardText();
   const withdrawn = card.status === 'withdrawn';
@@ -68,7 +68,7 @@ export function Insight({ card, onOpen, mode = 'casual' }: { card: InsightCard; 
     <details className="insight-details" open={mode === 'data' ? true : undefined} key={mode}>
       <summary>{text('insights.evidence')}<Icon name="chevron" size={16} /></summary>
       <Evidence card={card} />
-      <button className="text-button case-link" onClick={() => onOpen(card.id)}>{text('insights.open')}<Icon name="arrow" size={16} /></button>
+      {onOpen && <button className="text-button case-link" onClick={() => onOpen(card.id)}>{text('insights.open')}<Icon name="arrow" size={16} /></button>}
     </details>
   </article>;
 }

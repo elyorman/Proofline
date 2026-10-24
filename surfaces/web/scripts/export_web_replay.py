@@ -14,6 +14,7 @@ from contracts.eval_run import Variant
 from contracts.event import Event, EventAmendment
 from contracts.meta import MatchMeta
 from contracts.profile import Profile
+from contracts.question import Answer
 from contracts.tool_result import DependencyEntry
 
 WEB = Path(__file__).resolve().parents[1]
@@ -64,6 +65,7 @@ def export(
     card_paths: list[Path],
     ledger_path: Path = WEB / "src/fixtures/ledger.json",
     studio_path: Path | None = None,
+    answers_path: Path | None = None,
 ) -> None:
     raw = json.loads((source_dir / "meta.json").read_text(encoding="utf-8"))
     meta = MatchMeta.model_validate(dict(match_id=raw["match_id"], teams=raw["teams"]))
@@ -97,6 +99,24 @@ def export(
         )
     # Preserve every backend payload. All previous stand-ins now have real producers.
     ledger = ledger | {"stand_ins": {"cards": [], "cues": []}}
+    answers = (
+        [
+            json.loads(line)
+            for line in answers_path.read_text(encoding="utf-8").splitlines()
+            if line.strip()
+        ]
+        if answers_path
+        else []
+    )
+    for item in answers:
+        answer = Answer.model_validate(item)
+        if answer.question.match_id != match_id or (
+            answer.card and answer.card.match_id != match_id
+        ):
+            raise ValueError("answer belongs to a different match")
+    if len({(a["question"]["question_id"], a["variant"]) for a in answers}) != len(answers):
+        raise ValueError("duplicate recorded answer")
+    ledger["answers"] = answers
     keys = [(c["id"], c.get("revision", 1)) for c in ledger["cards"]]
     if len(keys) != len(set(keys)):
         raise ValueError("duplicate card id and revision")
@@ -122,6 +142,9 @@ if __name__ == "__main__":
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--cards", type=Path, nargs="+", default=[])
     parser.add_argument("--studio-ledger", type=Path)
+    parser.add_argument("--answers", type=Path)
     parser.add_argument("--ledger", type=Path, default=WEB / "src/fixtures/ledger.json")
     args = parser.parse_args()
-    export(args.source, args.match, args.out, args.cards, args.ledger, args.studio_ledger)
+    export(
+        args.source, args.match, args.out, args.cards, args.ledger, args.studio_ledger, args.answers
+    )

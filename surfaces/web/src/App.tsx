@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Ask } from './Ask';
 import { Analyst } from './Analyst';
 import { Broadcast } from './Broadcast';
 import { Overlay } from './Overlay';
 import { loadReplay, type ReplayData } from './data';
-import { cards, cues, profile, amendments, caseFiles } from './fixtures';
+import { cards, cues, profile, amendments, caseFiles, answers } from './fixtures';
 import type { Locale } from './i18n';
 import { Insights } from './Insights';
 import { Activity, EventFeed, Pitch } from './Pitch';
@@ -120,16 +121,17 @@ function Workspace({ locale, setLocale }: { locale: Locale; setLocale: (locale: 
         <section className="playback" aria-label={text('replay')}><div className="playback-main"><button className="play-button" aria-label={text(playing ? 'pause' : 'play')} onClick={() => { if (full) seek(0); setPlaying(!playing); }}><Icon name={playing ? 'pause' : 'play'} size={17} /></button><button className="icon-button" aria-label={text('reset')} onClick={() => { seek(0); setPlaying(false); setDecisions([]); }}><Icon name="reset" size={18} /></button><time>{formatClock(clock)}</time><input aria-label={text('seek')} aria-valuetext={formatClock(clock)} type="range" min="0" max={data.timeline.duration} step="1" value={elapsed} style={{ '--progress': `${elapsed / data.timeline.duration * 100}%` } as React.CSSProperties} onChange={e => seek(Number(e.target.value))} /><label className="speed-picker"><span className="sr-only">{text('speed')}</span><select value={speed} onChange={e => setSpeed(Number(e.target.value))}>{[1, 4, 16].map(s => <option key={s} value={s}>{s}×</option>)}</select></label></div>
           <div className="moment-jumps"><span>{text('jump')}</span>{jumps.map(jump => <button key={jump.key} className={Math.abs(elapsed - jump.at) < 8 ? 'current' : ''} onClick={() => { seek(jump.at); setPlaying(false); }}>{text(`jump.${jump.key}`, { clock: formatClock(clockAt(jump.at, firstHalf)) })}</button>)}</div>
         </section>
-        {route === 'fan' && <ViewBoundary key={`fan:${locale}`}><div className="fan-toolbar"><div className="mode-selector" role="group" aria-label={text('mode')}>{['casual', 'data', 'player'].map(value => <button aria-pressed={mode === value} className={mode === value ? 'active' : ''} key={value} onClick={() => setMode(value)}>{text(`mode.${value}`)}</button>)}</div><label className="club-picker"><span>{text('favorite')}</span><select value={favorite} onChange={e => { setFavorite(e.target.value); setPlayer(data.teams.find(t => t.name === e.target.value)!.players[0].id); }}>{data.teams.map(team => <option key={team.code}>{team.name}</option>)}</select></label></div>
+        {route === 'fan' && <ViewBoundary key="fan"><div className="fan-toolbar"><div className="mode-selector" role="group" aria-label={text('mode')}>{['casual', 'data', 'player'].map(value => <button aria-pressed={mode === value} className={mode === value ? 'active' : ''} key={value} onClick={() => setMode(value)}>{text(`mode.${value}`)}</button>)}</div><label className="club-picker"><span>{text('favorite')}</span><select value={favorite} onChange={e => { setFavorite(e.target.value); setPlayer(data.teams.find(t => t.name === e.target.value)!.players[0].id); }}>{data.teams.map(team => <option key={team.code}>{team.name}</option>)}</select></label></div>
           {mode === 'player' && <div className="player-focus-bar"><label>{text('player')}<select value={player} onChange={e => setPlayer(e.target.value)}>{roster.map(p => <option key={p.id} value={p.id}>{p.name} · {p.id}</option>)}</select></label><strong>{text('player.events', { count: delivered.filter(({ event }) => event.player_id === player || event.pass_q?.receiver_id === player).length })}</strong></div>}
+          <Ask answers={answers} data={data} elapsed={elapsed} onSeek={at => { seek(at); setPlaying(false); }} />
           <div className="fan-layout"><div className="match-column"><Pitch data={data} elapsed={elapsed} player={mode === 'player' ? player : undefined} /><Activity data={data} elapsed={elapsed} />
             <section className="panel stats-panel"><SectionTitle title={text('stats')} sub={text('stats.sub')} /><div className="stats-team-head"><span>{data.teams[0].code}</span><span>{data.teams[1].code}</span></div>{(['passes', 'accuracy', 'shots', 'pressures'] as const).map(key => <div className="stat-row" key={key}><strong>{stats[0][key] === null ? '—' : num(stats[0][key], key === 'accuracy')}</strong><span>{text(`stats.${key}`)}</span><strong>{stats[1][key] === null ? '—' : num(stats[1][key], key === 'accuracy')}</strong></div>)}</section>
             <EventFeed events={delivered} data={data} />
           </div><Insights cards={currentCards} onOpen={openCase} mode={mode} full={full} /></div>
         </ViewBoundary>}
-        {route === 'analyst' && <ViewBoundary key={`analyst:${locale}`}><Analyst cards={currentCards} allRevisions={publishedRevisions} selected={selected} onSelect={setSelected} amendments={amendments} files={caseFiles.filter(f => elapsedAt(f.case.window.end, firstHalf) <= elapsed)} /></ViewBoundary>}
-        {route === 'broadcast' && <ViewBoundary key={`broadcast:${locale}`}><Broadcast data={data} elapsed={elapsed} cues={cues} cards={cards} decisions={decisions} onDecide={decision => setDecisions(previous => [...previous, decision])} onReset={() => setDecisions([])} /></ViewBoundary>}
-        {route === 'overlay' && <ViewBoundary key={`overlay:${locale}`}><Overlay data={data} elapsed={elapsed} cards={cards} cues={cues} decisions={decisions} /></ViewBoundary>}
+        {route === 'analyst' && <ViewBoundary key="analyst"><Ask answers={answers} data={data} elapsed={elapsed} onSeek={at => { seek(at); setPlaying(false); }} /><Analyst cards={currentCards} allRevisions={publishedRevisions} selected={selected} onSelect={setSelected} amendments={amendments} files={caseFiles.filter(f => elapsedAt(f.case.window.end, firstHalf) <= elapsed)} /></ViewBoundary>}
+        {route === 'broadcast' && <ViewBoundary key="broadcast"><Broadcast data={data} elapsed={elapsed} cues={cues} cards={cards} decisions={decisions} onDecide={decision => setDecisions(previous => [...previous, decision])} onReset={() => setDecisions([])} /></ViewBoundary>}
+        {route === 'overlay' && <ViewBoundary key="overlay"><Overlay data={data} elapsed={elapsed} cards={cards} cues={cues} decisions={decisions} /></ViewBoundary>}
         <footer className="workspace-footer"><span>{text('brand.name')}</span><p>{text('nav.about')}</p><span>{data.matchId} · {text('fixture')}</span></footer>
       </main>
     </div>

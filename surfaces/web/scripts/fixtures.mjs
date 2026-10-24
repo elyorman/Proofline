@@ -10,7 +10,8 @@ for (const args of [
   ['-m', 'orchestration.cli', 'run', '--mode', 'studio', '--match', 'm01',
     '--replay', 'tests/fixtures/studio/m01'],
   ['surfaces/web/scripts/export_web_replay.py', '--source', 'data/m01', '--match', 'm01',
-    '--out', 'surfaces/web/public/fixtures/m01', '--studio-ledger', 'runs/studio/m01/ledger.json'],
+    '--out', 'surfaces/web/public/fixtures/m01', '--studio-ledger', 'runs/studio/m01/ledger.json',
+    '--answers', 'tests/fixtures/questions/m01/A/answers.jsonl'],
 ]) {
   const result = spawnSync(python || 'uv', [...(python ? ['-B'] : ['run', 'python']), ...args], {
     cwd: root, stdio: 'inherit',

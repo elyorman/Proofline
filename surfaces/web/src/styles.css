@@ -210,3 +210,19 @@ th small { display: block; color: var(--muted); font-weight: 400; }
 pre { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 10px; line-height: 1.8; }
 .tabs { flex-wrap: wrap; gap: 14px; }
 @media (max-width: 730px) { .both-teams { grid-template-columns: minmax(0,1fr); }.specialist-columns { grid-template-columns: minmax(0,1fr); }.challenge-edge { grid-template-columns: 1fr 20px 1.3fr; gap: 5px; font-size: 10px; }.case-body { padding: 16px; } }
+
+.ask-panel { margin-bottom: 24px; padding: 24px; }
+.ask-form label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px; }
+.ask-form > div { display: flex; gap: 10px; }
+.ask-form input { min-width: 0; width: 100%; border: 1px solid var(--line); border-radius: 8px; padding: 12px; background: #fff; color: var(--ink); font: inherit; }
+.question-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+.question-chips button { display: flex; gap: 10px; text-align: left; align-items: center; border: 1px solid var(--line); border-radius: 8px; background: transparent; color: inherit; font: inherit; font-size: 12px; padding: 10px; }
+.question-chips button[aria-pressed="true"] { background: var(--ink); color: #fff; }
+.question-chips time { opacity: .65; white-space: nowrap; }
+.recorded-answer { margin-top: 24px; border-top: 1px solid var(--line); padding-top: 24px; }
+.recorded-answer > .status { margin-left: 12px; }
+.recorded-answer > h3 { max-width: 80ch; font-size: 20px; line-height: 1.5; }
+.recorded-answer > h4 { margin-bottom: 8px; }
+.recorded-answer > .insight-card { margin-top: 20px; }
+.unknown-question, .ask-time-note { margin-top: 20px; }
+@media (max-width: 600px) { .ask-panel { padding: 16px; } .ask-form > div { flex-wrap: wrap; } .question-chips button { width: 100%; justify-content: space-between; } }

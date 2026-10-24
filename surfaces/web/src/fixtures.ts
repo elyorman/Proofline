@@ -5,12 +5,14 @@ import type { InsightCard } from './types/insight-card';
 import type { Cue } from './types/cue';
 import type { CaseFile } from './types/case-file';
 import type { EventAmendment } from './types/event-amendment';
+import type { Answer } from './types/answer';
 import type { Profile } from './types/profile';
 
 export interface CorrectionRecord { card_id: string; decision: 'withdraw' | 'revise'; revision: number; amendment_id: string }
 
 export const cards = ledger.cards as unknown as InsightCard[];
 export const cues = ledger.cues as unknown as Cue[];
+export const answers = ledger.answers as unknown as Answer[];
 export const caseFiles = ledger.case_files as unknown as CaseFile[];
 export const amendments = ledger.amendments as unknown as EventAmendment[];
 export const corrections = ledger.corrections as CorrectionRecord[];

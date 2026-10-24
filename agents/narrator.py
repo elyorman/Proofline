@@ -219,12 +219,14 @@ def updated(variants: dict[str, dict[str, str]]) -> dict[str, dict[str, str]]:
     }
 
 
-HEADLINE = {  # (metric, direction) -> a broadcast headline, English and Spanish
+# (metric, direction) -> a broadcast headline, English and Spanish. A headline names the
+# change only: it airs whatever the card's cause and support, and the Verifier reads no headline.
+HEADLINE = {
     (Metric.PRESSURE_RATE, Direction.UP): ("PRESS RAISED", "MÁS PRESIÓN"),
     (Metric.PRESSURE_RATE, Direction.DOWN): ("PRESS DROPPED", "MENOS PRESIÓN"),
     (Metric.LONG_BALL_SHARE, Direction.UP): ("GOING LONG", "JUEGO DIRECTO"),
     (Metric.LONG_BALL_SHARE, Direction.DOWN): ("PLAYING SHORT", "JUEGO CORTO"),
-    (Metric.SPRINT_COUNT, Direction.DOWN): ("LEGS TIRING", "PIERNAS CANSADAS"),
+    (Metric.SPRINT_COUNT, Direction.DOWN): ("FEWER SPRINTS", "MENOS ESPRINTS"),
     (Metric.SPRINT_COUNT, Direction.UP): ("MORE SPRINTS", "MÁS ESPRINTS"),
     (Metric.SPRINT_SPEED, Direction.DOWN): ("SLOWER SPRINTS", "ESPRINTS MÁS LENTOS"),
     (Metric.SPRINT_SPEED, Direction.UP): ("FASTER SPRINTS", "ESPRINTS MÁS RÁPIDOS"),

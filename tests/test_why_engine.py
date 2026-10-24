@@ -215,7 +215,10 @@ def test_every_measured_change_can_be_narrated_in_both_languages():
         assert all(narrator.LABEL[metric])
         for direction in (Direction.UP, Direction.DOWN):
             assert all(narrator.CHANGE[metric, direction])
-            assert all(narrator.HEADLINE[metric, direction])
+            headline = narrator.HEADLINE[metric, direction]
+            assert all(headline)
+            # It names the change, never a cause: it airs whatever the card's cause is.
+            assert not any(word in h for h in headline for word in ("TIR", "CANSAD", "FATIG"))
 
 
 UNCHECKED = Counters(counters=[])  # the single agent puts no test to its own hypotheses

@@ -1,0 +1,401 @@
+{
+  "$defs": {
+    "Cause": {
+      "enum": [
+        "tactical.press_intensity_up",
+        "tactical.press_intensity_down",
+        "tactical.block_deeper",
+        "tactical.block_higher",
+        "tactical.formation_change",
+        "tactical.flank_overload",
+        "physical.unit_fatigue",
+        "physical.player_fatigue",
+        "physical.fresh_legs_substitution",
+        "game_state.protecting_lead",
+        "game_state.chasing_result",
+        "game_state.numerical_change",
+        "other",
+        "none"
+      ],
+      "title": "Cause",
+      "type": "string"
+    },
+    "MetricEstimate": {
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "suite": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Suite"
+            },
+            {
+              "const": "combined",
+              "type": "string"
+            }
+          ],
+          "title": "Suite"
+        },
+        "value": {
+          "title": "Value",
+          "type": "number"
+        },
+        "ci_low": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ci Low"
+        },
+        "ci_high": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ci High"
+        },
+        "n": {
+          "minimum": 0,
+          "title": "N",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "name",
+        "suite",
+        "value",
+        "n"
+      ],
+      "title": "MetricEstimate",
+      "type": "object"
+    },
+    "QuestionOutcome": {
+      "properties": {
+        "question_id": {
+          "title": "Question Id",
+          "type": "string"
+        },
+        "match_id": {
+          "title": "Match Id",
+          "type": "string"
+        },
+        "question_text": {
+          "title": "Question Text",
+          "type": "string"
+        },
+        "locale": {
+          "default": "en",
+          "enum": [
+            "en",
+            "es"
+          ],
+          "title": "Locale",
+          "type": "string"
+        },
+        "premise_true": {
+          "title": "Premise True",
+          "type": "boolean"
+        },
+        "answered": {
+          "title": "Answered",
+          "type": "boolean"
+        },
+        "outcome": {
+          "title": "Outcome",
+          "type": "string"
+        },
+        "claimed": {
+          "title": "Claimed",
+          "type": "boolean"
+        },
+        "right": {
+          "title": "Right",
+          "type": "boolean"
+        },
+        "false_claim": {
+          "title": "False Claim",
+          "type": "boolean"
+        },
+        "cause": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Cause"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "team": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Team"
+        },
+        "expected_cause": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Cause"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "expected_team": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Team"
+        },
+        "error": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Error"
+        },
+        "input_tokens": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Input Tokens",
+          "type": "integer"
+        },
+        "output_tokens": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Output Tokens",
+          "type": "integer"
+        },
+        "tool_calls": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Tool Calls"
+        },
+        "usage_known": {
+          "default": true,
+          "title": "Usage Known",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "question_id",
+        "match_id",
+        "question_text",
+        "premise_true",
+        "answered",
+        "outcome",
+        "claimed",
+        "right",
+        "false_claim"
+      ],
+      "title": "QuestionOutcome",
+      "type": "object"
+    },
+    "Split": {
+      "enum": [
+        "dev",
+        "heldout"
+      ],
+      "title": "Split",
+      "type": "string"
+    },
+    "Suite": {
+      "enum": [
+        "planted",
+        "decoys",
+        "corrections",
+        "confounded",
+        "seeded_false_claims",
+        "questions"
+      ],
+      "title": "Suite",
+      "type": "string"
+    }
+  },
+  "properties": {
+    "record_type": {
+      "const": "question_run",
+      "default": "question_run",
+      "title": "Record Type",
+      "type": "string"
+    },
+    "run_id": {
+      "minLength": 1,
+      "title": "Run Id",
+      "type": "string"
+    },
+    "variant": {
+      "enum": [
+        "A",
+        "B",
+        "P"
+      ],
+      "title": "Variant",
+      "type": "string"
+    },
+    "split": {
+      "$ref": "#/$defs/Split"
+    },
+    "question_set_digest": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Question Set Digest",
+      "type": "string"
+    },
+    "suite_digest": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Suite Digest",
+      "type": "string"
+    },
+    "answers_digest": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Answers Digest",
+      "type": "string"
+    },
+    "suite_origin_verified": {
+      "default": false,
+      "title": "Suite Origin Verified",
+      "type": "boolean"
+    },
+    "model_id": {
+      "anyOf": [
+        {
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Model Id"
+    },
+    "tool_call_budget": {
+      "anyOf": [
+        {
+          "minimum": 1,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Tool Call Budget"
+    },
+    "input_tokens": {
+      "default": 0,
+      "minimum": 0,
+      "title": "Input Tokens",
+      "type": "integer"
+    },
+    "output_tokens": {
+      "default": 0,
+      "minimum": 0,
+      "title": "Output Tokens",
+      "type": "integer"
+    },
+    "token_usage_complete": {
+      "default": true,
+      "title": "Token Usage Complete",
+      "type": "boolean"
+    },
+    "started_at_ms": {
+      "minimum": 0,
+      "title": "Started At Ms",
+      "type": "integer"
+    },
+    "finished_at_ms": {
+      "minimum": 0,
+      "title": "Finished At Ms",
+      "type": "integer"
+    },
+    "bootstrap_seed": {
+      "default": 0,
+      "title": "Bootstrap Seed",
+      "type": "integer"
+    },
+    "bootstrap_resamples": {
+      "default": 2000,
+      "minimum": 1,
+      "title": "Bootstrap Resamples",
+      "type": "integer"
+    },
+    "metrics": {
+      "items": {
+        "$ref": "#/$defs/MetricEstimate"
+      },
+      "minItems": 1,
+      "title": "Metrics",
+      "type": "array"
+    },
+    "undefined_metrics": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Undefined Metrics",
+      "type": "array"
+    },
+    "rows": {
+      "items": {
+        "$ref": "#/$defs/QuestionOutcome"
+      },
+      "minItems": 1,
+      "title": "Rows",
+      "type": "array"
+    }
+  },
+  "required": [
+    "run_id",
+    "variant",
+    "split",
+    "question_set_digest",
+    "suite_digest",
+    "answers_digest",
+    "started_at_ms",
+    "finished_at_ms",
+    "metrics",
+    "rows"
+  ],
+  "title": "QuestionRun",
+  "type": "object"
+}

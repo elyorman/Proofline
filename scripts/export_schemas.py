@@ -41,6 +41,7 @@ SCHEMAS = {
     "question": Question,
     "answer": Answer,
     "plain-answer": PlainAnswer,
+    "question-run": __import__("contracts.eval_run", fromlist=["QuestionRun"]).QuestionRun,
 }
 
 

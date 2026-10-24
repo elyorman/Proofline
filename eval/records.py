@@ -4,9 +4,9 @@ import json
 import re
 from pathlib import Path
 
-from contracts.eval_run import EvalRun, SeededRun, VariantComparison
+from contracts.eval_run import EvalRun, QuestionRun, SeededRun, VariantComparison
 
-Record = EvalRun | VariantComparison | SeededRun
+Record = EvalRun | VariantComparison | SeededRun | QuestionRun
 
 
 def identity(record: Record) -> str:
@@ -62,7 +62,9 @@ def load_records(folder: Path) -> list[Record]:
             if not isinstance(data, dict):
                 raise ValueError("a record must be an object")
             model = (
-                SeededRun
+                QuestionRun
+                if data.get("record_type") == "question_run"
+                else SeededRun
                 if data.get("record_type") == "seeded_verifier"
                 else VariantComparison
                 if "comparison_id" in data

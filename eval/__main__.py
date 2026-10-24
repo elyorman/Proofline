@@ -8,7 +8,7 @@ from pathlib import Path
 import yaml
 
 from contracts.card import InsightCard
-from contracts.eval_run import EvalRun, SeededRun, Split, Variant, VariantComparison
+from contracts.eval_run import EvalRun, QuestionRun, SeededRun, Split, Variant, VariantComparison
 from eval.batch import evaluate_batch
 from eval.compare import compare
 from eval.metrics import METRIC_NAMES, PLANTED_RECALL
@@ -124,7 +124,7 @@ def main(argv: list[str] | None = None) -> int:
 
 
 def _emit(
-    record: EvalRun | VariantComparison | SeededRun,
+    record: EvalRun | VariantComparison | SeededRun | QuestionRun,
     out: Path | None,
     record_dir: Path | None = None,
     dependencies: list[EvalRun] | None = None,

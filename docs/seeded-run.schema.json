@@ -330,7 +330,8 @@
         "decoys",
         "corrections",
         "confounded",
-        "seeded_false_claims"
+        "seeded_false_claims",
+        "questions"
       ],
       "title": "Suite",
       "type": "string"

@@ -27,6 +27,7 @@ class Suite(StrEnum):
     CORRECTIONS = "corrections"
     CONFOUNDED = "confounded"  # stretch
     SEEDED_FALSE_CLAIMS = "seeded_false_claims"
+    QUESTIONS = "questions"
 
 
 class Split(StrEnum):
@@ -527,4 +528,124 @@ class SeededRun(BaseModel):
             c.control.status == "rejected" and not c.control_no_answer for c in self.cards
         )
         check_rate(self.false_rejection_rate, rejected, len(self.cards) - controls_no_answer)
+        return self
+
+
+QuestionVariant = Literal["A", "B", "P"]
+QUESTION_METRICS = (
+    "true_premise_accuracy",
+    "false_premise_rejection",
+    "false_claims_per_question",
+    "claim_precision",
+)
+
+
+class QuestionOutcome(BaseModel):
+    question_id: str
+    match_id: str
+    question_text: str
+    locale: Literal["en", "es"] = "en"
+    premise_true: bool
+    answered: bool
+    outcome: str
+    claimed: bool
+    right: bool
+    false_claim: bool
+    cause: Cause | None = None
+    team: str | None = None
+    expected_cause: Cause | None = None
+    expected_team: str | None = None
+    error: str | None = None
+    input_tokens: int = Field(default=0, ge=0)
+    output_tokens: int = Field(default=0, ge=0)
+    tool_calls: int | None = Field(default=None, ge=0)
+    usage_known: bool = True
+    excluded: bool = Field(
+        default=False,
+        description="its planted change is flagged not observable: counted in no metric",
+    )
+
+    @model_validator(mode="after")
+    def _right(self) -> "QuestionOutcome":
+        if self.premise_true and (self.expected_cause is None or self.expected_team is None):
+            raise ValueError("a true premise records its expected cause and team")
+        expected = self.answered and (
+            self.claimed and (self.cause, self.team) == (self.expected_cause, self.expected_team)
+            if self.premise_true
+            else not self.claimed
+        )
+        if self.right != expected or self.false_claim != (self.claimed and not self.right):
+            raise ValueError("question outcome does not agree with its claim and premise")
+        if self.error is not None and self.answered:
+            raise ValueError("a failed question is not an answered question")
+        if not self.answered and self.claimed:
+            raise ValueError("a missing or failed answer cannot publish a claim")
+        return self
+
+
+def question_counts(rows: list[QuestionOutcome]) -> dict[str, tuple[int, int]]:
+    return {
+        "true_premise_accuracy": (
+            sum(r.right for r in rows if r.premise_true),
+            sum(r.premise_true for r in rows),
+        ),
+        "false_premise_rejection": (
+            sum(r.right for r in rows if not r.premise_true),
+            sum(not r.premise_true for r in rows),
+        ),
+        "false_claims_per_question": (sum(r.false_claim for r in rows), len(rows)),
+        "claim_precision": (sum(r.right for r in rows if r.claimed), sum(r.claimed for r in rows)),
+    }
+
+
+class QuestionRun(BaseModel):
+    record_type: Literal["question_run"] = "question_run"
+    run_id: str = Field(min_length=1)
+    variant: QuestionVariant
+    split: Split
+    question_set_digest: str = Field(pattern=r"^[0-9a-f]{64}$")
+    suite_digest: str = Field(pattern=r"^[0-9a-f]{64}$")
+    answers_digest: str = Field(pattern=r"^[0-9a-f]{64}$")
+    suite_origin_verified: bool = False
+    after_follow_up: bool = Field(
+        default=False, description="cards scored as their follow-ups left them"
+    )
+    model_id: str | None = Field(default=None, min_length=1)
+    tool_call_budget: int | None = Field(default=None, ge=1)
+    input_tokens: int = Field(default=0, ge=0)
+    output_tokens: int = Field(default=0, ge=0)
+    token_usage_complete: bool = True
+    started_at_ms: int = Field(ge=0)
+    finished_at_ms: int = Field(ge=0)
+    bootstrap_seed: int = 0
+    bootstrap_resamples: int = Field(default=2000, ge=1)
+    metrics: list[MetricEstimate] = Field(min_length=1)
+    undefined_metrics: list[str] = Field(default_factory=list)
+    rows: list[QuestionOutcome] = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def _records_agree(self) -> "QuestionRun":
+        if self.finished_at_ms < self.started_at_ms:
+            raise ValueError("question run finished before it started")
+        ids = [r.question_id for r in self.rows]
+        if len(set(ids)) != len(ids):
+            raise ValueError("each question is scored once")
+        counts = question_counts(self.rows)
+        by_name = {m.name: m for m in self.metrics}
+        expected_names = {name for name, (_, denominator) in counts.items() if denominator}
+        if set(by_name) != expected_names or len(by_name) != len(self.metrics):
+            raise ValueError("question metrics must cover every defined metric exactly once")
+        if set(self.undefined_metrics) != set(QUESTION_METRICS) - expected_names:
+            raise ValueError("undefined question metrics must match zero denominators")
+        for name, metric in by_name.items():
+            if metric.suite != Suite.QUESTIONS:
+                raise ValueError("question metrics belong to the question suite")
+            check_rate(metric, *counts[name])
+        if (self.input_tokens, self.output_tokens) != (
+            sum(r.input_tokens for r in self.rows),
+            sum(r.output_tokens for r in self.rows),
+        ):
+            raise ValueError("question token totals must sum the recorded rows")
+        if self.token_usage_complete != all(r.usage_known for r in self.rows):
+            raise ValueError("token completeness must agree with per-question usage")
         return self

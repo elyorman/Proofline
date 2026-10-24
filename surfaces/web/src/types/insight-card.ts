@@ -154,15 +154,20 @@ export type Revision2 = number;
 export type Reason1 = string;
 export type AmendmentIds = string[];
 export type Revisions = Revision1[];
-export type RivalHypothesisId = string;
-export type RivalTeam = string;
 /**
  * @minItems 1
  * @maxItems 2
  */
-export type Tests = [DecisiveTest] | [DecisiveTest, DecisiveTest];
-export type Side = "primary" | "rival";
+export type Rivals = [Rival] | [Rival, Rival];
 export type HypothesisId2 = string;
+export type Team2 = string;
+/**
+ * @minItems 1
+ * @maxItems 3
+ */
+export type Tests = [DecisiveTest] | [DecisiveTest, DecisiveTest] | [DecisiveTest, DecisiveTest, DecisiveTest];
+export type Side = "primary" | "rival";
+export type HypothesisId3 = string;
 export type Subject3 = string;
 export type Reason2 = string;
 /**
@@ -327,16 +332,14 @@ export interface Revision1 {
   amendment_ids?: AmendmentIds;
 }
 /**
- * Keep watching: two causes survived and the data could not tell them apart, so each
- * side pre-registered a decisive test for the minutes after the card. Only the primary's
- * holding confirms it; only the rival's overturns it; both or neither leave it open.
+ * Keep watching: causes survived beside the primary and the data could not tell them
+ * apart, so each side pre-registered a decisive test for the minutes after the card. Only
+ * the primary's holding confirms it; only one rival's overturns it to that rival; anything
+ * else leaves it open.
  */
 export interface FollowUp {
   window: Window1;
-  rival_hypothesis_id: RivalHypothesisId;
-  rival_cause: Cause;
-  rival_agent: AgentRole;
-  rival_team: RivalTeam;
+  rivals: Rivals;
   tests: Tests;
   status?: Status1;
 }
@@ -348,6 +351,15 @@ export interface Window1 {
   end: MatchClock;
 }
 /**
+ * A cause that survived beside the primary, on its own team's side.
+ */
+export interface Rival {
+  hypothesis_id: HypothesisId2;
+  cause: Cause;
+  agent: AgentRole;
+  team: Team2;
+}
+/**
  * One side's prediction for minutes nobody had seen when it was made: a move its cause
  * implies and the rival's would not cause (up or down), or a number its cause leaves at
  * ordinary play where the rival's would move it (flat). Code measures it once the minutes
@@ -355,7 +367,7 @@ export interface Window1 {
  */
 export interface DecisiveTest {
   side: Side;
-  hypothesis_id: HypothesisId2;
+  hypothesis_id: HypothesisId3;
   cause: Cause;
   agent: AgentRole;
   metric: Metric;

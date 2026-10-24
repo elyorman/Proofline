@@ -11,7 +11,7 @@ from types import SimpleNamespace
 import pytest
 
 from agents.cross_exam import Counters
-from agents.follow_up import minutes_after, rival
+from agents.follow_up import minutes_after, rivals
 from agents.llm import Usage
 from agents.outputs import Decisive, Proposal, Ranking, Registration
 from agents.verifier.semantic import SemanticReport, SentenceCheck
@@ -101,7 +101,7 @@ def test_a_rival_that_survives_is_settled_on_the_minutes_after_the_card(m01):
     outcome = asyncio.run(run_case(Variant.A_PROOFLINE, model, model, case, feed))
     first, later = outcome.verdict.card, outcome.followed.card
     assert first.status == CardStatus.VERIFIED and first.follow_up.status == "pending"
-    assert first.follow_up.rival_cause == Cause.PRESS_INTENSITY_UP
+    assert [r.cause for r in first.follow_up.rivals] == [Cause.PRESS_INTENSITY_UP]
     assert str(first.follow_up.window) == "68:00-83:00"
     assert first.variants["casual"]["en"].endswith(
         "We'll check it against a deliberate step up in Harbour City's press by 83'."
@@ -141,9 +141,9 @@ def test_the_same_minutes_confirm_a_primary_whose_prediction_came_true(m01):
 def test_minutes_that_fit_both_leave_the_card_open_and_claim_no_cause(m01):
     feed, case = m01
     script = _script(primary="hyp-tactics-01")
-    # Both come true over 68-83': Northvale go long, and Harbour City do not.
+    # Both come true over 68-83': Northvale press no more, and Harbour City go no longer.
     script["tactics", "Decisive"] = Decisive(
-        metric="long_ball_share", subject="Northvale", direction="up", why="pressed, they go long"
+        metric="pressure_rate", subject="Northvale", direction="flat", why="they do not press back"
     )
     script["game_state", "Decisive"] = Decisive(
         metric="long_ball_share", subject="Harbour City", direction="flat", why="they keep it short"
@@ -170,7 +170,7 @@ def test_with_one_cause_left_nothing_stays_open(m01):
     model = ByRole(script)
     outcome = asyncio.run(run_case(Variant.A_PROOFLINE, model, model, case, feed))
     assert outcome.verdict.card.follow_up is None and outcome.followed is None
-    assert rival(outcome.finding, feed) is None
+    assert rivals(outcome.finding, feed) == []
     assert not any(schema == "Decisive" for _, schema, _ in model.asked)
 
 
@@ -234,6 +234,76 @@ def test_a_test_that_is_the_other_sides_own_claim_is_put_back_once(m01):
     model = Queued(script)
     later = asyncio.run(run_case(Variant.A_PROOFLINE, model, model, case, feed)).followed.card
     retry = [prompt for role, schema, prompt in model.asked if role == "game_state"][-1]
-    assert "Your test was refused: that is the rival's own claim" in retry
+    assert "Your test was refused: that is a rival's own claim" in retry
     chasing = next(t for t in later.follow_up.tests if t.side == "rival")
     assert chasing.metric == "long_ball_share" and later.follow_up.status == "confirmed"
+
+
+class ByCause(ByRole):
+    """Answers each side's decisive test by the cause it argues for, whichever agent asks."""
+
+    async def ask(self, role, instructions, prompt, schema):
+        if schema is Decisive:
+            self.asked.append((role, "Decisive", prompt))
+            own = json.loads(prompt[prompt.index("{") :])["your_cause"]["cause"]
+            return self.answers[own], Usage(1, 1)
+        return await super().ask(role, instructions, prompt, schema)
+
+
+def test_every_rival_is_watched_and_each_must_fail_for_the_card_to_stand(m01):
+    feed, case = m01
+    higher = Proposal(
+        cause="tactical.block_higher",
+        metric="long_ball_share",
+        subject="Northvale",
+        direction="up",
+        min_change=1.5,
+        why="Northvale push up and go long",
+    )
+    script = _script(primary="hyp-tactics-01")
+    script["tactics", "Registration"] = Registration(
+        hypotheses=[_proposal("tactical.press_intensity_up", 1.5), higher]
+    )
+    script |= {
+        "tactical.press_intensity_up": script["tactics", "Decisive"],  # Harbour City stay short
+        "game_state.chasing_result": script["game_state", "Decisive"],  # they go long: fails
+        "tactical.block_higher": Decisive(
+            metric="pressure_rate", subject="Northvale", direction="up", why="a high block presses"
+        ),
+    }
+    outcome = asyncio.run(
+        run_case(Variant.A_PROOFLINE, ByCause(script), ByCause(script), case, feed)
+    )
+    first, later = outcome.verdict.card, outcome.followed.card
+    assert [r.cause for r in first.follow_up.rivals] == [
+        Cause.CHASING_RESULT,
+        Cause.BLOCK_HIGHER,
+    ]
+    assert first.variants["casual"]["en"].endswith(
+        "We'll check it against Harbour City chasing the result and Northvale pushing their "
+        "block higher by 83'."
+    )
+    assert later.follow_up.status == "confirmed"
+    assert all(t.sigmas is not None for t in later.follow_up.tests)  # all three measured
+    assert later.variants["casual"]["en"].endswith(
+        "Checked by 83': not Harbour City chasing the result or Northvale pushing their block "
+        "higher."
+    )
+    assert later.variants["casual"]["es"].endswith(
+        "no es Harbour City buscando el resultado ni Northvale adelantando su bloque."
+    )
+
+
+def test_a_test_that_a_change_already_under_way_goes_on_is_put_back_once(m01):
+    feed, case = m01
+    script = _script(primary="hyp-tactics-01")
+    script["game_state", "Decisive"] = [
+        # Northvale's long balls are +7 sd over 58-68' already: every cause fits that.
+        Decisive(metric="long_ball_share", subject="Northvale", direction="up", why="chasing"),
+        script["game_state", "Decisive"],
+    ]
+    model = Queued(script)
+    later = asyncio.run(run_case(Variant.A_PROOFLINE, model, model, case, feed)).followed.card
+    retry = [prompt for role, schema, prompt in model.asked if role == "game_state"][-1]
+    assert "that change is already under way" in retry
+    assert later.follow_up.status == "confirmed"

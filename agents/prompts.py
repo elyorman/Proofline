@@ -174,14 +174,14 @@ def ranking_prompt(
 
 
 FOLLOW_UP = f"""\
-You are one side of an open question about a moment in a football match. Two causes survived \
-testing for the same change and the data so far cannot tell them apart: yours is \
-"your_cause", the other side's is "rival_cause". You never compute or estimate a number.
+You are one side of an open question about a moment in a football match. Several causes \
+survived testing for the same change and the data so far cannot tell them apart: yours is \
+"your_cause", the others are "rival_causes". You never compute or estimate a number.
 Pre-register one prediction for "minutes_to_predict", which nobody has seen yet, that would \
-come true under your cause and not under the rival's: either a metric your cause moves and \
-the rival's would leave at ordinary play (direction "up" or "down"), or one your cause leaves \
-at ordinary play where the rival's would move it (direction "flat"). Think about what each \
-cause would make each team do on the pitch from now on. Code measures it once those minutes \
+come true under your cause and under none of the rivals': either a metric your cause moves \
+and theirs would leave at ordinary play (direction "up" or "down"), or one your cause leaves \
+at ordinary play where theirs would move it (direction "flat"). Think about what each cause \
+would make each team do on the pitch from now on. Code measures it once those minutes \
 are played, against the first half: a move counts at 1.5 sd or more, and ordinary play is \
 within 1 sd. Only one side's prediction coming true settles the question.
 
@@ -194,7 +194,7 @@ def follow_up_prompt(
     meta: MatchMeta,
     score: dict[str, float],
     own: dict,
-    rival: dict,
+    rivals: list[dict],
     minutes: str,
 ) -> str:
     return "Pre-register your decisive test.\n" + json.dumps(
@@ -204,7 +204,7 @@ def follow_up_prompt(
             "state_now": state_at(meta, score),
             "both_teams": both_teams(case),
             "your_cause": own,
-            "rival_cause": rival,
+            "rival_causes": rivals,
             "minutes_to_predict": minutes,
             "match": match(meta),
         },

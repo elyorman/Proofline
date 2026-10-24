@@ -1190,35 +1190,45 @@ def test_a_decisive_test_holds_exactly_when_its_reading_clears_a_fixed_bar(
         _decisive(direction=direction, sigmas=sigmas, holds=not holds)
 
 
-def _follow_up(status, primary_holds, rival_holds):
-    from contracts.card import FollowUp
+def _follow_up(status, primary_holds, *rivals_hold):
+    from contracts.card import FollowUp, Rival
 
     reading = {True: 2.0, False: 0.0}
+    rivals = [f"hyp-rival-{i}" for i in range(len(rivals_hold))]
     return FollowUp(
         window="68:00-83:00",
-        rival_hypothesis_id="hyp-rival",
-        rival_cause=Cause.PRESS_INTENSITY_UP,
-        rival_agent=AgentRole.TACTICS,
-        rival_team="Harbour City",
+        rivals=[
+            Rival(hypothesis_id=r, cause=Cause.PRESS_INTENSITY_UP, agent="tactics", team="HC")
+            for r in rivals
+        ],
         tests=[
             _decisive("primary", sigmas=reading[primary_holds], holds=primary_holds),
-            _decisive("rival", sigmas=reading[rival_holds], holds=rival_holds),
+            *(
+                _decisive("rival", sigmas=reading[h], holds=h, hypothesis_id=r)
+                for r, h in zip(rivals, rivals_hold, strict=True)
+            ),
         ],
         status=status,
     )
 
 
 @pytest.mark.parametrize(
-    "primary,rival,status",
+    "primary,rivals,status",
     [
-        (True, False, "confirmed"),
-        (False, True, "overturned"),
-        (True, True, "unresolved"),  # both came true: the minutes did not choose
-        (False, False, "unresolved"),
+        (True, (False,), "confirmed"),
+        (False, (True,), "overturned"),
+        (True, (True,), "unresolved"),  # both came true: the minutes did not choose
+        (False, (False,), "unresolved"),
+        (True, (False, False), "confirmed"),
+        (False, (False, True), "overturned"),  # to the one rival that came true
+        (False, (True, True), "unresolved"),  # two rivals came true: neither wins
     ],
 )
-def test_a_follow_up_is_settled_by_which_side_came_true(primary, rival, status):
-    assert _follow_up(status, primary, rival).status == status
+def test_a_follow_up_is_settled_by_which_side_came_true(primary, rivals, status):
+    settled = _follow_up(status, primary, *rivals)
+    assert settled.status == status
+    if status == "overturned":
+        assert settled.overturned_to.hypothesis_id == f"hyp-rival-{rivals.index(True)}"
     wrong = next(s for s in ("confirmed", "overturned", "unresolved") if s != status)
     with pytest.raises(ValidationError, match="tests that held say"):
-        _follow_up(wrong, primary, rival)
+        _follow_up(wrong, primary, *rivals)

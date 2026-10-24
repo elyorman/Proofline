@@ -414,31 +414,26 @@
       "type": "object"
     },
     "FollowUp": {
-      "description": "Keep watching: two causes survived and the data could not tell them apart, so each\nside pre-registered a decisive test for the minutes after the card. Only the primary's\nholding confirms it; only the rival's overturns it; both or neither leave it open.",
+      "description": "Keep watching: causes survived beside the primary and the data could not tell them\napart, so each side pre-registered a decisive test for the minutes after the card. Only\nthe primary's holding confirms it; only one rival's overturns it to that rival; anything\nelse leaves it open.",
       "properties": {
         "window": {
           "$ref": "#/$defs/Window",
           "description": "the minutes not yet played when the tests were made"
         },
-        "rival_hypothesis_id": {
-          "title": "Rival Hypothesis Id",
-          "type": "string"
-        },
-        "rival_cause": {
-          "$ref": "#/$defs/Cause"
-        },
-        "rival_agent": {
-          "$ref": "#/$defs/AgentRole"
-        },
-        "rival_team": {
-          "title": "Rival Team",
-          "type": "string"
+        "rivals": {
+          "items": {
+            "$ref": "#/$defs/Rival"
+          },
+          "maxItems": 2,
+          "minItems": 1,
+          "title": "Rivals",
+          "type": "array"
         },
         "tests": {
           "items": {
             "$ref": "#/$defs/DecisiveTest"
           },
-          "maxItems": 2,
+          "maxItems": 3,
           "minItems": 1,
           "title": "Tests",
           "type": "array"
@@ -457,10 +452,7 @@
       },
       "required": [
         "window",
-        "rival_hypothesis_id",
-        "rival_cause",
-        "rival_agent",
-        "rival_team",
+        "rivals",
         "tests"
       ],
       "title": "FollowUp",
@@ -727,6 +719,33 @@
         "reason"
       ],
       "title": "Revision",
+      "type": "object"
+    },
+    "Rival": {
+      "description": "A cause that survived beside the primary, on its own team's side.",
+      "properties": {
+        "hypothesis_id": {
+          "title": "Hypothesis Id",
+          "type": "string"
+        },
+        "cause": {
+          "$ref": "#/$defs/Cause"
+        },
+        "agent": {
+          "$ref": "#/$defs/AgentRole"
+        },
+        "team": {
+          "title": "Team",
+          "type": "string"
+        }
+      },
+      "required": [
+        "hypothesis_id",
+        "cause",
+        "agent",
+        "team"
+      ],
+      "title": "Rival",
       "type": "object"
     },
     "Subject": {

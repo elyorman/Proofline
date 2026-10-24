@@ -237,23 +237,42 @@ class DecisiveTest(BaseModel):
         return self
 
 
+class Rival(BaseModel):
+    """A cause that survived beside the primary, on its own team's side."""
+
+    hypothesis_id: str
+    cause: Cause
+    agent: AgentRole
+    team: str
+
+
 class FollowUp(BaseModel):
-    """Keep watching: two causes survived and the data could not tell them apart, so each
-    side pre-registered a decisive test for the minutes after the card. Only the primary's
-    holding confirms it; only the rival's overturns it; both or neither leave it open."""
+    """Keep watching: causes survived beside the primary and the data could not tell them
+    apart, so each side pre-registered a decisive test for the minutes after the card. Only
+    the primary's holding confirms it; only one rival's overturns it to that rival; anything
+    else leaves it open."""
 
     window: Window = Field(description="the minutes not yet played when the tests were made")
-    rival_hypothesis_id: str
-    rival_cause: Cause
-    rival_agent: AgentRole
-    rival_team: str
-    tests: list[DecisiveTest] = Field(min_length=1, max_length=2)
+    rivals: list[Rival] = Field(min_length=1, max_length=2)
+    tests: list[DecisiveTest] = Field(min_length=1, max_length=3)
     status: Literal["pending", "confirmed", "overturned", "unresolved"] = "pending"
+
+    @property
+    def overturned_to(self) -> Rival | None:
+        """The rival a settled follow-up names instead of the primary, if any."""
+        if self.status != "overturned":
+            return None
+        (won,) = [t for t in self.tests if t.side == "rival" and t.holds]
+        return next(r for r in self.rivals if r.hypothesis_id == won.hypothesis_id)
 
     @model_validator(mode="after")
     def _settled(self) -> "FollowUp":
-        if len({t.side for t in self.tests}) != len(self.tests):
+        ids = [t.hypothesis_id for t in self.tests]
+        if len(ids) != len(set(ids)) or sum(t.side == "primary" for t in self.tests) > 1:
             raise ValueError("one decisive test per side")
+        rivals = {r.hypothesis_id for r in self.rivals}
+        if any((t.side == "rival") != (t.hypothesis_id in rivals) for t in self.tests):
+            raise ValueError("a rival's test is one of the follow-up's rivals'")
         if self.status == "pending":
             if any(t.holds is not None for t in self.tests):
                 raise ValueError("a pending follow-up has measured nothing")
@@ -261,12 +280,12 @@ class FollowUp(BaseModel):
         if any(t.holds is None for t in self.tests):
             raise ValueError("a settled follow-up has judged every test")
         primary = any(t.holds for t in self.tests if t.side == "primary")
-        rival = any(t.holds for t in self.tests if t.side == "rival")
+        held = sum(bool(t.holds) for t in self.tests if t.side == "rival")
         expected = (
             "confirmed"
-            if primary and not rival
+            if primary and not held
             else "overturned"
-            if rival and not primary
+            if held == 1 and not primary
             else "unresolved"
         )
         if self.status != expected:
@@ -374,7 +393,12 @@ class InsightCard(BaseModel):
         if self.status == CardStatus.REVISED and self.revision < 2:
             raise ValueError("a revised card is at revision 2 or later")
         if self.follow_up and self.primary_cause:
-            names_rival = self.primary_cause.hypothesis_id == self.follow_up.rival_hypothesis_id
-            if names_rival != (self.follow_up.status == "overturned"):
-                raise ValueError("a card names its rival as primary exactly when overturned")
+            won = self.follow_up.overturned_to
+            names = self.primary_cause.hypothesis_id
+            if names in {r.hypothesis_id for r in self.follow_up.rivals} and names != (
+                won.hypothesis_id if won else None
+            ):
+                raise ValueError("a card names a rival as primary only when overturned to it")
+            if won and names != won.hypothesis_id:
+                raise ValueError("an overturned card names the rival that came true")
         return self

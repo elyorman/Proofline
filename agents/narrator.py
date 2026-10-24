@@ -204,27 +204,34 @@ def variants(
 
 # Keep watching (agents/follow_up.py): one sentence per state, English and Spanish.
 PENDING = (
-    "We'll check it against {rival} by {end}'.",
-    "Lo comprobaremos frente a {rival} antes del minuto {end}.",
+    "We'll check it against {rivals} by {end}'.",
+    "Lo comprobaremos frente a {rivals} antes del minuto {end}.",
 )
 CHECKED = ("Checked by {end}': not {loser}.", "Comprobado en el minuto {end}: no es {loser}.")
 STILL_OPEN = (
-    "It could be {cause} or {rival}: by {end}' the numbers still fit both.",
-    "Puede ser {cause} o {rival}: en el minuto {end} los números aún encajan con ambos.",
+    "It could be {causes}: by {end}' the numbers still fit {every}.",
+    "Puede ser {causes}: en el minuto {end} los números aún encajan con {every}.",
 )
+EVERY = {2: ("both", "ambas"), 3: ("all three", "las tres")}
+AND, OR, NOR = ("and", "y"), ("or", "o"), ("or", "ni")
+
+
+def _listed(items: list[str], word: str) -> str:
+    return items[0] if len(items) == 1 else f"{', '.join(items[:-1])} {word} {items[-1]}"
 
 
 def _follow_up(card: InsightCard, locale: int) -> str:
     f, primary = card.follow_up, card.primary_cause
     end = f.window.end.minute
-    rival = cause_phrase(f.rival_cause, f.rival_team, locale)
+    rivals = [cause_phrase(r.cause, r.team, locale) for r in f.rivals]
     if f.status == "pending":
-        return PENDING[locale].format(rival=rival, end=end)
+        return PENDING[locale].format(rivals=_listed(rivals, AND[locale]), end=end)
     if f.status == "unresolved":
-        cause = cause_phrase(primary.cause, card.subject.team, locale)
-        return STILL_OPEN[locale].format(cause=cause, rival=rival, end=end)
+        causes = [cause_phrase(primary.cause, card.subject.team, locale), *rivals]
+        every = EVERY[len(causes)][locale]
+        return STILL_OPEN[locale].format(causes=_listed(causes, OR[locale]), end=end, every=every)
     if f.status == "confirmed":
-        return CHECKED[locale].format(end=end, loser=rival)
+        return CHECKED[locale].format(end=end, loser=_listed(rivals, NOR[locale]))
     was = next(r for r in card.rejected_alternatives if r.rejected_by == "follow_up")
     return CHECKED[locale].format(end=end, loser=cause_phrase(was.taxonomy, was.team, locale))
 

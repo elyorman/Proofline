@@ -28,9 +28,9 @@ change ('pressing harder', 'going long more often', 'sprinting less') narrate it
 and are entailed when the metric moved that way. A rejected alternative is a cause the \
 investigation ruled out; naming it as ruled out is entailed. A 'follow_up' is a check on \
 the minutes after the card: while it is pending, saying it will be checked against its \
-'against' cause by the end of its minutes is entailed; once settled, 'not <cause>' is \
-entailed for the cause it ruled out, and when it is unresolved, saying it could be either \
-cause is entailed. Keep each reason under 20 words."""
+'against' causes by the end of its minutes is entailed; once settled, 'not <cause>' is \
+entailed for each cause it ruled out, and when it is unresolved, saying it could be any of \
+the causes is entailed. Keep each reason under 20 words."""
 
 
 class SentenceCheck(BaseModel):
@@ -93,14 +93,14 @@ def _follow_up(card: InsightCard) -> dict:
     f = card.follow_up
     out = {
         "status": f.status,
-        "against": narrator.cause_phrase(f.rival_cause, f.rival_team, 0),
+        "against": [narrator.cause_phrase(r.cause, r.team, 0) for r in f.rivals],
         "minutes": str(f.window),
     }
     if f.status == "confirmed":
         out["ruled_out"] = out["against"]
     elif f.status == "overturned":
         was = next(r for r in card.rejected_alternatives if r.rejected_by == "follow_up")
-        out["ruled_out"] = narrator.cause_phrase(was.taxonomy, was.team, 0)
+        out["ruled_out"] = [narrator.cause_phrase(was.taxonomy, was.team, 0)]
     return out
 
 

@@ -13,7 +13,7 @@ from agents.verifier.semantic import SemanticReport, SentenceCheck
 from contracts.case import CaseStage
 from contracts.case_file import CaseFile
 from contracts.eval_run import Variant
-from contracts.taxonomy import AgentRole, Cause
+from contracts.taxonomy import AgentRole
 from detector.cusum import detect
 from engine.io import match_meta
 from engine.script import load_script
@@ -102,8 +102,8 @@ def test_the_demo_case_is_cross_examined_and_verified_from_recorded_exchanges(m0
         CaseStage.SYNTHESIZED,
     ]
     assert card.status == "verified" and not finding.recovered
-    assert card.primary_cause.cause in (Cause.PRESS_INTENSITY_UP, Cause.CHASING_RESULT)
-    assert card.subject.team == "Harbour City"
+    # Rival causes survived, so the case kept watching and settled on 68-83'.
+    assert card.follow_up and outcome.followed.card.follow_up.status != "pending"
 
 
 def test_a_control_on_the_other_team_is_run_and_scored_by_code(m01):

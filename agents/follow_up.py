@@ -29,6 +29,7 @@ from contracts.card import (
     InsightCard,
     RejectedAlternative,
     Revision,
+    Rival,
     Subject,
 )
 from contracts.clock import MatchClock, Window
@@ -42,7 +43,6 @@ from tools_server.server import FeedSource, MemorySink, build_server
 
 MINUTES = 15  # how far ahead each side predicts
 LEAST = 10  # with fewer minutes left in the match, nothing can be settled
-BUDGET = 4  # two tests, each a metric and its baseline
 
 
 def survivors(finding: Finding) -> list[Tested]:
@@ -51,21 +51,27 @@ def survivors(finding: Finding) -> list[Tested]:
     return [t for t in finding.tested if t.supported and t.hypothesis.hypothesis_id not in refuted]
 
 
-def rival(finding: Finding, feed: Feed) -> Tested | None:
-    """The strongest survivor naming another cause, or another team, than the primary."""
+RIVALS = 2  # the most causes watched beside the primary
+BUDGET = 2 * (RIVALS + 1)  # every side's test, each a metric and its baseline
+
+
+def rivals(finding: Finding, feed: Feed) -> list[Tested]:
+    """The strongest survivors naming another cause, or another team, than the primary,
+    one per cause and team, strongest first."""
     primary = finding.tested_by_id(finding.ranking.primary)
     meta = feed.meta
-    named = (primary.hypothesis.taxonomy, cause_team(meta, primary.hypothesis))
-    others = [
-        t
-        for t in survivors(finding)
-        if (t.hypothesis.taxonomy, cause_team(meta, t.hypothesis)) != named
-    ]
-    return max(
-        others,
+    named = {(primary.hypothesis.taxonomy, cause_team(meta, primary.hypothesis))}
+    out = []
+    for t in sorted(
+        survivors(finding),
         key=lambda t: abs(t.test.observed_change) / t.hypothesis.prediction.min_change,
-        default=None,
-    )
+        reverse=True,
+    ):
+        side = (t.hypothesis.taxonomy, cause_team(meta, t.hypothesis))
+        if side not in named and len(out) < RIVALS:
+            named.add(side)
+            out.append(t)
+    return out
 
 
 def minutes_after(at: MatchClock) -> Window | None:
@@ -88,19 +94,38 @@ def _side(t: Tested, feed: Feed) -> dict:
 
 
 def _test(
-    answer: Decisive, side: str, own: Tested, against: Tested, taken: list[DecisiveTest], feed: Feed
+    answer: Decisive,
+    side: str,
+    own: Tested,
+    against: list[Tested],
+    taken: list[DecisiveTest],
+    under_way: set[tuple],
+    feed: Feed,
 ) -> DecisiveTest:
-    """The side's test, if it can decide: not the other side's own claim, which the other
-    cause predicts too, and not the prediction the other side already made."""
+    """The side's test, if it can decide: not another side's own claim, which that side's
+    cause predicts too, not a prediction another side already made, and not a change already
+    under way, which every surviving cause fits."""
     if answer.metric not in MEASURED:
         raise ValueError(f"{answer.metric} is not measurable")
     resolve(feed.meta, answer.subject)
     said = (answer.metric, answer.subject, answer.direction)
-    p = against.hypothesis.prediction
-    if said == (p.metric, p.subject, p.direction):
-        raise ValueError("that is the rival's own claim, so the rival's cause predicts it too")
+    if any(
+        said
+        == (
+            o.hypothesis.prediction.metric,
+            o.hypothesis.prediction.subject,
+            o.hypothesis.prediction.direction,
+        )
+        for o in against
+    ):
+        raise ValueError("that is a rival's own claim, so the rival's cause predicts it too")
+    if said in under_way:
+        raise ValueError(
+            "that change is already under way and every surviving cause fits what was seen, "
+            "so its going on cannot decide"
+        )
     if any(said == (t.metric, t.subject, t.direction) for t in taken):
-        raise ValueError("the other side predicts the same, so it cannot tell the causes apart")
+        raise ValueError("another side predicts the same, so it cannot tell the causes apart")
     return DecisiveTest(
         side=side,
         hypothesis_id=own.hypothesis.hypothesis_id,
@@ -121,22 +146,34 @@ class Opened:
 
 
 async def open_follow_up(model: Model, finding: Finding, card: InsightCard, feed: Feed) -> Opened:
-    """The decisive tests both sides pre-register, or None when no rival survived or too
-    little of the match is left. Each side is asked by its own agent; in variant B the one
-    agent answers for both."""
+    """The decisive tests every side pre-registers, or None when no rival survived or too
+    little of the match is left. The primary's test must tell it from every rival, each
+    rival's from the primary. Each side is asked by its own agent; in variant B the one
+    agent answers for all."""
     window = minutes_after(card.timing.verified_at or card.timing.detected_at)
-    other = rival(finding, feed) if finding.ranking.primary else None
-    if window is None or other is None:
+    others = rivals(finding, feed) if finding.ranking.primary else []
+    if window is None or not others:
         return Opened(None, Usage(), [])
     primary = finding.tested_by_id(finding.ranking.primary)
+    sides = [("primary", primary, others)] + [("rival", o, [primary]) for o in others]
+    # What already moved beyond ordinary play over the card's window: the change it explains
+    # and either team's measured readings.
+    under_way = {
+        (r.metric, r.subject, Direction.UP if r.sigmas > 0 else Direction.DOWN)
+        for r in finding.case.both_teams
+        if r.sigmas is not None and abs(r.sigmas) >= MOVE_SD
+    }
+    if finding.explained:
+        q = finding.explained[0]
+        under_way.add((q.metric, q.subject, q.direction))
     tests, usage, refused = [], Usage(), []
-    for side, own, against in (("primary", primary, other), ("rival", other, primary)):
+    for side, own, against in sides:
         prompt = prompts.follow_up_prompt(
             finding.case,
             feed.meta,
             finding.score,
             _side(own, feed),
-            _side(against, feed),
+            [_side(a, feed) for a in against],
             str(window),
         )
         for _ in range(2):  # a test code refuses is put back once, with why
@@ -149,7 +186,7 @@ async def open_follow_up(model: Model, finding: Finding, card: InsightCard, feed
                 break
             usage = usage + used
             try:
-                tests.append(_test(answer, side, own, against, tests, feed))
+                tests.append(_test(answer, side, own, against, tests, under_way, feed))
                 break
             except ValueError as exc:
                 why = str(exc).splitlines()[0][:200]
@@ -159,10 +196,15 @@ async def open_follow_up(model: Model, finding: Finding, card: InsightCard, feed
         return Opened(None, usage, refused)
     follow_up = FollowUp(
         window=window,
-        rival_hypothesis_id=other.hypothesis.hypothesis_id,
-        rival_cause=other.hypothesis.taxonomy,
-        rival_agent=other.hypothesis.agent,
-        rival_team=cause_team(feed.meta, other.hypothesis),
+        rivals=[
+            Rival(
+                hypothesis_id=o.hypothesis.hypothesis_id,
+                cause=o.hypothesis.taxonomy,
+                agent=o.hypothesis.agent,
+                team=cause_team(feed.meta, o.hypothesis),
+            )
+            for o in others
+        ],
         tests=tests,
     )
     return Opened(follow_up, usage, refused)
@@ -227,12 +269,12 @@ async def settle(follow_up: FollowUp, feed: Feed) -> Settled:
         )
         readings.append((judged[-1], during, before))
     primary = any(t.holds for t in judged if t.side == "primary")
-    other = any(t.holds for t in judged if t.side == "rival")
+    held = sum(bool(t.holds) for t in judged if t.side == "rival")
     status = (
         "confirmed"
-        if primary and not other
+        if primary and not held
         else "overturned"
-        if other and not primary
+        if held == 1 and not primary
         else "unresolved"
     )
     settled = follow_up.model_copy(update={"tests": judged, "status": status})
@@ -249,7 +291,8 @@ def resolved(card: InsightCard, settled: Settled, finding: Finding, feed: Feed) 
     # own test unless the card shows it already; then each decisive test that was measured.
     measured = []
     if f.status == "overturned":
-        other = finding.tested_by_id(f.rival_hypothesis_id)
+        won = f.overturned_to
+        other = finding.tested_by_id(won.hypothesis_id)
         p = other.hypothesis.prediction
         if all(e.tool_call_id != other.during.tool_call_id for e in card.evidence):
             measured.append((p.metric, p.subject, p.window, other.during, other.before))
@@ -302,7 +345,7 @@ def resolved(card: InsightCard, settled: Settled, finding: Finding, feed: Feed) 
             if a.id == was.id
             else a
             for a in card.attributions
-            if a.hypothesis_id != f.rival_hypothesis_id
+            if a.hypothesis_id != won.hypothesis_id
         ]
         failed = next((t for t in f.tests if t.side == "primary"), None)
         ruled_out = RejectedAlternative(
@@ -320,9 +363,7 @@ def resolved(card: InsightCard, settled: Settled, finding: Finding, feed: Feed) 
                 p.model_dump(mode="json") for p in card.propositions if p.type == "change"
             ]
             + [a.model_dump(mode="json") for a in attributions],
-            "subject": Subject(team=f.rival_team, players=card.subject.players).model_dump(
-                mode="json"
-            ),
+            "subject": Subject(team=won.team, players=card.subject.players).model_dump(mode="json"),
             "rejected_alternatives": [
                 r.model_dump(mode="json") for r in [*card.rejected_alternatives, ruled_out]
             ],

@@ -8,7 +8,7 @@ import { cards, cues, profile, amendments, caseFiles, answers } from './fixtures
 import type { Locale } from './i18n';
 import { Insights } from './Insights';
 import { Activity, EventFeed, Pitch } from './Pitch';
-import { clockAt, displayTime, elapsedAt, formatClock, scoreAt, teamStats, visibleCards, type ProducerDecision } from './replay';
+import { clockAt, displayTime, displayElapsed, elapsedAt, formatClock, scoreAt, teamStats, visibleCards, type ProducerDecision } from './replay';
 import { Crest, Icon, LocaleContext, SectionTitle, ViewBoundary, useText } from './ui';
 
 type Route = 'fan' | 'analyst' | 'broadcast' | 'overlay';
@@ -52,7 +52,8 @@ function Workspace({ locale, setLocale }: { locale: Locale; setLocale: (locale: 
     loadReplay(controller.signal).then(replay => {
       if (controller.signal.aborted) return;
       setData(replay);
-      setElapsed(pressureCard ? elapsedAt(displayTime(pressureCard), replay.timeline.firstHalfSeconds) : 0);
+      const start = pressureCard && displayTime(pressureCard);
+      setElapsed(start ? elapsedAt(start, replay.timeline.firstHalfSeconds) : 0);
     }).catch(() => { if (!controller.signal.aborted) setError(true); });
     return () => controller.abort();
   }, [attempt]);
@@ -88,7 +89,7 @@ function Workspace({ locale, setLocale }: { locale: Locale; setLocale: (locale: 
   const full = elapsed >= data.timeline.duration;
   const score = scoreAt(data.timeline, elapsed, data.teams.map(t => t.name));
   const currentCards = visibleCards(cards, elapsed, firstHalf);
-  const publishedRevisions = cards.filter(c => elapsedAt(displayTime(c), firstHalf) <= elapsed);
+  const publishedRevisions = cards.filter(c => displayElapsed(c, firstHalf) <= elapsed);
   const stats = data.teams.map(team => teamStats(delivered.map(d => d.event), team.name));
   const roster = data.teams.find(team => team.name === favorite)?.players ?? data.teams[0].players;
   const openCase = (id: string) => { setSelected(id); location.hash = '/analyst'; };
@@ -99,12 +100,12 @@ function Workspace({ locale, setLocale }: { locale: Locale; setLocale: (locale: 
   };
   const jumps = [
     { key: 'start', at: 0 },
-    { key: 'flank', at: flankCard ? elapsedAt(displayTime(flankCard), firstHalf) : 0 },
-    { key: 'press', at: pressureCard ? elapsedAt(displayTime(pressureCard), firstHalf) : 0 },
+    { key: 'flank', at: flankCard ? displayElapsed(flankCard, firstHalf) : 0 },
+    { key: 'press', at: pressureCard ? displayElapsed(pressureCard, firstHalf) : 0 },
     ...cues.filter(c => c.kind === 'withdrawal').slice(0, 1).map(cue => ({ key: 'overlay', at: elapsedAt(cue.show_at.not_before, firstHalf) })),
-    { key: 'correction', at: withdrawal ? elapsedAt(displayTime(withdrawal), firstHalf) : 0 },
+    { key: 'correction', at: withdrawal ? displayElapsed(withdrawal, firstHalf) : 0 },
     { key: 'full', at: data.timeline.duration },
-  ];
+  ].filter(jump => Number.isFinite(jump.at));
   return <div className="app-shell">
     <aside className="sidebar"><a href="#/fan" className="brand" aria-label={text('brand.name')}><span className="brand-icon"><i /><i /><i /></span><span className="wordmark">{text('brand.wordmark')}<span>↗</span></span></a><p className="brand-caption">{text('brand.caption')}</p>
       <span className="nav-label">{text('nav.workspace')}</span>

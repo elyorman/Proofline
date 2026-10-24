@@ -1,7 +1,7 @@
 import { useId, useState, type FormEvent } from 'react';
 import type { Answer } from './types/answer';
 import type { ReplayData } from './data';
-import { displayTime, elapsedAt, formatClock } from './replay';
+import { displayElapsed, elapsedAt, formatClock } from './replay';
 import { t, type Locale } from './i18n';
 import { Insight } from './Insights';
 import { PersistenceView } from './Investigation';
@@ -23,7 +23,8 @@ export function answerCard(answer: Answer, elapsed: number, firstHalf: number) {
   if (answer.outcome !== 'explained' || !card || !['passed', 'corrected'].includes(card.verification?.status ?? '')
     || !['verified', 'scheduled', 'shown', 'revised'].includes(card.status ?? '')
     || elapsed < elapsedAt(answer.question.asked_at, firstHalf)
-    || elapsed < elapsedAt(displayTime(card), firstHalf)) return undefined;
+    || !Number.isFinite(displayElapsed(card, firstHalf))
+    || elapsed < displayElapsed(card, firstHalf)) return undefined;
   return card;
 }
 
@@ -44,6 +45,7 @@ export function AnswerView({ answer, data, elapsed }: { answer: Answer; data: Re
     {premise ? <p>{text(`ask.premise.${premise.direction}`, { subject, metric: text(`metric.${premise.metric}`), clock: formatClock(premise.since) })}</p> : <p>{text('ask.noPremise')}</p>}
     {answer.premise_test && <PersistenceView item={answer.premise_test} />}
     {card && <Insight card={card} />}
+    {answer.outcome === 'explained' && answer.card && !card && <p className="muted ask-time-note">{text('ask.cardUnavailable')}</p>}
   </section>;
 }
 

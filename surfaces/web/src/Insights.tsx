@@ -54,10 +54,12 @@ export function Insight({ card, onOpen, mode = 'casual' }: { card: InsightCard; 
   const labelId = useId();
   const content = cardText(card, mode === 'data' ? 'analyst' : 'casual');
   const support = card.verification?.support_level;
+  const at = displayTime(card);
+  if (!at) return null;
   return <article className={`insight-card ${withdrawn ? 'withdrawn' : ''} ${keyEvent ? 'key-event' : ''}`} aria-labelledby={labelId}>
     <div className="insight-top">
       <span className="card-kind"><Icon name={withdrawn ? 'reset' : 'evidence'} size={15} />{text(isStandInCard(card) ? 'fixture.short' : 'record.backend')}</span>
-      <time>{formatClock(displayTime(card))}</time>
+      <time>{formatClock(at)}</time>
     </div>
     <p className="insight-team">{card.subject.team}<span> · {text('insights.revision', { number: card.revision ?? 1 })}</span></p>
     <h3 id={labelId}>{content ?? text('insights.noVariant')}</h3>

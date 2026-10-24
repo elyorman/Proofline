@@ -54,14 +54,18 @@ The generated event feed stays in ignored `public/fixtures/m01/`; `data/`,
 ## Views and demo beats
 
 - **Fan companion (`#/fan`).** Cards appear at `published_at`, falling back to
-  `verified_at`, then `detected_at` for fast-lane records. The 62:00 cards precede
+  `verified_at`. Cards with neither timestamp are withheld, including fast-lane
+  records; detection time never publishes a card. The 62:00 cards precede
   the 68:00 press explanation. At 70:00 the flank card becomes its withdrawal in
   the same position; the press explanation stays. How we know reveals supplied
   evidence, rejected alternatives and revision history.
 - **Ask Proofline (fan and console).** Five localized suggestion chips jump to
   the recorded question time. The response uses the narrator's locale, explains
   the premise in plain words, shows code's measured premise test and, when
-  explained, the verified card with How we know. Rewinding hides a future
+  explained with a recorded publication or verification time, the verified card
+  with How we know. The two current explained answers lack both timestamps, so
+  their cards are withheld with a localized notice while their answer text and
+  premise tests remain visible. Rewinding hides a future
   answer. An unknown typed question explicitly requires Run live, which is
   unavailable in this public replay. No request is sent.
 - **Investigation (`#/analyst`).** Select any recorded case, including the faded
@@ -129,6 +133,8 @@ comparison pairing. No dependencies were added.
   validation-mode JSON schema. The UI reads that recorded value through a typed
   extension; it does not derive a verdict. Exporting the serialization schema
   would make this explicit in generated TypeScript.
+- Question-card producers should record `verified_at` (or `published_at`) so
+  saved explanation cards can be displayed without inventing a timestamp.
 - Recovery shows the recorded flag and completed/failed agents per checkpoint.
   Case files do not identify successfully retried agents separately.
 - Evaluation scores and trace URLs are not supplied. Their UI remains empty or

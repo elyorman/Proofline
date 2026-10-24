@@ -43,9 +43,9 @@ describe('replay boundaries', () => {
     expect(() => timelineWithEnds([event('period_end', 46, 1)])).toThrow('Incomplete replay');
     expect(() => timelineWithEnds([event('pass', 47, 1)])).toThrow('Event after period_end');
   });
-  it('uses publication or confirmation time before falling back to detection', () => {
+  it('uses only publication or verification time for card visibility', () => {
     expect(press.timing.verified_at?.minute).toBe(68);
-    const at = elapsedAt(displayTime(press), 2820);
+    const at = elapsedAt(displayTime(press)!, 2820);
     expect(visibleCards([press], at - 1, 2820)).toEqual([]);
     expect(visibleCards([press], at, 2820)).toEqual([press]);
     const scheduled = { ...press, timing: { ...press.timing, published_at: { period: 2 as const, minute: 69, second: 0 } } };
@@ -54,6 +54,10 @@ describe('replay boundaries', () => {
     const unpublished = { ...press, timing: { ...press.timing, published_at: null } };
     expect(displayTime(unpublished)).toEqual(press.timing.verified_at);
     expect(visibleCards([unpublished], 63 * 60, 2700)).toEqual([]);
+    const undated = { ...press, timing: { ...press.timing, published_at: null, verified_at: null } };
+    expect(displayTime(undated)).toBeUndefined();
+    expect(visibleCards([undated], 6000, 2700)).toEqual([]);
+    expect(visibleCards([{ ...undated, lane: 'fast' }], 6000, 2700)).toEqual([]);
   });
   it('replaces a withdrawal in place without moving it above a newer card', () => {
     const before = visibleCards(cards, 69 * 60, 2700);

@@ -51,8 +51,13 @@ export function scoreAt(timeline: Timeline, elapsed: number, teams: string[]): n
     at <= elapsed && event.type === 'goal' && event.team === team).length);
 }
 
-export function displayTime(card: InsightCard): MatchClock {
-  return card.timing.published_at ?? card.timing.verified_at ?? card.timing.detected_at;
+export function displayTime(card: InsightCard): MatchClock | undefined {
+  return card.timing.published_at ?? card.timing.verified_at ?? undefined;
+}
+
+export function displayElapsed(card: InsightCard, firstHalfSeconds: number): number {
+  const time = displayTime(card);
+  return time ? elapsedAt(time, firstHalfSeconds) : Infinity;
 }
 
 export function variantText(card: InsightCard, audience: string, locale: string): string | undefined {
@@ -66,7 +71,8 @@ export function visibleCards(cards: InsightCard[], elapsed: number, firstHalfSec
   const firstDisplay = new Map<string, number>();
   for (const card of cards) {
     if (!['verified', 'scheduled', 'shown', 'revised', 'withdrawn'].includes(card.status ?? '')) continue;
-    const at = elapsedAt(displayTime(card), firstHalfSeconds);
+    const at = displayElapsed(card, firstHalfSeconds);
+    if (!Number.isFinite(at)) continue;
     if (at > elapsed) continue;
     if (card.lane !== 'fast' && card.status !== 'withdrawn' && !['passed', 'corrected'].includes(card.verification?.status ?? '')) continue;
     if (card.status === 'withdrawn' && card.verification?.status !== 'rejected') continue;

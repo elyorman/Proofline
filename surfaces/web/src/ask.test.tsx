@@ -29,15 +29,23 @@ describe('recorded questions', () => {
     expect(html).toContain('76:00');
     expect(html).not.toContain('recorded-answer');
   });
-  it('shows narrator text, the plain premise, code measurements and How we know', () => {
+  it('keeps the recorded answer and premise visible while withholding its undated card', () => {
     const html = render(<AnswerView answer={explained} data={data} elapsed={6000} />);
     expect(html).toContain(renderToStaticMarkup(<h3>{explained.text.en}</h3>));
     expect(html).toContain('Northvale has increased this measure: Long-ball share');
     expect(html).toContain('7.17 sd');
-    expect(html).toContain('How we know');
+    expect(html).not.toContain('insight-card');
+    expect(html).toContain('no available recorded display time');
     const spanish = render(<AnswerView answer={explained} data={data} elapsed={6000} />, 'es');
     expect(spanish).toContain(renderToStaticMarkup(<h3>{explained.text.es}</h3>));
-    expect(spanish).toContain('Cómo lo sabemos');
+    expect(spanish).not.toContain('insight-card');
+    expect(spanish).toContain('momento de presentación');
+  });
+  it('shows How we know when a verified answer card has a recorded display time', () => {
+    const dated = structuredClone(explained);
+    dated.card!.timing.verified_at = dated.question.asked_at;
+    expect(render(<AnswerView answer={dated} data={data} elapsed={6000} />)).toContain('How we know');
+    expect(render(<AnswerView answer={dated} data={data} elapsed={6000} />, 'es')).toContain('Cómo lo sabemos');
   });
   it('shows a failed premise without an explanation card, including named players', () => {
     for (const answer of answers.filter(a => a.outcome === 'premise_false')) {
@@ -49,9 +57,14 @@ describe('recorded questions', () => {
     }
   });
   it('requires explained, verified and clock-available cards', () => {
-    expect(answerCard(explained, 6000, 2700)).toBeDefined();
+    expect(answerCard(explained, 6000, 2700)).toBeUndefined();
+    const dated = structuredClone(explained);
+    dated.card!.timing.verified_at = dated.question.asked_at;
+    expect(answerCard(dated, 6000, 2700)).toBeDefined();
+    dated.card!.timing.published_at = { period: 2, minute: 76, second: 0 };
+    expect(answerCard(dated, 70 * 60, 2700)).toBeUndefined();
     expect(answerCard(explained, 0, 2700)).toBeUndefined();
-    const rejected = structuredClone(explained);
+    const rejected = structuredClone(dated);
     rejected.card!.verification!.status = 'rejected';
     expect(answerCard(rejected, 6000, 2700)).toBeUndefined();
     rejected.card = null;

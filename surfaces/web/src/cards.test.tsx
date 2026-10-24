@@ -16,6 +16,10 @@ const render = (node: ReactNode, locale: Locale = 'en') =>
   renderToStaticMarkup(<LocaleContext.Provider value={locale}>{node}</LocaleContext.Provider>);
 
 describe('faithful card rendering', () => {
+  it('withholds a card without a recorded verification or publication time', () => {
+    const undated = { ...press, timing: { ...press.timing, verified_at: null, published_at: null } };
+    expect(render(<Insight card={undated} />)).toBe('');
+  });
   it('shows the actual Spanish variant, recorded support and recorded rejection reasons', () => {
     const html = render(<Insight card={press} onOpen={() => {}} />, 'es');
     expect(html).toContain(press.variants!.casual.es);

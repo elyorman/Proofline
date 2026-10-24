@@ -40,6 +40,8 @@ describe('template-driven overlay', () => {
   });
   it('withholds cues linked to unverified cards or superseded revisions', () => {
     expect(publishedCues([cue], [{ ...press, verification: null }], 68 * 60, 2700)).toEqual([]);
+    const undated = { ...press, timing: { ...press.timing, verified_at: null, published_at: null } };
+    expect(publishedCues([cue], [undated], 90 * 60, 2700)).toEqual([]);
     const withdrawal = cards.find(card => card.status === 'withdrawn')!;
     const oldCue = { ...cue, insight_id: withdrawal.id, insight_revision: 1 };
     expect(publishedCues([oldCue], cards, 71 * 60, 2700)).toEqual([]);

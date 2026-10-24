@@ -1,6 +1,7 @@
 export type Locale = 'en' | 'es';
 
 const en = {
+  'ask.cardUnavailable': 'The explanation card has no available recorded display time yet.',
   "compare.toggle": "Compare with one agent",
   "compare.recorded": "Same 63′ moment · one recorded A/B run",
   "compare.A": "A · Three agents",
@@ -202,6 +203,7 @@ const en = {
 } as const;
 
 const es: Record<keyof typeof en, string> = {
+  'ask.cardUnavailable': 'La tarjeta explicativa aún no tiene un momento de presentación grabado disponible.',
   "compare.toggle": "Comparar con un agente",
   "compare.recorded": "Mismo momento del minuto 63 · una ejecución A/B grabada",
   "compare.A": "A · Tres agentes",

@@ -21,9 +21,10 @@ export function RevisionHistory({ card, snapshots }: { card: InsightCard; snapsh
   const cardText = useCardText();
   const original = snapshots.find(c => c.id === card.id && (c.revision ?? 1) === 1)
     ?? ((card.revision ?? 1) === 1 ? card : undefined);
+  const originalAt = original && displayTime(original);
   return <div className="revision-list">
-    {original && <article><span className="revision-dot" />
-      <span className="eyebrow">{text('insights.revision', { number: 1 })} · {formatClock(displayTime(original))}</span>
+    {original && originalAt && <article><span className="revision-dot" />
+      <span className="eyebrow">{text('insights.revision', { number: 1 })} · {formatClock(originalAt)}</span>
       <p>{cardText(original)}</p><small className="status">{text(`status.${original.status}`)}</small>
     </article>}
     {card.revisions?.map(revision => {
@@ -121,8 +122,8 @@ export function Analyst({ cards, allRevisions, selected, onSelect, amendments = 
   const tabs = ['investigation', 'overview', 'verification', 'history', 'evaluation'];
   return <div className="analyst-layout"><aside className="panel case-list"><SectionTitle title={text('case.list')} />
     {files.slice().reverse().map(f => <button className={`case-row ${f === file ? 'selected' : ''}`} key={`${f.case.case_id}-${f.variant}`} onClick={() => onSelect(f.case.case_id)} aria-pressed={f === file}><span className="case-time">{formatClock(f.case.window.end)}</span><strong>{f.case.triggers[0].subject}</strong><span>{f.case.case_id}</span><small className="status">{text(`outcome.${f.ranking.outcome}`)}</small></button>)}
-    {cards.length ? cards.filter(c => !files.some(f => f.case.case_id === c.case_id)).map(c => <button key={c.id} className={`case-row ${c.id === card?.id ? 'selected' : ''}`} onClick={() => onSelect(c.id)} aria-pressed={c.id === card?.id}>
-      <span className="case-time">{formatClock(displayTime(c))}</span><strong>{c.subject.team}</strong><span>{cardText(c)}</span><small className={`status ${c.status === 'withdrawn' ? 'warn' : ''}`}>{text(`status.${c.status}`)}</small>
+    {cards.length ? cards.filter(c => displayTime(c) && !files.some(f => f.case.case_id === c.case_id)).map(c => <button key={c.id} className={`case-row ${c.id === card?.id ? 'selected' : ''}`} onClick={() => onSelect(c.id)} aria-pressed={c.id === card?.id}>
+      <span className="case-time">{formatClock(displayTime(c)!)}</span><strong>{c.subject.team}</strong><span>{cardText(c)}</span><small className={`status ${c.status === 'withdrawn' ? 'warn' : ''}`}>{text(`status.${c.status}`)}</small>
     </button>) : <p className="muted padded">{text('case.empty')}</p>}
     <div className="live-box"><button disabled className="button"><Icon name="play" size={14} />{text('live')}</button><p>{text('live.unavailable')}</p></div>
   </aside><section className="panel case-content">

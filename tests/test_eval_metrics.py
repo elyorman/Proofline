@@ -28,6 +28,7 @@ def test_exclusions_change_recall_but_never_remove_precision():
                     revision=1,
                     outcome="explained",
                     correct=False,
+                    holds=False,
                     reason="class mismatch",
                 )
             ],
@@ -51,7 +52,14 @@ def test_precision_pools_explained_cards_and_leaves_other_out():
             correct=True,
             reason="matched",
             cards=[
-                dict(card_id="a", revision=1, outcome="explained", correct=True, reason="matched")
+                dict(
+                    card_id="a",
+                    revision=1,
+                    outcome="explained",
+                    correct=True,
+                    holds=True,
+                    reason="matched",
+                )
             ],
         ),
         MatchOutcome(
@@ -60,7 +68,14 @@ def test_precision_pools_explained_cards_and_leaves_other_out():
             correct=False,
             reason="explanation on decoy",
             cards=[
-                dict(card_id=str(i), revision=1, outcome="other", correct=False, reason="wrong")
+                dict(
+                    card_id=str(i),
+                    revision=1,
+                    outcome="other",
+                    correct=False,
+                    holds=False,
+                    reason="wrong",
+                )
                 for i in range(3)
             ],
         ),

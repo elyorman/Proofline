@@ -186,13 +186,22 @@ class FlagSet(BaseModel):
 
 
 class CardOutcome(BaseModel):
-    """One final published card's result, retained for precision scoring."""
+    """One final published card's result. `correct` is the recall match, in time; `holds`
+    is what precision counts: the card names the planted change while it runs, which it does
+    from its start to full time (spec §11.1)."""
 
     card_id: str
     revision: int = Field(ge=1)
     outcome: CaseOutcome
     correct: bool
+    holds: bool
     reason: str
+
+    @model_validator(mode="after")
+    def _a_match_in_time_holds(self) -> "CardOutcome":
+        if self.correct and not self.holds:
+            raise ValueError("a card that matches in time names the change while it runs")
+        return self
 
 
 class MatchOutcome(BaseModel):

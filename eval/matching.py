@@ -43,7 +43,11 @@ def final_cards(
 
 
 def match_card(card: InsightCard, truth: PlantedTruth) -> CardOutcome:
+    """Recall needs the card in time: its window overlaps the truth's observable window. A
+    planted change runs to full time once it starts, so for precision a card is true when it
+    names that change's cause anywhere after it began (`holds`)."""
     reason = "matched"
+    running = False
     primary = card.primary_cause
     if card.match_id != truth.match_id:
         reason = "match mismatch"
@@ -65,15 +69,18 @@ def match_card(card: InsightCard, truth: PlantedTruth) -> CardOutcome:
             reason = "observable mismatch"
         elif effect.direction != observable.direction:
             reason = "direction mismatch"
-        elif not (
-            effect.window.start < truth.window.end and truth.window.start < effect.window.end
-        ):
-            reason = "window does not overlap"
+        else:
+            running = truth.started < effect.window.end
+            if not (
+                effect.window.start < truth.window.end and truth.window.start < effect.window.end
+            ):
+                reason = "window does not overlap"
     return CardOutcome(
         card_id=card.id,
         revision=card.revision,
         outcome=card.case_outcome,
         correct=reason == "matched",
+        holds=running,
         reason=reason,
     )
 

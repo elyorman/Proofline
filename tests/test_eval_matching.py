@@ -220,3 +220,16 @@ def test_an_unpublished_new_revision_does_not_hide_the_shown_revision(bundle, ma
         [bundle], [shown, draft], run_id="fixture", variant="A", model_id="fixture", resamples=50
     )
     assert next(o for o in run.outcomes if o.match_id == truth.match_id) == result
+
+
+def test_a_card_on_the_planted_change_after_its_window_holds_but_is_not_in_time(bundle, make_card):
+    # A planted change runs to full time: a later card naming it is true, so precision counts
+    # it, but recall needs a card in time. A card from before the change began names nothing.
+    truth = bundle.truth.entries[0]
+    raw = make_card(truth).model_dump(mode="json")
+    end = truth.window.end
+    raw["propositions"][0]["window"] = f"{end.minute + 5}:00-{end.minute + 10}:00"
+    late = match_card(InsightCard.model_validate(raw), truth)
+    assert not late.correct and late.holds and late.reason == "window does not overlap"
+    raw["propositions"][0]["window"] = "46:00-51:00"  # every planted change starts after 55'
+    assert not match_card(InsightCard.model_validate(raw), truth).holds

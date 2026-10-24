@@ -1,7 +1,7 @@
 {
   "$defs": {
     "CardOutcome": {
-      "description": "One final published card's result, retained for precision scoring.",
+      "description": "One final published card's result. `correct` is the recall match, in time; `holds`\nis what precision counts: the card names the planted change while it runs, which it does\nfrom its start to full time (spec \u00a711.1).",
       "properties": {
         "card_id": {
           "title": "Card Id",
@@ -19,6 +19,10 @@
           "title": "Correct",
           "type": "boolean"
         },
+        "holds": {
+          "title": "Holds",
+          "type": "boolean"
+        },
         "reason": {
           "title": "Reason",
           "type": "string"
@@ -29,6 +33,7 @@
         "revision",
         "outcome",
         "correct",
+        "holds",
         "reason"
       ],
       "title": "CardOutcome",

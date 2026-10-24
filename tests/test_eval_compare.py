@@ -118,7 +118,12 @@ def test_precision_comparison_resamples_matches_with_all_their_cards():
     for target, count, correct in [(a, 2, True), (b, 3, False)]:
         target.outcomes[0].cards = [
             CardOutcome(
-                card_id=str(i), revision=1, outcome="explained", correct=correct, reason="fixture"
+                card_id=str(i),
+                revision=1,
+                outcome="explained",
+                correct=correct,
+                holds=correct,
+                reason="fixture",
             )
             for i in range(count)
         ]
@@ -137,7 +142,12 @@ def test_precision_comparison_refuses_a_bootstrap_with_no_defined_pairs():
         outcome = min(target.outcomes, key=lambda o: o.match_id)
         outcome.cards = [
             CardOutcome(
-                card_id="fixture", revision=1, outcome="explained", correct=True, reason="fixture"
+                card_id="fixture",
+                revision=1,
+                outcome="explained",
+                correct=True,
+                holds=True,
+                reason="fixture",
             )
         ]
         target.metrics = metrics(target.outcomes)

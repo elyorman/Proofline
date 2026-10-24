@@ -189,6 +189,7 @@ def propose(finding: Finding, feed: Feed) -> InsightCard | None:
             tool_calls=finding.tools.used,
             budget=case.tool_call_budget,
             cross_examination=_cross_examination(finding),
+            recovered_from_checkpoint=finding.recovered,
         ),
         provenance=Provenance(trace_id=uuid.uuid4().hex),
     )

@@ -56,6 +56,7 @@ class Run:
     checkpoints: list[Checkpoint] = field(default_factory=list)
     retried: set[AgentRole] = field(default_factory=set)
     failed: set[AgentRole] = field(default_factory=set)
+    failures: list[str] = field(default_factory=list)  # why, since the last checkpoint
     usage: Usage = field(default_factory=Usage)
     tested: "TestedAll | None" = None
     exams: list[CrossExamination] = field(default_factory=list)
@@ -82,6 +83,8 @@ class Run:
         )
 
     def checkpoint(self, stage: CaseStage, note: str = "") -> None:
+        note = "; ".join(filter(None, [note, *self.failures]))
+        self.failures.clear()
         self.checkpoints.append(
             Checkpoint(
                 stage=stage,
@@ -102,7 +105,8 @@ class Run:
                 return await asyncio.wait_for(step(), AGENT_TIMEOUT_S)
             except MissingFixture:
                 raise
-            except Exception:  # any agent failure is what recovery is for
+            except Exception as exc:  # any agent failure is what recovery is for
+                self.failures.append(f"{role.value} failed: {exc!r}"[:200])
                 self.retried.add(role)
                 if tries == 1:
                     self.failed.add(role)

@@ -192,10 +192,12 @@ def test_an_agent_that_stays_down_is_left_out_and_the_case_still_completes(m01):
             {AgentRole.PHYSICAL: 2},
         )
     )
-    finding = outcome.finding
+    finding, card = outcome.finding, outcome.verdict.card
     assert finding.recovered and finding.agents == [AgentRole.TACTICS, AgentRole.GAME_STATE]
     assert all(c.agents_failed == [AgentRole.PHYSICAL] for c in finding.checkpoints)
-    assert not finding.exams and outcome.verdict.card.status == "verified"
+    assert "physical failed: AgentDown('physical stopped')" in finding.checkpoints[0].note
+    assert not finding.exams and card.status == "verified"
+    assert card.investigation.recovered_from_checkpoint  # the console reads it from the card
 
 
 def test_a_case_every_agent_failed_is_an_error_not_a_finding(m01):

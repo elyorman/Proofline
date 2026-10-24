@@ -141,13 +141,34 @@ async def register(
     score: dict[str, float],
     max_hypotheses: int,
 ) -> tuple[list[Hypothesis], list[Refused], Usage]:
-    """Ask `role` for its hypotheses and keep those the contracts accept."""
-    answer, usage = await model.ask(
-        role.value,
-        prompts.instructions(role, max_hypotheses),
-        prompts.case_prompt(case, meta, score),
-        Registration,
-    )
+    """Ask `role` for its hypotheses and keep those the contracts accept. A registration
+    whose causes are all on one team's side is put back once: a change in one team's numbers
+    is often the other team's doing, and an agent left to itself looks only at the team the
+    change is about. A second one-sided answer stands, so no cause is forced."""
+    instructions = prompts.instructions(role, max_hypotheses)
+    prompt = prompts.case_prompt(case, meta, score)
+    answer, usage = await model.ask(role.value, instructions, prompt, Registration)
+    accepted, refused = _accept(answer, role, case, meta, score, max_hypotheses)
+    sides = {cause_team(meta, h) for h in accepted}
+    if len(sides) == 1 and max_hypotheses > 1:
+        (team,) = sides
+        prompt += prompts.BOTH_SIDES.format(team=team, other=opponent(meta, team))
+        again, used = await model.ask(role.value, instructions, prompt, Registration)
+        usage = usage + used
+        retried = _accept(again, role, case, meta, score, max_hypotheses)
+        if retried[0]:  # it stands; an answer that names nothing keeps the first
+            accepted, refused = retried
+    return accepted, refused, usage
+
+
+def _accept(
+    answer: Registration,
+    role: AgentRole,
+    case: Case,
+    meta: MatchMeta,
+    score: dict[str, float],
+    max_hypotheses: int,
+) -> tuple[list[Hypothesis], list[Refused]]:
     accepted: list[Hypothesis] = []
     refused: list[Refused] = []
     for proposal in answer.hypotheses[:max_hypotheses]:
@@ -175,7 +196,7 @@ async def register(
             refused.append(Refused(proposal, role, str(exc).splitlines()[0][:200]))
             continue
         accepted.append(hypothesis)
-    return accepted, refused, usage
+    return accepted, refused
 
 
 def change_of(

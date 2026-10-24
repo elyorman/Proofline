@@ -60,7 +60,8 @@ def test_a_batch_writes_every_case_of_every_match_and_resumes(tmp_path):
     by_id = {c["case_id"]: c for c in doc["cases"]}
     press = by_id["case-m01-063-pressure_shift"]
     assert press["published"] and press["card"]["subject"]["team"] == "Harbour City"
-    assert press["tokens"] == [30, 15] and "error" not in press  # register, self-check, rank
+    # Register, register again (its causes were all on one side), self-check, rank.
+    assert press["tokens"] == [40, 20] and "error" not in press
     asked = model.asked
     asyncio.run(run_batch(tmp_path / "data", Variant.B_SINGLE_AGENT, out, model, model))
     assert model.asked == asked  # a finished match is not run again

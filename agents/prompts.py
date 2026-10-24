@@ -61,6 +61,13 @@ def instructions(role: AgentRole, max_hypotheses: int) -> str:
     )
 
 
+# Put to a specialist whose causes are all on one team's side (agents.investigation.register).
+BOTH_SIDES = (
+    "\nYour causes are all on {team}'s side. A change in one team's numbers is often the other "
+    "team's doing: register your hypotheses again, with at least one cause on {other}'s side if "
+    "the match gives any reason for one."
+)
+
 STATE_KEYS = ("goals", "sent_off", "substitutions")
 
 RANKING = """\

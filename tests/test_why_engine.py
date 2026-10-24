@@ -40,14 +40,20 @@ def m01():
 
 
 class Scripted:
-    """A model that gives queued answers, one per schema, in order."""
+    """A model that gives queued answers, one per schema, in order. Asked to register again
+    (a one-sided registration is put back once), it stands by its registration."""
 
     def __init__(self, *answers):
         self.answers = list(answers)
+        self.registered = None
 
     async def ask(self, role, instructions, prompt, schema):
+        if schema is Registration and self.registered and "Your causes are all on" in prompt:
+            return self.registered, Usage(1, 1)
         answer = self.answers.pop(0)
         assert isinstance(answer, schema), (answer, schema)
+        if isinstance(answer, Registration):
+            self.registered = answer
         return answer, Usage(1, 1)
 
 
@@ -363,3 +369,37 @@ def test_a_seeded_false_number_in_the_text_fails_the_number_check(m01):
     verdict = asyncio.run(verify(Scripted(SOUND), false_claim, record, feed, []))
     assert verdict.card.status == "rejected"
     assert verdict.card.verification.number_check == "failed"
+
+
+class SecondThoughts:
+    """Registers on one team's side, then, put back, on both."""
+
+    def __init__(self, first, second):
+        self.answers, self.prompts = [first, second], []
+
+    async def ask(self, role, instructions, prompt, schema):
+        self.prompts.append(prompt)
+        return self.answers[len(self.prompts) - 1], Usage(1, 1)
+
+
+def test_a_registration_on_one_teams_side_is_put_back_once(m01):
+    from agents.investigation import register
+
+    feed, case = m01
+    theirs = _proposal(cause="tactical.press_intensity_down", subject="Northvale", direction="down")
+    model = SecondThoughts(
+        Registration(hypotheses=[_proposal()]), Registration(hypotheses=[_proposal(), theirs])
+    )
+    accepted, _, usage = asyncio.run(
+        register(model, AgentRole.TACTICS, case, feed.meta, {}, max_hypotheses=2)
+    )
+    assert "Your causes are all on Harbour City's side" in model.prompts[1]
+    assert "at least one cause on Northvale's side" in model.prompts[1]
+    assert [h.prediction.subject for h in accepted] == ["Harbour City", "Northvale"]
+    assert usage == Usage(2, 2)
+    # Put back again, a one-sided answer stands: no cause is forced.
+    model = SecondThoughts(*[Registration(hypotheses=[_proposal()])] * 2)
+    accepted, _, _ = asyncio.run(
+        register(model, AgentRole.TACTICS, case, feed.meta, {}, max_hypotheses=2)
+    )
+    assert len(model.prompts) == 2 and len(accepted) == 1

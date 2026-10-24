@@ -28,14 +28,20 @@ M01 = Path(__file__).resolve().parents[1] / "engine" / "scripts" / "planted" / "
 
 
 class Scripted:
-    """Queued answers, one per call, in order; asking for more is an error."""
+    """Queued answers, one per call, in order; asking for more is an error. Asked to register again
+    (a one-sided registration is put back once), it stands by its registration."""
 
     def __init__(self, *answers):
         self.answers = list(answers)
+        self.registered = None
 
     async def ask(self, role, instructions, prompt, schema):
+        if schema is Registration and self.registered and "Your causes are all on" in prompt:
+            return self.registered, Usage(1, 1)
         answer = self.answers.pop(0)
         assert isinstance(answer, schema), (answer, schema)
+        if isinstance(answer, Registration):
+            self.registered = answer
         return answer, Usage(1, 1)
 
 

@@ -38,7 +38,10 @@ def estimate(metric: MetricEstimate | None, *, difference: bool = False) -> str:
         if metric.ci_low is not None
         else "CI unavailable"
     )
-    return f"{point}{unit} ({ci}; n={metric.n})"
+    method = {"wilson": "Wilson", "paired_match_bootstrap": "paired match bootstrap"}.get(
+        metric.ci_method, "method unrecorded"
+    )
+    return f"{point}{unit} ({ci}; n={metric.n}; {method})"
 
 
 def scope(split: Split) -> str:
@@ -162,7 +165,18 @@ def scoreboard_data(records: list[Record]) -> dict:
         data = record.model_dump(mode="json")
         data["id"] = identity(record)
         data["citations"] = citations(record, runs)
-        data["bootstrap_unit"] = "card" if isinstance(record, SeededRun) else "match"
+        data["bootstrap_unit"] = (
+            "match"
+            if isinstance(record, VariantComparison)
+            else "card"
+            if isinstance(record, SeededRun)
+            and record.catch_rate
+            and record.catch_rate.ci_method is None
+            else "match"
+            if isinstance(record, (EvalRun, QuestionRun))
+            and any(m.ci_method is None for m in record.metrics)
+            else None
+        )
         data["exclusions"] = (
             data.get("flags", {}).get("exclusions", []) if data.get("flags") else []
         )

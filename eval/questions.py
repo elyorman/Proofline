@@ -385,6 +385,7 @@ def score_run(
     identity = hashlib.sha256(
         json.dumps(
             [
+                "wilson-v1",
                 variant,
                 split,
                 qdigest,

@@ -144,7 +144,7 @@ def test_controls_and_every_seed_are_verified_and_reproduce_from_recording(real_
     )
     assert catch.ci_low <= catch.value <= catch.ci_high
     assert control.value == 0 and len(types) == len(SeedType)
-    # Every seed belonging to one card stays in the same bootstrap cluster.
+    # Pooled standalone rates use Wilson bounds over their trial denominators.
     missed = first.model_copy(deep=True)
     for trial in missed.trials:
         if trial.applied:
@@ -152,7 +152,7 @@ def test_controls_and_every_seed_are_verified_and_reproduce_from_recording(real_
             trial.caught = False
     _, clustered, _ = summarize([first, missed], seed=7, resamples=500)
     assert clustered.value == catch.value / 2
-    assert clustered.n == 2 * catch.n and clustered.ci_low == 0
+    assert clustered.n == 2 * catch.n and 0 < clustered.ci_low < clustered.value
 
 
 def test_false_rejections_are_reported_even_when_every_seed_is_caught(real_case):
@@ -308,7 +308,8 @@ def test_seeded_runner_saves_complete_replayable_results(real_case, tmp_path, mo
     for kind in SeedType:
         assert kind.value in rendered
     encoded = json.loads(scoreboard(tmp_path / "records", json_output=True))["records"][0]
-    assert encoded["bootstrap_unit"] == "card"
+    assert encoded["bootstrap_unit"] is None
+    assert all(m["ci_method"] == "wilson" for m in encoded["metrics"])
     assert len(encoded["types"]) == len(SeedType)
     assert "recompute" in encoded["cards"][0]["trials"][0]["checks"]
     assert encoded["citations"]["record"] == f"{run.run_id}.json"

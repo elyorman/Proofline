@@ -1,7 +1,8 @@
-"""Match-cluster bootstrap estimates, including pooled card precision."""
+"""Wilson intervals for proportions; shared helpers for paired match bootstraps."""
 
-import random
 from collections.abc import Sequence
+from math import sqrt
+from statistics import NormalDist
 
 from contracts.eval_run import MatchOutcome, MetricEstimate, Suite
 from contracts.taxonomy import CaseOutcome
@@ -53,6 +54,21 @@ def interval(values: list[float], point: float) -> tuple[float, float]:
     )
 
 
+def wilson(successes: int, trials: int) -> tuple[float, float]:
+    """Two-sided 95% Wilson score bounds, including all-success/all-failure samples."""
+    if trials < 1 or not 0 <= successes <= trials:
+        raise ValueError("Wilson bounds require positive trials and valid successes")
+    z = NormalDist().inv_cdf(0.975)
+    p, z2 = successes / trials, z * z
+    scale = 1 + z2 / trials
+    center = (p + z2 / (2 * trials)) / scale
+    radius = z * sqrt(p * (1 - p) / trials + z2 / (4 * trials * trials)) / scale
+    return (
+        0.0 if successes == 0 else max(0.0, center - radius),
+        1.0 if successes == trials else min(1.0, center + radius),
+    )
+
+
 def estimate(
     name: str,
     suite: Suite | str,
@@ -66,15 +82,18 @@ def estimate(
     point = ratio(rows)
     if point is None:
         return None
-    rng = random.Random(seed)
-    values = []
-    for _ in range(resamples):
-        value = ratio(rng.choices(rows, k=len(rows)))
-        if value is not None:
-            values.append(value)
-    low, high = interval(values, point)
+    numerator, denominator = sum(n for n, _ in rows), sum(d for _, d in rows)
+    if any(n < 0 or d < 0 or n > d for n, d in rows):
+        raise ValueError("a proportion requires 0 <= successes <= trials")
+    low, high = wilson(numerator, denominator)
     return MetricEstimate(
-        name=name, suite=suite, value=point, ci_low=low, ci_high=high, n=sum(d for _, d in rows)
+        name=name,
+        suite=suite,
+        value=point,
+        ci_low=low,
+        ci_high=high,
+        n=denominator,
+        ci_method="wilson",
     )
 
 

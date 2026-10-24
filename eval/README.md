@@ -57,8 +57,8 @@ inapplicable when strong support already permits assertive wording; its reason i
 retained. Other applicable misses remain in the denominator.
 
 The existing Verifier is called unchanged. Record its actual verification and
-failed checks for every trial, including controls. Confidence intervals resample
-whole cards with all their seed types together. False rejection is the fraction
+failed checks for every trial, including controls. Standalone proportions use two-sided 95% Wilson score intervals, including
+all-success and all-failure samples. False rejection is the fraction
 of answered unchanged controls rejected. No-answer trials and controls are reported
 separately, outside caught, missed and false-rejection denominators. The headline
 catch rate uses only trials whose unchanged control passed; the all-cards rate is
@@ -106,8 +106,9 @@ denominators. True-premise accuracy requires a verified card naming the planted
 class and team. False-premise rejection requires an answer without a published
 cause. False claims per question counts every wrong published cause; lower is
 better. Claim precision counts right claims over all claims and is undefined
-when there are no claims. All intervals resample matches with every question in
-the match kept together. Per-run `n` is the metric denominator.
+when there are no claims. Standalone rates use two-sided 95% Wilson intervals; per-run `n` is the metric
+denominator. These binomial intervals treat denominator trials as independent.
+Paired differences retain joint bootstrap draws over whole matches.
 
 Comparisons pair only questions answered by both variants and retain unpaired
 IDs. They require identical question sets, suites, splits, models and budgets;
@@ -137,11 +138,11 @@ those values by 100. No undefined rate is replaced with zero.
 | Field | Content |
 |---|---|
 | `records[].id`, `record_type` | The saved ID; `detector_run`, `question_run`, `variant_comparison`, `question_comparison`, or `seeded_verifier` |
-| `records[].metrics` | Estimates with `name`, `suite`, `value`, `ci_low`, `ci_high`, `n`; `undefined_metrics` names absent estimates |
+| `records[].metrics` | Estimates with `name`, `suite`, `value`, `ci_low`, `ci_high`, `n`, `ci_method`; `undefined_metrics` names absent estimates |
 | `records[].exclusions` | Every frozen exclusion, including its cause, rule and observable checks |
 | `records[].differences` | Recorded paired differences; question comparisons also retain paired/unpaired IDs |
 | `records[].citations` | Record filename, suite/question digests, flag set, model ID, tool budget and `unverified` field names |
-| `records[].bootstrap_unit` | `match` for detector/question metrics and differences; `card` for seeded verification |
+| `records[].bootstrap_unit` | `match` for paired differences; null for Wilson rates; legacy bootstrap records retain their unit |
 | Seeded `catch_rate`, `all_cards_catch_rate`, `false_rejection_rate` | Headline, all-card and control estimates; each may be null |
 | Seeded `types`, `cards` | Per-type counts/estimates; every trial's mutation, verification, `result` and rejecting `checks`; controls include their result/checks |
 | Question `rows` | Every question's text, premise label, answer/claim outcome, missing/error state and available usage |
@@ -159,3 +160,8 @@ and the scoreboard check to CI when publishing records. Keep the backend's `star
 file; the scorer uses the earliest recorded start (or an earlier explicit start)
 for the flag-freeze check. Selecting a single suite from a combined batch folder
 now ignores the other suite's files while still requiring every selected match.
+
+New standalone rates record `ci_method: "wilson"`; paired differences record
+`"paired_match_bootstrap"`. Older records without a method stay labelled
+"method unrecorded" and are never silently recomputed. Fresh automatic run IDs
+include the scoring revision, avoiding collisions with earlier bootstrap records.

@@ -76,7 +76,13 @@ def compare(
         variant_b=b.variant,
         split=a.split,
         difference=MetricEstimate(
-            name=metric, suite=scope, value=point, ci_low=low, ci_high=high, n=len(paired)
+            name=metric,
+            suite=scope,
+            value=point,
+            ci_low=low,
+            ci_high=high,
+            ci_method="paired_match_bootstrap",
+            n=len(paired),
         ),
         flag_set_id=flag_a,
         suite_digest=a.suite_digest,

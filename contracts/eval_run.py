@@ -48,6 +48,7 @@ class MetricEstimate(BaseModel):
     ci_low: float | None = None
     ci_high: float | None = None
     n: int = Field(ge=0)
+    ci_method: Literal["wilson", "paired_match_bootstrap"] | None = None
 
     @model_validator(mode="after")
     def _ci_brackets_value(self) -> "MetricEstimate":
@@ -476,7 +477,7 @@ class SeedTypeResult(BaseModel):
 
 
 class SeededRun(BaseModel):
-    """Verifier benchmark with card-cluster intervals and every trial retained."""
+    """Verifier benchmark with every trial and its proportion intervals retained."""
 
     record_type: Literal["seeded_verifier"] = "seeded_verifier"
     record_version: Literal[2] = 2

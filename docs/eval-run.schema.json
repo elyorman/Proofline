@@ -298,6 +298,22 @@
           "minimum": 0,
           "title": "N",
           "type": "integer"
+        },
+        "ci_method": {
+          "anyOf": [
+            {
+              "enum": [
+                "wilson",
+                "paired_match_bootstrap"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ci Method"
         }
       },
       "required": [

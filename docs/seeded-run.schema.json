@@ -69,6 +69,22 @@
           "minimum": 0,
           "title": "N",
           "type": "integer"
+        },
+        "ci_method": {
+          "anyOf": [
+            {
+              "enum": [
+                "wilson",
+                "paired_match_bootstrap"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ci Method"
         }
       },
       "required": [
@@ -442,7 +458,7 @@
       "type": "object"
     }
   },
-  "description": "Verifier benchmark with card-cluster intervals and every trial retained.",
+  "description": "Verifier benchmark with every trial and its proportion intervals retained.",
   "properties": {
     "record_type": {
       "const": "seeded_verifier",

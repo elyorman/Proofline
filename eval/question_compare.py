@@ -79,7 +79,13 @@ def compare_questions(
             name for name in ("model_id", "tool_call_budget") if getattr(a, name) is None
         ],
         difference=MetricEstimate(
-            name=metric, suite=Suite.QUESTIONS, value=point, ci_low=low, ci_high=high, n=n
+            name=metric,
+            suite=Suite.QUESTIONS,
+            value=point,
+            ci_low=low,
+            ci_high=high,
+            ci_method="paired_match_bootstrap",
+            n=n,
         ),
         bootstrap_seed=seed,
         bootstrap_resamples=resamples,

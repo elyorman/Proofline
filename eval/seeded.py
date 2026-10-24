@@ -311,6 +311,7 @@ async def run_seeded(
             target.write(json.dumps(settings, sort_keys=True, indent=2) + "\n")
     verifier_digest = digest_paths(list(verifier_exchanges.rglob("*.json")), verifier_exchanges)
     content = [
+        "wilson-v1",
         batch_digest,
         source_digest,
         verifier_digest,

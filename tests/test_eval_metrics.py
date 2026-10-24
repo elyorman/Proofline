@@ -1,10 +1,18 @@
 import pytest
 
 from contracts.eval_run import MatchOutcome
-from eval.metrics import ALL_PLANTED_RECALL, PLANTED_RECALL, estimate, metrics, reconcile
+from eval.metrics import (
+    ALL_PLANTED_RECALL,
+    PLANTED_RECALL,
+    estimate,
+    interval,
+    metrics,
+    reconcile,
+    wilson,
+)
 
 
-def test_bootstrap_is_reproducible_and_handles_undefined_denominators():
+def test_proportions_are_reproducible_and_handle_undefined_denominators():
     rows = [(1, 1), (0, 1), (1, 1), (0, 0)]
     first = estimate("test", "planted", rows, seed=7, resamples=300)
     assert first == estimate("test", "planted", rows, seed=7, resamples=300)
@@ -88,4 +96,17 @@ def test_precision_pools_explained_cards_and_leaves_other_out():
 
 def test_a_bootstrap_with_no_defined_resamples_does_not_invent_an_interval():
     with pytest.raises(ValueError, match="no defined bootstrap resamples"):
-        estimate("test", "planted", [(1, 1), (0, 0)], seed=0, resamples=1)
+        interval([], 1.0)
+
+
+def test_wilson_keeps_uncertainty_at_both_boundaries():
+    low, high = wilson(4, 4)
+    assert low == pytest.approx(0.5101091635) and high == 1
+    low, high = wilson(0, 4)
+    assert low == 0 and high == pytest.approx(0.4898908365)
+    metric = estimate("test", "decoys", [(1, 1)] * 4)
+    assert metric.ci_method == "wilson" and metric.n == 4
+    assert metric.ci_low == pytest.approx(0.5101091635) and metric.ci_high == 1
+    assert estimate("test", "decoys", [(0, 0), (4, 4)], resamples=1) == metric
+    with pytest.raises(ValueError):
+        wilson(0, 0)

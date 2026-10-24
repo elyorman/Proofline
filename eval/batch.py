@@ -120,7 +120,7 @@ def evaluate_batch(
     run = evaluate(
         suites,
         cards,
-        run_id=run_id or f"batch-{variant}-{batch_digest[:16]}{settled}",
+        run_id=run_id or f"batch-{variant}-{batch_digest[:16]}-wilson{settled}",
         variant=variant,
         model_id=model_id,
         model_tier=model_tier,

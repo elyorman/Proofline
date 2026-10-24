@@ -243,3 +243,47 @@ def test_question_comparison_cli_retains_source_records(question_batch, capsys):
     result = VariantComparison.model_validate_json(capsys.readouterr().out)
     assert result.comparison_type == "questions" and result.variant_b == "P"
     assert len(load_records(records)) == 3
+
+
+def test_question_scoreboards_and_json_use_records_only(question_batch, monkeypatch, capsys):
+    from eval.__main__ import main as eval_main
+    from eval.question_compare import compare_questions
+    from eval.records import save_records
+    from eval.scoreboard import estimate, scoreboard
+
+    root, _, _ = question_batch
+    runs = [score_run(root, "dev", variant, resamples=100) for variant in ("A", "B", "P")]
+    differences = [
+        compare_questions(runs[a], runs[b], resamples=100) for a, b in ((0, 2), (0, 1), (1, 2))
+    ]
+    records = root / "records"
+    save_records([*runs, *differences], records)
+
+    def no_inputs(*args):
+        raise AssertionError("rendering must use committed records alone")
+
+    monkeypatch.setattr("eval.questions.keys", no_inputs)
+    monkeypatch.setattr("eval.suites.load_suite", no_inputs)
+    text = scoreboard(records)
+    assert "| Metric (95% CI; n) | A | B | P |" in text
+    assert "tuning only" in text
+    assert eval_main(["scoreboard", "--records", str(records), "--json"]) == 0
+    data = json.loads(capsys.readouterr().out)
+    assert data["schema_version"] == 1 and len(data["records"]) == 6
+    assert len(data["question_suites"]) == 1
+    for row in data["question_suites"][0]["metrics"]:
+        assert set(row["variants"]) == {"A", "B", "P"}
+    by_id = {r["id"]: r for r in data["records"]}
+    for run in runs:
+        saved = by_id[run.run_id]
+        assert saved["metrics"] == run.model_dump(mode="json")["metrics"]
+        assert saved["citations"]["record"] == f"{run.run_id}.json"
+        assert saved["citations"]["question_set_digest"] == run.question_set_digest
+        assert "suite_origin" in saved["citations"]["unverified"]
+        assert "flag_set_id" not in saved["citations"]["unverified"]
+        for metric in run.metrics:
+            assert estimate(metric) in text
+    for difference in differences:
+        assert by_id[difference.comparison_id]["differences"] == [
+            difference.difference.model_dump(mode="json")
+        ]

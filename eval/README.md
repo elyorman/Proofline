@@ -67,14 +67,95 @@ rate. The number of live semantic calls is lower than
 the Verifier invocation count when deterministic checks reject early; the
 backend may retry a malformed semantic response.
 
-No measured agent scoreboard or live seeded result ships with this implementation.
-Tests use scripted models and the committed demo replay exchanges.
+Tests use scripted models and the committed demo replay exchanges. A real-batch
+regression reconstructs cards and compares record/replay results without patching
+`run_case`. No live model calls are needed for validation.
+
+## Question records and paired comparisons
+
+Use fresh output directories for a new experiment. Generate questions before
+running the product, so their manifest records the exact suite version:
+
+```bash
+for split in dev heldout; do
+  root="runs/questions-${split}-v2"
+  uv run python -m eval.questions make --split "$split" --out "$root/questions.jsonl"
+  for variant in A B P; do
+    uv run proofline questions --data "data/$split" --questions "$root/questions.jsonl" \
+      --variant "$variant" --out "$root" --record "$root/exchanges-$variant"
+    uv run python -m eval.questions score --runs "$root" --split "$split" \
+      --variant "$variant" --model-id "$AZURE_OPENAI_DEPLOYMENT" \
+      --tool-call-budget 16 --record-dir eval/records
+  done
+  uv run python -m eval.questions score --runs "$root" --split "$split" --compare A P \
+    --model-id "$AZURE_OPENAI_DEPLOYMENT" --tool-call-budget 16 --record-dir eval/records
+  uv run python -m eval.questions score --runs "$root" --split "$split" --compare A B \
+    --model-id "$AZURE_OPENAI_DEPLOYMENT" --tool-call-budget 16 --record-dir eval/records
+  uv run python -m eval.questions score --runs "$root" --split "$split" --compare B P \
+    --model-id "$AZURE_OPENAI_DEPLOYMENT" --tool-call-budget 16 --record-dir eval/records
+done
+```
+
+The data feeds must already exist. A and B use their normal agents and Verifier;
+P is the plain tool-using baseline. All scoring commands are offline. Use model
+and budget flags only when they describe the actual producer configuration.
+`--out PATH` additionally writes a new JSON file. Records refuse overwrites.
+
+Question metrics include missing and failed questions in their applicable
+denominators. True-premise accuracy requires a verified card naming the planted
+class and team. False-premise rejection requires an answer without a published
+cause. False claims per question counts every wrong published cause; lower is
+better. Claim precision counts right claims over all claims and is undefined
+when there are no claims. All intervals resample matches with every question in
+the match kept together. Per-run `n` is the metric denominator.
+
+Comparisons pair only questions answered by both variants and retain unpaired
+IDs. They require identical question sets, suites, splits, models and budgets;
+two unknown model/budget values remain explicitly unverified. Select another
+metric with `--metric false_premise_rejection`, `false_claims_per_question`, or
+`claim_precision`. Comparison `n` is the eligible paired question count, or the
+full paired question count for precision, whose two denominators may differ.
+
+Older question files without a generation manifest can be scored when their
+contents match the sealed suite, but their suite origin is labelled unverified.
+Tokens sum recorded answer usage; missing/error replies make usage incomplete.
+Copied runs, including the owner's q3 run, belong only in ignored storage. Tests
+build their inputs from committed files and never depend on `runs/` or `data/`.
+
+## Analyst Console JSON
+
+```bash
+uv run python -m eval scoreboard --records eval/records --json
+```
+
+The Markdown and JSON views use only saved records. Root `schema_version` is 1;
+root `records` contains every record, and `question_suites` groups the A/B/P table
+by split, question-set digest and suite digest. Values and confidence bounds are
+fractions; a displayed percentage or percentage-point difference multiplies
+those values by 100. No undefined rate is replaced with zero.
+
+| Field | Content |
+|---|---|
+| `records[].id`, `record_type` | The saved ID; `detector_run`, `question_run`, `variant_comparison`, `question_comparison`, or `seeded_verifier` |
+| `records[].metrics` | Estimates with `name`, `suite`, `value`, `ci_low`, `ci_high`, `n`; `undefined_metrics` names absent estimates |
+| `records[].exclusions` | Every frozen exclusion, including its cause, rule and observable checks |
+| `records[].differences` | Recorded paired differences; question comparisons also retain paired/unpaired IDs |
+| `records[].citations` | Record filename, suite/question digests, flag set, model ID, tool budget and `unverified` field names |
+| `records[].bootstrap_unit` | `match` for detector/question metrics and differences; `card` for seeded verification |
+| Seeded `catch_rate`, `all_cards_catch_rate`, `false_rejection_rate` | Headline, all-card and control estimates; each may be null |
+| Seeded `types`, `cards` | Per-type counts/estimates; every trial's mutation, verification, `result` and rejecting `checks`; controls include their result/checks |
+| Question `rows` | Every question's text, premise label, answer/claim outcome, missing/error state and available usage |
+| `question_suites[].metrics[].variants` | A/B/P arrays of `{run_id, estimate}`; every run is retained, including multiple configurations |
+| `question_suites[].coverage` | Answered, total, failed and missing counts and token completeness per run |
+
+Seeded `result` is `caught`, `missed`, `no_answer` or `not_applicable`. No-answer
+counts stay separate for seeds and controls. Sound-control eligibility and
+all-card counts are retained per type, so rejection-only behavior remains visible.
 
 ## Owner integration
 
-Add `SeededRun` from `contracts.eval_run` to `scripts/export_schemas.py` as
-`"seeded-run": SeededRun`, then export its JSON Schema. Add the README markers
-and the scoreboard check to CI. Keep the backend's `started_at_ms` in every batch
+The schema registry exports `SeededRun` and `QuestionRun`. Add the README markers
+and the scoreboard check to CI when publishing records. Keep the backend's `started_at_ms` in every batch
 file; the scorer uses the earliest recorded start (or an earlier explicit start)
 for the flag-freeze check. Selecting a single suite from a combined batch folder
 now ignores the other suite's files while still requiring every selected match.

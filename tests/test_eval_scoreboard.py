@@ -114,3 +114,16 @@ def test_empty_and_invalid_record_directories(tmp_path):
     (tmp_path / "bad.json").write_text("[]")
     with pytest.raises(ValueError, match="bad.json"):
         scoreboard(tmp_path)
+
+
+def test_json_contains_detector_metrics_exclusions_differences_and_citations(evaluated, tmp_path):
+    _, a, b, comparison = evaluated
+    save_records([a, b, comparison], tmp_path)
+    data = json.loads(scoreboard(tmp_path, json_output=True))
+    by_id = {r["id"]: r for r in data["records"]}
+    assert by_id[a.run_id]["metrics"] == a.model_dump(mode="json")["metrics"]
+    assert by_id[a.run_id]["exclusions"] == a.flags.model_dump(mode="json")["exclusions"]
+    assert by_id[a.run_id]["citations"]["flag_set_id"] == a.flags.flag_set_id
+    assert by_id[comparison.comparison_id]["differences"] == [
+        comparison.difference.model_dump(mode="json")
+    ]

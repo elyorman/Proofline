@@ -307,6 +307,11 @@ def test_seeded_runner_saves_complete_replayable_results(real_case, tmp_path, mo
     assert "missed" in rendered and "Controls rejected" in rendered
     for kind in SeedType:
         assert kind.value in rendered
+    encoded = json.loads(scoreboard(tmp_path / "records", json_output=True))["records"][0]
+    assert encoded["bootstrap_unit"] == "card"
+    assert len(encoded["types"]) == len(SeedType)
+    assert "recompute" in encoded["cards"][0]["trials"][0]["checks"]
+    assert encoded["citations"]["record"] == f"{run.run_id}.json"
 
 
 def test_seeded_cli_records_and_replays_without_live_models(

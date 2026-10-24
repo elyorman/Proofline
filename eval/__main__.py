@@ -172,9 +172,12 @@ def _scoreboard(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(prog="python -m eval scoreboard")
     parser.add_argument("--records", type=Path, required=True)
     parser.add_argument("--check", type=Path)
+    parser.add_argument(
+        "--json", action="store_true", help="emit structured record-backed scoreboard data"
+    )
     args = parser.parse_args(argv)
     try:
-        print(scoreboard(args.records, args.check), end="")
+        print(scoreboard(args.records, args.check, json_output=args.json), end="")
     except (OSError, ValueError) as exc:
         parser.error(str(exc))
     return 0

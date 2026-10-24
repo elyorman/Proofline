@@ -4,7 +4,9 @@ Each planted match gets two questions, asked when its truth window ends: one who
 its planted change (for a press, the other team's long balls, so the answer needs both teams),
 and one assuming the opposite of that change. Each decoy gets two whose premises nothing
 planted. Questions alternate English and Spanish. Only the questions go to the product
-(`questions.jsonl`); the answers are rebuilt here from the truth when scoring.
+(`questions.jsonl`); the answers are rebuilt here from the truth when scoring. A true
+premise whose planted change is flagged not observable in one match is asked but not
+scored, as recall leaves that match out.
 
     python -m eval.questions make --split dev --out runs/q1/questions.jsonl
     python -m eval.questions score --runs runs/q1 --split dev --variant A
@@ -85,6 +87,7 @@ class Key:
     premise_true: bool
     cause: Cause | None = None
     team: str | None = None
+    excluded: bool = False  # its planted change is flagged not observable
 
 
 def _text(meta: MatchMeta, metric: Metric, subject: str, way: Direction, since: int, es: bool):
@@ -106,7 +109,7 @@ def keys(split: str) -> list[Key]:
     """Every question of the split's suite, with its answer, in a fixed order."""
     out: list[Key] = []
 
-    def add(meta, metric, subject, way, since, asked, true, truth=None):
+    def add(meta, metric, subject, way, since, asked, true, truth=None, excluded=False):
         n = len(out)
         es = n % 2 == 1
         question = Question(
@@ -117,14 +120,26 @@ def keys(split: str) -> list[Key]:
             locale="es" if es else "en",
         )
         cause, team = (truth.cause, truth.team) if truth and true else (None, None)
-        out.append(Key(question, true, cause, team))
+        out.append(Key(question, true, cause, team, excluded))
 
-    for t in load_suite(ROOT / "engine/suites", "planted", split).truth.entries:
+    planted = load_suite(ROOT / "engine/suites", "planted", split)
+    unseen = {x.match_id for x in planted.flags.exclusions}
+    for t in planted.truth.entries:
         meta = _meta("planted", split, t.match_id)
         since = _clock(t.started.minute)
         asked = _clock(min(90, math.ceil(t.window.end.seconds_in_period / 60 + 45)))
         shown = t.observables[1] if t.cause in _PRESS else t.observables[0]
-        add(meta, shown.metric, shown.subject, shown.direction, since, asked, True, t)
+        add(
+            meta,
+            shown.metric,
+            shown.subject,
+            shown.direction,
+            since,
+            asked,
+            True,
+            t,
+            t.match_id in unseen,
+        )
         first = t.observables[0]
         opposite = DOWN if first.direction == UP else UP
         add(meta, first.metric, first.subject, opposite, since, asked, False, t)
@@ -162,7 +177,8 @@ def outcome(answer: Answer | PlainAnswer) -> str:
 
 
 def score(answers: list[Answer | PlainAnswer], key: list[Key]) -> dict:
-    """Right answers on true premises; no claim on false ones; and every false claim."""
+    """Right answers on true premises; no claim on false ones; and every false claim. An
+    excluded question is listed but counts in none of them."""
     by_id = {a.question.question_id: a for a in answers}
     rows = []
     for k in key:
@@ -181,17 +197,20 @@ def score(answers: list[Answer | PlainAnswer], key: list[Key]) -> dict:
                 "right": right,
                 "claimed": claimed,
                 "false_claim": claimed and not right,
+                "excluded": k.excluded,
             }
         )
-    true_rows = [r for r in rows if r["premise_true"]]
-    false_rows = [r for r in rows if not r["premise_true"]]
-    claims = [r for r in rows if r["claimed"]]
+    scored = [r for r in rows if not r["excluded"]]
+    true_rows = [r for r in scored if r["premise_true"]]
+    false_rows = [r for r in scored if not r["premise_true"]]
+    claims = [r for r in scored if r["claimed"]]
     return {
         "answered_right": f"{sum(r['right'] for r in true_rows)}/{len(true_rows)}",
         "false_premises_rejected": f"{sum(r['right'] for r in false_rows)}/{len(false_rows)}",
-        "false_claims": sum(r["false_claim"] for r in rows),
+        "false_claims": sum(r["false_claim"] for r in scored),
         "claims_right": f"{sum(r['right'] for r in claims)}/{len(claims)}",
-        "missing": sum(r["outcome"] == "missing" for r in rows),
+        "missing": sum(r["outcome"] == "missing" for r in scored),
+        "excluded": [r["question_id"] for r in rows if r["excluded"]],
         "rows": rows,
     }
 
@@ -219,7 +238,7 @@ def main(argv: list[str] | None = None) -> int:
     result = score(answers, key)
     print(json.dumps({k: v for k, v in result.items() if k != "rows"}, indent=1))
     for r in result["rows"]:
-        mark = "OK " if r["right"] else "-- "
+        mark = "xx " if r["excluded"] else "OK " if r["right"] else "-- "
         print(
             f"  {mark}{r['question_id']} {r['match_id']} premise_true={r['premise_true']} "
             f"{r['outcome']}{' FALSE CLAIM' if r['false_claim'] else ''}"

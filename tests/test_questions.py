@@ -130,13 +130,16 @@ def test_the_question_suite_has_a_true_and_a_false_premise_per_planted_match():
     assert {k.question.locale for k in suite} == {"en", "es"}
     true = next(k for k in suite if k.premise_true and k.cause == Cause.PRESS_INTENSITY_DOWN)
     assert true.team not in true.question.text  # asked about the other team's long balls
+    # m225's tired player does not show in one match (its frozen flag), so it is not scored.
+    assert [k.question.match_id for k in suite if k.excluded] == ["m225"]
 
 
 def test_the_suite_scores_right_causes_and_counts_every_false_claim(m01):
     suite = keys("dev")
-    assert score([], suite)["missing"] == 32
+    assert score([], suite)["missing"] == 31  # the excluded question is not missing
     result = score([], suite)
-    assert result["answered_right"] == "0/12" and result["false_claims"] == 0
+    assert result["answered_right"] == "0/11" and result["false_claims"] == 0
+    assert result["excluded"] == [next(k.question.question_id for k in suite if k.excluded)]
 
 
 class ToolUser:

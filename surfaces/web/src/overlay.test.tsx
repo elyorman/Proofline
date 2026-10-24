@@ -18,8 +18,8 @@ describe('template-driven overlay', () => {
     expect(overlayTemplate(cue.template)).toBe('pressure');
     expect(html).toContain('data-template="pressure_shift_bar"');
     expect(html).toContain(render(<h2>{cue.fields.headline}</h2>));
-    expect(html).toContain('0.32');
-    expect(html).toContain('0.83');
+    expect(html).toContain(Number(cue.fields.before).toFixed(2));
+    expect(html).toContain(Number(cue.fields.after).toFixed(2));
     expect(html.match(/class="pressure-track"/g)).toHaveLength(2);
   });
   it.each(['update_banner', 'withdrawal_banner'] as const)('renders %s by template regardless of cue kind', template => {

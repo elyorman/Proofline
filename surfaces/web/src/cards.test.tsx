@@ -18,7 +18,7 @@ describe('faithful card rendering', () => {
     const html = render(<Insight card={press} onOpen={() => {}} />, 'es');
     expect(html).toContain(press.variants!.casual.es);
     expect(html).toContain('Fuerte');
-    expect(html).toContain('0,83');
+    expect(html).toContain(press.evidence![0].value.toFixed(2).replace('.', ',')); // Spanish decimals
     for (const alternative of press.rejected_alternatives!) {
       expect(html).toContain(render(<p>{alternative.reason}</p>));
       expect(html).toContain(alternative.taxonomy);

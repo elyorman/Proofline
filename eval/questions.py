@@ -172,6 +172,15 @@ def _meta(suite: str, split: str, match_id: str) -> MatchMeta:
     return match_meta(MatchSim(script))
 
 
+def question_identity(question: Question) -> tuple[str, str]:
+    """The answer join key; caller-assigned IDs are labels, not question identity."""
+    return question.match_id, question.text
+
+
+def same_question(left: Question, right: Question) -> bool:
+    return left.model_dump(exclude={"question_id"}) == right.model_dump(exclude={"question_id"})
+
+
 def claim(
     answer: Answer | PlainAnswer, after_follow_up: bool = False
 ) -> tuple[bool, Cause | None, str | None]:
@@ -199,10 +208,18 @@ def score(
 ) -> dict:
     """Right answers on true premises; no claim on false ones; and every false claim. An
     excluded question is listed but counts in none of them."""
-    by_id = {a.question.question_id: a for a in answers}
+    expected = {question_identity(k.question): k.question for k in key}
+    by_question = {}
+    for answer in answers:
+        identity = question_identity(answer.question)
+        if identity not in expected or not same_question(answer.question, expected[identity]):
+            raise ValueError("an answer belongs to a different question set")
+        if identity in by_question:
+            raise ValueError("a question has more than one answer record")
+        by_question[identity] = answer
     rows = []
     for k in key:
-        a = by_id.get(k.question.question_id)
+        a = by_question.get(question_identity(k.question))
         claimed, cause, team = claim(a, after_follow_up) if a is not None else (False, None, None)
         if k.premise_true:
             right = claimed and cause == k.cause and team == k.team
@@ -239,8 +256,12 @@ def score(
     }
 
 
-def question_digest(questions: list[Question]) -> str:
-    content = [q.model_dump(mode="json") for q in sorted(questions, key=lambda q: q.question_id)]
+def question_digest(questions: list[Question], *, include_ids: bool = False) -> str:
+    ordered = sorted(questions, key=(lambda q: q.question_id) if include_ids else question_identity)
+    content = [
+        q.model_dump(mode="json", exclude=set() if include_ids else {"question_id"})
+        for q in ordered
+    ]
     return hashlib.sha256(
         json.dumps(content, sort_keys=True, ensure_ascii=False).encode()
     ).hexdigest()
@@ -294,9 +315,12 @@ def score_run(
     ]
     if not asked or len({q.question_id for q in asked}) != len(asked):
         raise ValueError("question set must be nonempty with unique question IDs")
-    key = {k.question.question_id: k for k in keys(split)}
+    if len({question_identity(q) for q in asked}) != len(asked):
+        raise ValueError("question set must have unique match/text pairs")
+    key = {question_identity(k.question): k for k in keys(split)}
     for question in asked:
-        if question.question_id not in key or key[question.question_id].question != question:
+        identity = question_identity(question)
+        if identity not in key or not same_question(key[identity].question, question):
             raise ValueError(
                 f"{question.question_id}: question does not match this split's sealed suite"
             )
@@ -305,17 +329,24 @@ def score_run(
     origin_verified = metadata.exists()
     if origin_verified:
         original = json.loads(metadata.read_text(encoding="utf-8"))
+        manifest_digest = (
+            question_digest(asked, include_ids=True)
+            if original.get("identity_version", 1) == 1
+            else qdigest
+        )
+        if original.get("identity_version", 1) not in (1, 2):
+            raise ValueError("unknown question manifest identity version")
         if (
             original.get("split"),
             original.get("question_set_digest"),
             original.get("suite_digest"),
-        ) != (split, qdigest, sdigest):
+        ) != (split, manifest_digest, sdigest):
             raise ValueError("question set or suite differs from its generation manifest")
     path = runs / variant / "answers.jsonl"
     raw_answers = path.read_bytes()
-    by_id = {}
+    by_question = {}
     model = PlainAnswer if variant == "P" else Answer
-    asked_by_id = {q.question_id: q for q in asked}
+    asked_by_question = {question_identity(q): q for q in asked}
     for line in raw_answers.decode("utf-8").splitlines():
         if not line.strip():
             continue
@@ -323,14 +354,17 @@ def score_run(
         if not isinstance(raw, dict):
             raise ValueError("answer records must be objects")
         question = Question.model_validate(raw.get("question"))
-        if question.question_id not in asked_by_id or asked_by_id[question.question_id] != question:
+        identity = question_identity(question)
+        if identity not in asked_by_question or not same_question(
+            asked_by_question[identity], question
+        ):
             raise ValueError("an answer belongs to a different question set")
-        if question.question_id in by_id:
+        if identity in by_question:
             raise ValueError("a question has more than one answer record")
         if "error" in raw:
             if not isinstance(raw["error"], str):
                 raise ValueError("question error must be text")
-            by_id[question.question_id] = raw
+            by_question[identity] = raw
         else:
             answer = model.model_validate(raw)
             if isinstance(answer, Answer):
@@ -343,11 +377,11 @@ def score_run(
                     or answer.card.match_id != question.match_id
                 ):
                     raise ValueError("a published question card must be verified for its match")
-            by_id[question.question_id] = answer
+            by_question[identity] = answer
     rows = []
     for question in sorted(asked, key=lambda q: q.question_id):
-        expected = key[question.question_id]
-        value = by_id.get(question.question_id)
+        expected = key[question_identity(question)]
+        value = by_question.get(question_identity(question))
         answered = isinstance(value, (Answer, PlainAnswer))
         claimed, cause, team = claim(value, after_follow_up) if answered else (False, None, None)
         right = bool(
@@ -398,10 +432,11 @@ def score_run(
     identity = hashlib.sha256(
         json.dumps(
             [
-                "question-v2-wilson",
+                "question-v2-content-wilson",
                 variant,
                 split,
                 qdigest,
+                question_digest(asked, include_ids=True),
                 sdigest,
                 adigest,
                 model_id,
@@ -471,6 +506,7 @@ def main(argv: list[str] | None = None) -> int:
             json.dumps(
                 dict(
                     split=args.split,
+                    identity_version=2,
                     question_set_digest=question_digest([k.question for k in key]),
                     suite_digest=suite_digest(args.split),
                 ),

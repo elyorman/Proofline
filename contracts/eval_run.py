@@ -723,6 +723,9 @@ class QuestionRun(BaseModel):
         ids = [r.question_id for r in self.rows]
         if len(set(ids)) != len(ids):
             raise ValueError("each question is scored once")
+        identities = [(r.match_id, r.question_text) for r in self.rows]
+        if len(set(identities)) != len(identities):
+            raise ValueError("each match/text question is scored once")
         counts = question_counts(self.rows, explicit_rejection=self.record_version >= 2)
         by_name = {m.name: m for m in self.metrics}
         expected_names = {name for name, (_, denominator) in counts.items() if denominator}

@@ -181,3 +181,11 @@ unanswerable or other no-cause replies. Version 1 records retain their original
 no-cause rate and carry a legacy-definition label; comparisons refuse to mix
 versions. Structured unanswerable responses remain in paired cohorts, contributing
 zero to premise rejection, while errors and missing replies are unpaired.
+
+Answers join by `(match_id, exact question text)`, with matching asked time and
+locale required. Question IDs may differ between the question file and answers;
+they remain row labels, not join keys. Duplicate answer content is rejected even
+when its IDs differ. Input question row labels must remain unique. New manifests
+and question-set digests omit IDs; older ID-bearing manifests are still checked
+using their original digest rule. Paired comparisons also join by match/text,
+and their paired/unpaired ID lists use the first run's row labels.

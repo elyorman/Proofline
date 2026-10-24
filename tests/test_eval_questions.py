@@ -339,3 +339,78 @@ def test_plain_no_cause_is_distinct_from_rejecting_the_premise(question_batch):
     run = score_run(root, "dev", "P")
     assert run.unanswerable == 0 and run.premise_rejected == 0
     assert next(m for m in run.metrics if m.name == "false_premise_rejection").value == 0
+
+
+def test_answer_join_uses_match_and_text_instead_of_question_labels(question_batch):
+    from eval.question_compare import compare_questions
+    from eval.questions import score
+
+    root, key, answers = question_batch
+    # Reused labels across responses cannot overwrite a different match/text pair.
+    for answer in answers:
+        answer.question = answer.question.model_copy(update={"question_id": "same-label"})
+    (root / "P/answers.jsonl").write_text("".join(a.model_dump_json() + "\n" for a in answers))
+    assert score(answers, key)["answered_right"] == "1/2"
+    original = score_run(root, "dev", "P")
+    assert sum(r.answered for r in original.rows) == 4
+    # Renumbering the source question file preserves content identity and suite matching.
+    changed = [
+        k.question.model_copy(update={"question_id": f"renamed-{i}"}) for i, k in enumerate(key)
+    ]
+    assert question_digest(changed) == question_digest([k.question for k in key])
+    (root / "questions.jsonl").write_text("".join(q.model_dump_json() + "\n" for q in changed))
+    relabelled = score_run(root, "dev", "P")
+    assert original.run_id != relabelled.run_id
+    assert original.question_set_digest == relabelled.question_set_digest
+    renamed = score_run(root, "dev", "B")
+    assert original.question_set_digest == renamed.question_set_digest
+    comparison = compare_questions(original, renamed)
+    assert len(comparison.question_ids) == 4
+
+
+@pytest.mark.parametrize(
+    "field,value",
+    [
+        ("match_id", "unrelated"),
+        ("text", "An unrelated question?"),
+        ("locale", "es"),
+        ("asked_at", {"period": 2, "minute": 89, "second": 0}),
+    ],
+)
+def test_reused_question_id_never_matches_wrong_content(question_batch, field, value):
+    from eval.questions import score
+
+    root, key, answers = question_batch
+    answers[0].question = type(answers[0].question).model_validate(
+        answers[0].question.model_dump() | {field: value}
+    )
+    with pytest.raises(ValueError, match="different question set"):
+        score(answers, key)
+    (root / "P/answers.jsonl").write_text("".join(a.model_dump_json() + "\n" for a in answers))
+    with pytest.raises(ValueError, match="different question set"):
+        score_run(root, "dev", "P")
+
+
+def test_duplicate_answer_text_is_rejected_even_with_a_different_id(question_batch):
+    root, _, answers = question_batch
+    extra = answers[0].model_copy(deep=True)
+    extra.question.question_id = "another-label"
+    (root / "P/answers.jsonl").write_text(
+        "".join(a.model_dump_json() + "\n" for a in [*answers, extra])
+    )
+    with pytest.raises(ValueError, match="more than one answer"):
+        score_run(root, "dev", "P")
+
+
+def test_legacy_question_manifest_remains_verifiable(question_batch):
+    root, key, _ = question_batch
+    (root / "questions.meta.json").write_text(
+        json.dumps(
+            dict(
+                split="dev",
+                suite_digest=suite_digest("dev"),
+                question_set_digest=question_digest([k.question for k in key], include_ids=True),
+            )
+        )
+    )
+    assert score_run(root, "dev", "P").suite_origin_verified

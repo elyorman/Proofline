@@ -37,13 +37,13 @@ def compare_questions(
     ):
         if getattr(a, name) != getattr(b, name):
             raise ValueError(f"paired question runs need identical {name}")
-    by_a, by_b = ({r.question_id: r for r in run.rows} for run in (a, b))
+    by_a, by_b = ({(r.match_id, r.question_text): r for r in run.rows} for run in (a, b))
     if set(by_a) != set(by_b):
         raise ValueError("paired runs need the same question set")
     for identity in by_a:
         left, right = by_a[identity], by_b[identity]
-        if (left.match_id, left.premise_true, left.expected_cause, left.expected_team) != (
-            right.match_id,
+        if (left.locale, left.premise_true, left.expected_cause, left.expected_team) != (
+            right.locale,
             right.premise_true,
             right.expected_cause,
             right.expected_team,
@@ -81,8 +81,8 @@ def compare_questions(
         comparison_type="questions",
         question_set_digest=a.question_set_digest,
         suite_digest=a.suite_digest,
-        question_ids=common,
-        unpaired_question_ids=sorted(set(by_a) - set(common)),
+        question_ids=[by_a[q].question_id for q in common],
+        unpaired_question_ids=sorted(by_a[q].question_id for q in set(by_a) - set(common)),
         match_ids=sorted({by_a[q].match_id for q in common}),
         model_id=a.model_id,
         tool_call_budget=a.tool_call_budget,

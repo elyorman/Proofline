@@ -223,3 +223,39 @@ def test_a_revision_is_verified_with_the_cases_cross_examination(m01, monkeypatc
     correction = asyncio.run(correct(Scripted(SOUND), published, shown.amended(a2), a2))
     assert correction.decision == "revise" and seen == [[doubt]]
     assert correction.evidence  # the revision's own evidence sets, for the dependency index
+
+
+def test_a_correction_drops_a_follow_up_set_on_the_data_it_corrected(m01):
+    from contracts.card import DecisiveTest, FollowUp, Rival
+
+    shown, a1 = m01
+    flank = _published(shown, 57, _flank(2))
+    rival = Rival(
+        hypothesis_id="hyp-x",
+        cause="tactical.press_intensity_up",
+        agent="tactics",
+        team="Harbour City",
+    )
+    pending = FollowUp(
+        window="62:00-77:00",
+        rivals=[rival],
+        tests=[
+            DecisiveTest(
+                side="rival",
+                hypothesis_id="hyp-x",
+                cause="tactical.press_intensity_up",
+                agent="tactics",
+                metric="pressure_rate",
+                subject="Harbour City",
+                direction="up",
+                reason="r",
+            )
+        ],
+    )
+    flank.card = flank.card.model_copy(update={"follow_up": pending})
+    window, moved = flank.card.evidence[0].window, set(a1.event_ids)
+    some = [e.event_id for e in shown.events if e.event_id in moved and window.contains(e.clock)]
+    a2 = a1.model_copy(update={"amendment_id": "a2", "event_ids": some[:12]})
+    revised = asyncio.run(correct(Scripted(SOUND), flank, shown.amended(a2), a2)).card
+    assert revised.follow_up is None
+    assert "check" not in revised.variants["casual"]["en"]

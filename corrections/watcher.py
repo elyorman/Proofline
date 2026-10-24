@@ -174,6 +174,9 @@ async def correct(
             "variants": {},
             "timing": was.timing.model_dump(mode="json")
             | {"verified_at": str(amendment.at), "published_at": None},
+            # A pending follow-up was set on the data the amendment corrected: it is dropped,
+            # and the revision says nothing it will not do.
+            "follow_up": None,
         }
     )
     # First, the change the card explains: if the amended data no longer show it beyond

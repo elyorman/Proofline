@@ -7,17 +7,17 @@ import { CaseOverview, RevisionHistory, VerificationPanel } from './Analyst';
 import { Evidence, Insight } from './Insights';
 import { ShotMarker } from './Pitch';
 import { LocaleContext } from './ui';
-import type { Locale } from './i18n';
+import { t, type Locale } from './i18n';
 
 const press = cards.find(card => card.moment_type === 'pressure_shift')!;
 const render = (node: ReactNode, locale: Locale = 'en') =>
   renderToStaticMarkup(<LocaleContext.Provider value={locale}>{node}</LocaleContext.Provider>);
 
 describe('faithful card rendering', () => {
-  it('shows the actual Spanish variant, strong support and recorded rejection reasons', () => {
+  it('shows the actual Spanish variant, its support and recorded rejection reasons', () => {
     const html = render(<Insight card={press} onOpen={() => {}} />, 'es');
     expect(html).toContain(press.variants!.casual.es);
-    expect(html).toContain('Fuerte');
+    expect(html).toContain(t('es', `support.${press.verification!.support_level}`));
     expect(html).toContain(press.evidence![0].value.toFixed(2).replace('.', ',')); // Spanish decimals
     for (const alternative of press.rejected_alternatives!) {
       expect(html).toContain(render(<p>{alternative.reason}</p>));
@@ -63,8 +63,8 @@ describe('faithful card rendering', () => {
   it('shows every verification check, support and language level', () => {
     const html = render(<VerificationPanel card={press} />);
     expect(html.match(/<li>/g)).toHaveLength(6);
-    expect(html).toContain('Strong');
-    expect(html).toContain('Assertive');
+    expect(html).toContain(t('en', `support.${press.verification!.support_level}`));
+    expect(html).toContain(t('en', `language.${press.verification!.language_level}`));
     expect(html).toContain(press.verification!.verifier_model_family);
     expect(html).not.toContain('have not been executed');
   });

@@ -1,0 +1,30 @@
+{
+  "role": "verifier",
+  "prompt": "{\n \"facts\": {\n  \"change\": {\n   \"metric\": \"channel_share_right\",\n   \"subject\": \"Northvale\",\n   \"direction\": \"up\",\n   \"window\": \"47:00-62:00\",\n   \"compared_with\": \"first_half\"\n  },\n  \"causes\": [\n   {\n    \"cause\": \"game_state.chasing_result\",\n    \"role\": \"primary\",\n    \"plain\": \"Harbour City chasing the result\"\n   }\n  ],\n  \"evidence\": [\n   {\n    \"metric\": \"channel_share_right\",\n    \"subject\": \"Northvale\",\n    \"first_half\": \"24%\",\n    \"window\": \"76%\",\n    \"minutes\": \"47:00-62:00\"\n   },\n   {\n    \"metric\": \"pressure_rate\",\n    \"subject\": \"Harbour City\",\n    \"first_half\": \"0.32\",\n    \"window\": \"0.45\",\n    \"minutes\": \"47:00-62:00\"\n   }\n  ],\n  \"ruled_out\": [\n   \"Northvale overloading one flank\",\n   \"a deliberate step up in Harbour City's press\",\n   \"tiring legs in Harbour City's side\",\n   \"a tiring Northvale player\",\n   \"Northvale protecting their lead\"\n  ],\n  \"names\": {\n   \"Northvale\": \"Northvale\",\n   \"Harbour City\": \"Harbour City\"\n  },\n  \"team_the_cause_is_about\": \"Harbour City\",\n  \"support_level\": \"moderate\",\n  \"language_level\": \"measured\",\n  \"published_at\": \"62:00\"\n },\n \"sentences\": [\n  \"Northvale are playing more down the right since 47'.\",\n  \"Northvale are playing more down the right since 47'. It looks like Harbour City chasing the result.\",\n  \"Share down the right (Northvale): 24% \\u2192 76%; Pressure rate (Harbour City): 0.32 \\u2192 0.45, 47'-62' against the first half. It looks like Harbour City chasing the result. Ruled out: Northvale overloading one flank, a deliberate step up in Harbour City's press, tiring legs in Harbour City's side, a tiring Northvale player, Northvale protecting their lead. Support: moderate.\"\n ]\n}",
+  "answer": {
+    "sentences": [
+      {
+        "sentence": "Northvale are playing more down the right since 47'.",
+        "entailed": true,
+        "overstated": false,
+        "reason": "channel_share_right rose 24%\u219276% in 47'-62'; published, so 'since 47'' is entailed."
+      },
+      {
+        "sentence": "Northvale are playing more down the right since 47'. It looks like Harbour City chasing the result.",
+        "entailed": true,
+        "overstated": false,
+        "reason": "Channel_share_right rise entailed; 'looks like' fits measured language and moderate support."
+      },
+      {
+        "sentence": "Share down the right (Northvale): 24% \u2192 76%; Pressure rate (Harbour City): 0.32 \u2192 0.45, 47'-62' against the first half. It looks like Harbour City chasing the result. Ruled out: Northvale overloading one flank, a deliberate step up in Harbour City's press, tiring legs in Harbour City's side, a tiring Northvale player, Northvale protecting their lead. Support: moderate.",
+        "entailed": true,
+        "overstated": false,
+        "reason": "All stats, timeframe, ruled-out items and 'moderate' support match the facts; 'looks like' allowed."
+      }
+    ]
+  },
+  "usage": {
+    "input_tokens": 1009,
+    "output_tokens": 1595
+  }
+}

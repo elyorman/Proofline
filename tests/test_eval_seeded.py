@@ -83,7 +83,8 @@ def test_each_seed_changes_only_its_declared_field(real_case):
     assert card.model_dump(mode="json") == original
     by_type = {m.kind: m for m in seeded}
     assert by_type[SeedType.CLAIM_DIRECTION].after != card.claim
-    assert by_type[SeedType.WRONG_TEAM].after.endswith("Northvale.")
+    other = next(t.name for t in feed.meta.teams.values() if t.name != card.subject.team)
+    assert by_type[SeedType.WRONG_TEAM].after.endswith(f"{other}.")
     certainty = by_type[SeedType.OVERCERTAINTY]
     if card.verification.support_level == "strong":
         assert certainty.card is None and "strong support" in certainty.skip_reason

@@ -387,7 +387,7 @@
       "case_outcome": "explained",
       "moment_type": "pressure_shift",
       "subject": {
-        "team": "Harbour City",
+        "team": "Northvale",
         "players": []
       },
       "timing": {
@@ -439,34 +439,14 @@
         {
           "id": "p2",
           "type": "attribution",
-          "cause": "tactical.press_intensity_up",
+          "cause": "tactical.block_deeper",
           "effect": "p1",
           "role": "primary",
-          "hypothesis_id": "hyp-tactics-01",
+          "hypothesis_id": "hyp-tactics-02",
           "agent": "tactics"
         },
         {
           "id": "p3",
-          "type": "change",
-          "metric": "sprint_count",
-          "subject": "Harbour City.midfield",
-          "direction": "up",
-          "window": {
-            "start": {
-              "period": 2,
-              "minute": 58,
-              "second": 0
-            },
-            "end": {
-              "period": 2,
-              "minute": 68,
-              "second": 0
-            }
-          },
-          "baseline": "first_half"
-        },
-        {
-          "id": "p4",
           "type": "change",
           "metric": "long_ball_share",
           "subject": "Northvale",
@@ -486,13 +466,13 @@
           "baseline": "first_half"
         },
         {
-          "id": "p5",
+          "id": "p4",
           "type": "attribution",
-          "cause": "tactical.block_higher",
-          "effect": "p4",
+          "cause": "game_state.chasing_result",
+          "effect": "p1",
           "role": "secondary",
-          "hypothesis_id": "hyp-tactics-02",
-          "agent": "tactics"
+          "hypothesis_id": "hyp-game_state-01",
+          "agent": "game_state"
         }
       ],
       "claim": "Harbour City are pressing harder since 58'.",
@@ -519,29 +499,6 @@
           },
           "n_events": 35,
           "tool_call_id": "tc-3ae85aa19620"
-        },
-        {
-          "metric": "sprint_count",
-          "subject": "Harbour City.midfield",
-          "window": {
-            "start": {
-              "period": 2,
-              "minute": 58,
-              "second": 0
-            },
-            "end": {
-              "period": 2,
-              "minute": 68,
-              "second": 0
-            }
-          },
-          "value": 1.2,
-          "baseline": {
-            "window": "first_half",
-            "value": 1.1052072263549415
-          },
-          "n_events": 12,
-          "tool_call_id": "tc-85f91e07e092"
         },
         {
           "metric": "long_ball_share",
@@ -571,8 +528,6 @@
         "evidence_sets": [
           "es-tc-3ae85aa19620",
           "es-tc-46354c07f114",
-          "es-tc-85f91e07e092",
-          "es-tc-cc08819f0cdd",
           "es-tc-4a61dfda7099",
           "es-tc-68ba0cae8163"
         ],
@@ -580,38 +535,38 @@
       },
       "rejected_alternatives": [
         {
+          "hypothesis_id": "hyp-tactics-01",
+          "taxonomy": "tactical.press_intensity_up",
+          "agent": "tactics",
+          "team": "Harbour City",
+          "reason": "If only the attack raised pressing intensity, the defence's sprint rate should not rise as much; a matching rise would indicate a team-wide effect (chasing) or other cause.",
+          "rejected_by": "cross_examination",
+          "tool_call_id": "tc-ac75c2c14a40"
+        },
+        {
           "hypothesis_id": "hyp-physical-01",
           "taxonomy": "physical.unit_fatigue",
           "agent": "physical",
-          "team": "Northvale",
-          "reason": "sprint_count of Northvale: 3.826 in the first half, 2.900 in 58:00-68:00; ordinary play moves it -0.252 ± 0.116 of the first-half rate here, so +0.08 sd against a claim of down by 1 sd",
-          "rejected_by": "test",
-          "tool_call_id": "tc-9f1af201855a"
+          "team": "Harbour City",
+          "reason": "Unit fatigue should reduce the team's sprint frequency.",
+          "rejected_by": "cross_examination",
+          "tool_call_id": "tc-5cf157a44523"
         },
         {
           "hypothesis_id": "hyp-physical-02",
           "taxonomy": "physical.player_fatigue",
           "agent": "physical",
-          "team": "Northvale",
-          "reason": "sprint_count of NV-06: 0.340 in the first half, 0.300 in 58:00-68:00; ordinary play moves it -0.233 ± 0.407 of the first-half rate here, so +0.28 sd against a claim of down by 1 sd",
-          "rejected_by": "test",
-          "tool_call_id": "tc-563f021b7fbd"
-        },
-        {
-          "hypothesis_id": "hyp-game_state-01",
-          "taxonomy": "game_state.chasing_result",
-          "agent": "game_state",
           "team": "Harbour City",
-          "reason": "long_ball_share of Harbour City: 0.119 in the first half, 0.155 in 58:00-68:00; ordinary play moves it +0.005 ± 0.068 here, so +0.46 sd against a claim of up by 1.5 sd",
-          "rejected_by": "test",
-          "tool_call_id": "tc-11ce9209d022"
+          "reason": "Individual player fatigue would lower the team's sprint count.",
+          "rejected_by": "cross_examination",
+          "tool_call_id": "tc-5cf157a44523"
         },
         {
           "hypothesis_id": "hyp-game_state-02",
           "taxonomy": "game_state.protecting_lead",
           "agent": "game_state",
           "team": "Northvale",
-          "reason": "pressure_rate of Northvale: 0.395 in the first half, 0.362 in 58:00-68:00; ordinary play moves it -0.006 ± 0.088 here, so -0.31 sd against a claim of down by 1.5 sd",
+          "reason": "pressure_rate of Northvale: 0.395 in the first half, 0.362 in 58:00-68:00; ordinary play moves it -0.006 ± 0.088 here, so -0.31 sd against a claim of down by 1 sd",
           "rejected_by": "test",
           "tool_call_id": "tc-eb7c8da7bbcb"
         }
@@ -623,9 +578,9 @@
           "game_state"
         ],
         "preregistered_predictions": 6,
-        "tool_calls": 16,
+        "tool_calls": 14,
         "budget": 16,
-        "cross_examination": "physical corollary on tactics's tactical.press_intensity_up: holds; physical corollary on tactics's tactical.block_higher: weakened; game_state corollary on tactics's tactical.press_intensity_up: holds; game_state corollary on tactics's tactical.block_higher: weakened",
+        "cross_examination": "tactics corollary on physical's physical.unit_fatigue: refuted; tactics corollary on physical's physical.player_fatigue: refuted; physical control on tactics's tactical.press_intensity_up: refuted; physical corollary on tactics's tactical.block_deeper: weakened; game_state corollary on physical's physical.unit_fatigue: refuted; game_state corollary on physical's physical.player_fatigue: refuted",
         "recovered_from_checkpoint": false
       },
       "verification": {
@@ -636,20 +591,20 @@
         "contradiction_check": "passed",
         "number_check": "passed",
         "semantic_check": "passed",
-        "verifier_model_family": "phi",
-        "support_level": "strong",
-        "language_level": "assertive",
+        "verifier_model_family": "openai",
+        "support_level": "moderate",
+        "language_level": "measured",
         "rejection_reason": null
       },
       "salience": "medium",
       "variants": {
         "casual": {
-          "en": "Harbour City are pressing harder since 58'. That is a deliberate step up in Harbour City's press. We'll check it against Northvale pushing their block higher by 83'.",
-          "es": "Harbour City presiona con más intensidad desde el minuto 58. Es un aumento deliberado de la presión de Harbour City. Lo comprobaremos frente a Northvale adelantando su bloque antes del minuto 83."
+          "en": "Harbour City are pressing harder since 58'. It looks like Northvale sitting in a deeper block. We'll check it against Harbour City chasing the result by 83'.",
+          "es": "Harbour City presiona con más intensidad desde el minuto 58. Parece Northvale defendiendo más atrás. Lo comprobaremos frente a Harbour City buscando el resultado antes del minuto 83."
         },
         "analyst": {
-          "en": "Pressure rate (Harbour City): 0.32 → 0.77; Sprints a minute (Harbour City's midfield): 1.11 → 1.20; Long-ball share (Northvale): 11% → 61%, 58'-68' against the first half. That is a deliberate step up in Harbour City's press. We'll check it against Northvale pushing their block higher by 83'. Ruled out: tiring legs in Northvale's side, a tiring Northvale player, Harbour City chasing the result, Northvale protecting their lead. Support: strong.",
-          "es": "Tasa de presión (Harbour City): 0.32 → 0.77; Esprints por minuto (el centro del campo de Harbour City): 1.11 → 1.20; Proporción de balones largos (Northvale): 11% → 61%, 58'-68' frente a la primera parte. Es un aumento deliberado de la presión de Harbour City. Lo comprobaremos frente a Northvale adelantando su bloque antes del minuto 83. Descartado: el cansancio en Northvale, un jugador de Northvale que se cansa, Harbour City buscando el resultado, Northvale protegiendo su ventaja. Apoyo: fuerte."
+          "en": "Pressure rate (Harbour City): 0.32 → 0.77; Long-ball share (Northvale): 11% → 61%, 58'-68' against the first half. It looks like Northvale sitting in a deeper block. We'll check it against Harbour City chasing the result by 83'. Ruled out: a deliberate step up in Harbour City's press, tiring legs in Harbour City's side, a tiring Harbour City player, Northvale protecting their lead. Support: moderate.",
+          "es": "Tasa de presión (Harbour City): 0.32 → 0.77; Proporción de balones largos (Northvale): 11% → 61%, 58'-68' frente a la primera parte. Parece Northvale defendiendo más atrás. Lo comprobaremos frente a Harbour City buscando el resultado antes del minuto 83. Descartado: un aumento deliberado de la presión de Harbour City, el cansancio en Harbour City, un jugador de Harbour City que se cansa, Northvale protegiendo su ventaja. Apoyo: moderado."
         }
       },
       "broadcast_cue": null,
@@ -667,20 +622,24 @@
             "second": 0
           }
         },
-        "rival_hypothesis_id": "hyp-tactics-02",
-        "rival_cause": "tactical.block_higher",
-        "rival_agent": "tactics",
-        "rival_team": "Northvale",
+        "rivals": [
+          {
+            "hypothesis_id": "hyp-game_state-01",
+            "cause": "game_state.chasing_result",
+            "agent": "game_state",
+            "team": "Harbour City"
+          }
+        ],
         "tests": [
           {
             "side": "primary",
-            "hypothesis_id": "hyp-tactics-01",
-            "cause": "tactical.press_intensity_up",
+            "hypothesis_id": "hyp-tactics-02",
+            "cause": "tactical.block_deeper",
             "agent": "tactics",
             "metric": "pressure_rate",
-            "subject": "Harbour City",
-            "direction": "up",
-            "reason": "An increase in Harbour City's pressing intensity will raise their pressures in the opponent half; Northvale's ‘block higher’ change mainly affects Northvale's long-ball behaviour and doesn't by itself predict a rise in Harbour City's pressure_rate.",
+            "subject": "Northvale",
+            "direction": "down",
+            "reason": "A deliberate deeper defensive block means Northvale will stop pressing as high and lower their pressure_rate; Harbour City's chasing-result behavior predicts changes in Harbour City's actions, not a reduction in Northvale's pressure_rate.",
             "sigmas": null,
             "holds": null,
             "measured": null,
@@ -688,13 +647,13 @@
           },
           {
             "side": "rival",
-            "hypothesis_id": "hyp-tactics-02",
-            "cause": "tactical.block_higher",
-            "agent": "tactics",
-            "metric": "pressure_rate",
-            "subject": "Northvale",
+            "hypothesis_id": "hyp-game_state-01",
+            "cause": "game_state.chasing_result",
+            "agent": "game_state",
+            "metric": "sprint_count",
+            "subject": "Harbour City.attack",
             "direction": "up",
-            "reason": "A higher defensive block by Northvale will put them making more pressures in the opponent's first 60% of the pitch, whereas Harbour City's supposed uptick in press intensity would mainly change their own sprinting activity rather than prevent Northvale increasing their pressure rate.",
+            "reason": "Chasing the deficit will make Harbour City's forwards and attacking midfielders sprint more to create/force chances, whereas Northvale dropping deeper does not by itself raise Harbour City's attack sprint frequency.",
             "sigmas": null,
             "holds": null,
             "measured": null,
@@ -706,7 +665,7 @@
       "supersedes": null,
       "superseded_by": null,
       "provenance": {
-        "trace_id": "c21f6a93b2034455bcd398b0e95bedc3",
+        "trace_id": "e049f0bf73a941f78a94b4bd1c8d0439",
         "foundry_eval_run": null
       }
     }
@@ -735,15 +694,15 @@
       },
       "duration_s": 8,
       "fields": {
-        "team": "Harbour City",
+        "team": "Northvale",
         "before": 0.32,
         "after": 0.7714285714285715,
-        "headline": "Harbour City are pressing harder since 58'. That is a deliberate step up in Harbour City's press. We'll check it against Northvale pushing their block higher by 83'.",
+        "headline": "Harbour City are pressing harder since 58'. It looks like Northvale sitting in a deeper block. We'll check it against Harbour City chasing the result by 83'.",
         "stat_label": "pressure_rate",
         "metric": "pressure_rate"
       },
       "locale": "en",
-      "language_level": "assertive",
+      "language_level": "measured",
       "status": "approved",
       "decided_by": "auto"
     },

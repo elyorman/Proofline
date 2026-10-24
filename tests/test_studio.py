@@ -57,11 +57,11 @@ def test_every_case_of_the_match_is_filed_and_every_card_scheduled(ledger):
     assert [(c["card_id"], c["decision"]) for c in ledger["corrections"]] == [
         ("ins-m01-057-shape_change", "withdraw")
     ]
-    # And its follow-ups: the 62' long-ball card overturned at 77', the 68' press card
-    # confirmed at 83'; the flank card, withdrawn at 70', is never settled.
+    # And its follow-ups: the 62' long-ball card and the 68' press card each left open at
+    # 77' and 83', since the minutes after fit more than one cause.
     assert [(f["card_id"], f["status"]) for f in ledger["follow_ups"]] == [
-        ("ins-m01-057-pressure_shift", "overturned"),
-        ("ins-m01-063-pressure_shift", "confirmed"),
+        ("ins-m01-057-pressure_shift", "unresolved"),
+        ("ins-m01-063-pressure_shift", "unresolved"),
     ]
 
 

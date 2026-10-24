@@ -80,8 +80,9 @@ def evaluate_batch(
     resamples: int = 2000,
     after_follow_up: bool = False,
 ) -> EvalRun:
-    """Score a batch's published cards; `after_follow_up` scores each card as its follow-up
-    left it, where an unresolved follow-up claims no cause."""
+    """Score a batch's published cards, from its recorded starts, never a scoring-time
+    guess; `after_follow_up` scores each card as its follow-up left it, where an unresolved
+    follow-up claims no cause."""
     variant = Variant(variant)
     folder = Path(root) / variant.value
     cohort = {entry.match_id for suite in suites for entry in suite.truth.entries}
@@ -99,6 +100,8 @@ def evaluate_batch(
             match = BatchMatch.model_validate_json(data)
             if match.match_id != path.stem or match.variant != variant:
                 raise ValueError("batch match_id or variant does not match its file")
+            if match.started_at_ms is None:
+                raise ValueError("cannot create batch records: match lacks started_at_ms")
         except ValueError as exc:
             raise ValueError(f"{path}: {exc}") from exc
         digest.update(path.name.encode() + b"\0" + data + b"\0")
@@ -128,7 +131,7 @@ def evaluate_batch(
         wall_time_budget_s=wall_time_budget_s,
         seed=seed,
         resamples=resamples,
-        started_at_ms=min(starts) if starts else None,
+        started_at_ms=min(starts),
         finished_at_ms=finished_at_ms,
         input_tokens=input_tokens,
         output_tokens=output_tokens,

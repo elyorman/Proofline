@@ -16,12 +16,20 @@ ROOT = Path(__file__).resolve().parents[1]
 @pytest.fixture
 def batch(tmp_path):
     suites = [load_suite(ROOT / "engine/suites", name, "dev") for name in ("planted", "decoys")]
+    started_at_ms = int(time.time() * 1000)
     for variant in ("A", "B"):
         (tmp_path / variant).mkdir()
         for suite in suites:
             for truth in suite.truth.entries:
                 (tmp_path / variant / f"{truth.match_id}.json").write_text(
-                    json.dumps(dict(match_id=truth.match_id, variant=variant, cases=[]))
+                    json.dumps(
+                        dict(
+                            match_id=truth.match_id,
+                            variant=variant,
+                            started_at_ms=started_at_ms,
+                            cases=[],
+                        )
+                    )
                 )
     excluded = {e.match_id for e in suites[0].flags.exclusions}
     truth = next(t for t in suites[0].truth.entries if t.match_id not in excluded)
@@ -71,7 +79,8 @@ def batch(tmp_path):
 def write_cases(batch, variant, match_id, cases):
     root = batch[0]
     path = root / variant / f"{match_id}.json"
-    path.write_text(json.dumps(dict(match_id=match_id, variant=variant, cases=cases)))
+    raw = json.loads(path.read_text())
+    path.write_text(json.dumps(raw | dict(cases=cases)))
 
 
 def test_batch_uses_publication_flags_and_keeps_errors_tokens_and_run_times(batch):
@@ -79,7 +88,7 @@ def test_batch_uses_publication_flags_and_keeps_errors_tokens_and_run_times(batc
     unpublished = dict(case, case_id="rejected", published=False, card=None, tokens=[7, 4])
     failed = dict(case_id="failed", moment="pressure_shift", window="58:00-63:00", error="timeout")
     write_cases(batch, "A", truth.match_id, [case, unpublished, failed])
-    start = int(time.time() * 1000)
+    start = json.loads((root / "A" / f"{truth.match_id}.json").read_text())["started_at_ms"]
     run = evaluate_batch(
         root, suites, variant="A", started_at_ms=start, finished_at_ms=start + 200, resamples=100
     )
@@ -148,7 +157,7 @@ def test_batch_refuses_incomplete_or_inconsistent_inputs(batch, change):
 def test_cli_scores_batch_to_json_stdout(batch, capsys):
     root, _, truth, case = batch
     write_cases(batch, "A", truth.match_id, [case])
-    start = int(time.time() * 1000)
+    start = json.loads((root / "A" / f"{truth.match_id}.json").read_text())["started_at_ms"]
     assert (
         main(
             [
@@ -212,6 +221,11 @@ def test_batch_inputs_have_stable_content_provenance(batch):
 @pytest.mark.parametrize("index,count", [(0, 12), (1, 4)])
 def test_a_selected_suite_ignores_other_suite_files(batch, index, count):
     root, suites, _, _ = batch
+    for truth in suites[1 - index].truth.entries:
+        path = root / "A" / f"{truth.match_id}.json"
+        raw = json.loads(path.read_text())
+        del raw["started_at_ms"]
+        path.write_text(json.dumps(raw))
     run = evaluate_batch(root, [suites[index]], variant="A", resamples=100)
     assert len(run.outcomes) == count
     assert run.suites == [suites[index].truth.suite]
@@ -296,3 +310,81 @@ def test_comparison_records_supplied_configuration_and_failed_case_usage(batch, 
     )
     result = VariantComparison.model_validate_json(capsys.readouterr().out)
     assert result.unverified_configuration == [] and result.failed_cases_a == 1
+
+
+@pytest.mark.parametrize("destination", [None, "--out", "--record-dir"])
+@pytest.mark.parametrize("comparison", [False, True])
+@pytest.mark.parametrize("explicit_start", [False, True])
+def test_batch_records_require_every_source_start(
+    batch, capsys, destination, comparison, explicit_start
+):
+    root, suites, truth, _ = batch
+    start = suites[0].flags.frozen_at_ms + 10
+    for path in root.glob("*/*.json"):
+        raw = json.loads(path.read_text())
+        raw["started_at_ms"] = start
+        path.write_text(json.dumps(raw))
+    # Only one missing source start must block the entire save, even in variant B
+    # after variant A has already been scored. Empty-case matches still count.
+    missing = root / ("B" if comparison else "A") / f"{truth.match_id}.json"
+    raw = json.loads(missing.read_text())
+    del raw["started_at_ms"]
+    missing.write_text(json.dumps(raw))
+    target = root / ("scored.json" if destination == "--out" else "records")
+    args = ["--runs", str(root), "--split", "dev", "--resamples", "100"]
+    args += ["--compare", "A", "B"] if comparison else ["--variant", "A"]
+    if explicit_start:
+        args += ["--started-at-ms", str(start + 100)]
+    if destination is not None:
+        args += [destination, str(target)]
+    with pytest.raises(SystemExit) as exc:
+        main(args)
+    assert exc.value.code == 2
+    output = capsys.readouterr()
+    assert "lacks started_at_ms" in output.err and str(missing) in output.err
+    assert not output.out and not target.exists()
+
+
+@pytest.mark.parametrize("null_start", [False, True])
+def test_missing_batch_starts_cannot_be_replaced_by_explicit_scoring_start(batch, null_start):
+    root, suites, _, _ = batch
+    for path in (root / "A").glob("*.json"):
+        raw = json.loads(path.read_text())
+        if null_start:
+            raw["started_at_ms"] = None
+        else:
+            del raw["started_at_ms"]
+        path.write_text(json.dumps(raw))
+    with pytest.raises(ValueError, match="lacks started_at_ms"):
+        evaluate_batch(
+            root,
+            suites,
+            variant="A",
+            started_at_ms=int(time.time() * 1000),
+        )
+
+
+def test_timestamped_batches_save_the_earliest_start_and_keep_freeze_checks(batch, capsys):
+    root, suites, truth, _ = batch
+    start = suites[0].flags.frozen_at_ms + 10
+    for path in (root / "A").glob("*.json"):
+        raw = json.loads(path.read_text())
+        raw["started_at_ms"] = start + 100
+        path.write_text(json.dumps(raw))
+    earliest = root / "A" / f"{truth.match_id}.json"
+    raw = json.loads(earliest.read_text())
+    raw["started_at_ms"] = start
+    earliest.write_text(json.dumps(raw))
+    args = ["--runs", str(root), "--split", "dev", "--variant", "A"]
+    target = root / "scored.json"
+    assert main([*args, "--started-at-ms", str(start + 200), "--out", str(target)]) == 0
+    run = EvalRun.model_validate_json(capsys.readouterr().out)
+    assert run.started_at_ms == start
+    assert EvalRun.model_validate_json(target.read_bytes()) == run
+    # A later override cannot conceal a source match starting before the flags froze.
+    raw["started_at_ms"] = suites[0].flags.frozen_at_ms - 1
+    earliest.write_text(json.dumps(raw))
+    bad_target = root / "bad-records"
+    with pytest.raises(SystemExit):
+        main([*args, "--started-at-ms", str(start + 200), "--record-dir", str(bad_target)])
+    assert "frozen before" in capsys.readouterr().err and not bad_target.exists()

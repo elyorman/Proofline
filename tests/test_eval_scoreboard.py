@@ -86,7 +86,14 @@ def test_batch_record_dir_keeps_both_runs_and_comparison(evaluated, tmp_path, ca
         for suite in suites:
             for truth in suite.truth.entries:
                 (root / variant / f"{truth.match_id}.json").write_text(
-                    json.dumps(dict(match_id=truth.match_id, variant=variant, cases=[]))
+                    json.dumps(
+                        dict(
+                            match_id=truth.match_id,
+                            variant=variant,
+                            started_at_ms=suites[0].flags.frozen_at_ms + 1,
+                            cases=[],
+                        )
+                    )
                 )
     base = [
         "--runs",

@@ -43,7 +43,11 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--model-tier", choices=["dev", "final"], default="dev")
     parser.add_argument("--tool-call-budget", type=int)
     parser.add_argument("--wall-time-budget-s", type=float)
-    parser.add_argument("--started-at-ms", type=int, help="epoch ms; defaults to scoring start")
+    parser.add_argument(
+        "--started-at-ms",
+        type=int,
+        help="epoch ms; batch uses earliest source/explicit start; cards default to scoring start",
+    )
     parser.add_argument("--finished-at-ms", type=int, help="epoch ms; defaults to scoring finish")
     parser.add_argument("--suites-root", type=Path, default=Path("engine/suites"))
     parser.add_argument("--seed", type=int, default=0)

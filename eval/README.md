@@ -160,8 +160,12 @@ all-card counts are retained per type, so rejection-only behavior remains visibl
 The schema registry exports `SeededRun` and `QuestionRun`. Add the README markers
 and the scoreboard check to CI when publishing records. Keep the backend's `started_at_ms` in every batch
 file; the scorer uses the earliest recorded start (or an earlier explicit start)
-for the flag-freeze check. Selecting a single suite from a combined batch folder
-now ignores the other suite's files while still requiring every selected match.
+for the flag-freeze check. Creating batch runs or comparisons requires
+`started_at_ms` in every selected match file, including matches with no cases.
+This applies to stdout JSON, `--out` and `--record-dir`; an explicit
+`--started-at-ms` cannot replace missing source timestamps. Selecting a single
+suite from a combined batch folder ignores the other suite's files while still
+requiring every selected match.
 
 New standalone rates record `ci_method: "wilson"`; paired differences record
 `"paired_match_bootstrap"`. Older records without a method stay labelled

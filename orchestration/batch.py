@@ -1,12 +1,14 @@
 """Batch mode: every case the detector opens on a folder of matches, through one variant.
 
-Each match's results are written to <out>/<variant>/<match_id>.json: every case with its
-outcome, its card if one was published, its tool calls, tokens and recovery flag. The
+Each match's results are written to <out>/<variant>/<match_id>.json: when it started, and
+every case with its outcome, its card if one was published, its tool calls, tokens and
+recovery flag. The
 Evaluator scores those files against the sealed ground truth; this module never reads it.
 """
 
 import asyncio
 import json
+import time
 import traceback
 from pathlib import Path
 from typing import Any
@@ -62,8 +64,15 @@ async def run_batch(
             continue
         feed = source.feed(match_dir.name)
         cases = detect(feed.meta, feed.events)
+        # When the match began: the Evaluator proves the flags were frozen before any run.
+        started_at_ms = int(time.time() * 1000)
         results = await asyncio.gather(*(bounded(c, feed) for c in cases))
-        doc = {"match_id": match_dir.name, "variant": variant.value, "cases": results}
+        doc = {
+            "match_id": match_dir.name,
+            "variant": variant.value,
+            "started_at_ms": started_at_ms,
+            "cases": results,
+        }
         target.write_text(json.dumps(doc, indent=1) + "\n", encoding="utf-8")
         written.append(target)
         published = sum(r.get("published", False) for r in results)

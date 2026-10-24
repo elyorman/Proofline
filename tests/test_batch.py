@@ -1,5 +1,6 @@
 import asyncio
 import json
+import time
 from pathlib import Path
 
 from agents.cross_exam import Counters
@@ -49,11 +50,13 @@ def test_a_batch_writes_every_case_of_every_match_and_resumes(tmp_path):
     write_match(sim, sim.run(), tmp_path / "data" / "m01")
     model = ByRole(ANSWERS)
     out = tmp_path / "runs"
+    before = int(time.time() * 1000)
     (written,) = asyncio.run(
         run_batch(tmp_path / "data", Variant.B_SINGLE_AGENT, out, model, model)
     )
     doc = json.loads(written.read_text())
     assert doc["match_id"] == "m01" and doc["variant"] == "B"
+    assert before <= doc["started_at_ms"] <= int(time.time() * 1000)  # for the flag-freeze check
     by_id = {c["case_id"]: c for c in doc["cases"]}
     press = by_id["case-m01-063-pressure_shift"]
     assert press["published"] and press["card"]["subject"]["team"] == "Harbour City"

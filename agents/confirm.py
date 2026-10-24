@@ -32,7 +32,9 @@ PERSIST_SD = 1.5
 # time on the ball), so confirming asks half the sample a card needs; a card's own evidence
 # still needs all of it.
 CONFIRM_SAMPLE = 0.5
-PREMISE_SD = 2.0  # a viewer's window is not picked for being unusual: the usual two sd
+# A viewer's window is not picked for being unusual, so its change is read as a confirmation
+# reads one. On the dev questions, 2 sd turned away half the true premises.
+PREMISE_SD = PERSIST_SD
 
 
 def extended(case: Case) -> Case:

@@ -4,6 +4,7 @@ the text comes from the card's evidence, so the Verifier's number check can hold
 A model-written narrator replaces these later; they stay as its fallback.
 """
 
+from agents.confirm import PERSIST_SD
 from contracts.card import InsightCard
 from contracts.case_file import Persistence
 from contracts.meta import MatchMeta
@@ -273,6 +274,12 @@ NOT_HAPPENING = (
     "No más allá de lo normal: {label} ({who}) es {now} desde el minuto {since}, frente a {then} "
     "en la primera parte.",
 )
+OTHER_WAY = (  # the premise's change went the opposite way, beyond ordinary play
+    "The other way: {label} ({who}) has been {now} since {since}', against {then} in the first "
+    "half.",
+    "Al contrario: {label} ({who}) es {now} desde el minuto {since}, frente a {then} en la "
+    "primera parte.",
+)
 NO_CAUSE = (
     "{who} {change} since {since}', but no cause stands up to the evidence yet.",
     "{who} {change_es} desde el minuto {since}, pero ninguna causa resiste la evidencia todavía.",
@@ -304,13 +311,17 @@ def answer(
     since = premise.since.minute
     if outcome == "premise_false":
         facts = {"label": "", "who": name, "since": since, "now": "-", "then": "-"}
+        up = premise.direction == Direction.UP
         if test is not None and test.value is not None and test.baseline is not None:
             facts |= {
                 "now": number(premise.metric, test.value),
                 "then": number(premise.metric, test.baseline),
             }
+        z = test.sigmas if test is not None else None
+        reversed_ = z is not None and (z <= -PERSIST_SD if up else z >= PERSIST_SD)
+        template = OTHER_WAY if reversed_ else NOT_HAPPENING
         return {
-            locale: NOT_HAPPENING[i].format(**facts | {"label": LABEL[premise.metric][i]})
+            locale: template[i].format(**facts | {"label": LABEL[premise.metric][i]})
             for i, locale in enumerate(LOCALES)
         }
     en, es = CHANGE[premise.metric, premise.direction]

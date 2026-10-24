@@ -39,7 +39,7 @@ def test_a_feed_message_carries_exactly_its_body(m01_dir):
 def test_the_clock_sends_the_metadata_first_then_every_event_on_one_partition(m01_dir):
     sent = []
     feed = messages(m01_dir, "run-1")
-    assert publish(feed, lambda bodies, key: sent.append((len(bodies), key)), speed=0) == 2964
+    assert publish(feed, lambda bodies, key: sent.append((len(bodies), key)), speed=0) == 2975
     assert feed[0].kind == "meta" and all(m.kind == "event" for m in feed[1:])
     assert {key for _, key in sent} == {"m01"} and max(n for n, _ in sent) == BATCH
 

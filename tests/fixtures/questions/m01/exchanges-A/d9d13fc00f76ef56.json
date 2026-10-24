@@ -7,10 +7,10 @@
     "subject": "Harbour City",
     "direction": "up",
     "since": "58:00",
-    "why": "Que Harbour City increment\u00f3 su tasa de presi\u00f3n (pressure_rate) desde el minuto 58:00."
+    "why": "That Harbour City\u2019s pressure_rate has increased from 58:00 onwards."
   },
   "usage": {
     "input_tokens": 1010,
-    "output_tokens": 611
+    "output_tokens": 509
   }
 }

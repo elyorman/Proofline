@@ -218,7 +218,7 @@ Deterministic layers never wait on an LLM. The Why Engine is the only place agen
 
 ### 7.1 Match Engine
 
-A stochastic possession-chain simulator for two fictional teams, with a lightweight positional model so events and player positions always agree. Published as a downloadable dataset (§11.4).
+A stochastic possession-chain simulator for two fictional teams, with a lightweight positional model so events and player positions always agree. Pressing is sprint work: a team's off-ball sprints rise and fall with its press height as well as its players' energy (DATASET.md). Published as a downloadable dataset (§11.4).
 
 **Event types:** pass, carry, dribble, shot, tackle, interception, clearance, pressure, duel, foul, card, substitution, possession change, set piece, goal, sprint, period start/end, event amendment.
 

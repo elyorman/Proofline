@@ -4,7 +4,8 @@ A possession is a chain of actions (pass, carry, dribble, shot) by the team on t
 ball while the other team presses according to its press height. Pressure makes
 passes riskier and pushes the team on the ball to go long, and a press above 0.5 is
 bypassed with long balls from the team's own 70 m even when nobody presses the
-passer: the mechanisms behind a pressure shift. Open play reflects off the
+passer: the mechanisms behind a pressure shift. Pressing is sprint work, so a team's
+off-ball sprints rise and fall with its press height. Open play reflects off the
 touchlines, and a misplaced pass near one runs out for a throw-in. Every random draw
 comes from a keyed stream (engine.rng), so a run without one intervention stays
 aligned with the run that has it. Coordinates are in the acting team's attacking
@@ -27,6 +28,7 @@ KICKOFF_MS = 1_800_000_000_000
 OPEN_PLAY_MAX_X = 97.0  # open play bounces back 8 m from the goal line
 THROW_IN_BAND = 8.0  # a misplaced pass ending this close to a touchline runs out
 BYPASS = 1.0  # extra long-ball chance per unit of opponent press height above 0.5
+PRESS_SPRINTS = 0.5  # relative change in off-ball sprints per unit of press height from 0.5
 FATIGUE_PER_MIN = 0.25 / 90
 
 
@@ -123,7 +125,8 @@ class MatchSim:
                 pid = p.player_id
                 decay = self.params.player(side, pid, self.period, start, p.unit)["stamina_decay"]
                 p.energy = max(0.2, p.energy - FATIGUE_PER_MIN * decay)
-                if not self.rng.chance(f"sprint:{pid}", m, SPRINT_RATE[p.unit] * p.energy**2):
+                rate = SPRINT_RATE[p.unit] * p.energy**2 * (1 + PRESS_SPRINTS * (press - 0.5))
+                if not self.rng.chance(f"sprint:{pid}", m, rate):
                     continue
                 s = start + self.rng.uniform(f"sprint_at:{pid}", m, 0, 59)
                 ball = self.ball if side == self.att else mirror(self.ball)

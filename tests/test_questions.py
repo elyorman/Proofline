@@ -83,7 +83,8 @@ def test_a_false_premise_is_answered_with_what_happened_and_no_one_investigates(
     answer = asyncio.run(run_question(Variant.B_SINGLE_AGENT, model, model, question, m01))
     assert answer.outcome == "premise_false" and answer.card is None
     assert model.asked == [("single", "Framing")]  # no cause was looked for
-    assert answer.premise_test.sigmas < 2 and "short of 2 sd down" in answer.reason
+    # Pressing, their defence sprints more, not less: +2.07 sd against a premise of a fall.
+    assert not answer.premise_test.holds and "short of 2 sd down" in answer.reason
     assert answer.text["en"].startswith("Not beyond ordinary play")
     assert answer.text["es"].startswith("No más allá de lo normal")
     assert Answer.model_validate_json(answer.model_dump_json()) == answer

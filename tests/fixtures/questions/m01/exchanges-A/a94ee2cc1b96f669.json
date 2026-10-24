@@ -7,10 +7,10 @@
     "subject": null,
     "direction": null,
     "since": null,
-    "why": "The question assumes a determinable match winner, which is not a measurable change in the provided in-game metrics."
+    "why": "Assumes the match will end with one team winning (a definitive final-score lead for one side)."
   },
   "usage": {
     "input_tokens": 996,
-    "output_tokens": 358
+    "output_tokens": 569
   }
 }

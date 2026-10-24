@@ -7,10 +7,10 @@
     "subject": "NV-10",
     "direction": "down",
     "since": "60:00",
-    "why": "Que el sprint_count de Ambrel ha disminuido desde el minuto 60:00 (menos sprints por minuto)."
+    "why": "Asume que la tasa de sprints (sprints por minuto) de Ambrel ha disminuido desde el minuto 60."
   },
   "usage": {
     "input_tokens": 1008,
-    "output_tokens": 677
+    "output_tokens": 608
   }
 }

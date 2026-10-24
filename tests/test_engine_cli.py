@@ -58,8 +58,8 @@ def test_the_demo_match_is_pinned(tmp_path, capsys):
     main(["generate", "--script", str(M01), "--out", str(tmp_path)])
     out = capsys.readouterr().out.strip()
     moved = "the demo match changed: if intended, update this pin and re-check the demo beats"
-    assert out == "m01 seed 4434: 2963 events, Harbour City 2-3 Northvale", moved
+    assert out == "m01 seed 4434: 2974 events, Harbour City 2-3 Northvale", moved
     digest = hashlib.sha256((tmp_path / "events.jsonl").read_bytes()).hexdigest()
-    assert digest == "c2a7a473139977d0141181bea40de2009412c3d63a5c557210e33c4c74905d4e", moved
+    assert digest == "a9ceae374170dd16e6204fef0081593b08639a32375b2f5b7beff9a35d56e3ed", moved
     batch = hashlib.sha256((tmp_path / "amendments.jsonl").read_bytes()).hexdigest()
-    assert batch == "f6af15c1ac682a384a65ca79ba55d6a13d47d368bfc45a96243038cf0770fa82", moved
+    assert batch == "ae9fd3cce9938bc5de9a20cc1d04f8b58f4b0c4d18f7303358c783646b9103e8", moved

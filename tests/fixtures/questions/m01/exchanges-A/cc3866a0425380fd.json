@@ -7,10 +7,10 @@
     "subject": "Northvale",
     "direction": "up",
     "since": "58:00",
-    "why": "The question assumes Northvale\u2019s share of passes longer than 30 m has increased from 58:00 onwards."
+    "why": "Northvale's share of passes longer than 30 m has increased since 58:00."
   },
   "usage": {
     "input_tokens": 1003,
-    "output_tokens": 400
+    "output_tokens": 440
   }
 }

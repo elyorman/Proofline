@@ -88,6 +88,10 @@ def nv_unpressed_long_share(events):
     return sum(p.pass_q.distance_m > 30 for p in passes) / len(passes)
 
 
+def hc_sprints(events):
+    return sum(e.type == "sprint" and e.team == "Harbour City" and _in(e, 62, 68) for e in events)
+
+
 def nv03_sprints(events):
     return sum(e.type == "sprint" and e.player_id == "NV-03" and _in(e, 66, 90) for e in events)
 
@@ -104,6 +108,11 @@ def test_raised_press_pushes_the_opponent_long():
 
 def test_a_high_press_is_bypassed_with_long_balls():
     low, _ = _paired_ci(M01, "s1", nv_unpressed_long_share)
+    assert low > 0
+
+
+def test_a_raised_press_is_run_with_more_sprints():
+    low, _ = _paired_ci(M01, "s1", hc_sprints)
     assert low > 0
 
 

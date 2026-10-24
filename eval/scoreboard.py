@@ -115,14 +115,16 @@ def render(records: list[Record]) -> str:
             "",
             f"Seeded Verifier run: {cell(record.run_id)} "
             f"({scope(record.split)}, {record.variant}; {len(record.cards)} card clusters).",
-            f"Catch rate: {estimate(record.catch_rate)}. "
+            f"Sound-control catch rate: {estimate(record.catch_rate)}. "
+            f"All-cards catch rate: {estimate(record.all_cards_catch_rate)}. "
             f"Controls rejected: {estimate(record.false_rejection_rate)}.",
             f"No answer: {record.seed_no_answers} seeded trials; "
             f"{record.control_no_answers} controls.",
             "",
-            "| Type | Seeded | Caught | No answer | Catch rate (95% CI) "
+            "| Type | Seeded | Caught | No answer | Sound-control trials | Headline rate (95% CI) "
+            "| All-cards rate (95% CI) "
             "| Checks that rejected seeds |",
-            "|---|---|---|---|---|---|",
+            "|---|---|---|---|---|---|---|---|",
         ]
         for result in record.types:
             lines.append(
@@ -134,7 +136,9 @@ def render(records: list[Record]) -> str:
                         result.seeded,
                         result.caught,
                         result.no_answer,
+                        result.eligible,
                         estimate(result.estimate),
+                        estimate(result.all_cards_estimate),
                         ", ".join(f"{k}: {v}" for k, v in sorted(result.checks.items())) or "none",
                     ]
                 )
@@ -142,11 +146,17 @@ def render(records: list[Record]) -> str:
             )
         total_seeded = sum(t.seeded for t in record.types)
         total_caught = sum(t.caught for t in record.types)
-        lines.append(
-            f"| Total | {total_seeded} | {total_caught} | {record.seed_no_answers} "
-            f"| {estimate(record.catch_rate)} "
-            "| See per-type checks |"
-        )
+        totals = [
+            "Total",
+            total_seeded,
+            total_caught,
+            record.seed_no_answers,
+            sum(t.eligible for t in record.types),
+            estimate(record.catch_rate),
+            estimate(record.all_cards_catch_rate),
+            "See per-type checks",
+        ]
+        lines.append("| " + " | ".join(cell(v) for v in totals) + " |")
         lines += [
             "",
             "| Card / case | Type | Result | Check / applicability |",

@@ -442,14 +442,18 @@ class SeedTypeResult(BaseModel):
     seeded: int = Field(ge=0)
     caught: int = Field(ge=0)
     no_answer: int = Field(default=0, ge=0)
+    eligible: int = Field(default=0, ge=0)
+    eligible_caught: int = Field(default=0, ge=0)
     checks: dict[str, int] = Field(default_factory=dict)
     estimate: MetricEstimate | None = None
+    all_cards_estimate: MetricEstimate | None = None
 
 
 class SeededRun(BaseModel):
     """Verifier benchmark with card-cluster intervals and every trial retained."""
 
     record_type: Literal["seeded_verifier"] = "seeded_verifier"
+    record_version: Literal[2] = 2
     run_id: str = Field(min_length=1)
     split: Split
     variant: Variant
@@ -469,6 +473,7 @@ class SeededRun(BaseModel):
     cards: list[SeedCardResult] = Field(min_length=1)
     types: list[SeedTypeResult]
     catch_rate: MetricEstimate | None
+    all_cards_catch_rate: MetricEstimate | None = None
     false_rejection_rate: MetricEstimate | None
     seed_no_answers: int = Field(default=0, ge=0)
     control_no_answers: int = Field(default=0, ge=0)
@@ -487,19 +492,37 @@ class SeededRun(BaseModel):
                 t for c in self.cards for t in c.trials if t.kind == result.kind and t.applied
             ]
             unanswered = sum(t.no_answer for t in trials)
+            eligible = [
+                t
+                for c in self.cards
+                if c.control.status == "passed"
+                for t in c.trials
+                if t.kind == result.kind and t.applied and not t.no_answer
+            ]
             if (result.seeded, result.caught, result.no_answer) != (
                 len(trials),
                 sum(bool(t.caught) for t in trials),
                 unanswered,
             ):
                 raise ValueError("seeded counts must agree with the recorded trials")
-            check_rate(result.estimate, result.caught, len(trials) - unanswered)
+            if (result.eligible, result.eligible_caught) != (
+                len(eligible),
+                sum(bool(t.caught) for t in eligible),
+            ):
+                raise ValueError("headline counts must use sound controls only")
+            check_rate(result.estimate, result.eligible_caught, result.eligible)
+            check_rate(result.all_cards_estimate, result.caught, len(trials) - unanswered)
         seeded, caught = sum(t.seeded for t in self.types), sum(t.caught for t in self.types)
         seed_no_answers = sum(t.no_answer for t in self.types)
         controls_no_answer = sum(c.control_no_answer for c in self.cards)
         if (self.seed_no_answers, self.control_no_answers) != (seed_no_answers, controls_no_answer):
             raise ValueError("no-answer counts must agree with recorded outcomes")
-        check_rate(self.catch_rate, caught, seeded - seed_no_answers)
+        check_rate(self.all_cards_catch_rate, caught, seeded - seed_no_answers)
+        check_rate(
+            self.catch_rate,
+            sum(t.eligible_caught for t in self.types),
+            sum(t.eligible for t in self.types),
+        )
         rejected = sum(
             c.control.status == "rejected" and not c.control_no_answer for c in self.cards
         )

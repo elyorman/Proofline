@@ -266,6 +266,18 @@
           "title": "No Answer",
           "type": "integer"
         },
+        "eligible": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Eligible",
+          "type": "integer"
+        },
+        "eligible_caught": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Eligible Caught",
+          "type": "integer"
+        },
         "checks": {
           "additionalProperties": {
             "type": "integer"
@@ -274,6 +286,17 @@
           "type": "object"
         },
         "estimate": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/MetricEstimate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "all_cards_estimate": {
           "anyOf": [
             {
               "$ref": "#/$defs/MetricEstimate"
@@ -426,6 +449,12 @@
       "title": "Record Type",
       "type": "string"
     },
+    "record_version": {
+      "const": 2,
+      "default": 2,
+      "title": "Record Version",
+      "type": "integer"
+    },
     "run_id": {
       "minLength": 1,
       "title": "Run Id",
@@ -551,6 +580,17 @@
           "type": "null"
         }
       ]
+    },
+    "all_cards_catch_rate": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/MetricEstimate"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
     },
     "false_rejection_rate": {
       "anyOf": [

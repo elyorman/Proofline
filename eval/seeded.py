@@ -151,28 +151,31 @@ def summarize(cards: list[SeedCardResult], seed: int, resamples: int):
             if t.kind == kind
             for check in failed_checks(t.verification)
         )
+        eligible_rows = [
+            row for card, row in zip(cards, rows, strict=True) if card.control.status == "passed"
+        ]
         types.append(
             SeedTypeResult(
                 kind=kind,
                 seeded=sum(t.applied for c in cards for t in c.trials if t.kind == kind),
                 caught=sum(n for n, _ in rows),
                 no_answer=sum(t.no_answer for c in cards for t in c.trials if t.kind == kind),
+                eligible=sum(d for _, d in eligible_rows),
+                eligible_caught=sum(n for n, _ in eligible_rows),
                 checks=dict(checks),
                 estimate=estimate(
+                    kind.value,
+                    Suite.SEEDED_FALSE_CLAIMS,
+                    eligible_rows,
+                    seed=seed,
+                    resamples=resamples,
+                ),
+                all_cards_estimate=estimate(
                     kind.value, Suite.SEEDED_FALSE_CLAIMS, rows, seed=seed, resamples=resamples
                 ),
             )
         )
-    rows = [
-        (
-            sum(bool(t.caught) for t in c.trials if t.applied),
-            sum(t.applied and not t.no_answer for t in c.trials),
-        )
-        for c in cards
-    ]
-    catch = estimate(
-        "verifier_catch_rate", Suite.SEEDED_FALSE_CLAIMS, rows, seed=seed, resamples=resamples
-    )
+    catch = seed_rate([c for c in cards if c.control.status == "passed"], seed, resamples)
     controls = estimate(
         "control_false_rejection_rate",
         Suite.SEEDED_FALSE_CLAIMS,
@@ -181,6 +184,19 @@ def summarize(cards: list[SeedCardResult], seed: int, resamples: int):
         resamples=resamples,
     )
     return types, catch, controls
+
+
+def seed_rate(cards: list[SeedCardResult], seed: int, resamples: int):
+    rows = [
+        (
+            sum(bool(t.caught) for t in c.trials if t.applied),
+            sum(t.applied and not t.no_answer for t in c.trials),
+        )
+        for c in cards
+    ]
+    return estimate(
+        "verifier_catch_rate", Suite.SEEDED_FALSE_CLAIMS, rows, seed=seed, resamples=resamples
+    )
 
 
 async def run_seeded(
@@ -287,6 +303,7 @@ async def run_seeded(
         cards=results,
         types=types,
         catch_rate=catch,
+        all_cards_catch_rate=seed_rate(results, seed, resamples),
         false_rejection_rate=controls,
         seed_no_answers=sum(t.no_answer for t in types),
         control_no_answers=sum(c.control_no_answer for c in results),

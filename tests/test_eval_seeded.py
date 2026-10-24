@@ -163,8 +163,19 @@ def test_false_rejections_are_reported_even_when_every_seed_is_caught(real_case)
         benchmark_card(RejectAll(), outcome.verdict.card, record, feed, outcome.finding.exams)
     )
     _, catch, controls = summarize([result], seed=7, resamples=100)
-    assert catch.value == 1 and controls.value == 1
+    from eval.seeded import seed_rate
+
+    assert catch is None and controls.value == 1
+    assert seed_rate([result], 7, 100).value == 1
     assert result.control.semantic_check == "failed"
+    accepted, _ = asyncio.run(
+        benchmark_card(AcceptAll(), outcome.verdict.card, record, feed, outcome.finding.exams)
+    )
+    _, alone, _ = summarize([accepted], 7, 100)
+    _, mixed, rejections = summarize([accepted, result], 7, 500)
+    assert mixed.value == alone.value and mixed.n == alone.n
+    assert seed_rate([accepted, result], 7, 500).value > mixed.value
+    assert rejections.value == 0.5
 
 
 def test_no_answer_is_separate_from_caught_and_missed_and_replays(real_case, tmp_path):
@@ -188,9 +199,10 @@ def test_no_answer_is_separate_from_caught_and_missed_and_replays(real_case, tmp
     assert first == second and first.control_no_answer
     unanswered = [t for t in first.trials if t.no_answer]
     assert unanswered and all(t.caught is None for t in unanswered)
-    types, _, false_rejections = summarize([first], 7, 100)
+    types, headline, false_rejections = summarize([first], 7, 100)
     assert sum(t.no_answer for t in types) == len(unanswered)
     assert false_rejections is None
+    assert headline is None
 
 
 def envelope(case, card):

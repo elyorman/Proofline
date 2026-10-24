@@ -56,7 +56,7 @@ make tune-detector                        # re-tune detector thresholds on the d
 uv run proofline case --match m01 --minute 63 --variant B --record tests/fixtures/cases/m01-063-B   # one case end to end, live (gpt-5-mini + verifier); --replay DIR answers from fixtures
 uv run proofline case --match m01 --minute 63 --variant A --kill-agent physical   # the recovery beat: an agent stopped mid-case, retried from its checkpoint
 uv run proofline run --mode studio --match m01 --replay tests/fixtures/studio/m01   # the whole match through the product (cases, Verifier, the 68' correction, Director) into runs/studio/m01/ledger.json; --record DIR to run live
-uv run proofline batch --data data/dev --variant A --out runs/dev   # every detected case of a split through one variant (resumable)
+uv run proofline batch --data data/dev --variant A --out runs/dev   # every detected case of a split through one variant (resumable); make heldout-feeds writes data/heldout once the agents are frozen
 uv run proofline ask --match m01 --at 68:00 --question "Why are Northvale going long so much?" --variant A   # one viewer question: the Lead's premise, tested, then investigated
 uv run python -m eval.questions make --split dev --out runs/q1/questions.jsonl   # the question suite from the sealed truth (questions only)
 uv run proofline questions --data data/dev --questions runs/q1/questions.jsonl --variant A --out runs/q1   # answer them (resumable); --variant P is the plain tool-using agent baseline; --replay DIR answers from recordings (tests/fixtures/questions/m01 holds the demo's)

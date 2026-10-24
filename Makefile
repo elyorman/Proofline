@@ -2,7 +2,7 @@
 AZD_ENV = eval "$$(azd env get-values | grep -E '^AZURE_(EVENTHUBS_NAMESPACE|EVENTHUB_NAME|COSMOS_ENDPOINT|COSMOS_DATABASE)=')" && \
 	export AZURE_EVENTHUBS_NAMESPACE AZURE_EVENTHUB_NAME AZURE_COSMOS_ENDPOINT AZURE_COSMOS_DATABASE
 
-.PHONY: check m01 stream-m01 tune-detector dev-feeds
+.PHONY: check m01 stream-m01 tune-detector dev-feeds heldout-feeds
 
 check:
 	uv run ruff check . && uv run ruff format --check .
@@ -28,4 +28,10 @@ tune-detector:
 dev-feeds:
 	for script in engine/suites/*/dev/scripts/*.yaml; do \
 		uv run proofline-engine generate --script $$script --out data/dev/$$(basename $$script .yaml)/ || exit 1; \
+	done
+
+# The held-out split's feeds, the same way: run once, after the agents are frozen.
+heldout-feeds:
+	for script in engine/suites/*/heldout/scripts/*.yaml; do \
+		uv run proofline-engine generate --script $$script --out data/heldout/$$(basename $$script .yaml)/ || exit 1; \
 	done

@@ -1,0 +1,30 @@
+{
+  "role": "verifier",
+  "prompt": "{\n \"facts\": {\n  \"change\": {\n   \"metric\": \"pressure_rate\",\n   \"subject\": \"Harbour City\",\n   \"direction\": \"up\",\n   \"window\": \"58:00-68:00\",\n   \"compared_with\": \"first_half\"\n  },\n  \"causes\": [\n   {\n    \"cause\": \"tactical.press_intensity_up\",\n    \"role\": \"primary\",\n    \"plain\": \"a deliberate step up in Harbour City's press\"\n   },\n   {\n    \"cause\": \"game_state.chasing_result\",\n    \"role\": \"secondary\",\n    \"plain\": \"Harbour City chasing the result\"\n   },\n   {\n    \"cause\": \"physical.player_fatigue\",\n    \"role\": \"secondary\",\n    \"plain\": \"a tiring Harbour City player\"\n   },\n   {\n    \"cause\": \"tactical.block_higher\",\n    \"role\": \"secondary\",\n    \"plain\": \"Harbour City pushing their block higher\"\n   }\n  ],\n  \"evidence\": [\n   {\n    \"metric\": \"pressure_rate\",\n    \"subject\": \"Harbour City\",\n    \"first_half\": \"0.32\",\n    \"window\": \"0.77\"\n   },\n   {\n    \"metric\": \"sprint_count\",\n    \"subject\": \"Harbour City.attack\",\n    \"first_half\": \"1.32\",\n    \"window\": \"1.50\"\n   },\n   {\n    \"metric\": \"sprint_count\",\n    \"subject\": \"Harbour City\",\n    \"first_half\": \"3.72\",\n    \"window\": \"4.30\"\n   },\n   {\n    \"metric\": \"long_ball_share\",\n    \"subject\": \"Northvale\",\n    \"first_half\": \"11%\",\n    \"window\": \"61%\"\n   }\n  ],\n  \"ruled_out\": [\n   \"tiring legs in Harbour City's side\",\n   \"Northvale protecting their lead\"\n  ],\n  \"names\": {\n   \"Harbour City\": \"Harbour City\",\n   \"Harbour City.attack\": \"Harbour City's attack\",\n   \"Northvale\": \"Northvale\"\n  },\n  \"team_the_cause_is_about\": \"Harbour City\",\n  \"support_level\": \"strong\",\n  \"language_level\": \"assertive\",\n  \"published_at\": \"68:00\",\n  \"follow_up\": {\n   \"status\": \"pending\",\n   \"against\": \"Northvale pushing their block higher\",\n   \"minutes\": \"68:00-83:00\"\n  }\n },\n \"sentences\": [\n  \"Harbour City are pressing harder since 58'.\",\n  \"Harbour City are pressing harder since 58'. That is a deliberate step up in Harbour City's press. We'll check it against Northvale pushing their block higher by 83'.\",\n  \"Pressure rate (Harbour City): 0.32 \\u2192 0.77; Sprints a minute (Harbour City's attack): 1.32 \\u2192 1.50; Sprints a minute (Harbour City): 3.72 \\u2192 4.30; Long-ball share (Northvale): 11% \\u2192 61%, 58'-68' against the first half. That is a deliberate step up in Harbour City's press. We'll check it against Northvale pushing their block higher by 83'. Ruled out: tiring legs in Harbour City's side, Northvale protecting their lead. Support: strong.\"\n ]\n}",
+  "answer": {
+    "sentences": [
+      {
+        "sentence": "Harbour City are pressing harder since 58'.",
+        "entailed": true,
+        "overstated": false,
+        "reason": "Pressure rate up in 58-68, consistent with 'pressing harder'."
+      },
+      {
+        "sentence": "Harbour City are pressing harder since 58'. That is a deliberate step up in Harbour City's press. We'll check it against Northvale pushing their block higher by 83'.",
+        "entailed": true,
+        "overstated": false,
+        "reason": "Assertive language allows stating primary cause as fact; pending check entailed."
+      },
+      {
+        "sentence": "Pressure rate (Harbour City): 0.32 \u2192 0.77; Sprints a minute (Harbour City's attack): 1.32 \u2192 1.50; Sprints a minute (Harbour City): 3.72 \u2192 4.30; Long-ball share (Northvale): 11% \u2192 61%, 58'-68' against the first half. That is a deliberate step up in Harbour City's press. We'll check it against Northvale pushing their block higher by 83'. Ruled out: tiring legs in Harbour City's side, Northvale protecting their lead. Support: strong.",
+        "entailed": true,
+        "overstated": false,
+        "reason": "Metrics and causes align with facts; ruled out causes entailed; support level aligns with language."
+      }
+    ]
+  },
+  "usage": {
+    "input_tokens": 1261,
+    "output_tokens": 346
+  }
+}

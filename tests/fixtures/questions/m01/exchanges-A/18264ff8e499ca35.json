@@ -1,0 +1,21 @@
+{
+  "role": "game_state",
+  "prompt": "Cross-examine these hypotheses.\n{\n \"moment\": \"58:00-68:00\",\n \"state_at_detection\": {\n  \"Harbour City\": {\n   \"goals\": 1,\n   \"sent_off\": 0,\n   \"substitutions\": 0\n  },\n  \"Northvale\": {\n   \"goals\": 3,\n   \"sent_off\": 0,\n   \"substitutions\": 0\n  }\n },\n \"hypotheses\": [\n  {\n   \"hypothesis_id\": \"hyp-tactics-01\",\n   \"by\": \"tactics\",\n   \"cause\": \"tactical.press_intensity_up\",\n   \"claim\": \"pressure_rate of Harbour City up by at least 1 sd in 58:00-68:00 against the first half\",\n   \"predicts_the_detected_change\": true,\n   \"result\": \"pressure_rate of Harbour City: 0.320 in the first half, 0.771 in 58:00-68:00; ordinary play moves it -0.006 \\u00b1 0.088 here, so +5.20 sd against a claim of up by 1 sd\"\n  }\n ],\n \"match\": {\n  \"home\": {\n   \"team\": \"Harbour City\",\n   \"players\": [\n    \"HC-01 GK (goalkeeper)\",\n    \"HC-02 RB (defence)\",\n    \"HC-03 RCB (defence)\",\n    \"HC-04 LCB (defence)\",\n    \"HC-05 LB (defence)\",\n    \"HC-06 RCM (midfield)\",\n    \"HC-07 CM (midfield)\",\n    \"HC-08 LCM (midfield)\",\n    \"HC-09 RW (attack)\",\n    \"HC-10 ST (attack)\",\n    \"HC-11 LW (attack)\"\n   ]\n  },\n  \"away\": {\n   \"team\": \"Northvale\",\n   \"players\": [\n    \"NV-01 GK (goalkeeper)\",\n    \"NV-02 RB (defence)\",\n    \"NV-03 RCB (defence)\",\n    \"NV-04 LCB (defence)\",\n    \"NV-05 LB (defence)\",\n    \"NV-06 RDM (midfield)\",\n    \"NV-07 LDM (midfield)\",\n    \"NV-08 RAM (midfield)\",\n    \"NV-09 CAM (midfield)\",\n    \"NV-10 LAM (midfield)\",\n    \"NV-11 ST (attack)\"\n   ]\n  }\n }\n}",
+  "answer": {
+    "counters": [
+      {
+        "hypothesis_id": "hyp-tactics-01",
+        "kind": "corollary",
+        "metric": "long_ball_share",
+        "direction": "down",
+        "subject": "Harbour City",
+        "min_change": 1.0,
+        "reason": "If the pressure rise is a coached tactical high press, it should not coincide with a jump in direct long balls \u2014 a chasing-the-result response would raise long_ball_share instead."
+      }
+    ]
+  },
+  "usage": {
+    "input_tokens": 1598,
+    "output_tokens": 1441
+  }
+}

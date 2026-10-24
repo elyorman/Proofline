@@ -1,0 +1,21 @@
+{
+  "role": "physical",
+  "prompt": "Cross-examine these hypotheses.\n{\n \"moment\": \"47:00-62:00\",\n \"state_at_detection\": {\n  \"Harbour City\": {\n   \"goals\": 1,\n   \"sent_off\": 0,\n   \"substitutions\": 0\n  },\n  \"Northvale\": {\n   \"goals\": 3,\n   \"sent_off\": 0,\n   \"substitutions\": 0\n  }\n },\n \"hypotheses\": [\n  {\n   \"hypothesis_id\": \"hyp-game_state-02\",\n   \"by\": \"game_state\",\n   \"cause\": \"game_state.chasing_result\",\n   \"claim\": \"pressure_rate of Harbour City up by at least 1.2 sd in 47:00-62:00 against the first half\",\n   \"predicts_the_detected_change\": false,\n   \"result\": \"pressure_rate of Harbour City: 0.320 in the first half, 0.452 in 47:00-62:00; ordinary play moves it +0.000 \\u00b1 0.074 here, so +1.79 sd against a claim of up by 1.2 sd\"\n  }\n ],\n \"match\": {\n  \"home\": {\n   \"team\": \"Harbour City\",\n   \"players\": [\n    \"HC-01 GK (goalkeeper)\",\n    \"HC-02 RB (defence)\",\n    \"HC-03 RCB (defence)\",\n    \"HC-04 LCB (defence)\",\n    \"HC-05 LB (defence)\",\n    \"HC-06 RCM (midfield)\",\n    \"HC-07 CM (midfield)\",\n    \"HC-08 LCM (midfield)\",\n    \"HC-09 RW (attack)\",\n    \"HC-10 ST (attack)\",\n    \"HC-11 LW (attack)\"\n   ]\n  },\n  \"away\": {\n   \"team\": \"Northvale\",\n   \"players\": [\n    \"NV-01 GK (goalkeeper)\",\n    \"NV-02 RB (defence)\",\n    \"NV-03 RCB (defence)\",\n    \"NV-04 LCB (defence)\",\n    \"NV-05 LB (defence)\",\n    \"NV-06 RDM (midfield)\",\n    \"NV-07 LDM (midfield)\",\n    \"NV-08 RAM (midfield)\",\n    \"NV-09 CAM (midfield)\",\n    \"NV-10 LAM (midfield)\",\n    \"NV-11 ST (attack)\"\n   ]\n  }\n }\n}",
+  "answer": {
+    "counters": [
+      {
+        "hypothesis_id": "hyp-game_state-02",
+        "kind": "corollary",
+        "metric": "sprint_count",
+        "direction": "up",
+        "subject": "Harbour City.attack",
+        "min_change": 1.0,
+        "reason": "Chasing the game should raise Harbour City's attacking sprints as forwards make more runs; fatigue would reduce sprints and there were no substitutions to add fresh legs."
+      }
+    ]
+  },
+  "usage": {
+    "input_tokens": 1599,
+    "output_tokens": 1530
+  }
+}

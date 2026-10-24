@@ -1,0 +1,30 @@
+{
+  "role": "verifier",
+  "prompt": "{\n \"facts\": {\n  \"change\": {\n   \"metric\": \"long_ball_share\",\n   \"subject\": \"Northvale\",\n   \"direction\": \"up\",\n   \"window\": \"52:00-62:00\",\n   \"compared_with\": \"first_half\"\n  },\n  \"causes\": [\n   {\n    \"cause\": \"tactical.press_intensity_up\",\n    \"role\": \"primary\",\n    \"plain\": \"a deliberate step up in Harbour City's press\"\n   },\n   {\n    \"cause\": \"game_state.chasing_result\",\n    \"role\": \"secondary\",\n    \"plain\": \"Harbour City chasing the result\"\n   }\n  ],\n  \"evidence\": [\n   {\n    \"metric\": \"long_ball_share\",\n    \"subject\": \"Northvale\",\n    \"first_half\": \"11%\",\n    \"window\": \"47%\"\n   },\n   {\n    \"metric\": \"pressure_rate\",\n    \"subject\": \"Harbour City\",\n    \"first_half\": \"0.32\",\n    \"window\": \"0.53\"\n   },\n   {\n    \"metric\": \"pressure_rate\",\n    \"subject\": \"Harbour City\",\n    \"first_half\": \"0.32\",\n    \"window\": \"0.66\"\n   },\n   {\n    \"metric\": \"pressure_rate\",\n    \"subject\": \"Harbour City\",\n    \"first_half\": \"0.32\",\n    \"window\": \"0.66\"\n   }\n  ],\n  \"ruled_out\": [\n   \"Northvale sitting in a deeper block\",\n   \"a tiring Harbour City player\",\n   \"Northvale protecting their lead\"\n  ],\n  \"names\": {\n   \"Northvale\": \"Northvale\",\n   \"Harbour City\": \"Harbour City\"\n  },\n  \"team_the_cause_is_about\": \"Harbour City\",\n  \"support_level\": \"moderate\",\n  \"language_level\": \"measured\",\n  \"published_at\": \"77:00\",\n  \"follow_up\": {\n   \"status\": \"overturned\",\n   \"against\": \"a deliberate step up in Harbour City's press\",\n   \"minutes\": \"62:00-77:00\",\n   \"ruled_out\": \"Northvale protecting their lead\"\n  }\n },\n \"sentences\": [\n  \"Northvale are going long more often since 52'.\",\n  \"Northvale are going long more often since 52'. It looks like a deliberate step up in Harbour City's press. Checked by 77': not Northvale protecting their lead.\",\n  \"Long-ball share (Northvale): 11% \\u2192 47%; Pressure rate (Harbour City): 0.32 \\u2192 0.53, 52'-62' against the first half. 62'-77': Pressure rate (Harbour City): 0.32 \\u2192 0.66; Pressure rate (Harbour City): 0.32 \\u2192 0.66. It looks like a deliberate step up in Harbour City's press. Checked by 77': not Northvale protecting their lead. Ruled out: Northvale sitting in a deeper block, a tiring Harbour City player. Support: moderate.\"\n ]\n}",
+  "answer": {
+    "sentences": [
+      {
+        "sentence": "Northvale are going long more often since 52'.",
+        "entailed": true,
+        "overstated": false,
+        "reason": "Fact: long_ball_share direction up 52'-62'; Plain terms are entailed."
+      },
+      {
+        "sentence": "Northvale are going long more often since 52'. It looks like a deliberate step up in Harbour City's press. Checked by 77': not Northvale protecting their lead.",
+        "entailed": true,
+        "overstated": false,
+        "reason": "Fact: press_intensity_up primary cause; language 'looks like' is measured."
+      },
+      {
+        "sentence": "Long-ball share (Northvale): 11% \u2192 47%; Pressure rate (Harbour City): 0.32 \u2192 0.53, 52'-62' against the first half. 62'-77': Pressure rate (Harbour City): 0.32 \u2192 0.66; Pressure rate (Harbour City): 0.32 \u2192 0.66. It looks like a deliberate step up in Harbour City's press. Checked by 77': not Northvale protecting their lead. Ruled out: Northvale sitting in a deeper block, a tiring Harbour City player. Support: moderate.",
+        "entailed": true,
+        "overstated": false,
+        "reason": "Detailed facts match sentence; 'looks like' consistent with measured language."
+      }
+    ]
+  },
+  "usage": {
+    "input_tokens": 1197,
+    "output_tokens": 326
+  }
+}

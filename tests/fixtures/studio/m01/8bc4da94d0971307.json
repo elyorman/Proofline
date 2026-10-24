@@ -1,0 +1,28 @@
+{
+  "role": "physical",
+  "prompt": "Pre-register your hypotheses for this moment.\n{\n \"moment\": \"shape_change\",\n \"window\": \"47:00-62:00\",\n \"detected_at\": \"57:00\",\n \"confirmed\": \"code re-measured the change over 57:00-62:00, after the detector fired, and it held beyond normal variation\",\n \"state_at_detection\": {\n  \"Harbour City\": {\n   \"goals\": 1,\n   \"sent_off\": 0,\n   \"substitutions\": 0\n  },\n  \"Northvale\": {\n   \"goals\": 3,\n   \"sent_off\": 0,\n   \"substitutions\": 0\n  }\n },\n \"what_the_detector_saw\": [\n  {\n   \"metric\": \"channel_share_right\",\n   \"subject\": \"Northvale\",\n   \"first_half\": 0.24,\n   \"window\": 0.691,\n   \"sample\": 81\n  }\n ],\n \"match\": {\n  \"home\": {\n   \"team\": \"Harbour City\",\n   \"players\": [\n    \"HC-01 GK (goalkeeper)\",\n    \"HC-02 RB (defence)\",\n    \"HC-03 RCB (defence)\",\n    \"HC-04 LCB (defence)\",\n    \"HC-05 LB (defence)\",\n    \"HC-06 RCM (midfield)\",\n    \"HC-07 CM (midfield)\",\n    \"HC-08 LCM (midfield)\",\n    \"HC-09 RW (attack)\",\n    \"HC-10 ST (attack)\",\n    \"HC-11 LW (attack)\"\n   ]\n  },\n  \"away\": {\n   \"team\": \"Northvale\",\n   \"players\": [\n    \"NV-01 GK (goalkeeper)\",\n    \"NV-02 RB (defence)\",\n    \"NV-03 RCB (defence)\",\n    \"NV-04 LCB (defence)\",\n    \"NV-05 LB (defence)\",\n    \"NV-06 RDM (midfield)\",\n    \"NV-07 LDM (midfield)\",\n    \"NV-08 RAM (midfield)\",\n    \"NV-09 CAM (midfield)\",\n    \"NV-10 LAM (midfield)\",\n    \"NV-11 ST (attack)\"\n   ]\n  }\n }\n}",
+  "answer": {
+    "hypotheses": [
+      {
+        "cause": "physical.unit_fatigue",
+        "metric": "channel_share_right",
+        "subject": "Northvale",
+        "direction": "up",
+        "min_change": 1.5,
+        "why": "Fatigue in Harbour City's left-side unit reduces their defensive coverage, so Northvale shifts more possession and attacks down their right flank."
+      },
+      {
+        "cause": "physical.player_fatigue",
+        "metric": "channel_share_right",
+        "subject": "Northvale",
+        "direction": "up",
+        "min_change": 1.5,
+        "why": "A tired Harbour City left-back (HC-05) or left-midfielder struggles to track runs, leading Northvale to target the right channel more often."
+      }
+    ]
+  },
+  "usage": {
+    "input_tokens": 1228,
+    "output_tokens": 2863
+  }
+}

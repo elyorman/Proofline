@@ -1,0 +1,16 @@
+{
+  "role": "lead",
+  "prompt": "State what this question assumes.\n{\n \"question\": \"Why are Northvale hitting so many long balls since 58?\",\n \"asked_at\": \"68:00\",\n \"match\": {\n  \"home\": {\n   \"team\": \"Harbour City\",\n   \"players\": [\n    \"HC-01 Arvenne, GK (goalkeeper)\",\n    \"HC-02 Bostrik, RB (defence)\",\n    \"HC-03 Callodan, RCB (defence)\",\n    \"HC-04 Derrowe, LCB (defence)\",\n    \"HC-05 Eskmoor, LB (defence)\",\n    \"HC-06 Farrelin, RCM (midfield)\",\n    \"HC-07 Gollan, CM (midfield)\",\n    \"HC-08 Haverick, LCM (midfield)\",\n    \"HC-09 Ilsom, RW (attack)\",\n    \"HC-10 Jarrent, ST (attack)\",\n    \"HC-11 Kesterby, LW (attack)\"\n   ]\n  },\n  \"away\": {\n   \"team\": \"Northvale\",\n   \"players\": [\n    \"NV-01 Quillon, GK (goalkeeper)\",\n    \"NV-02 Rastor, RB (defence)\",\n    \"NV-03 Sevrin, RCB (defence)\",\n    \"NV-04 Tallowen, LCB (defence)\",\n    \"NV-05 Udrick, LB (defence)\",\n    \"NV-06 Valcourt, RDM (midfield)\",\n    \"NV-07 Wenlo, LDM (midfield)\",\n    \"NV-08 Yarrick, RAM (midfield)\",\n    \"NV-09 Zandor, CAM (midfield)\",\n    \"NV-10 Ambrel, LAM (midfield)\",\n    \"NV-11 Brennow, ST (attack)\"\n   ]\n  }\n }\n}",
+  "answer": {
+    "answerable": true,
+    "metric": "long_ball_share",
+    "subject": "Northvale",
+    "direction": "up",
+    "since": "58:00",
+    "why": "It assumes Northvale's proportion of passes longer than 30 m has risen since 58:00."
+  },
+  "usage": {
+    "input_tokens": 1003,
+    "output_tokens": 482
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "role": "synthesis",
+  "prompt": "Rank these surviving hypotheses.\n{\n \"moment\": \"pressure_shift\",\n \"window\": \"58:00-68:00\",\n \"state_at_detection\": {\n  \"Harbour City\": {\n   \"goals\": 1,\n   \"sent_off\": 0,\n   \"substitutions\": 0\n  },\n  \"Northvale\": {\n   \"goals\": 3,\n   \"sent_off\": 0,\n   \"substitutions\": 0\n  }\n },\n \"both_teams\": [\n  {\n   \"metric\": \"pressure_rate\",\n   \"team\": \"Harbour City\",\n   \"first_half\": 0.32,\n   \"window\": 0.771,\n   \"sd\": 5.2\n  },\n  {\n   \"metric\": \"long_ball_share\",\n   \"team\": \"Harbour City\",\n   \"first_half\": 0.119,\n   \"window\": 0.155,\n   \"sd\": 0.46\n  },\n  {\n   \"metric\": \"sprint_count\",\n   \"team\": \"Harbour City\",\n   \"first_half\": 3.719,\n   \"window\": 4.3,\n   \"sd\": 3.52\n  },\n  {\n   \"metric\": \"pressure_rate\",\n   \"team\": \"Northvale\",\n   \"first_half\": 0.395,\n   \"window\": 0.362,\n   \"sd\": -0.31\n  },\n  {\n   \"metric\": \"long_ball_share\",\n   \"team\": \"Northvale\",\n   \"first_half\": 0.111,\n   \"window\": 0.606,\n   \"sd\": 7.17\n  },\n  {\n   \"metric\": \"sprint_count\",\n   \"team\": \"Northvale\",\n   \"first_half\": 3.826,\n   \"window\": 2.9,\n   \"sd\": 0.08\n  }\n ],\n \"survivors\": [\n  {\n   \"hypothesis_id\": \"hyp-tactics-01\",\n   \"cause\": \"tactical.press_intensity_up\",\n   \"agent\": \"tactics\",\n   \"prediction\": \"pressure_rate of Harbour City up by at least 1 sd\",\n   \"predicts_the_detected_change\": true,\n   \"result\": \"pressure_rate of Harbour City: 0.320 in the first half, 0.771 in 58:00-68:00; ordinary play moves it -0.006 \\u00b1 0.088 here, so +5.20 sd against a claim of up by 1 sd\",\n   \"cross_examination\": [\n    \"game_state corollary: long_ball_share of Harbour City down by 1 sd, measured +0.46 sd; result: weakened (If the pressure rise is a coached tactical high press, it should not coincide with a jump in direct long balls \\u2014 a chasing-the-result response would raise long_ball_share instead.)\"\n   ]\n  },\n  {\n   \"hypothesis_id\": \"hyp-game_state-01\",\n   \"cause\": \"game_state.chasing_result\",\n   \"agent\": \"game_state\",\n   \"prediction\": \"sprint_count of Harbour City.attack up by at least 1 sd\",\n   \"predicts_the_detected_change\": false,\n   \"result\": \"sprint_count of Harbour City.attack: 1.318 in the first half, 1.500 in 58:00-68:00; ordinary play moves it -0.242 \\u00b1 0.240 of the first-half rate here, so +1.58 sd against a claim of up by 1 sd\",\n   \"cross_examination\": [\n    \"tactics corollary: long_ball_share of Harbour City up by 1 sd, measured +0.46 sd; result: weakened (When a team chases, it often plays more direct long balls to create quick chances.)\"\n   ]\n  }\n ]\n}",
+  "answer": {
+    "outcome": "explained",
+    "primary": "hyp-tactics-01",
+    "secondary": [
+      "hyp-game_state-01"
+    ],
+    "why": "Harbour City's pressure rate rose very strongly (+5.20 sd) matching the tactical-press prediction; the chasing-result hypothesis shows only modest independent support (+1.58 sd) and both corollaries were weakened, so tactics best explains the pressure shift."
+  },
+  "usage": {
+    "input_tokens": 1161,
+    "output_tokens": 1235
+  }
+}

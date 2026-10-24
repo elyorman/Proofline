@@ -38,8 +38,8 @@ ANSWERS = {
     ("single", "Ranking"): Ranking(
         outcome="explained", primary="hyp-single-01", secondary=[], why="held"
     ),
-    ("verifier", "SemanticReport"): SemanticReport(
-        sentences=[SentenceCheck(sentence="s", entailed=True, overstated=False, reason="ok")]
+    ("verifier", "SemanticReport"): SemanticReport(  # the claim, casual and analyst text
+        sentences=[SentenceCheck(sentence="s", entailed=True, overstated=False, reason="ok")] * 3
     ),
 }
 

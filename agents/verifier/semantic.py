@@ -90,4 +90,9 @@ async def check(
     model: Model, card: InsightCard, sentences: list[str], support: SupportLevel, meta: MatchMeta
 ) -> tuple[SemanticReport, Usage]:
     prompt = json.dumps({"facts": facts(card, support, meta), "sentences": sentences}, indent=1)
-    return await model.ask("verifier", INSTRUCTIONS, prompt, SemanticReport)
+    report, usage = await model.ask("verifier", INSTRUCTIONS, prompt, SemanticReport)
+    # A sentence left unjudged is not verified. Judgements are counted, not matched by text:
+    # the model echoes a sentence loosely ("->" for "→").
+    if len(report.sentences) != len(sentences):
+        raise ValueError(f"it judged {len(report.sentences)} of {len(sentences)} sentences")
+    return report, usage

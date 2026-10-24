@@ -245,7 +245,10 @@ def test_the_verifier_catches_a_tampered_number_and_an_overstatement(m01):
     rejected = asyncio.run(verify(Scripted(), tampered, record, feed, [])).card
     assert rejected.status == "rejected" and rejected.verification.recompute == "mismatch"
     overstated = SemanticReport(
-        sentences=[SentenceCheck(sentence="s", entailed=True, overstated=True, reason="too sure")]
+        sentences=[
+            *SOUND.sentences[:2],
+            SentenceCheck(sentence="s", entailed=True, overstated=True, reason="too sure"),
+        ]
     )
     flagged = asyncio.run(verify(Scripted(overstated), card, record, feed, [])).card
     assert flagged.status == "rejected" and "too sure" in flagged.verification.rejection_reason
@@ -304,6 +307,19 @@ def test_a_semantic_check_that_gives_no_answer_keeps_the_card_off_every_surface(
     assert verdict.card.status == "rejected" and verdict.report is None
     assert verdict.card.verification.semantic_check == "failed"
     assert "gave no answer" in verdict.card.verification.rejection_reason
+
+
+@pytest.mark.parametrize("judged", [0, 1])
+def test_a_semantic_check_that_leaves_sentences_unjudged_rejects_the_card(m01, judged):
+    feed, case = m01
+    finding, card = _proposed(feed, case, _proposal())
+    record = Record.of(finding.tools.log, finding.evidence)
+    partial = SemanticReport(sentences=SOUND.sentences[:judged])  # all() of none is True
+    verdict = asyncio.run(verify(Scripted(partial), card, record, feed, []))
+    assert verdict.card.status == "rejected" and verdict.report is None
+    reason = verdict.card.verification.rejection_reason
+    assert reason.startswith("the semantic check gave no answer")
+    assert f"judged {judged} of 3" in reason
 
 
 class Slow:

@@ -79,8 +79,8 @@ SCRIPT = {
     ("synthesis", "Ranking"): Ranking(
         outcome="explained", primary="hyp-tactics-01", secondary=[], why="the press held"
     ),
-    ("verifier", "SemanticReport"): SemanticReport(
-        sentences=[SentenceCheck(sentence="s", entailed=True, overstated=False, reason="ok")]
+    ("verifier", "SemanticReport"): SemanticReport(  # the claim, casual and analyst text
+        sentences=[SentenceCheck(sentence="s", entailed=True, overstated=False, reason="ok")] * 3
     ),
 }
 

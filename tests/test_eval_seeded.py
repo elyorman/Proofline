@@ -360,9 +360,11 @@ def test_seeded_cli_records_and_replays_without_live_models(
     first = SeededRun.model_validate_json(output.out)
     assert "backend progress" in output.err
     assert main([*args, "--replay", str(verifier), "--run-id", "scripted-replay-path"]) == 0
-    second = SeededRun.model_validate_json(capsys.readouterr().out)
+    replay_output = capsys.readouterr()
+    second = SeededRun.model_validate_json(replay_output.out)
     assert first.cards == second.cards and first.catch_rate == second.catch_rate
-    assert len(load_records(records)) == 2
+    assert len(load_records(records)) == 1
+    assert "wrote nothing" in replay_output.err
 
 
 def test_seeded_runner_spends_nothing_when_source_card_does_not_match(
@@ -449,3 +451,78 @@ def test_real_batch_reconstructs_and_replays_without_patching_run_case(real_case
     clone = outcome.verdict.card.model_copy(deep=True)
     clone.provenance.trace_id = "new-process-trace"
     assert card_digest(clone) == card_digest(outcome.verdict.card)
+
+
+def test_cli_replay_verifies_existing_record_without_rewriting(
+    real_case, tmp_path, monkeypatch, capsys
+):
+    from eval.__main__ import main
+    from orchestration.batch import _one
+
+    sim, events, feed, case, _, _ = real_case
+    source = Replay(EXCHANGES)
+    batch_case = asyncio.run(_one(Variant.A_PROOFLINE, source, source, case, feed))
+    data, runs, recorded, records = (tmp_path / n for n in ("data", "runs", "recorded", "records"))
+    write_match(sim, events, data / case.match_id)
+    (runs / "A").mkdir(parents=True)
+    (runs / "A" / f"{case.match_id}.json").write_text(
+        json.dumps(dict(match_id=case.match_id, variant="A", cases=[batch_case]))
+    )
+
+    def scripted_models(record=None, replay=None):
+        return None, Replay(replay) if replay else Recording(AcceptAll(), record)
+
+    monkeypatch.setattr("orchestration.case.models", scripted_models)
+    args = [
+        "seeded",
+        "--runs",
+        str(runs),
+        "--variant",
+        "A",
+        "--split",
+        "dev",
+        "--data",
+        str(data),
+        "--exchanges",
+        str(EXCHANGES),
+        "--record-dir",
+        str(records),
+    ]
+    assert (
+        main(
+            [
+                *args,
+                "--record",
+                str(recorded),
+                "--model-id",
+                "scripted-phi",
+                "--run-id",
+                "repeatable",
+                "--seed",
+                "7",
+                "--resamples",
+                "100",
+                "--limit",
+                "1",
+            ]
+        )
+        == 0
+    )
+    first = json.loads(capsys.readouterr().out)
+    path = records / "repeatable.json"
+    original = path.read_bytes()
+    assert main([*args, "--replay", str(recorded)]) == 0
+    output = capsys.readouterr()
+    assert json.loads(output.out) == first and "Replay verified" in output.err
+    assert path.read_bytes() == original
+    absent = tmp_path / "absent"
+    new_args = [*args[:-1], str(absent)]
+    assert main([*new_args, "--replay", str(recorded)]) == 0
+    assert not absent.exists() and "wrote nothing" in capsys.readouterr().err
+    changed = json.loads(original)
+    changed["model_id"] = "changed"
+    path.write_text(json.dumps(changed))
+    tampered = path.read_bytes()
+    with pytest.raises(SystemExit):
+        main([*args, "--replay", str(recorded)])
+    assert path.read_bytes() == tampered

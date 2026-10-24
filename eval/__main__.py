@@ -185,7 +185,7 @@ def _seeded(argv: list[str]) -> int:
     import os
     from contextlib import redirect_stdout
 
-    from eval.seeded import run_seeded
+    from eval.seeded import replay_settings, run_seeded
     from orchestration.case import models
 
     parser = argparse.ArgumentParser(prog="python -m eval seeded")
@@ -198,8 +198,8 @@ def _seeded(argv: list[str]) -> int:
     mode.add_argument("--replay", type=Path, help="use recorded Verifier exchanges only")
     parser.add_argument("--limit", type=int, help="maximum number of published cards")
     parser.add_argument("--concurrency", type=int, default=1)
-    parser.add_argument("--seed", type=int, default=0)
-    parser.add_argument("--resamples", type=int, default=2000)
+    parser.add_argument("--seed", type=int)
+    parser.add_argument("--resamples", type=int)
     parser.add_argument("--model-id")
     parser.add_argument("--run-id")
     parser.add_argument("--eval-run", type=Path, help="link an EvalRun for suite/flag provenance")
@@ -212,6 +212,12 @@ def _seeded(argv: list[str]) -> int:
         if args.record and any(args.record.rglob("*.json")):
             raise ValueError("seeded --record requires a fresh exchange directory; use --replay")
         split = Split(args.split or args.runs.name)
+        settings = replay_settings(args.replay) if args.replay else {}
+        seed = args.seed if args.seed is not None else settings.get("seed", 0)
+        resamples = (
+            args.resamples if args.resamples is not None else settings.get("resamples", 2000)
+        )
+        limit = args.limit if args.limit is not None else settings.get("limit")
         _, model = models(record=args.record, replay=args.replay)
         evaluation = (
             EvalRun.model_validate_json(args.eval_run.read_bytes()) if args.eval_run else None
@@ -231,14 +237,32 @@ def _seeded(argv: list[str]) -> int:
                     split=split,
                     model_id=model_id,
                     run_id=args.run_id,
-                    limit=args.limit,
+                    limit=limit,
                     concurrency=args.concurrency,
-                    seed=args.seed,
-                    resamples=args.resamples,
+                    seed=seed,
+                    resamples=resamples,
                     evaluation=evaluation,
                 )
             )
-        _emit(result, args.out, args.record_dir)
+        if args.replay:
+            stored = args.record_dir / f"{result.run_id}.json"
+            if stored.exists():
+                previous = SeededRun.model_validate_json(stored.read_bytes())
+                without_clock = {"started_at_ms", "finished_at_ms"}
+                if previous.model_dump(exclude=without_clock) != result.model_dump(
+                    exclude=without_clock
+                ):
+                    raise ValueError("replay differs from the stored seeded record")
+                print(f"Replay verified against {stored}; wrote nothing.", file=sys.stderr)
+                print(previous.model_dump_json(indent=2))
+            else:
+                print(
+                    "Replay reproduced the run; no stored record to verify; wrote nothing.",
+                    file=sys.stderr,
+                )
+                print(result.model_dump_json(indent=2))
+        else:
+            _emit(result, args.out, args.record_dir)
     except (OSError, ValueError, LookupError) as exc:
         parser.error(str(exc))
     return 0

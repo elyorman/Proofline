@@ -26,11 +26,17 @@ compares this content byte for byte and never edits the README.
 uv run python -m eval seeded --runs runs/dev --variant A --data data/dev \
   --exchanges runs/dev/exchanges-A --record runs/dev/seeded-exchanges-A \
   --limit 5 --concurrency 1 --record-dir eval/records
+
+uv run python -m eval seeded --runs runs/dev --variant A --data data/dev \
+  --exchanges runs/dev/exchanges-A --replay runs/dev/seeded-exchanges-A \
+  --record-dir eval/records
 ```
 
 Use a separate directory for the seeded Verifier's exchanges. To reproduce the
-run without live model calls, replace `--record` with `--replay` and its recorded
-directory. Set `--model-id` on replay from the original deployment record. An
+run without live model calls, use the replay command above. The saved settings
+restore the model ID, explicit run ID, limit, and bootstrap settings. Replay
+verifies an existing record without rewriting it. If the record is absent, it
+prints the reproduced result and says that nothing was written. An
 optional `--eval-run eval/records/<run_id>.json` links the exact source batch's
 suite digest and frozen flag set. Otherwise those fields remain unverified.
 Each card and seed has its own exchange namespace so identical prompts cannot
@@ -38,11 +44,9 @@ overwrite one another's responses. A live recording requires a fresh directory.
 
 Each selected published card is reconstructed using only its batch exchanges.
 The reconstructed card must equal the batch card except for `provenance.trace_id`.
-All reconstructions must pass before seeded verification starts. The backend
-currently generates random tool/evidence references; independently replayed cards
-therefore cannot satisfy this equality. The command fails closed rather than
-normalizing away these differences. The backend must persist tool records/IDs or
-make those references reproducible before an existing batch can pass this gate.
+All reconstructions must pass before seeded verification starts. Tool/evidence
+references are deterministic; a mismatch indicates different feeds, exchanges or
+producer code. Card digests omit only the trace ID, preserving record/replay identity.
 
 There are up to eight single-field seeds plus one unchanged control per card.
 Evidence and baseline perturbations are the first larger floating-point value
@@ -55,7 +59,11 @@ retained. Other applicable misses remain in the denominator.
 The existing Verifier is called unchanged. Record its actual verification and
 failed checks for every trial, including controls. Confidence intervals resample
 whole cards with all their seed types together. False rejection is the fraction
-of unchanged controls rejected. The number of live semantic calls is lower than
+of answered unchanged controls rejected. No-answer trials and controls are reported
+separately, outside caught, missed and false-rejection denominators. The headline
+catch rate uses only trials whose unchanged control passed; the all-cards rate is
+reported beside it. A verifier that rejects every control has an undefined headline
+rate. The number of live semantic calls is lower than
 the Verifier invocation count when deterministic checks reject early; the
 backend may retry a malformed semantic response.
 

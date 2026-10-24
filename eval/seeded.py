@@ -32,6 +32,18 @@ from orchestration.case import Outcome, run_case
 from state.tools import Feed
 from tools_server.server import DirectorySource
 
+SETTINGS = "seeded-settings.json"
+
+
+def replay_settings(folder: Path) -> dict:
+    path = folder / SETTINGS
+    if not path.exists():
+        return {}
+    data = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(data, dict) or data.get("version") != 2:
+        raise ValueError("unsupported seeded replay settings")
+    return data
+
 
 def digest_paths(paths: list[Path], root: Path) -> str:
     digest = hashlib.sha256()
@@ -216,6 +228,13 @@ async def run_seeded(
     resamples: int = 2000,
     evaluation: EvalRun | None = None,
 ) -> SeededRun:
+    if isinstance(model, Replay):
+        settings = replay_settings(verifier_exchanges)
+        recorded_model = settings.get("model_id")
+        if model_id is not None and recorded_model is not None and model_id != recorded_model:
+            raise ValueError("replay model_id differs from the recorded deployment")
+        model_id = model_id or recorded_model
+        run_id = run_id or settings.get("explicit_run_id")
     if concurrency < 1 or (limit is not None and limit < 1) or resamples < 1:
         raise ValueError("concurrency, limit and resamples must be positive")
     started = int(time.time() * 1000)
@@ -276,6 +295,20 @@ async def run_seeded(
         data / match / name for match in sorted(feeds) for name in ("meta.json", "events.jsonl")
     ]
     source_digest = digest_paths(list(exchanges.glob("*.json")), exchanges)
+    if isinstance(model, Recording):
+        settings = dict(
+            version=2,
+            model_id=model_id,
+            explicit_run_id=run_id,
+            split=split,
+            variant=variant,
+            seed=seed,
+            resamples=resamples,
+            limit=limit,
+        )
+        verifier_exchanges.mkdir(parents=True, exist_ok=True)
+        with (verifier_exchanges / SETTINGS).open("x", encoding="utf-8") as target:
+            target.write(json.dumps(settings, sort_keys=True, indent=2) + "\n")
     verifier_digest = digest_paths(list(verifier_exchanges.rglob("*.json")), verifier_exchanges)
     content = [
         batch_digest,

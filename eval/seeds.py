@@ -10,7 +10,7 @@ from contracts.card import InsightCard
 from contracts.eval_run import SeedType
 from contracts.prediction import Direction
 from contracts.taxonomy import LANGUAGE_FOR_SUPPORT, Cause, SupportLevel
-from state.subjects import opponent
+from state.subjects import opponent, resolve
 from state.tools import Feed
 
 
@@ -63,7 +63,14 @@ def mutations(card: InsightCard, feed: Feed) -> list[Mutation]:
             number = 1000000
             while numbers_match(card, [str(number)]):
                 number += 1
-            after = f"{card.claim} The change is {number}."
+            change_name = narrator.LABEL.get(
+                change.metric, (change.metric.value.replace("_", " "),)
+            )[0]
+            who = narrator.who(feed.meta, change.subject)[0]
+            after = (
+                f"Since {change.window.start.minute}', the {change_name.lower()} "
+                f"for {who} has changed by {number}."
+            )
         elif kind == SeedType.CLAIM_DIRECTION:
             if change is None or (change.metric, change.direction) not in narrator.CHANGE:
                 reason = "primary change has no direction template"
@@ -75,8 +82,14 @@ def mutations(card: InsightCard, feed: Feed) -> list[Mutation]:
                 after = narrator.claim(clone, feed.meta)
                 clone = card.model_copy(deep=True)
         elif kind == SeedType.WRONG_TEAM:
-            other = opponent(feed.meta, card.subject.team)
-            after = f"{card.claim} The primary cause is about {other}."
+            if change is None:
+                reason = "card has no primary change proposition"
+            else:
+                other = opponent(feed.meta, resolve(feed.meta, change.subject).team)
+                change.subject = other
+                clone.propositions = [change, *[p for p in clone.propositions if p.id != change.id]]
+                after = narrator.claim(clone, feed.meta)
+                clone = card.model_copy(deep=True)
         elif kind == SeedType.OVERCERTAINTY:
             if card.verification.support_level == SupportLevel.STRONG:
                 reason = "strong support already permits assertive language"
@@ -84,7 +97,7 @@ def mutations(card: InsightCard, feed: Feed) -> list[Mutation]:
                 reason = "card has no primary cause"
             else:
                 phrase = narrator.cause_phrase(primary.cause, card.subject.team, 0)
-                after = f"{card.claim} This definitely proves that {phrase} caused the change."
+                after = f"The change is definitely caused by {phrase}."
         elif kind == SeedType.UNNAMED_CAUSE:
             named = {a.cause for a in card.attributions} | {
                 r.taxonomy for r in card.rejected_alternatives
@@ -95,7 +108,7 @@ def mutations(card: InsightCard, feed: Feed) -> list[Mutation]:
             else:
                 phrase = narrator.cause_phrase(cause, card.subject.team, 0)
                 level = LANGUAGE_FOR_SUPPORT[card.verification.support_level]
-                after = f"{card.claim} {narrator.LEVEL[level][0].format(cause=phrase)}"
+                after = narrator.LEVEL[level][0].format(cause=phrase)
         else:
             if change is None:
                 reason = "card has no primary change proposition"

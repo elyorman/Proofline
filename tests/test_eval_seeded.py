@@ -1,6 +1,7 @@
 import asyncio
 import json
 import math
+import re
 from pathlib import Path
 
 import pytest
@@ -84,12 +85,17 @@ def test_each_seed_changes_only_its_declared_field(real_case):
     by_type = {m.kind: m for m in seeded}
     assert by_type[SeedType.CLAIM_DIRECTION].after != card.claim
     other = next(t.name for t in feed.meta.teams.values() if t.name != card.subject.team)
-    assert by_type[SeedType.WRONG_TEAM].after.endswith(f"{other}.")
+    assert by_type[SeedType.WRONG_TEAM].after.startswith(f"{other} ")
+    assert "primary cause is about" not in by_type[SeedType.WRONG_TEAM].after
+    for seed in seeded:
+        if seed.field == "claim" and seed.card is not None:
+            assert len(re.findall(r"[.!?](?:\s|$)", seed.after)) == 1
+            assert seed.after.endswith(".")
     certainty = by_type[SeedType.OVERCERTAINTY]
     if card.verification.support_level == "strong":
         assert certainty.card is None and "strong support" in certainty.skip_reason
     else:
-        assert "definitely proves" in certainty.after
+        assert "definitely caused" in certainty.after
 
 
 def test_certainty_seed_applies_to_measured_support_without_other_changes(real_case):
@@ -100,7 +106,7 @@ def test_certainty_seed_applies_to_measured_support_without_other_changes(real_c
     card.verification.support_level = SupportLevel.MODERATE
     card.verification.language_level = LanguageLevel.MEASURED
     seed = next(m for m in mutations(card, feed) if m.kind == SeedType.OVERCERTAINTY)
-    assert "definitely proves" in seed.after
+    assert "definitely caused" in seed.after
     assert differences(card.model_dump(mode="json"), seed.card.model_dump(mode="json")) == ["claim"]
 
 

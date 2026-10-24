@@ -13,6 +13,7 @@ from pathlib import Path
 
 from contracts.case import Case
 from contracts.eval_run import Variant
+from contracts.question import Question
 from contracts.taxonomy import AgentRole
 from detector.cusum import detect
 from ledger.eventhubs import consume
@@ -20,6 +21,7 @@ from ledger.ingest import Ingest
 from ledger.store import CosmosLedger
 from orchestration.batch import run_batch
 from orchestration.case import case_file, models, run_case
+from orchestration.question import answer_all, run_question
 from orchestration.studio import studio, write
 from tools_server.server import DirectorySource
 
@@ -62,6 +64,22 @@ def main(argv: list[str] | None = None) -> int:
     batch.add_argument("--out", type=Path, default=Path("runs"), help="results root")
     batch.add_argument("--concurrency", type=int, default=3)
     batch.add_argument("--record", type=Path, help="save every model exchange here")
+    ask = sub.add_parser("ask", help="answer one viewer question about a match so far")
+    ask.add_argument("--data", default="data", help="folder of engine-written matches")
+    ask.add_argument("--match", required=True)
+    ask.add_argument("--at", required=True, help="the match clock when it is asked, e.g. 68:00")
+    ask.add_argument("--question", required=True)
+    ask.add_argument("--locale", choices=["en", "es"], default="en")
+    ask.add_argument("--variant", choices=["A", "B"], default="A")
+    ask.add_argument("--record", type=Path, help="save every model exchange here")
+    ask.add_argument("--replay", type=Path, help="answer from saved exchanges only")
+    asked = sub.add_parser("questions", help="answer every question in a questions file")
+    asked.add_argument("--data", type=Path, required=True, help="folder of match feeds")
+    asked.add_argument("--questions", type=Path, required=True, help="questions.jsonl")
+    asked.add_argument("--variant", choices=["A", "B"], required=True)
+    asked.add_argument("--out", type=Path, required=True, help="answers go to <out>/<variant>/")
+    asked.add_argument("--concurrency", type=int, default=2)
+    asked.add_argument("--record", type=Path, help="save every model exchange here")
     run = sub.add_parser("run", help="run a whole match through the product")
     run.add_argument("--mode", choices=["studio"], default="studio")
     run.add_argument("--data", type=Path, default=Path("data"), help="folder of written matches")
@@ -91,6 +109,40 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if args.command == "case":
         return _case(parser, args)
+    if args.command == "ask":
+        _quiet()
+        feed = DirectorySource(Path(args.data)).feed(args.match)
+        question = Question(
+            question_id="q1",
+            match_id=args.match,
+            asked_at=args.at,
+            text=args.question,
+            locale=args.locale,
+        )
+        agents, verifier = models(args.record, args.replay)
+        answer = asyncio.run(run_question(Variant(args.variant), agents, verifier, question, feed))
+        if answer.premise:
+            p = answer.premise
+            print(f"premise: {p.metric} of {p.subject} {p.direction} since {p.since}")
+        print(f"{answer.outcome}: {answer.reason}")
+        for locale, text in answer.text.items():
+            print(f"  {locale}: {text}")
+        return 0
+    if args.command == "questions":
+        _quiet()
+        agents, verifier = models(args.record)
+        asyncio.run(
+            answer_all(
+                args.data,
+                args.questions,
+                Variant(args.variant),
+                args.out,
+                agents,
+                verifier,
+                args.concurrency,
+            )
+        )
+        return 0
     if args.command == "batch":
         _quiet()
         agents, verifier = models(args.record)

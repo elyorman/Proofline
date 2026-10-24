@@ -20,6 +20,7 @@ from contracts import (
 from contracts.case_file import CaseFile
 from contracts.eval_run import SeededRun
 from contracts.prediction import Hypothesis
+from contracts.question import Answer, Question
 
 DOCS = Path(__file__).resolve().parents[1] / "docs"
 SCHEMAS = {
@@ -37,6 +38,8 @@ SCHEMAS = {
     "eval-run": EvalRun,
     "variant-comparison": VariantComparison,
     "seeded-run": SeededRun,
+    "question": Question,
+    "answer": Answer,
 }
 
 

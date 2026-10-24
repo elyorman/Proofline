@@ -25,3 +25,12 @@ class Ranking(BaseModel):
     primary: str | None = Field(description="hypothesis id of the primary cause, or null")
     secondary: list[str] = Field(description="hypothesis ids of secondary causes")
     why: str = Field(description="one short sentence")
+
+
+class Framing(BaseModel):
+    answerable: bool = Field(description="false when the metrics cannot measure the question")
+    metric: str | None = Field(description="one of the measurable metrics, or null")
+    subject: str | None = Field(description="a team, 'Team.unit', or a player id; or null")
+    direction: str | None = Field(description="'up' or 'down', the way the question assumes")
+    since: str | None = Field(description="a second-half minute as mm:00, e.g. '60:00'; or null")
+    why: str = Field(description="one short sentence: what the question assumes")

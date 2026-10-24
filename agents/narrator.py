@@ -5,8 +5,10 @@ A model-written narrator replaces these later; they stay as its fallback.
 """
 
 from contracts.card import InsightCard
+from contracts.case_file import Persistence
 from contracts.meta import MatchMeta
 from contracts.prediction import Direction
+from contracts.question import Premise
 from contracts.taxonomy import LANGUAGE_FOR_SUPPORT, Cause, LanguageLevel, Metric, SupportLevel
 from state.subjects import resolve
 
@@ -262,3 +264,59 @@ def broadcast(card: InsightCard, meta: MatchMeta, locale: int) -> dict[str, str 
 def goal(team: str, score: str) -> dict[str, str]:
     """A fast-lane goal line in every locale, from the event alone."""
     return {locale: GOAL[i].format(team=team, score=score) for i, locale in enumerate(LOCALES)}
+
+
+# A viewer's question, answered from what code found (spec §9.3). Deterministic facts only.
+NOT_HAPPENING = (
+    "Not beyond ordinary play: {label} ({who}) has been {now} since {since}', against {then} "
+    "in the first half.",
+    "No más allá de lo normal: {label} ({who}) es {now} desde el minuto {since}, frente a {then} "
+    "en la primera parte.",
+)
+NO_CAUSE = (
+    "{who} {change} since {since}', but no cause stands up to the evidence yet.",
+    "{who} {change_es} desde el minuto {since}, pero ninguna causa resiste la evidencia todavía.",
+)
+UNVERIFIED = (
+    "{who} {change} since {since}'; the explanation did not pass verification, so we hold it back.",
+    "{who} {change_es} desde el minuto {since}; la explicación no superó la verificación, así que "
+    "no la mostramos.",
+)
+CANNOT = (
+    "Proofline cannot measure that from the match data.",
+    "Proofline no puede medir eso con los datos del partido.",
+)
+
+
+def answer(
+    outcome: str,
+    premise: Premise | None,
+    test: Persistence | None,
+    card: InsightCard | None,
+    meta: MatchMeta,
+) -> dict[str, str]:
+    """The answer a viewer reads, in each locale."""
+    if premise is None:
+        return dict(zip(LOCALES, CANNOT, strict=True))
+    if card is not None:
+        return dict(card.variants["casual"])
+    name, singular = who(meta, premise.subject)
+    since = premise.since.minute
+    if outcome == "premise_false":
+        facts = {"label": "", "who": name, "since": since, "now": "-", "then": "-"}
+        if test is not None and test.value is not None and test.baseline is not None:
+            facts |= {
+                "now": number(premise.metric, test.value),
+                "then": number(premise.metric, test.baseline),
+            }
+        return {
+            locale: NOT_HAPPENING[i].format(**facts | {"label": LABEL[premise.metric][i]})
+            for i, locale in enumerate(LOCALES)
+        }
+    en, es = CHANGE[premise.metric, premise.direction]
+    change = en.format(**{"is": "is" if singular else "are"})
+    template = NO_CAUSE if outcome in ("none", "other") else UNVERIFIED
+    return {
+        locale: template[i].format(who=name, change=change, change_es=es, since=since)
+        for i, locale in enumerate(LOCALES)
+    }

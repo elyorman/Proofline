@@ -71,3 +71,28 @@ def test_a_studio_replay_is_the_same_ledger_every_time(ledger, tmp_path):
         return [stable(v) for v in x] if isinstance(x, list) else x
 
     assert json.dumps(stable(again), sort_keys=True) == json.dumps(stable(ledger), sort_keys=True)
+
+
+class FailsOnce:
+    """The recorded Verifier, except that its first card hits an outage."""
+
+    def __init__(self, replay):
+        self.replay, self.failed = replay, False
+
+    async def ask(self, role, instructions, prompt, schema):
+        if not self.failed:
+            self.failed = True
+            raise RuntimeError("429 Too Many Requests")
+        return await self.replay.ask(role, instructions, prompt, schema)
+
+
+def test_a_case_that_fails_is_recorded_and_the_match_plays_on(tmp_path):
+    sim = MatchSim(load_script(ROOT / "engine" / "scripts" / "planted" / "m01.yaml"))
+    write_match(sim, sim.run(), tmp_path / "m01")
+    replay = Replay(RECORDED)
+    run = asyncio.run(studio(DirectorySource(tmp_path), "m01", replay, FailsOnce(replay)))
+    (error,) = run["case_errors"]
+    assert error["error"] == "RuntimeError: 429 Too Many Requests"
+    filed = [f["case"]["case_id"] for f in run["case_files"]]
+    assert error["case_id"] not in filed and len(filed) == 4  # the other four still ran
+    assert any(c["status"] == "withdrawn" for c in run["cards"])  # and the 70' correction

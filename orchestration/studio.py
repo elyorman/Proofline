@@ -12,7 +12,7 @@ from typing import Any
 
 from agents.confirm import extended
 from agents.director import direct
-from agents.llm import Model
+from agents.llm import MissingFixture, Model
 from contracts.card import InsightCard
 from contracts.eval_run import Variant
 from contracts.profile import Profile
@@ -64,9 +64,15 @@ async def studio(
     versions, cases = _cases(source, match_id)
     revisions: list[InsightCard] = []
     published: dict[str, Published] = {}
-    files = []
+    files, errors = [], []
     for case, feed in cases:
-        outcome = await run_case(variant, agents, verifier, case, feed)
+        try:
+            outcome = await run_case(variant, agents, verifier, case, feed)
+        except MissingFixture:  # a replay that no longer matches the code fails loudly
+            raise
+        except Exception as exc:  # one failed case is recorded; the match plays on
+            errors.append({"case_id": case.case_id, "error": f"{type(exc).__name__}: {exc}"})
+            continue
         files.append(case_file(outcome, variant))
         if outcome.verdict is None:
             continue
@@ -122,6 +128,7 @@ async def studio(
         "amendments": [a.model_dump(mode="json") for a, _ in versions[1:]],
         "dependencies": [d.model_dump(mode="json") for d in index.entries()],
         "corrections": corrections,
+        "case_errors": errors,
     }
 
 

@@ -52600,5 +52600,1204 @@
       "input_tokens": 996,
       "output_tokens": 358
     }
+  ],
+  "comparison_case_files": [
+    {
+      "case": {
+        "case_id": "case-m01-063-pressure_shift",
+        "match_id": "m01",
+        "moment_type": "pressure_shift",
+        "origin": "auto",
+        "window": {
+          "start": {
+            "period": 2,
+            "minute": 58,
+            "second": 0
+          },
+          "end": {
+            "period": 2,
+            "minute": 68,
+            "second": 0
+          }
+        },
+        "detected_at": {
+          "period": 2,
+          "minute": 63,
+          "second": 0
+        },
+        "triggers": [
+          {
+            "metric": "pressure_rate",
+            "subject": "Harbour City",
+            "value": 0.8333333333333334,
+            "baseline_value": 0.32,
+            "n_events": 18
+          }
+        ],
+        "both_teams": [
+          {
+            "metric": "pressure_rate",
+            "subject": "Harbour City",
+            "value": 0.7714285714285715,
+            "baseline_value": 0.32,
+            "sigmas": 5.2
+          },
+          {
+            "metric": "long_ball_share",
+            "subject": "Harbour City",
+            "value": 0.15492957746478872,
+            "baseline_value": 0.11857707509881422,
+            "sigmas": 0.46
+          },
+          {
+            "metric": "sprint_count",
+            "subject": "Harbour City",
+            "value": 3.4,
+            "baseline_value": 4.05951115834219,
+            "sigmas": 0.72
+          },
+          {
+            "metric": "pressure_rate",
+            "subject": "Northvale",
+            "value": 0.3617021276595745,
+            "baseline_value": 0.3954802259887006,
+            "sigmas": -0.31
+          },
+          {
+            "metric": "long_ball_share",
+            "subject": "Northvale",
+            "value": 0.6060606060606061,
+            "baseline_value": 0.1111111111111111,
+            "sigmas": 7.17
+          },
+          {
+            "metric": "sprint_count",
+            "subject": "Northvale",
+            "value": 2.8,
+            "baseline_value": 3.7407013815090333,
+            "sigmas": -0.01
+          }
+        ],
+        "stage": "closed",
+        "outcome": "explained",
+        "hypothesis_ids": [
+          "hyp-tactics-01",
+          "hyp-tactics-02",
+          "hyp-game_state-01",
+          "hyp-game_state-02"
+        ],
+        "checkpoints": [
+          {
+            "stage": "preregistered",
+            "wall_clock_ms": 1792837879794,
+            "agents_completed": [
+              "tactics",
+              "physical",
+              "game_state"
+            ],
+            "agents_failed": [],
+            "note": "4 hypotheses"
+          },
+          {
+            "stage": "tested",
+            "wall_clock_ms": 1792837879804,
+            "agents_completed": [
+              "tactics",
+              "physical",
+              "game_state"
+            ],
+            "agents_failed": [],
+            "note": "4 supported"
+          },
+          {
+            "stage": "cross_examined",
+            "wall_clock_ms": 1792837879861,
+            "agents_completed": [
+              "tactics",
+              "physical",
+              "game_state"
+            ],
+            "agents_failed": [],
+            "note": "5 counter-tests, 0 refuted"
+          },
+          {
+            "stage": "synthesized",
+            "wall_clock_ms": 1792837879862,
+            "agents_completed": [
+              "tactics",
+              "physical",
+              "game_state"
+            ],
+            "agents_failed": [],
+            "note": "explained"
+          }
+        ],
+        "recovered_from_checkpoint": false,
+        "tool_calls_used": 12,
+        "tool_call_budget": 16,
+        "card_id": "ins-m01-063-pressure_shift"
+      },
+      "variant": "A",
+      "confirmation": [
+        {
+          "metric": "pressure_rate",
+          "subject": "Harbour City",
+          "direction": "up",
+          "window": {
+            "start": {
+              "period": 2,
+              "minute": 63,
+              "second": 0
+            },
+            "end": {
+              "period": 2,
+              "minute": 68,
+              "second": 0
+            }
+          },
+          "value": 0.7058823529411765,
+          "baseline": 0.32,
+          "n_events": 17,
+          "sigmas": 3.030238249145812,
+          "holds": true,
+          "reason": "pressure_rate of Harbour City in 63:00-68:00: 0.706 against 0.320 in the first half; ordinary play moves it -0.000 ± 0.127 here, so +3.03 sd; it held",
+          "tool_call_id": "tc-0580fd991e74"
+        }
+      ],
+      "agents": [
+        "tactics",
+        "physical",
+        "game_state"
+      ],
+      "hypotheses": [
+        {
+          "hypothesis_id": "hyp-tactics-01",
+          "case_id": "case-m01-063-pressure_shift",
+          "agent": "tactics",
+          "taxonomy": "tactical.press_intensity_up",
+          "prediction": {
+            "metric": "pressure_rate",
+            "subject": "Harbour City",
+            "window": {
+              "start": {
+                "period": 2,
+                "minute": 58,
+                "second": 0
+              },
+              "end": {
+                "period": 2,
+                "minute": 68,
+                "second": 0
+              }
+            },
+            "compare_to": "first_half",
+            "direction": "up",
+            "threshold_kind": "sigma",
+            "min_change": 2.0
+          }
+        },
+        {
+          "hypothesis_id": "hyp-tactics-02",
+          "case_id": "case-m01-063-pressure_shift",
+          "agent": "tactics",
+          "taxonomy": "tactical.block_higher",
+          "prediction": {
+            "metric": "long_ball_share",
+            "subject": "Northvale",
+            "window": {
+              "start": {
+                "period": 2,
+                "minute": 58,
+                "second": 0
+              },
+              "end": {
+                "period": 2,
+                "minute": 68,
+                "second": 0
+              }
+            },
+            "compare_to": "first_half",
+            "direction": "up",
+            "threshold_kind": "sigma",
+            "min_change": 2.0
+          }
+        },
+        {
+          "hypothesis_id": "hyp-game_state-01",
+          "case_id": "case-m01-063-pressure_shift",
+          "agent": "game_state",
+          "taxonomy": "game_state.chasing_result",
+          "prediction": {
+            "metric": "pressure_rate",
+            "subject": "Harbour City",
+            "window": {
+              "start": {
+                "period": 2,
+                "minute": 58,
+                "second": 0
+              },
+              "end": {
+                "period": 2,
+                "minute": 68,
+                "second": 0
+              }
+            },
+            "compare_to": "first_half",
+            "direction": "up",
+            "threshold_kind": "sigma",
+            "min_change": 2.0
+          }
+        },
+        {
+          "hypothesis_id": "hyp-game_state-02",
+          "case_id": "case-m01-063-pressure_shift",
+          "agent": "game_state",
+          "taxonomy": "game_state.protecting_lead",
+          "prediction": {
+            "metric": "long_ball_share",
+            "subject": "Northvale",
+            "window": {
+              "start": {
+                "period": 2,
+                "minute": 58,
+                "second": 0
+              },
+              "end": {
+                "period": 2,
+                "minute": 68,
+                "second": 0
+              }
+            },
+            "compare_to": "first_half",
+            "direction": "up",
+            "threshold_kind": "sigma",
+            "min_change": 2.0
+          }
+        }
+      ],
+      "refused": [],
+      "tests": [
+        {
+          "hypothesis_id": "hyp-tactics-01",
+          "tool_call_id": "tc-3ae85aa19620",
+          "observed_change": 5.198008077989911,
+          "outcome": "supported",
+          "reason": "pressure_rate of Harbour City: 0.320 in the first half, 0.771 in 58:00-68:00; ordinary play moves it -0.006 ± 0.088 here, so +5.20 sd against a claim of up by 2 sd"
+        },
+        {
+          "hypothesis_id": "hyp-tactics-02",
+          "tool_call_id": "tc-4a61dfda7099",
+          "observed_change": 7.1699999261081935,
+          "outcome": "supported",
+          "reason": "long_ball_share of Northvale: 0.111 in the first half, 0.606 in 58:00-68:00; ordinary play moves it +0.005 ± 0.068 here, so +7.17 sd against a claim of up by 2 sd"
+        },
+        {
+          "hypothesis_id": "hyp-game_state-01",
+          "tool_call_id": "tc-3ae85aa19620",
+          "observed_change": 5.198008077989911,
+          "outcome": "supported",
+          "reason": "pressure_rate of Harbour City: 0.320 in the first half, 0.771 in 58:00-68:00; ordinary play moves it -0.006 ± 0.088 here, so +5.20 sd against a claim of up by 2 sd"
+        },
+        {
+          "hypothesis_id": "hyp-game_state-02",
+          "tool_call_id": "tc-4a61dfda7099",
+          "observed_change": 7.1699999261081935,
+          "outcome": "supported",
+          "reason": "long_ball_share of Northvale: 0.111 in the first half, 0.606 in 58:00-68:00; ordinary play moves it +0.005 ± 0.068 here, so +7.17 sd against a claim of up by 2 sd"
+        }
+      ],
+      "cross_examinations": [
+        {
+          "hypothesis_id": "hyp-game_state-01",
+          "challenger": "tactics",
+          "counter_prediction": {
+            "metric": "sprint_count",
+            "subject": "Harbour City.attack",
+            "window": {
+              "start": {
+                "period": 2,
+                "minute": 58,
+                "second": 0
+              },
+              "end": {
+                "period": 2,
+                "minute": 68,
+                "second": 0
+              }
+            },
+            "compare_to": "first_half",
+            "direction": "up",
+            "threshold_kind": "sigma",
+            "min_change": 1.0
+          },
+          "tool_call_id": "tc-8427e942a8df",
+          "observed_change": 0.19716916295383388,
+          "hypothesis_change": null,
+          "corollary": true,
+          "reason": "Chasing the game should raise attacking sprints as Harbour City push forward.",
+          "result": "weakened"
+        },
+        {
+          "hypothesis_id": "hyp-game_state-02",
+          "challenger": "tactics",
+          "counter_prediction": {
+            "metric": "pressure_rate",
+            "subject": "Northvale",
+            "window": {
+              "start": {
+                "period": 2,
+                "minute": 58,
+                "second": 0
+              },
+              "end": {
+                "period": 2,
+                "minute": 68,
+                "second": 0
+              }
+            },
+            "compare_to": "first_half",
+            "direction": "down",
+            "threshold_kind": "sigma",
+            "min_change": 1.0
+          },
+          "tool_call_id": "tc-eb7c8da7bbcb",
+          "observed_change": -0.3113216569674815,
+          "hypothesis_change": null,
+          "corollary": true,
+          "reason": "Protecting a lead should reduce Northvale's pressures in the opponent half.",
+          "result": "weakened"
+        },
+        {
+          "hypothesis_id": "hyp-tactics-02",
+          "challenger": "physical",
+          "counter_prediction": {
+            "metric": "pressure_rate",
+            "subject": "Northvale",
+            "window": {
+              "start": {
+                "period": 2,
+                "minute": 58,
+                "second": 0
+              },
+              "end": {
+                "period": 2,
+                "minute": 68,
+                "second": 0
+              }
+            },
+            "compare_to": "first_half",
+            "direction": "up",
+            "threshold_kind": "sigma",
+            "min_change": 1.0
+          },
+          "tool_call_id": "tc-eb7c8da7bbcb",
+          "observed_change": -0.3113216569674815,
+          "hypothesis_change": null,
+          "corollary": true,
+          "reason": "A true 'block higher' is implemented by Northvale pressing higher, so their pressure_rate should rise in the same window.",
+          "result": "weakened"
+        },
+        {
+          "hypothesis_id": "hyp-game_state-02",
+          "challenger": "physical",
+          "counter_prediction": {
+            "metric": "sprint_count",
+            "subject": "Northvale",
+            "window": {
+              "start": {
+                "period": 2,
+                "minute": 58,
+                "second": 0
+              },
+              "end": {
+                "period": 2,
+                "minute": 68,
+                "second": 0
+              }
+            },
+            "compare_to": "first_half",
+            "direction": "down",
+            "threshold_kind": "sigma",
+            "min_change": 1.0
+          },
+          "tool_call_id": "tc-9f1af201855a",
+          "observed_change": -0.012485691909151999,
+          "hypothesis_change": null,
+          "corollary": true,
+          "reason": "If Northvale were protecting a lead they would curb high-intensity actions, producing fewer sprints in the window.",
+          "result": "weakened"
+        },
+        {
+          "hypothesis_id": "hyp-tactics-02",
+          "challenger": "game_state",
+          "counter_prediction": {
+            "metric": "pressure_rate",
+            "subject": "Northvale",
+            "window": {
+              "start": {
+                "period": 2,
+                "minute": 58,
+                "second": 0
+              },
+              "end": {
+                "period": 2,
+                "minute": 68,
+                "second": 0
+              }
+            },
+            "compare_to": "first_half",
+            "direction": "up",
+            "threshold_kind": "sigma",
+            "min_change": 1.0
+          },
+          "tool_call_id": "tc-eb7c8da7bbcb",
+          "observed_change": -0.3113216569674815,
+          "hypothesis_change": null,
+          "corollary": true,
+          "reason": "A higher defensive block should produce more pressures in the opponent half, so Northvale's pressure_rate would rise if block_higher were real; its absence would weaken the hypothesis.",
+          "result": "weakened"
+        }
+      ],
+      "unrun": [],
+      "ranking": {
+        "outcome": "explained",
+        "primary": "hyp-tactics-01",
+        "secondary": [
+          "hyp-game_state-01",
+          "hyp-game_state-02",
+          "hyp-tactics-02"
+        ],
+        "why": "Harbour City's pressure_rate increased by +5.20 sd exactly as predicted by a tactical increase in pressing (hyp-tactics-01) and that claim has no contradicting corollary, while the chasing-result alternative (hyp-game_state-01) is weakened by a failed sprint corollary and the long-ball explanations (hyp-game_state-02, hyp-tactics-02) are weakened or contradicted by their pressure/sprint corollaries."
+      },
+      "tool_calls": [
+        {
+          "tool": "metric",
+          "arguments": {
+            "match_id": "m01",
+            "name": "pressure_rate",
+            "subject": "Harbour City",
+            "window": "63:00-68:00"
+          },
+          "tool_call_id": "tc-0580fd991e74",
+          "value": 0.7058823529411765,
+          "baseline": null,
+          "n_events": 17,
+          "values": {},
+          "insufficient_data": null,
+          "error": null
+        },
+        {
+          "tool": "baseline",
+          "arguments": {
+            "match_id": "m01",
+            "name": "pressure_rate",
+            "subject": "Harbour City",
+            "scope": "first_half"
+          },
+          "tool_call_id": "tc-46354c07f114",
+          "value": null,
+          "baseline": 0.32,
+          "n_events": 175,
+          "values": {},
+          "insufficient_data": null,
+          "error": null
+        },
+        {
+          "tool": "metric",
+          "arguments": {
+            "match_id": "m01",
+            "name": "pressure_rate",
+            "subject": "Harbour City",
+            "window": "58:00-68:00"
+          },
+          "tool_call_id": "tc-3ae85aa19620",
+          "value": 0.7714285714285715,
+          "baseline": null,
+          "n_events": 35,
+          "values": {},
+          "insufficient_data": null,
+          "error": null
+        },
+        {
+          "tool": "game_state",
+          "arguments": {
+            "match_id": "m01"
+          },
+          "tool_call_id": "tc-6ed8cb2b1eb7",
+          "value": null,
+          "baseline": null,
+          "n_events": 4,
+          "values": {
+            "home_goals": 1.0,
+            "home_sent_off": 0.0,
+            "home_substitutions": 0.0,
+            "away_goals": 3.0,
+            "away_sent_off": 0.0,
+            "away_substitutions": 0.0
+          },
+          "insufficient_data": null,
+          "error": null
+        },
+        {
+          "tool": "metric",
+          "arguments": {
+            "match_id": "m01",
+            "name": "long_ball_share",
+            "subject": "Northvale",
+            "window": "58:00-68:00"
+          },
+          "tool_call_id": "tc-4a61dfda7099",
+          "value": 0.6060606060606061,
+          "baseline": null,
+          "n_events": 33,
+          "values": {},
+          "insufficient_data": null,
+          "error": null
+        },
+        {
+          "tool": "baseline",
+          "arguments": {
+            "match_id": "m01",
+            "name": "long_ball_share",
+            "subject": "Northvale",
+            "scope": "first_half"
+          },
+          "tool_call_id": "tc-68ba0cae8163",
+          "value": null,
+          "baseline": 0.1111111111111111,
+          "n_events": 234,
+          "values": {},
+          "insufficient_data": null,
+          "error": null
+        },
+        {
+          "tool": "metric",
+          "arguments": {
+            "match_id": "m01",
+            "name": "sprint_count",
+            "subject": "Harbour City.attack",
+            "window": "58:00-68:00"
+          },
+          "tool_call_id": "tc-8427e942a8df",
+          "value": 1.2,
+          "baseline": null,
+          "n_events": 12,
+          "values": {},
+          "insufficient_data": null,
+          "error": null
+        },
+        {
+          "tool": "baseline",
+          "arguments": {
+            "match_id": "m01",
+            "name": "sprint_count",
+            "subject": "Harbour City.attack",
+            "scope": "first_half"
+          },
+          "tool_call_id": "tc-46f4ae0b966b",
+          "value": null,
+          "baseline": 1.4877789585547292,
+          "n_events": 70,
+          "values": {},
+          "insufficient_data": null,
+          "error": null
+        },
+        {
+          "tool": "metric",
+          "arguments": {
+            "match_id": "m01",
+            "name": "pressure_rate",
+            "subject": "Northvale",
+            "window": "58:00-68:00"
+          },
+          "tool_call_id": "tc-eb7c8da7bbcb",
+          "value": 0.3617021276595745,
+          "baseline": null,
+          "n_events": 47,
+          "values": {},
+          "insufficient_data": null,
+          "error": null
+        },
+        {
+          "tool": "baseline",
+          "arguments": {
+            "match_id": "m01",
+            "name": "pressure_rate",
+            "subject": "Northvale",
+            "scope": "first_half"
+          },
+          "tool_call_id": "tc-d817e986a16c",
+          "value": null,
+          "baseline": 0.3954802259887006,
+          "n_events": 177,
+          "values": {},
+          "insufficient_data": null,
+          "error": null
+        },
+        {
+          "tool": "metric",
+          "arguments": {
+            "match_id": "m01",
+            "name": "sprint_count",
+            "subject": "Northvale",
+            "window": "58:00-68:00"
+          },
+          "tool_call_id": "tc-9f1af201855a",
+          "value": 2.8,
+          "baseline": null,
+          "n_events": 28,
+          "values": {},
+          "insufficient_data": null,
+          "error": null
+        },
+        {
+          "tool": "baseline",
+          "arguments": {
+            "match_id": "m01",
+            "name": "sprint_count",
+            "subject": "Northvale",
+            "scope": "first_half"
+          },
+          "tool_call_id": "tc-f01e3a8cd328",
+          "value": null,
+          "baseline": 3.7407013815090333,
+          "n_events": 176,
+          "values": {},
+          "insufficient_data": null,
+          "error": null
+        }
+      ],
+      "input_tokens": 13696,
+      "output_tokens": 13609
+    },
+    {
+      "case": {
+        "case_id": "case-m01-063-pressure_shift",
+        "match_id": "m01",
+        "moment_type": "pressure_shift",
+        "origin": "auto",
+        "window": {
+          "start": {
+            "period": 2,
+            "minute": 58,
+            "second": 0
+          },
+          "end": {
+            "period": 2,
+            "minute": 68,
+            "second": 0
+          }
+        },
+        "detected_at": {
+          "period": 2,
+          "minute": 63,
+          "second": 0
+        },
+        "triggers": [
+          {
+            "metric": "pressure_rate",
+            "subject": "Harbour City",
+            "value": 0.8333333333333334,
+            "baseline_value": 0.32,
+            "n_events": 18
+          }
+        ],
+        "both_teams": [
+          {
+            "metric": "pressure_rate",
+            "subject": "Harbour City",
+            "value": 0.7714285714285715,
+            "baseline_value": 0.32,
+            "sigmas": 5.2
+          },
+          {
+            "metric": "long_ball_share",
+            "subject": "Harbour City",
+            "value": 0.15492957746478872,
+            "baseline_value": 0.11857707509881422,
+            "sigmas": 0.46
+          },
+          {
+            "metric": "sprint_count",
+            "subject": "Harbour City",
+            "value": 3.4,
+            "baseline_value": 4.05951115834219,
+            "sigmas": 0.72
+          },
+          {
+            "metric": "pressure_rate",
+            "subject": "Northvale",
+            "value": 0.3617021276595745,
+            "baseline_value": 0.3954802259887006,
+            "sigmas": -0.31
+          },
+          {
+            "metric": "long_ball_share",
+            "subject": "Northvale",
+            "value": 0.6060606060606061,
+            "baseline_value": 0.1111111111111111,
+            "sigmas": 7.17
+          },
+          {
+            "metric": "sprint_count",
+            "subject": "Northvale",
+            "value": 2.8,
+            "baseline_value": 3.7407013815090333,
+            "sigmas": -0.01
+          }
+        ],
+        "stage": "closed",
+        "outcome": "explained",
+        "hypothesis_ids": [
+          "hyp-single-01",
+          "hyp-single-02",
+          "hyp-single-03",
+          "hyp-single-04"
+        ],
+        "checkpoints": [],
+        "recovered_from_checkpoint": false,
+        "tool_calls_used": 12,
+        "tool_call_budget": 16,
+        "card_id": "ins-m01-063-pressure_shift"
+      },
+      "variant": "B",
+      "confirmation": [
+        {
+          "metric": "pressure_rate",
+          "subject": "Harbour City",
+          "direction": "up",
+          "window": {
+            "start": {
+              "period": 2,
+              "minute": 63,
+              "second": 0
+            },
+            "end": {
+              "period": 2,
+              "minute": 68,
+              "second": 0
+            }
+          },
+          "value": 0.7058823529411765,
+          "baseline": 0.32,
+          "n_events": 17,
+          "sigmas": 3.030238249145812,
+          "holds": true,
+          "reason": "pressure_rate of Harbour City in 63:00-68:00: 0.706 against 0.320 in the first half; ordinary play moves it -0.000 ± 0.127 here, so +3.03 sd; it held",
+          "tool_call_id": "tc-0580fd991e74"
+        }
+      ],
+      "agents": [
+        "single"
+      ],
+      "hypotheses": [
+        {
+          "hypothesis_id": "hyp-single-01",
+          "case_id": "case-m01-063-pressure_shift",
+          "agent": "single",
+          "taxonomy": "tactical.press_intensity_up",
+          "prediction": {
+            "metric": "pressure_rate",
+            "subject": "Harbour City",
+            "window": {
+              "start": {
+                "period": 2,
+                "minute": 58,
+                "second": 0
+              },
+              "end": {
+                "period": 2,
+                "minute": 68,
+                "second": 0
+              }
+            },
+            "compare_to": "first_half",
+            "direction": "up",
+            "threshold_kind": "sigma",
+            "min_change": 2.0
+          }
+        },
+        {
+          "hypothesis_id": "hyp-single-02",
+          "case_id": "case-m01-063-pressure_shift",
+          "agent": "single",
+          "taxonomy": "game_state.chasing_result",
+          "prediction": {
+            "metric": "long_ball_share",
+            "subject": "Harbour City",
+            "window": {
+              "start": {
+                "period": 2,
+                "minute": 58,
+                "second": 0
+              },
+              "end": {
+                "period": 2,
+                "minute": 68,
+                "second": 0
+              }
+            },
+            "compare_to": "first_half",
+            "direction": "up",
+            "threshold_kind": "sigma",
+            "min_change": 1.5
+          }
+        },
+        {
+          "hypothesis_id": "hyp-single-03",
+          "case_id": "case-m01-063-pressure_shift",
+          "agent": "single",
+          "taxonomy": "game_state.protecting_lead",
+          "prediction": {
+            "metric": "long_ball_share",
+            "subject": "Northvale",
+            "window": {
+              "start": {
+                "period": 2,
+                "minute": 58,
+                "second": 0
+              },
+              "end": {
+                "period": 2,
+                "minute": 68,
+                "second": 0
+              }
+            },
+            "compare_to": "first_half",
+            "direction": "up",
+            "threshold_kind": "sigma",
+            "min_change": 2.0
+          }
+        },
+        {
+          "hypothesis_id": "hyp-single-04",
+          "case_id": "case-m01-063-pressure_shift",
+          "agent": "single",
+          "taxonomy": "tactical.block_deeper",
+          "prediction": {
+            "metric": "pressure_rate",
+            "subject": "Northvale",
+            "window": {
+              "start": {
+                "period": 2,
+                "minute": 58,
+                "second": 0
+              },
+              "end": {
+                "period": 2,
+                "minute": 68,
+                "second": 0
+              }
+            },
+            "compare_to": "first_half",
+            "direction": "down",
+            "threshold_kind": "sigma",
+            "min_change": 1.5
+          }
+        }
+      ],
+      "refused": [],
+      "tests": [
+        {
+          "hypothesis_id": "hyp-single-01",
+          "tool_call_id": "tc-3ae85aa19620",
+          "observed_change": 5.198008077989911,
+          "outcome": "supported",
+          "reason": "pressure_rate of Harbour City: 0.320 in the first half, 0.771 in 58:00-68:00; ordinary play moves it -0.006 ± 0.088 here, so +5.20 sd against a claim of up by 2 sd"
+        },
+        {
+          "hypothesis_id": "hyp-single-02",
+          "tool_call_id": "tc-11ce9209d022",
+          "observed_change": 0.46046089781967076,
+          "outcome": "failed",
+          "reason": "long_ball_share of Harbour City: 0.119 in the first half, 0.155 in 58:00-68:00; ordinary play moves it +0.005 ± 0.068 here, so +0.46 sd against a claim of up by 1.5 sd"
+        },
+        {
+          "hypothesis_id": "hyp-single-03",
+          "tool_call_id": "tc-4a61dfda7099",
+          "observed_change": 7.1699999261081935,
+          "outcome": "supported",
+          "reason": "long_ball_share of Northvale: 0.111 in the first half, 0.606 in 58:00-68:00; ordinary play moves it +0.005 ± 0.068 here, so +7.17 sd against a claim of up by 2 sd"
+        },
+        {
+          "hypothesis_id": "hyp-single-04",
+          "tool_call_id": "tc-eb7c8da7bbcb",
+          "observed_change": -0.3113216569674815,
+          "outcome": "failed",
+          "reason": "pressure_rate of Northvale: 0.395 in the first half, 0.362 in 58:00-68:00; ordinary play moves it -0.006 ± 0.088 here, so -0.31 sd against a claim of down by 1.5 sd"
+        }
+      ],
+      "cross_examinations": [
+        {
+          "hypothesis_id": "hyp-single-01",
+          "challenger": "single",
+          "counter_prediction": {
+            "metric": "sprint_count",
+            "subject": "Harbour City",
+            "window": {
+              "start": {
+                "period": 2,
+                "minute": 58,
+                "second": 0
+              },
+              "end": {
+                "period": 2,
+                "minute": 68,
+                "second": 0
+              }
+            },
+            "compare_to": "first_half",
+            "direction": "up",
+            "threshold_kind": "sigma",
+            "min_change": 1.0
+          },
+          "tool_call_id": "tc-5cf157a44523",
+          "observed_change": 0.7248945246496579,
+          "hypothesis_change": null,
+          "corollary": true,
+          "reason": "Sustained higher pressing should produce more high-intensity runs, so Harbour City's sprint_count ought to rise.",
+          "result": "weakened"
+        },
+        {
+          "hypothesis_id": "hyp-single-03",
+          "challenger": "single",
+          "counter_prediction": {
+            "metric": "pressure_rate",
+            "subject": "Northvale",
+            "window": {
+              "start": {
+                "period": 2,
+                "minute": 58,
+                "second": 0
+              },
+              "end": {
+                "period": 2,
+                "minute": 68,
+                "second": 0
+              }
+            },
+            "compare_to": "first_half",
+            "direction": "down",
+            "threshold_kind": "sigma",
+            "min_change": 1.0
+          },
+          "tool_call_id": "tc-eb7c8da7bbcb",
+          "observed_change": -0.3113216569674815,
+          "hypothesis_change": null,
+          "corollary": true,
+          "reason": "A team protecting a lead typically reduces pressures high in the opponent half as it sits deeper, lowering its pressure_rate.",
+          "result": "weakened"
+        }
+      ],
+      "unrun": [],
+      "ranking": {
+        "outcome": "explained",
+        "primary": "hyp-single-01",
+        "secondary": [
+          "hyp-single-03"
+        ],
+        "why": "Harbour City's pressure_rate rose sharply (+5.20 sd) supporting increased press intensity as the best-supported cause; Northvale's large long-ball increase (+7.17 sd) is real but addresses a different behavior and explains the pressure shift less directly."
+      },
+      "tool_calls": [
+        {
+          "tool": "metric",
+          "arguments": {
+            "match_id": "m01",
+            "name": "pressure_rate",
+            "subject": "Harbour City",
+            "window": "63:00-68:00"
+          },
+          "tool_call_id": "tc-0580fd991e74",
+          "value": 0.7058823529411765,
+          "baseline": null,
+          "n_events": 17,
+          "values": {},
+          "insufficient_data": null,
+          "error": null
+        },
+        {
+          "tool": "baseline",
+          "arguments": {
+            "match_id": "m01",
+            "name": "pressure_rate",
+            "subject": "Harbour City",
+            "scope": "first_half"
+          },
+          "tool_call_id": "tc-46354c07f114",
+          "value": null,
+          "baseline": 0.32,
+          "n_events": 175,
+          "values": {},
+          "insufficient_data": null,
+          "error": null
+        },
+        {
+          "tool": "metric",
+          "arguments": {
+            "match_id": "m01",
+            "name": "pressure_rate",
+            "subject": "Harbour City",
+            "window": "58:00-68:00"
+          },
+          "tool_call_id": "tc-3ae85aa19620",
+          "value": 0.7714285714285715,
+          "baseline": null,
+          "n_events": 35,
+          "values": {},
+          "insufficient_data": null,
+          "error": null
+        },
+        {
+          "tool": "game_state",
+          "arguments": {
+            "match_id": "m01"
+          },
+          "tool_call_id": "tc-6ed8cb2b1eb7",
+          "value": null,
+          "baseline": null,
+          "n_events": 4,
+          "values": {
+            "home_goals": 1.0,
+            "home_sent_off": 0.0,
+            "home_substitutions": 0.0,
+            "away_goals": 3.0,
+            "away_sent_off": 0.0,
+            "away_substitutions": 0.0
+          },
+          "insufficient_data": null,
+          "error": null
+        },
+        {
+          "tool": "metric",
+          "arguments": {
+            "match_id": "m01",
+            "name": "long_ball_share",
+            "subject": "Harbour City",
+            "window": "58:00-68:00"
+          },
+          "tool_call_id": "tc-11ce9209d022",
+          "value": 0.15492957746478872,
+          "baseline": null,
+          "n_events": 71,
+          "values": {},
+          "insufficient_data": null,
+          "error": null
+        },
+        {
+          "tool": "baseline",
+          "arguments": {
+            "match_id": "m01",
+            "name": "long_ball_share",
+            "subject": "Harbour City",
+            "scope": "first_half"
+          },
+          "tool_call_id": "tc-800caf14c6af",
+          "value": null,
+          "baseline": 0.11857707509881422,
+          "n_events": 253,
+          "values": {},
+          "insufficient_data": null,
+          "error": null
+        },
+        {
+          "tool": "metric",
+          "arguments": {
+            "match_id": "m01",
+            "name": "long_ball_share",
+            "subject": "Northvale",
+            "window": "58:00-68:00"
+          },
+          "tool_call_id": "tc-4a61dfda7099",
+          "value": 0.6060606060606061,
+          "baseline": null,
+          "n_events": 33,
+          "values": {},
+          "insufficient_data": null,
+          "error": null
+        },
+        {
+          "tool": "baseline",
+          "arguments": {
+            "match_id": "m01",
+            "name": "long_ball_share",
+            "subject": "Northvale",
+            "scope": "first_half"
+          },
+          "tool_call_id": "tc-68ba0cae8163",
+          "value": null,
+          "baseline": 0.1111111111111111,
+          "n_events": 234,
+          "values": {},
+          "insufficient_data": null,
+          "error": null
+        },
+        {
+          "tool": "metric",
+          "arguments": {
+            "match_id": "m01",
+            "name": "pressure_rate",
+            "subject": "Northvale",
+            "window": "58:00-68:00"
+          },
+          "tool_call_id": "tc-eb7c8da7bbcb",
+          "value": 0.3617021276595745,
+          "baseline": null,
+          "n_events": 47,
+          "values": {},
+          "insufficient_data": null,
+          "error": null
+        },
+        {
+          "tool": "baseline",
+          "arguments": {
+            "match_id": "m01",
+            "name": "pressure_rate",
+            "subject": "Northvale",
+            "scope": "first_half"
+          },
+          "tool_call_id": "tc-d817e986a16c",
+          "value": null,
+          "baseline": 0.3954802259887006,
+          "n_events": 177,
+          "values": {},
+          "insufficient_data": null,
+          "error": null
+        },
+        {
+          "tool": "metric",
+          "arguments": {
+            "match_id": "m01",
+            "name": "sprint_count",
+            "subject": "Harbour City",
+            "window": "58:00-68:00"
+          },
+          "tool_call_id": "tc-5cf157a44523",
+          "value": 3.4,
+          "baseline": null,
+          "n_events": 34,
+          "values": {},
+          "insufficient_data": null,
+          "error": null
+        },
+        {
+          "tool": "baseline",
+          "arguments": {
+            "match_id": "m01",
+            "name": "sprint_count",
+            "subject": "Harbour City",
+            "scope": "first_half"
+          },
+          "tool_call_id": "tc-b594a2f857c2",
+          "value": null,
+          "baseline": 4.05951115834219,
+          "n_events": 191,
+          "values": {},
+          "insufficient_data": null,
+          "error": null
+        }
+      ],
+      "input_tokens": 5820,
+      "output_tokens": 5301
+    }
   ]
 }

@@ -1,0 +1,38 @@
+import { useState } from 'react';
+import type { CaseFile } from './types/case-file';
+import { Investigation } from './Investigation';
+import { useText } from './ui';
+
+export function sameMoment(file: CaseFile, candidates: CaseFile[]): [CaseFile, CaseFile] | undefined {
+  const matches = candidates.filter(candidate => candidate.case.case_id === file.case.case_id
+    && candidate.case.match_id === file.case.match_id
+    && JSON.stringify(candidate.case.window) === JSON.stringify(file.case.window)
+    && JSON.stringify(candidate.case.detected_at) === JSON.stringify(file.case.detected_at));
+  const a = matches.find(f => f.variant === 'A');
+  const b = matches.find(f => f.variant === 'B');
+  return a && b ? [a, b] : undefined;
+}
+
+export function Comparison({ pair }: { pair: [CaseFile, CaseFile] }) {
+  const { text } = useText();
+  return <div className="investigation-comparison">
+    {pair.map(file => <section className="comparison-take" key={file.variant}>
+      <h2 className="comparison-label">{text(`compare.${file.variant}`)}</h2>
+      <Investigation file={file} />
+    </section>)}
+  </div>;
+}
+
+export function InvestigationCompare({ file, candidates, onScoreboard }: {
+  file: CaseFile; candidates: CaseFile[]; onScoreboard: () => void;
+}) {
+  const { text } = useText();
+  const [compare, setCompare] = useState(false);
+  const pair = sameMoment(file, candidates);
+  return <>
+    {pair && <div className="comparison-toolbar"><label><input type="checkbox" checked={compare} onChange={e => setCompare(e.target.checked)} />{text('compare.toggle')}</label>
+      <p>{text('compare.recorded')}</p><a href="#/analyst" onClick={event => { event.preventDefault(); onScoreboard(); }}>{text('compare.scoreboard')} →</a>
+    </div>}
+    {compare && pair ? <Comparison pair={pair} /> : <Investigation file={file} />}
+  </>;
+}

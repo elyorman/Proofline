@@ -1,6 +1,12 @@
 export type Locale = 'en' | 'es';
 
 const en = {
+  "compare.toggle": "Compare with one agent",
+  "compare.recorded": "Same 63′ moment · one recorded A/B run",
+  "compare.A": "A · Three agents",
+  "compare.B": "B · Single agent",
+  "compare.scoreboard": "Scoreboard",
+
   "ask.title": "Ask Proofline",
   "ask.replayOnly": "Choose a recorded question to jump to its match time. Live answers are unavailable in this replay.",
   "ask.label": "Your question",
@@ -77,7 +83,7 @@ const en = {
   'case.list': 'Published case records', 'case.empty': 'No case has been published at this point in the match.',
   'case.overview': 'Case file', 'case.verification': 'Verification', 'case.history': 'History',
   'case.evaluation': 'Evaluation', 'case.evaluation.empty': 'No evaluation runs connected',
-  'case.evaluation.text': 'Recall, precision and single-agent comparisons will appear here only when recorded evaluation results are available.',
+  'case.evaluation.text': 'Recall and precision will appear here only when recorded evaluation results are available.',
   'case.tools': 'Evidence', 'case.tools.sub': 'Recorded values and references. Raw tool arguments and evidence sets are not attached to the card.',
   'case.value': 'Value', 'case.baseline': 'Baseline', 'case.subject': 'Subject', 'case.window': 'Window',
   'case.agents': 'Specialist roles in this example', 'case.role.tactics': 'Tactics',
@@ -196,6 +202,12 @@ const en = {
 } as const;
 
 const es: Record<keyof typeof en, string> = {
+  "compare.toggle": "Comparar con un agente",
+  "compare.recorded": "Mismo momento del minuto 63 · una ejecución A/B grabada",
+  "compare.A": "A · Tres agentes",
+  "compare.B": "B · Un agente",
+  "compare.scoreboard": "Tabla de resultados",
+
   "ask.title": "Pregunta a Proofline",
   "ask.replayOnly": "Elige una pregunta grabada para ir a su minuto. Las respuestas en vivo no están disponibles en esta repetición.",
   "ask.label": "Tu pregunta",
@@ -272,7 +284,7 @@ const es: Record<keyof typeof en, string> = {
   'case.list': 'Casos publicados', 'case.empty': 'No hay casos publicados en este punto del partido.',
   'case.overview': 'Expediente', 'case.verification': 'Verificación', 'case.history': 'Historial',
   'case.evaluation': 'Evaluación', 'case.evaluation.empty': 'No hay evaluaciones conectadas',
-  'case.evaluation.text': 'La precisión, la cobertura y las comparaciones con un solo agente aparecerán cuando haya evaluaciones registradas.',
+  'case.evaluation.text': 'La precisión y la cobertura aparecerán cuando haya evaluaciones registradas.',
   'case.tools': 'Evidencia', 'case.tools.sub': 'Valores y referencias registrados. La tarjeta no adjunta argumentos de herramientas ni conjuntos de evidencia.',
   'case.value': 'Valor', 'case.baseline': 'Referencia', 'case.subject': 'Sujeto', 'case.window': 'Intervalo',
   'case.agents': 'Roles especialistas de este ejemplo', 'case.role.tactics': 'Táctica',

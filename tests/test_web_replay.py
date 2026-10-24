@@ -12,8 +12,8 @@ from agents.llm import Replay
 from contracts.card import InsightCard
 from contracts.case_file import CaseFile
 from contracts.cue import Cue
-from contracts.question import Answer
 from contracts.event import EventAmendment
+from contracts.question import Answer
 from contracts.tool_result import DependencyEntry
 from engine.io import write_match
 from engine.script import load_script
@@ -124,3 +124,28 @@ def test_export_validates_and_preserves_recorded_answers(tmp_path, replayed):
     invalid.write_text(json.dumps(bad) + "\n")
     with pytest.raises(ValueError, match="match"):
         exporter.export(source, "m01", tmp_path / "bad", [], target, answers_path=invalid)
+
+
+def test_comparison_cases_are_valid_and_preserved_by_export(tmp_path, replayed):
+    source, _ = replayed
+    files = json.loads(LEDGER.read_text())["comparison_case_files"]
+    assert [f["variant"] for f in files] == ["A", "B"]
+    a, b = [CaseFile.model_validate(f) for f in files]
+    assert a.case.case_id == b.case.case_id == "case-m01-063-pressure_shift"
+    assert a.case.window == b.case.window
+    assert a.case.detected_at == b.case.detected_at
+    assert a.agents == ["tactics", "physical", "game_state"]
+    assert b.agents == ["single"]
+    paths = []
+    for f in files:
+        path = tmp_path / f"case-{f['variant']}.json"
+        path.write_text(json.dumps(f))
+        paths.append(path)
+    target = tmp_path / "web.json"
+    exporter.export(source, "m01", tmp_path / "public", [], target, case_paths=paths)
+    assert json.loads(target.read_text())["comparison_case_files"] == files
+    invalid = copy.deepcopy(files[0])
+    invalid["case"]["match_id"] = "other-match"
+    paths[0].write_text(json.dumps(invalid))
+    with pytest.raises(ValueError, match="match"):
+        exporter.export(source, "m01", tmp_path / "bad", [], target, case_paths=paths)

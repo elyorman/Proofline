@@ -66,6 +66,7 @@ def export(
     ledger_path: Path = WEB / "src/fixtures/ledger.json",
     studio_path: Path | None = None,
     answers_path: Path | None = None,
+    case_paths: list[Path] | None = None,
 ) -> None:
     raw = json.loads((source_dir / "meta.json").read_text(encoding="utf-8"))
     meta = MatchMeta.model_validate(dict(match_id=raw["match_id"], teams=raw["teams"]))
@@ -117,6 +118,13 @@ def export(
     if len({(a["question"]["question_id"], a["variant"]) for a in answers}) != len(answers):
         raise ValueError("duplicate recorded answer")
     ledger["answers"] = answers
+    comparisons = [json.loads(path.read_text(encoding="utf-8")) for path in case_paths or []]
+    for item in comparisons:
+        if CaseFile.model_validate(item).case.match_id != match_id:
+            raise ValueError("comparison case belongs to a different match")
+    if len({(f["case"]["case_id"], f["variant"]) for f in comparisons}) != len(comparisons):
+        raise ValueError("duplicate comparison case")
+    ledger["comparison_case_files"] = comparisons
     keys = [(c["id"], c.get("revision", 1)) for c in ledger["cards"]]
     if len(keys) != len(set(keys)):
         raise ValueError("duplicate card id and revision")
@@ -143,8 +151,16 @@ if __name__ == "__main__":
     parser.add_argument("--cards", type=Path, nargs="+", default=[])
     parser.add_argument("--studio-ledger", type=Path)
     parser.add_argument("--answers", type=Path)
+    parser.add_argument("--case-files", type=Path, nargs="+", default=[])
     parser.add_argument("--ledger", type=Path, default=WEB / "src/fixtures/ledger.json")
     args = parser.parse_args()
     export(
-        args.source, args.match, args.out, args.cards, args.ledger, args.studio_ledger, args.answers
+        args.source,
+        args.match,
+        args.out,
+        args.cards,
+        args.ledger,
+        args.studio_ledger,
+        args.answers,
+        args.case_files,
     )

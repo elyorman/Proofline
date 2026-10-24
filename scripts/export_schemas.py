@@ -20,7 +20,7 @@ from contracts import (
 from contracts.case_file import CaseFile
 from contracts.eval_run import SeededRun
 from contracts.prediction import Hypothesis
-from contracts.question import Answer, Question
+from contracts.question import Answer, PlainAnswer, Question
 
 DOCS = Path(__file__).resolve().parents[1] / "docs"
 SCHEMAS = {
@@ -40,6 +40,7 @@ SCHEMAS = {
     "seeded-run": SeededRun,
     "question": Question,
     "answer": Answer,
+    "plain-answer": PlainAnswer,
 }
 
 

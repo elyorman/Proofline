@@ -43,6 +43,14 @@ class Model(Protocol):
     ) -> tuple[T, Usage]: ...
 
 
+class ToolModel(Model, Protocol):
+    """A model that may call tools before it answers: only the plain baseline asks this."""
+
+    async def ask_with_tools(
+        self, role: str, instructions: str, prompt: str, schema: type[T], tools: list
+    ) -> tuple[T, Usage]: ...
+
+
 class MissingFixture(LookupError):
     pass
 
@@ -92,9 +100,7 @@ class FoundryModel:
             os.environ["AZURE_FOUNDRY_PROJECT_ENDPOINT"], os.environ["AZURE_OPENAI_DEPLOYMENT"]
         )
 
-    async def ask(
-        self, role: str, instructions: str, prompt: str, schema: type[T]
-    ) -> tuple[T, Usage]:
+    def _connect(self) -> FoundryChatClient:
         if self._client is None:
             credential = DefaultAzureCredential(
                 managed_identity_client_id=os.getenv("AZURE_CLIENT_ID")
@@ -102,6 +108,22 @@ class FoundryModel:
             self._client = FoundryChatClient(
                 project_endpoint=self.project_endpoint, model=self.deployment, credential=credential
             )
+        return self._client
+
+    async def ask_with_tools(
+        self, role: str, instructions: str, prompt: str, schema: type[T], tools: list
+    ) -> tuple[T, Usage]:
+        """One reply after whatever tool calls the model chooses (the plain baseline)."""
+        agent = Agent(self._connect(), instructions=instructions, name=role, tools=tools)
+        response = await _run(agent, prompt, {"response_format": schema}, schema)
+        value = response.value if response.value is not None else response.text
+        answer = value if isinstance(value, schema) else schema.model_validate_json(str(value))
+        return answer, _usage(response)
+
+    async def ask(
+        self, role: str, instructions: str, prompt: str, schema: type[T]
+    ) -> tuple[T, Usage]:
+        self._connect()
         if self.structured:
             agent = Agent(self._client, instructions=instructions, name=role)
             response = await _run(agent, prompt, {"response_format": schema}, schema)
@@ -157,6 +179,18 @@ class Recording:
         path.write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
         return answer, usage
 
+    async def ask_with_tools(
+        self, role: str, instructions: str, prompt: str, schema: type[T], tools: list
+    ) -> tuple[T, Usage]:
+        """Recorded like `ask`: the final answer only; replay does not repeat the tool calls."""
+        model = self.model
+
+        class Bound:
+            async def ask(self, role, instructions, prompt, schema):
+                return await model.ask_with_tools(role, instructions, prompt, schema, tools)
+
+        return await Recording(Bound(), self.folder).ask(role, instructions, prompt, schema)
+
 
 @dataclass
 class Replay:
@@ -175,3 +209,8 @@ class Replay:
         if "error" in record:
             raise ValueError(record["error"])
         return schema.model_validate(record["answer"]), Usage(**record["usage"])
+
+    async def ask_with_tools(
+        self, role: str, instructions: str, prompt: str, schema: type[T], tools: list
+    ) -> tuple[T, Usage]:
+        return await self.ask(role, instructions, prompt, schema)  # the recorded answer

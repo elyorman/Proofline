@@ -22,7 +22,7 @@ from pathlib import Path
 from contracts.clock import MatchClock
 from contracts.meta import MatchMeta
 from contracts.prediction import Direction
-from contracts.question import Answer, Question
+from contracts.question import Answer, PlainAnswer, Question
 from contracts.taxonomy import Cause, Metric
 from engine.io import match_meta
 from engine.script import load_script
@@ -146,17 +146,30 @@ def _meta(suite: str, split: str, match_id: str) -> MatchMeta:
     return match_meta(MatchSim(script))
 
 
-def score(answers: list[Answer], key: list[Key]) -> dict:
+def claim(answer: Answer | PlainAnswer) -> tuple[bool, Cause | None, str | None]:
+    """(whether the answer publishes a cause, the cause, its team). Proofline publishes one
+    on a verified card; the plain agent whenever it says the change happens and names one."""
+    if isinstance(answer, PlainAnswer):
+        return answer.claims, answer.cause, answer.team
+    card = answer.card
+    return (True, card.primary_cause.cause, card.subject.team) if card else (False, None, None)
+
+
+def outcome(answer: Answer | PlainAnswer) -> str:
+    if isinstance(answer, PlainAnswer):
+        return "claimed" if answer.claims else "no claim"
+    return answer.outcome
+
+
+def score(answers: list[Answer | PlainAnswer], key: list[Key]) -> dict:
     """Right answers on true premises; no claim on false ones; and every false claim."""
     by_id = {a.question.question_id: a for a in answers}
     rows = []
     for k in key:
         a = by_id.get(k.question.question_id)
-        claimed = a is not None and a.card is not None
+        claimed, cause, team = claim(a) if a is not None else (False, None, None)
         if k.premise_true:
-            right = (
-                claimed and a.card.primary_cause.cause == k.cause and a.card.subject.team == k.team
-            )
+            right = claimed and cause == k.cause and team == k.team
         else:
             right = a is not None and not claimed
         rows.append(
@@ -164,7 +177,7 @@ def score(answers: list[Answer], key: list[Key]) -> dict:
                 "question_id": k.question.question_id,
                 "match_id": k.question.match_id,
                 "premise_true": k.premise_true,
-                "outcome": a.outcome if a else "missing",
+                "outcome": outcome(a) if a else "missing",
                 "right": right,
                 "claimed": claimed,
                 "false_claim": claimed and not right,
@@ -192,7 +205,7 @@ def main(argv: list[str] | None = None) -> int:
     scored = sub.add_parser("score")
     scored.add_argument("--runs", type=Path, required=True)
     scored.add_argument("--split", choices=["dev", "heldout"], required=True)
-    scored.add_argument("--variant", choices=["A", "B"], required=True)
+    scored.add_argument("--variant", choices=["A", "B", "P"], required=True)
     args = parser.parse_args(argv)
     key = keys(args.split)
     if args.command == "make":
@@ -201,7 +214,8 @@ def main(argv: list[str] | None = None) -> int:
         print(f"{len(key)} questions written to {args.out}")
         return 0
     lines = (args.runs / args.variant / "answers.jsonl").read_text().splitlines()
-    answers = [Answer.model_validate_json(x) for x in lines if '"error"' not in x[:400]]
+    model = PlainAnswer if args.variant == "P" else Answer
+    answers = [model.model_validate_json(x) for x in lines if '"error"' not in x[:400]]
     result = score(answers, key)
     print(json.dumps({k: v for k, v in result.items() if k != "rows"}, indent=1))
     for r in result["rows"]:

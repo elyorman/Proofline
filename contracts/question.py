@@ -16,7 +16,7 @@ from contracts.case_file import Persistence
 from contracts.clock import MatchClock, Window
 from contracts.eval_run import Variant
 from contracts.prediction import Direction
-from contracts.taxonomy import Metric
+from contracts.taxonomy import Cause, Metric
 
 MIN_PREMISE_MINUTES = 5  # the shortest stretch of play a premise is measured over
 
@@ -95,3 +95,25 @@ class Answer(BaseModel):
         if set(self.text) != {"en", "es"}:
             raise ValueError("an answer is written in English and Spanish")
         return self
+
+
+class PlainAnswer(BaseModel):
+    """What a plain tool-using agent answered (the baseline of spec §11.2): one model with the
+    State Builder's tools and the case budget, answering directly, with none of Proofline's
+    checks. Measured only; never shown to a viewer."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    question: Question
+    happening: bool = Field(description="whether it says what the question assumes is happening")
+    cause: Cause | None = Field(default=None, description="the cause it names, if any")
+    team: str | None = None
+    text: str = Field(description="its answer to the viewer, as it wrote it")
+    tool_calls: int = Field(ge=0)
+    input_tokens: int = Field(default=0, ge=0)
+    output_tokens: int = Field(default=0, ge=0)
+
+    @property
+    def claims(self) -> bool:
+        """It publishes a cause: it says the change is happening and names a class for it."""
+        return self.happening and self.cause is not None and self.cause.domain != "fallback"

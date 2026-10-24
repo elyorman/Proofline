@@ -76,7 +76,9 @@ def main(argv: list[str] | None = None) -> int:
     asked = sub.add_parser("questions", help="answer every question in a questions file")
     asked.add_argument("--data", type=Path, required=True, help="folder of match feeds")
     asked.add_argument("--questions", type=Path, required=True, help="questions.jsonl")
-    asked.add_argument("--variant", choices=["A", "B"], required=True)
+    asked.add_argument(
+        "--variant", choices=["A", "B", "P"], required=True, help="P: the plain agent baseline"
+    )
     asked.add_argument("--out", type=Path, required=True, help="answers go to <out>/<variant>/")
     asked.add_argument("--concurrency", type=int, default=2)
     asked.add_argument("--record", type=Path, help="save every model exchange here")
@@ -135,7 +137,7 @@ def main(argv: list[str] | None = None) -> int:
             answer_all(
                 args.data,
                 args.questions,
-                Variant(args.variant),
+                args.variant if args.variant == "P" else Variant(args.variant),
                 args.out,
                 agents,
                 verifier,

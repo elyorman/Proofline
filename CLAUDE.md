@@ -59,7 +59,7 @@ uv run proofline run --mode studio --match m01 --replay tests/fixtures/studio/m0
 uv run proofline batch --data data/dev --variant A --out runs/dev   # every detected case of a split through one variant (resumable)
 uv run proofline ask --match m01 --at 68:00 --question "Why are Northvale going long so much?" --variant A   # one viewer question: the Lead's premise, tested, then investigated
 uv run python -m eval.questions make --split dev --out runs/q1/questions.jsonl   # the question suite from the sealed truth (questions only)
-uv run proofline questions --data data/dev --questions runs/q1/questions.jsonl --variant A --out runs/q1   # answer them (resumable)
+uv run proofline questions --data data/dev --questions runs/q1/questions.jsonl --variant A --out runs/q1   # answer them (resumable); --variant P is the plain tool-using agent baseline
 uv run python -m eval.questions score --runs runs/q1 --split dev --variant A   # right answers, false premises rejected, false claims
 uv run proofline-engine season   # rebuild state/season_baselines.json, the normal variation every test reads against
 uv run python -m eval --runs runs/dev --split dev --variant A       # score a batch against the sealed truth; --compare A B for the paired difference

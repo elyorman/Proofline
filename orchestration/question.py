@@ -12,6 +12,7 @@ from agents import lead, narrator, single
 from agents.confirm import PREMISE_SD, both_teams, explained, measure
 from agents.investigation import Tools
 from agents.llm import Model, Usage
+from agents.plain import answer as plain_answer
 from agents.propose import propose
 from agents.verifier.checks import Record
 from agents.verifier.verify import verify
@@ -24,6 +25,7 @@ from state.tools import Feed
 from tools_server.server import DirectorySource, FeedSource, MemorySink, build_server
 
 BUDGET = 16  # the tool calls a question may spend, as a detected case may
+PLAIN = "P"  # the plain tool-using agent the questions are also put to (agents/plain.py)
 MOMENT = {  # which kind of moment a question about each metric is
     Metric.PRESSURE_RATE: MomentType.PRESSURE_SHIFT,
     Metric.LONG_BALL_SHARE: MomentType.PRESSURE_SHIFT,
@@ -111,7 +113,7 @@ async def run_question(
 async def answer_all(
     data: Path,
     questions: Path,
-    variant: Variant,
+    variant: Variant | str,
     out: Path,
     agents: Model,
     verifier: Model,
@@ -121,7 +123,8 @@ async def answer_all(
     question already answered there is not asked again. The file holds no answers: whoever
     wrote it keeps them."""
     source = DirectorySource(data)
-    target = Path(out) / variant.value / "answers.jsonl"
+    plain = variant == PLAIN
+    target = Path(out) / str(getattr(variant, "value", variant)) / "answers.jsonl"
     target.parent.mkdir(parents=True, exist_ok=True)
     done = {
         json.loads(line)["question"]["question_id"]
@@ -138,14 +141,22 @@ async def answer_all(
     async def one(q: Question) -> None:
         async with gate:
             try:
-                answer = await run_question(variant, agents, verifier, q, source.feed(q.match_id))
+                feed = source.feed(q.match_id)
+                answer = (
+                    await plain_answer(agents, q, feed)
+                    if plain
+                    else await run_question(variant, agents, verifier, q, feed)
+                )
                 line = answer.model_dump_json()
             except Exception as exc:  # one failed question is recorded, not the end of the run
                 line = json.dumps({"question": q.model_dump(mode="json"), "error": repr(exc)})
             async with lock:
                 with target.open("a", encoding="utf-8") as f:
                     f.write(line + "\n")
-            print(f"{q.question_id} {variant.value}: {json.loads(line).get('outcome', 'error')}")
+            got = json.loads(line)
+            print(
+                f"{q.question_id} {target.parent.name}: {got.get('outcome', got.get('happening'))}"
+            )
 
     await asyncio.gather(*(one(q) for q in asked if q.question_id not in done))
     return target

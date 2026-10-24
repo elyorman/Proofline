@@ -1,0 +1,163 @@
+{
+  "$defs": {
+    "Cause": {
+      "enum": [
+        "tactical.press_intensity_up",
+        "tactical.press_intensity_down",
+        "tactical.block_deeper",
+        "tactical.block_higher",
+        "tactical.formation_change",
+        "tactical.flank_overload",
+        "physical.unit_fatigue",
+        "physical.player_fatigue",
+        "physical.fresh_legs_substitution",
+        "game_state.protecting_lead",
+        "game_state.chasing_result",
+        "game_state.numerical_change",
+        "other",
+        "none"
+      ],
+      "title": "Cause",
+      "type": "string"
+    },
+    "MatchClock": {
+      "description": "Period plus elapsed minute and second within that period's own numbering.\n\n`minute` is the on-screen minute: 0-45+ in the first half, 45-90+ in the second.",
+      "properties": {
+        "period": {
+          "enum": [
+            1,
+            2
+          ],
+          "title": "Period",
+          "type": "integer"
+        },
+        "minute": {
+          "maximum": 130,
+          "minimum": 0,
+          "title": "Minute",
+          "type": "integer"
+        },
+        "second": {
+          "maximum": 59,
+          "minimum": 0,
+          "title": "Second",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "period",
+        "minute",
+        "second"
+      ],
+      "title": "MatchClock",
+      "type": "object"
+    },
+    "Question": {
+      "additionalProperties": false,
+      "properties": {
+        "question_id": {
+          "minLength": 1,
+          "title": "Question Id",
+          "type": "string"
+        },
+        "match_id": {
+          "title": "Match Id",
+          "type": "string"
+        },
+        "asked_at": {
+          "$ref": "#/$defs/MatchClock",
+          "description": "the moment the viewer asks, in the second half"
+        },
+        "text": {
+          "maxLength": 300,
+          "minLength": 3,
+          "title": "Text",
+          "type": "string"
+        },
+        "locale": {
+          "default": "en",
+          "enum": [
+            "en",
+            "es"
+          ],
+          "title": "Locale",
+          "type": "string"
+        }
+      },
+      "required": [
+        "question_id",
+        "match_id",
+        "asked_at",
+        "text"
+      ],
+      "title": "Question",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "What a plain tool-using agent answered (the baseline of spec \u00a711.2): one model with the\nState Builder's tools and the case budget, answering directly, with none of Proofline's\nchecks. Measured only; never shown to a viewer.",
+  "properties": {
+    "question": {
+      "$ref": "#/$defs/Question"
+    },
+    "happening": {
+      "description": "whether it says what the question assumes is happening",
+      "title": "Happening",
+      "type": "boolean"
+    },
+    "cause": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Cause"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "the cause it names, if any"
+    },
+    "team": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Team"
+    },
+    "text": {
+      "description": "its answer to the viewer, as it wrote it",
+      "title": "Text",
+      "type": "string"
+    },
+    "tool_calls": {
+      "minimum": 0,
+      "title": "Tool Calls",
+      "type": "integer"
+    },
+    "input_tokens": {
+      "default": 0,
+      "minimum": 0,
+      "title": "Input Tokens",
+      "type": "integer"
+    },
+    "output_tokens": {
+      "default": 0,
+      "minimum": 0,
+      "title": "Output Tokens",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "question",
+    "happening",
+    "text",
+    "tool_calls"
+  ],
+  "title": "PlainAnswer",
+  "type": "object"
+}

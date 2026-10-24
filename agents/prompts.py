@@ -111,6 +111,18 @@ def match(meta: MatchMeta) -> dict:
     }
 
 
+def roster(meta: MatchMeta) -> dict:
+    """The teams with each player's name, for whoever reads a viewer's words: a viewer asks
+    about a player by name."""
+    return {
+        side: {
+            "team": team.name,
+            "players": [f"{p.player_id} {p.name}, {p.role} ({p.unit})" for p in team.players],
+        }
+        for side, team in meta.teams.items()
+    }
+
+
 def case_prompt(case: Case, meta: MatchMeta, score: dict[str, float]) -> str:
     moment = {
         "moment": case.moment_type.value,

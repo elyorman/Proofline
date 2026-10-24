@@ -12,12 +12,12 @@ from agents.llm import Usage
 from agents.outputs import Framing, Proposal, Ranking, Registration
 from agents.verifier.semantic import SemanticReport, SentenceCheck
 from contracts.eval_run import Variant
-from contracts.question import Answer, Premise, Question
+from contracts.question import Answer, PlainAnswer, Premise, Question
 from contracts.taxonomy import AgentRole, Cause
 from engine.io import match_meta
 from engine.script import load_script
 from engine.sim import MatchSim
-from eval.questions import keys, score
+from eval.questions import claim, keys, score
 from orchestration.question import run_question
 from state.tools import Feed
 
@@ -136,3 +136,74 @@ def test_the_suite_scores_right_causes_and_counts_every_false_claim(m01):
     assert score([], suite)["missing"] == 32
     result = score([], suite)
     assert result["answered_right"] == "0/12" and result["false_claims"] == 0
+
+
+class ToolUser:
+    """A scripted tool-using model: calls the tools it is given, then answers."""
+
+    def __init__(self, calls, reply):
+        self.calls, self.reply, self.seen = calls, reply, []
+
+    async def ask_with_tools(self, role, instructions, prompt, schema, tools):
+        by_name = {t.__name__: t for t in tools}
+        for name, kwargs in self.calls:
+            self.seen.append(await by_name[name](**kwargs))
+        return self.reply, Usage(3, 2)
+
+
+def test_the_plain_agent_answers_with_the_tools_it_chose_and_nothing_checks_it(m01):
+    from agents.plain import Reply
+    from agents.plain import answer as plain
+
+    press = dict(name="pressure_rate", subject="Harbour City")
+    model = ToolUser(
+        [
+            ("baseline", press | {"scope": "first_half"}),
+            ("metric", press | {"window": "58:00-68:00"}),
+            ("metric", press | {"window": "70:00-80:00"}),  # after the question: refused
+        ],
+        Reply(happening=True, cause="game_state.chasing_result", team="Harbour City", answer="x"),
+    )
+    question = _question("Why are Harbour City tiring since 58?")  # nothing checks the premise
+    got = asyncio.run(plain(model, question, m01))
+    assert '"value":0.32' in model.seen[0] and '"value":0.77' in model.seen[1]
+    assert model.seen[2].startswith("error:") and "has not finished" in model.seen[2]
+    assert got.claims and got.cause == Cause.CHASING_RESULT and got.tool_calls == 3
+    assert PlainAnswer.model_validate_json(got.model_dump_json()) == got
+
+
+def test_a_plain_claim_on_a_false_premise_counts_as_a_false_claim():
+    suite = keys("dev")
+    false = next(k for k in suite if not k.premise_true)
+    claims = PlainAnswer(
+        question=false.question,
+        happening=True,
+        cause="physical.unit_fatigue",
+        team="Northvale",
+        text="They are tiring.",
+        tool_calls=4,
+    )
+    row = next(
+        r for r in score([claims], suite)["rows"] if r["question_id"] == claims.question.question_id
+    )
+    assert row["claimed"] and row["false_claim"] and not row["right"]
+    declines = claims.model_copy(update={"happening": False, "cause": None, "team": None})
+    assert not claim(declines)[0]
+
+
+def test_a_tool_using_answer_is_recorded_and_replayed_without_its_tool_calls(tmp_path):
+    from agents.llm import Recording, Replay
+    from agents.plain import Reply
+
+    reply = Reply(happening=False, cause=None, team=None, answer="Not really.")
+    recorded = Recording(ToolUser([], reply), tmp_path)
+    assert asyncio.run(recorded.ask_with_tools("plain", "i", "p", Reply, []))[0] == reply
+    assert asyncio.run(Replay(tmp_path).ask_with_tools("plain", "i", "p", Reply, []))[0] == reply
+
+
+def test_whoever_reads_a_viewers_words_sees_the_players_names(m01):
+    from agents import prompts
+
+    players = prompts.roster(m01.meta)["home"]["players"]
+    first = m01.meta.teams["home"].players[0]
+    assert players[0].startswith(f"{first.player_id} {first.name}, ")

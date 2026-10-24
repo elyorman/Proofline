@@ -45,7 +45,7 @@ async def frame(
             {
                 "question": question.text,
                 "asked_at": str(question.asked_at),
-                "match": prompts.match(meta),
+                "match": prompts.roster(meta),
             },
             indent=1,
         ),

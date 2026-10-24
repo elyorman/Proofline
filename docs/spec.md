@@ -529,6 +529,7 @@ If the revise path slips, ship withdraw-only with full propagation; never ship p
 | A. Proofline | Full design |
 | B. Single agent | One agent (role `single`, may register causes in any domain) with every tool and the same total budget. It cross-examines its own survivors with the same counter-tests, scored by the same code, so A's difference is independence: there the challenger has no stake in the cause it tests |
 | C. No cross-examination | Parallel agents, straight to synthesis (stretch) |
+| P. Plain agent | Question suite only: one model with the State Builder's tools over MCP and the same budget, asked the viewer's question directly, with none of Proofline's design (no premise check, no normal variation, no pre-registration, no cross-examination, no Verifier). It is what a single tool-using agent gives a viewer, so A and B against P measure the design, and A against B measures the extra agents (`agents/plain.py`) |
 
 Same suites, same tools, same Verifier. B is built first in the dependency order and reported with CIs whichever way it falls. If B matches A on the planted suite, the confounded suite may be added with causes that require a second domain's counter-test, but **every suite run is reported, including those where B matched A**; no suite is dropped from the scoreboard because of its result. If no gap appears anywhere, the category case rests on cross-examination traces, corrections and recovery, and the README says the gap was not found.
 

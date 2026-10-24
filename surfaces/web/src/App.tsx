@@ -3,7 +3,7 @@ import { Analyst } from './Analyst';
 import { Broadcast } from './Broadcast';
 import { Overlay } from './Overlay';
 import { loadReplay, type ReplayData } from './data';
-import { cards, cues, profile, amendments } from './fixtures';
+import { cards, cues, profile, amendments, caseFiles } from './fixtures';
 import type { Locale } from './i18n';
 import { Insights } from './Insights';
 import { Activity, EventFeed, Pitch } from './Pitch';
@@ -127,7 +127,7 @@ function Workspace({ locale, setLocale }: { locale: Locale; setLocale: (locale: 
             <EventFeed events={delivered} data={data} />
           </div><Insights cards={currentCards} onOpen={openCase} mode={mode} full={full} /></div>
         </ViewBoundary>}
-        {route === 'analyst' && <ViewBoundary key={`analyst:${locale}`}><Analyst cards={currentCards} allRevisions={publishedRevisions} selected={selected} onSelect={setSelected} amendments={amendments} /></ViewBoundary>}
+        {route === 'analyst' && <ViewBoundary key={`analyst:${locale}`}><Analyst cards={currentCards} allRevisions={publishedRevisions} selected={selected} onSelect={setSelected} amendments={amendments} files={caseFiles.filter(f => elapsedAt(f.case.window.end, firstHalf) <= elapsed)} /></ViewBoundary>}
         {route === 'broadcast' && <ViewBoundary key={`broadcast:${locale}`}><Broadcast data={data} elapsed={elapsed} cues={cues} cards={cards} decisions={decisions} onDecide={decision => setDecisions(previous => [...previous, decision])} onReset={() => setDecisions([])} /></ViewBoundary>}
         {route === 'overlay' && <ViewBoundary key={`overlay:${locale}`}><Overlay data={data} elapsed={elapsed} cards={cards} cues={cues} decisions={decisions} /></ViewBoundary>}
         <footer className="workspace-footer"><span>{text('brand.name')}</span><p>{text('nav.about')}</p><span>{data.matchId} · {text('fixture')}</span></footer>

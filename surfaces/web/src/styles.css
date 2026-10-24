@@ -176,3 +176,37 @@ th small { display: block; color: var(--muted); font-weight: 400; }
 .cue-field-preview { margin-top: 12px; font-size: 11px; }
 .cue-field-preview .cue-graphic { padding: 12px; background: #eef3e5; margin-top: 10px; }
 .cue-field-preview .cue-graphic h2 { font-size: 18px; }
+.investigation-heading h2 { font: 400 23px/1.5 Georgia, serif; overflow-wrap: anywhere; margin: 10px 0; }
+.investigation-heading p, .recorded-reason { font-size: 12px; line-height: 1.8; overflow-wrap: anywhere; }
+.investigation-view > .section-heading { padding: 25px 0 14px; }
+.persistence { background: #f1f5e9; border-left: 3px solid #789d63; padding: 15px; margin-bottom: 12px; font-size: 12px; line-height: 1.8; }
+.persistence.faded { border-left-color: #b59e79; background: #f7f1e9; }
+.persistence code, .code-verdict code, .cross-exam > code { display: block; margin-top: 12px; }
+.both-teams { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 14px; }
+.both-teams section { min-width: 0; }
+.both-teams h3 { font-size: 14px; margin: 10px 0; }
+.both-teams th, .both-teams td { padding: 8px 4px; font-size: 10px; }
+.specialist-columns { display: grid; grid-template-columns: repeat(auto-fit,minmax(190px,1fr)); gap: 13px; }
+.specialist { background: #f7f9f2; border: 1px solid var(--line); border-radius: 6px; padding: 13px; min-width: 0; }
+.specialist > h3 { font: 400 22px Georgia,serif; padding-bottom: 15px; border-bottom: 2px solid #91b98a; }
+.specialist.agent-physical > h3 { border-color: #d3ad91; }.specialist.agent-game_state > h3 { border-color: #88a7b8; }
+.hypothesis-card, .refused-proposal { padding: 15px 0; border-bottom: 1px solid var(--line); overflow-wrap: anywhere; font-size: 11px; line-height: 1.8; }
+.hypothesis-card h4, .refused-proposal h4 { margin: 10px 0; font-size: 12px; }
+.prediction.card-facts { grid-template-columns: minmax(0,1fr); margin: 12px 0; }
+.prediction.card-facts dt { font-size: 9px; }.prediction.card-facts dd { font-size: 11px; }
+.code-verdict { background: #eaf1df; padding: 10px; border-radius: 4px; }.code-verdict.failed { background: #f3e9de; }
+.tool-measurement { display: flex; flex-wrap: wrap; gap: 5px 10px; font-size: 10px; margin: 10px 0; }
+.cross-examinations { display: grid; gap: 15px; }
+.cross-exam { border: 1px solid var(--line); border-left: 4px solid #a4b87f; border-radius: 5px; padding: 17px; font-size: 12px; line-height: 1.8; overflow-wrap: anywhere; }
+.cross-exam.weakened { border-left-color: #ceaa7d; }.cross-exam.refuted { border-left-color: #b37a65; }
+.challenge-edge { display: grid; grid-template-columns: 1fr 30px 1.4fr; align-items: center; gap: 9px; background: #f3f6eb; padding: 10px; margin-bottom: 12px; }
+.challenge-edge > span { font-size: 22px; text-align: center; }.challenge-edge button { text-align: left; padding: 5px; overflow-wrap: anywhere; }.challenge-edge code { display: block; font-size: 9px; }
+.exam-result { display: block; margin: 10px 0; }
+.checkpoints { margin: 18px 0; border-left: 2px solid #d2dfc3; padding-left: 18px; }
+.checkpoints li { padding: 10px 0; font-size: 11px; line-height: 1.8; }
+.tool-log { margin-top: 25px; border-top: 1px solid var(--line); padding-top: 18px; font-size: 12px; }
+.tool-log summary, details > summary { cursor: pointer; }
+.tool-log article { margin: 15px 0; border: 1px solid var(--line); border-radius: 5px; padding: 15px; }
+pre { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 10px; line-height: 1.8; }
+.tabs { flex-wrap: wrap; gap: 14px; }
+@media (max-width: 730px) { .both-teams { grid-template-columns: minmax(0,1fr); }.specialist-columns { grid-template-columns: minmax(0,1fr); }.challenge-edge { grid-template-columns: 1fr 20px 1.3fr; gap: 5px; font-size: 10px; }.case-body { padding: 16px; } }

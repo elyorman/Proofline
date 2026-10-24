@@ -4,6 +4,8 @@ import { Evidence, useCardText } from './Insights';
 import { displayTime, formatClock } from './replay';
 import { isStandInCard } from './fixtures';
 import { Empty, Icon, SectionTitle, useText } from './ui';
+import { Investigation } from './Investigation';
+import type { CaseFile } from './types/case-file';
 import { RevisionDiff } from './RevisionDiff';
 import type { EventAmendment } from './types/event-amendment';
 
@@ -106,16 +108,20 @@ export function VerificationPanel({ card }: { card: InsightCard }) {
   </>;
 }
 
-export function Analyst({ cards, allRevisions, selected, onSelect, amendments = [] }: {
-  cards: InsightCard[]; allRevisions: InsightCard[]; selected: string; onSelect: (id: string) => void; amendments?: EventAmendment[];
+export function Analyst({ cards, allRevisions, selected, onSelect, amendments = [], files = [] }: {
+  cards: InsightCard[]; allRevisions: InsightCard[]; selected: string; onSelect: (id: string) => void; amendments?: EventAmendment[]; files?: CaseFile[];
 }) {
   const { text } = useText();
   const cardText = useCardText();
-  const [tab, setTab] = useState('overview');
-  const card = cards.find(c => c.id === selected) ?? cards[0];
-  const tabs = ['overview', 'verification', 'history', 'evaluation'];
+  const [tab, setTab] = useState('investigation');
+  const file = files.find(f => f.case.case_id === selected || f.case.card_id === selected)
+    ?? (!cards.some(c => c.id === selected) ? files.at(-1) : undefined);
+  const card = file ? allRevisions.filter(c => c.case_id === file.case.case_id).at(-1)
+    : cards.find(c => c.id === selected) ?? (!files.length ? cards[0] : undefined);
+  const tabs = ['investigation', 'overview', 'verification', 'history', 'evaluation'];
   return <div className="analyst-layout"><aside className="panel case-list"><SectionTitle title={text('case.list')} />
-    {cards.length ? cards.map(c => <button key={c.id} className={`case-row ${c.id === card?.id ? 'selected' : ''}`} onClick={() => onSelect(c.id)} aria-pressed={c.id === card?.id}>
+    {files.slice().reverse().map(f => <button className={`case-row ${f === file ? 'selected' : ''}`} key={`${f.case.case_id}-${f.variant}`} onClick={() => onSelect(f.case.case_id)} aria-pressed={f === file}><span className="case-time">{formatClock(f.case.window.end)}</span><strong>{f.case.triggers[0].subject}</strong><span>{f.case.case_id}</span><small className="status">{text(`outcome.${f.ranking.outcome}`)}</small></button>)}
+    {cards.length ? cards.filter(c => !files.some(f => f.case.case_id === c.case_id)).map(c => <button key={c.id} className={`case-row ${c.id === card?.id ? 'selected' : ''}`} onClick={() => onSelect(c.id)} aria-pressed={c.id === card?.id}>
       <span className="case-time">{formatClock(displayTime(c))}</span><strong>{c.subject.team}</strong><span>{cardText(c)}</span><small className={`status ${c.status === 'withdrawn' ? 'warn' : ''}`}>{text(`status.${c.status}`)}</small>
     </button>) : <p className="muted padded">{text('case.empty')}</p>}
     <div className="live-box"><button disabled className="button"><Icon name="play" size={14} />{text('live')}</button><p>{text('live.unavailable')}</p></div>
@@ -128,7 +134,7 @@ export function Analyst({ cards, allRevisions, selected, onSelect, amendments = 
       }
     }}>{text(`case.${name}`)}</button>)}</div>
     <div className="case-body" id={`panel-${tab}`} role="tabpanel" aria-labelledby={`tab-${tab}`} tabIndex={0}>
-      {tab === 'evaluation' ? <Empty title={text('case.evaluation.empty')} body={text('case.evaluation.text')} /> : !card ? <Empty title={text('case.empty')} /> : <>
+      {tab === 'evaluation' ? <Empty title={text('case.evaluation.empty')} body={text('case.evaluation.text')} /> : tab === 'investigation' ? (file ? <Investigation file={file} /> : <Empty title={text('inv.noFile')} />) : !card ? <Empty title={text('case.empty')} /> : <>
         <div className="case-heading"><span className="eyebrow">{text(isStandInCard(card) ? 'fixture.short' : 'record.backend')} · {text('insights.revision', { number: card.revision ?? 1 })}</span>
           <h2>{cardText(card, 'analyst') ?? text('insights.noVariant')}</h2><code>{card.case_id}</code>
           <p className="case-outcome">{text('case.outcome')}: {text(`outcome.${card.case_outcome}`)}</p>

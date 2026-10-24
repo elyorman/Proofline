@@ -1,10 +1,15 @@
 """Names of the checks that actually rejected a control or seeded card."""
 
 from contracts.card import CheckResult, Verification
+from contracts.eval_run import verification_no_answer
 
 
 def failed_checks(verification: Verification | None) -> list[str]:
-    if verification is None or verification.status != "rejected":
+    if (
+        verification is None
+        or verification.status != "rejected"
+        or verification_no_answer(verification)
+    ):
         return []
     failed = ["recompute"] if verification.recompute == "mismatch" else []
     failed += [

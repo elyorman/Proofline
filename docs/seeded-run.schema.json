@@ -107,6 +107,11 @@
         "control": {
           "$ref": "#/$defs/Verification"
         },
+        "control_no_answer": {
+          "default": false,
+          "title": "Control No Answer",
+          "type": "boolean"
+        },
         "trials": {
           "items": {
             "$ref": "#/$defs/SeedTrial"
@@ -212,6 +217,11 @@
           ],
           "default": null,
           "title": "Caught"
+        },
+        "no_answer": {
+          "default": false,
+          "title": "No Answer",
+          "type": "boolean"
         }
       },
       "required": [
@@ -248,6 +258,12 @@
         "caught": {
           "minimum": 0,
           "title": "Caught",
+          "type": "integer"
+        },
+        "no_answer": {
+          "default": 0,
+          "minimum": 0,
+          "title": "No Answer",
           "type": "integer"
         },
         "checks": {
@@ -527,10 +543,36 @@
       "type": "array"
     },
     "catch_rate": {
-      "$ref": "#/$defs/MetricEstimate"
+      "anyOf": [
+        {
+          "$ref": "#/$defs/MetricEstimate"
+        },
+        {
+          "type": "null"
+        }
+      ]
     },
     "false_rejection_rate": {
-      "$ref": "#/$defs/MetricEstimate"
+      "anyOf": [
+        {
+          "$ref": "#/$defs/MetricEstimate"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "seed_no_answers": {
+      "default": 0,
+      "minimum": 0,
+      "title": "Seed No Answers",
+      "type": "integer"
+    },
+    "control_no_answers": {
+      "default": 0,
+      "minimum": 0,
+      "title": "Control No Answers",
+      "type": "integer"
     }
   },
   "required": [

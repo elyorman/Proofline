@@ -21,6 +21,7 @@ from contracts.eval_run import (
     Split,
     Suite,
     Variant,
+    verification_no_answer,
 )
 from detector.cusum import detect
 from eval.batch import BatchCase, BatchMatch
@@ -113,7 +114,12 @@ async def benchmark_card(
                 before=mutation.before,
                 after=mutation.after,
                 verification=verdict.card.verification,
-                caught=verdict.card.verification.status == "rejected",
+                caught=(
+                    None
+                    if verification_no_answer(verdict.card.verification)
+                    else verdict.card.verification.status == "rejected"
+                ),
+                no_answer=verification_no_answer(verdict.card.verification),
             )
         )
     return SeedCardResult(
@@ -123,6 +129,7 @@ async def benchmark_card(
         revision=card.revision,
         card_digest=card_digest(card),
         control=control.card.verification,
+        control_no_answer=verification_no_answer(control.card.verification),
         trials=trials,
     ), usage
 
@@ -133,7 +140,7 @@ def summarize(cards: list[SeedCardResult], seed: int, resamples: int):
         rows = [
             (
                 sum(bool(t.caught) for t in c.trials if t.kind == kind and t.applied),
-                sum(t.applied for t in c.trials if t.kind == kind),
+                sum(t.applied and not t.no_answer for t in c.trials if t.kind == kind),
             )
             for c in cards
         ]
@@ -147,8 +154,9 @@ def summarize(cards: list[SeedCardResult], seed: int, resamples: int):
         types.append(
             SeedTypeResult(
                 kind=kind,
-                seeded=sum(d for _, d in rows),
+                seeded=sum(t.applied for c in cards for t in c.trials if t.kind == kind),
                 caught=sum(n for n, _ in rows),
+                no_answer=sum(t.no_answer for c in cards for t in c.trials if t.kind == kind),
                 checks=dict(checks),
                 estimate=estimate(
                     kind.value, Suite.SEEDED_FALSE_CLAIMS, rows, seed=seed, resamples=resamples
@@ -156,7 +164,10 @@ def summarize(cards: list[SeedCardResult], seed: int, resamples: int):
             )
         )
     rows = [
-        (sum(bool(t.caught) for t in c.trials if t.applied), sum(t.applied for t in c.trials))
+        (
+            sum(bool(t.caught) for t in c.trials if t.applied),
+            sum(t.applied and not t.no_answer for t in c.trials),
+        )
         for c in cards
     ]
     catch = estimate(
@@ -165,7 +176,7 @@ def summarize(cards: list[SeedCardResult], seed: int, resamples: int):
     controls = estimate(
         "control_false_rejection_rate",
         Suite.SEEDED_FALSE_CLAIMS,
-        [(int(c.control.status == "rejected"), 1) for c in cards],
+        [(int(c.control.status == "rejected"), 1) for c in cards if not c.control_no_answer],
         seed=seed,
         resamples=resamples,
     )
@@ -277,6 +288,8 @@ async def run_seeded(
         types=types,
         catch_rate=catch,
         false_rejection_rate=controls,
+        seed_no_answers=sum(t.no_answer for t in types),
+        control_no_answers=sum(c.control_no_answer for c in results),
         input_tokens=usage.input_tokens,
         output_tokens=usage.output_tokens,
         bootstrap_seed=seed,

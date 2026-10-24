@@ -117,9 +117,12 @@ def render(records: list[Record]) -> str:
             f"({scope(record.split)}, {record.variant}; {len(record.cards)} card clusters).",
             f"Catch rate: {estimate(record.catch_rate)}. "
             f"Controls rejected: {estimate(record.false_rejection_rate)}.",
+            f"No answer: {record.seed_no_answers} seeded trials; "
+            f"{record.control_no_answers} controls.",
             "",
-            "| Type | Seeded | Caught | Catch rate (95% CI) | Checks that rejected seeds |",
-            "|---|---|---|---|---|",
+            "| Type | Seeded | Caught | No answer | Catch rate (95% CI) "
+            "| Checks that rejected seeds |",
+            "|---|---|---|---|---|---|",
         ]
         for result in record.types:
             lines.append(
@@ -130,6 +133,7 @@ def render(records: list[Record]) -> str:
                         result.kind,
                         result.seeded,
                         result.caught,
+                        result.no_answer,
                         estimate(result.estimate),
                         ", ".join(f"{k}: {v}" for k, v in sorted(result.checks.items())) or "none",
                     ]
@@ -139,7 +143,8 @@ def render(records: list[Record]) -> str:
         total_seeded = sum(t.seeded for t in record.types)
         total_caught = sum(t.caught for t in record.types)
         lines.append(
-            f"| Total | {total_seeded} | {total_caught} | {estimate(record.catch_rate)} "
+            f"| Total | {total_seeded} | {total_caught} | {record.seed_no_answers} "
+            f"| {estimate(record.catch_rate)} "
             "| See per-type checks |"
         )
         lines += [
@@ -152,7 +157,7 @@ def render(records: list[Record]) -> str:
             control_row = [
                 f"{card.match_id}/{card.case_id}/{card.card_id}",
                 "control",
-                card.control.status,
+                "no answer" if card.control_no_answer else card.control.status,
                 control_checks,
             ]
             lines.append("| " + " | ".join(cell(v) for v in control_row) + " |")
@@ -163,7 +168,13 @@ def render(records: list[Record]) -> str:
                     else trial.skip_reason
                 )
                 result = (
-                    "caught" if trial.caught else "missed" if trial.applied else "not applicable"
+                    "no answer"
+                    if trial.no_answer
+                    else "caught"
+                    if trial.caught
+                    else "missed"
+                    if trial.applied
+                    else "not applicable"
                 )
                 lines.append(
                     "| "

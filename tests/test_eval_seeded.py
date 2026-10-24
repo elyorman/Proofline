@@ -167,6 +167,32 @@ def test_false_rejections_are_reported_even_when_every_seed_is_caught(real_case)
     assert result.control.semantic_check == "failed"
 
 
+def test_no_answer_is_separate_from_caught_and_missed_and_replays(real_case, tmp_path):
+    class NoAnswer:
+        async def ask(self, *args):
+            raise ValueError("scripted reply had no answer")
+
+    _, _, feed, _, outcome, record = real_case
+    first, _ = asyncio.run(
+        benchmark_card(
+            Recording(NoAnswer(), tmp_path),
+            outcome.verdict.card,
+            record,
+            feed,
+            outcome.finding.exams,
+        )
+    )
+    second, _ = asyncio.run(
+        benchmark_card(Replay(tmp_path), outcome.verdict.card, record, feed, outcome.finding.exams)
+    )
+    assert first == second and first.control_no_answer
+    unanswered = [t for t in first.trials if t.no_answer]
+    assert unanswered and all(t.caught is None for t in unanswered)
+    types, _, false_rejections = summarize([first], 7, 100)
+    assert sum(t.no_answer for t in types) == len(unanswered)
+    assert false_rejections is None
+
+
 def envelope(case, card):
     return BatchCase(
         case_id=case.case_id,

@@ -368,6 +368,22 @@ class SeedType(StrEnum):
     PRIMARY_DIRECTION = "primary_direction"
 
 
+def verification_no_answer(verification: Verification | None) -> bool:
+    return bool(
+        verification
+        and verification.rejection_reason
+        and "the semantic check gave no answer" in verification.rejection_reason
+    )
+
+
+def check_rate(metric: MetricEstimate | None, numerator: int, denominator: int) -> None:
+    if denominator == 0:
+        if metric is not None:
+            raise ValueError("a zero denominator must have no estimate")
+    elif metric is None or (metric.n, metric.value) != (denominator, numerator / denominator):
+        raise ValueError("rate must agree with the recorded outcomes")
+
+
 class SeedTrial(BaseModel):
     kind: SeedType
     applied: bool
@@ -377,17 +393,25 @@ class SeedTrial(BaseModel):
     skip_reason: str | None = None
     verification: Verification | None = None
     caught: bool | None = None
+    no_answer: bool = False
 
     @model_validator(mode="after")
     def _verdict(self) -> "SeedTrial":
         if self.applied:
             if self.verification is None or self.field is None or self.before == self.after:
                 raise ValueError("an applied seed records a changed field and its verification")
-            if self.caught != (self.verification.status == "rejected") or self.skip_reason:
+            if self.no_answer != verification_no_answer(self.verification):
+                raise ValueError("no_answer must agree with the verification")
+            expected = None if self.no_answer else self.verification.status == "rejected"
+            if self.caught != expected or self.skip_reason:
                 raise ValueError("caught must agree with the seeded verification")
-        elif not self.skip_reason or any(
-            value is not None
-            for value in (self.field, self.before, self.after, self.verification, self.caught)
+        elif (
+            self.no_answer
+            or not self.skip_reason
+            or any(
+                value is not None
+                for value in (self.field, self.before, self.after, self.verification, self.caught)
+            )
         ):
             raise ValueError("an inapplicable seed records only its reason")
         return self
@@ -400,10 +424,13 @@ class SeedCardResult(BaseModel):
     revision: int = Field(ge=1)
     card_digest: str = Field(pattern=r"^[0-9a-f]{64}$")
     control: Verification
+    control_no_answer: bool = False
     trials: list[SeedTrial]
 
     @model_validator(mode="after")
     def _all_types(self) -> "SeedCardResult":
+        if self.control_no_answer != verification_no_answer(self.control):
+            raise ValueError("control_no_answer must agree with the control verification")
         kinds = [t.kind for t in self.trials]
         if len(kinds) != len(SeedType) or set(kinds) != set(SeedType):
             raise ValueError("every card records each seed type exactly once")
@@ -414,6 +441,7 @@ class SeedTypeResult(BaseModel):
     kind: SeedType
     seeded: int = Field(ge=0)
     caught: int = Field(ge=0)
+    no_answer: int = Field(default=0, ge=0)
     checks: dict[str, int] = Field(default_factory=dict)
     estimate: MetricEstimate | None = None
 
@@ -440,8 +468,10 @@ class SeededRun(BaseModel):
     output_tokens: int = Field(default=0, ge=0)
     cards: list[SeedCardResult] = Field(min_length=1)
     types: list[SeedTypeResult]
-    catch_rate: MetricEstimate
-    false_rejection_rate: MetricEstimate
+    catch_rate: MetricEstimate | None
+    false_rejection_rate: MetricEstimate | None
+    seed_no_answers: int = Field(default=0, ge=0)
+    control_no_answers: int = Field(default=0, ge=0)
 
     @model_validator(mode="after")
     def _reconciles(self) -> "SeededRun":
@@ -456,22 +486,22 @@ class SeededRun(BaseModel):
             trials = [
                 t for c in self.cards for t in c.trials if t.kind == result.kind and t.applied
             ]
-            if (result.seeded, result.caught) != (len(trials), sum(t.caught for t in trials)):
-                raise ValueError("seeded counts must agree with the recorded trials")
-            if (result.estimate is None) != (not trials):
-                raise ValueError("a catch-rate estimate needs a nonzero denominator")
-            if result.estimate and (result.estimate.n, result.estimate.value) != (
+            unanswered = sum(t.no_answer for t in trials)
+            if (result.seeded, result.caught, result.no_answer) != (
                 len(trials),
-                result.caught / len(trials),
+                sum(bool(t.caught) for t in trials),
+                unanswered,
             ):
-                raise ValueError("per-type estimates must agree with the recorded trials")
+                raise ValueError("seeded counts must agree with the recorded trials")
+            check_rate(result.estimate, result.caught, len(trials) - unanswered)
         seeded, caught = sum(t.seeded for t in self.types), sum(t.caught for t in self.types)
-        if not seeded or (self.catch_rate.n, self.catch_rate.value) != (seeded, caught / seeded):
-            raise ValueError("total catch rate must agree with seeded trials")
-        rejected = sum(c.control.status == "rejected" for c in self.cards)
-        if (self.false_rejection_rate.n, self.false_rejection_rate.value) != (
-            len(self.cards),
-            rejected / len(self.cards),
-        ):
-            raise ValueError("false rejection rate must agree with controls")
+        seed_no_answers = sum(t.no_answer for t in self.types)
+        controls_no_answer = sum(c.control_no_answer for c in self.cards)
+        if (self.seed_no_answers, self.control_no_answers) != (seed_no_answers, controls_no_answer):
+            raise ValueError("no-answer counts must agree with recorded outcomes")
+        check_rate(self.catch_rate, caught, seeded - seed_no_answers)
+        rejected = sum(
+            c.control.status == "rejected" and not c.control_no_answer for c in self.cards
+        )
+        check_rate(self.false_rejection_rate, rejected, len(self.cards) - controls_no_answer)
         return self

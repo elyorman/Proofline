@@ -118,20 +118,23 @@ def number(metric: Metric, value: float) -> str:
     return f"{value:.2f}"
 
 
-def who(meta: MatchMeta, subject: str) -> tuple[str, bool]:
-    """(the subject as written, whether it takes a singular verb in English)."""
+UNIT_ES = {"defence": "la defensa", "midfield": "el centro del campo", "attack": "la delantera"}
+
+
+def who(meta: MatchMeta, subject: str, locale: int = 0) -> tuple[str, bool]:
+    """(the subject as written in the locale, whether it takes a singular verb in English)."""
     who = resolve(meta, subject)
     if who.player_id:
         team = next(t for t in meta.teams.values() if t.name == who.team)
         return next(p.name for p in team.players if p.player_id == who.player_id), True
     if who.unit:
-        return f"{who.team}'s {who.unit}", True
+        return (f"{who.team}'s {who.unit}", f"{UNIT_ES[who.unit]} de {who.team}")[locale], True
     return who.team, False
 
 
 def _sentence(card: InsightCard, meta: MatchMeta, locale: int) -> str:
     change = next(p for p in card.propositions if p.type == "change")
-    name, singular = who(meta, change.subject)
+    name, singular = who(meta, change.subject, locale)
     en, es = CHANGE[change.metric, change.direction]
     start = change.window.start.minute
     if locale == 0:
@@ -139,7 +142,8 @@ def _sentence(card: InsightCard, meta: MatchMeta, locale: int) -> str:
             **{"is": "is" if singular else "are", "has": "has" if singular else "have"}
         )
         return f"{name} {text} since {start}'."
-    return f"{name} {es} desde el minuto {start}."
+    text = f"{name} {es} desde el minuto {start}."
+    return text[0].upper() + text[1:]  # "La defensa de Harbour City ..."
 
 
 def claim(card: InsightCard, meta: MatchMeta) -> str:
@@ -166,7 +170,7 @@ def variants(
 
         def facts(window: Window | None, i: int = i) -> str:
             return "; ".join(
-                f"{LABEL[ev.metric][i]} ({who(meta, ev.subject)[0]}): "
+                f"{LABEL[ev.metric][i]} ({who(meta, ev.subject, i)[0]}): "
                 f"{number(ev.metric, ev.baseline.value)} → {number(ev.metric, ev.value)}"
                 for ev in card.evidence
                 if (ev.window == later) == (window is not None)
@@ -245,7 +249,7 @@ def withdrawal(
         facts = []
         for ev in card.evidence:
             line = (
-                f"{LABEL[ev.metric][i]} ({who(meta, ev.subject)[0]}): "
+                f"{LABEL[ev.metric][i]} ({who(meta, ev.subject, i)[0]}): "
                 f"{number(ev.metric, ev.baseline.value)} → {number(ev.metric, ev.value)}"
             )
             before = shown.get((ev.metric, ev.subject))
@@ -303,7 +307,7 @@ def broadcast(card: InsightCard, meta: MatchMeta, locale: int) -> dict[str, str 
     return {
         "team": card.subject.team,
         "headline": HEADLINE[change.metric, change.direction][locale],
-        "stat_label": f"{LABEL[ev.metric][locale]} ({who(meta, ev.subject)[0]})",
+        "stat_label": f"{LABEL[ev.metric][locale]} ({who(meta, ev.subject, locale)[0]})",
         "metric": ev.metric.value,
         "before": ev.baseline.value,
         "after": ev.value,
@@ -355,10 +359,11 @@ def answer(
         return dict(zip(LOCALES, CANNOT, strict=True))
     if card is not None:
         return dict(card.variants["casual"])
-    name, singular = who(meta, premise.subject)
+    names = [who(meta, premise.subject, i)[0] for i in range(len(LOCALES))]
+    singular = who(meta, premise.subject)[1]
     since = premise.since.minute
     if outcome == "premise_false":
-        facts = {"label": "", "who": name, "since": since, "now": "-", "then": "-"}
+        facts = {"label": "", "since": since, "now": "-", "then": "-"}
         up = premise.direction == Direction.UP
         if test is not None and test.value is not None and test.baseline is not None:
             facts |= {
@@ -369,13 +374,16 @@ def answer(
         reversed_ = z is not None and (z <= -PERSIST_SD if up else z >= PERSIST_SD)
         template = OTHER_WAY if reversed_ else NOT_HAPPENING
         return {
-            locale: template[i].format(**facts | {"label": LABEL[premise.metric][i]})
+            locale: template[i].format(
+                **facts | {"label": LABEL[premise.metric][i], "who": names[i]}
+            )
             for i, locale in enumerate(LOCALES)
         }
     en, es = CHANGE[premise.metric, premise.direction]
     change = en.format(**{"is": "is" if singular else "are"})
     template = NO_CAUSE if outcome in ("none", "other") else UNVERIFIED
-    return {
-        locale: template[i].format(who=name, change=change, change_es=es, since=since)
-        for i, locale in enumerate(LOCALES)
-    }
+    texts = [
+        template[i].format(who=names[i], change=change, change_es=es, since=since)
+        for i in range(len(LOCALES))
+    ]
+    return {locale: t[0].upper() + t[1:] for locale, t in zip(LOCALES, texts, strict=True)}

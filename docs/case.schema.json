@@ -148,6 +148,47 @@
       "title": "MomentType",
       "type": "string"
     },
+    "Reading": {
+      "description": "One team's metric over a case's window against its first half, as code measured it.",
+      "properties": {
+        "metric": {
+          "$ref": "#/$defs/Metric"
+        },
+        "subject": {
+          "title": "Subject",
+          "type": "string"
+        },
+        "value": {
+          "title": "Value",
+          "type": "number"
+        },
+        "baseline_value": {
+          "title": "Baseline Value",
+          "type": "number"
+        },
+        "sigmas": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "in standard deviations of normal variation",
+          "title": "Sigmas"
+        }
+      },
+      "required": [
+        "metric",
+        "subject",
+        "value",
+        "baseline_value",
+        "sigmas"
+      ],
+      "title": "Reading",
+      "type": "object"
+    },
     "TriggerMetric": {
       "properties": {
         "metric": {
@@ -242,6 +283,14 @@
       },
       "minItems": 1,
       "title": "Triggers",
+      "type": "array"
+    },
+    "both_teams": {
+      "description": "each team's main metrics over the window, so a change in one team can be read against the other's; measured by code when the case opens",
+      "items": {
+        "$ref": "#/$defs/Reading"
+      },
+      "title": "Both Teams",
       "type": "array"
     },
     "stage": {

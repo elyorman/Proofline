@@ -9,18 +9,19 @@ import { RevisionDiff } from './RevisionDiff';
 import { amendments } from './fixtures';
 import { ShotMarker } from './Pitch';
 import { LocaleContext } from './ui';
-import { t, type Locale } from './i18n';
+import { metricNumber, t, type Locale } from './i18n';
 
 const press = cards.find(card => card.id === 'ins-m01-063-pressure_shift')!;
 const render = (node: ReactNode, locale: Locale = 'en') =>
   renderToStaticMarkup(<LocaleContext.Provider value={locale}>{node}</LocaleContext.Provider>);
 
 describe('faithful card rendering', () => {
-  it('shows the actual Spanish variant, its support and recorded rejection reasons', () => {
+  it('shows the actual Spanish variant, recorded support and recorded rejection reasons', () => {
     const html = render(<Insight card={press} onOpen={() => {}} />, 'es');
     expect(html).toContain(press.variants!.casual.es);
     expect(html).toContain(t('es', `support.${press.verification!.support_level}`));
-    expect(html).toContain(press.evidence![0].value.toFixed(2).replace('.', ',')); // Spanish decimals
+    const evidence = press.evidence!.find(e => e.metric === 'pressure_rate')!;
+    expect(html).toContain(metricNumber('es', evidence.metric, evidence.value));
     for (const alternative of press.rejected_alternatives!) {
       expect(html).toContain(render(<p>{alternative.reason}</p>));
       expect(html).toContain(alternative.taxonomy);

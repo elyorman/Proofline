@@ -108,10 +108,28 @@
       "type": "string"
     },
     "variant_a": {
-      "$ref": "#/$defs/Variant"
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Variant"
+        },
+        {
+          "const": "P",
+          "type": "string"
+        }
+      ],
+      "title": "Variant A"
     },
     "variant_b": {
-      "$ref": "#/$defs/Variant"
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Variant"
+        },
+        {
+          "const": "P",
+          "type": "string"
+        }
+      ],
+      "title": "Variant B"
     },
     "split": {
       "$ref": "#/$defs/Split"
@@ -180,6 +198,67 @@
       "minimum": 0,
       "title": "Failed Cases B",
       "type": "integer"
+    },
+    "comparison_type": {
+      "default": "cases",
+      "enum": [
+        "cases",
+        "questions"
+      ],
+      "title": "Comparison Type",
+      "type": "string"
+    },
+    "question_set_digest": {
+      "anyOf": [
+        {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Question Set Digest"
+    },
+    "question_ids": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Question Ids",
+      "type": "array"
+    },
+    "unpaired_question_ids": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Unpaired Question Ids",
+      "type": "array"
+    },
+    "model_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Model Id"
+    },
+    "tool_call_budget": {
+      "anyOf": [
+        {
+          "minimum": 1,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Tool Call Budget"
     }
   },
   "required": [

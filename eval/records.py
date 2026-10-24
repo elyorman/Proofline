@@ -13,13 +13,13 @@ def identity(record: Record) -> str:
     return record.comparison_id if isinstance(record, VariantComparison) else record.run_id
 
 
-def reuse_runs(runs: list[EvalRun], folder: Path) -> list[EvalRun]:
+def reuse_runs(runs: list[EvalRun | QuestionRun], folder: Path) -> list[EvalRun | QuestionRun]:
     """A comparison can reference saved inputs without rewriting their scoring timestamps."""
     result = []
     for run in runs:
         path = folder / f"{run.run_id}.json"
         if path.exists():
-            previous = EvalRun.model_validate_json(path.read_bytes())
+            previous = type(run).model_validate_json(path.read_bytes())
             without_clock = {"started_at_ms", "finished_at_ms"}
             if previous.model_dump(exclude=without_clock) != run.model_dump(exclude=without_clock):
                 raise ValueError(f"saved run {run.run_id} disagrees with the scored batch")

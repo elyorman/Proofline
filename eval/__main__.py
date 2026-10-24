@@ -127,7 +127,7 @@ def _emit(
     record: EvalRun | VariantComparison | SeededRun | QuestionRun,
     out: Path | None,
     record_dir: Path | None = None,
-    dependencies: list[EvalRun] | None = None,
+    dependencies: list[EvalRun | QuestionRun] | None = None,
 ) -> None:
     serialized = record.model_dump_json(indent=2) + "\n"
     if out is not None and out.exists():

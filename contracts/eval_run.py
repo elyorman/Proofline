@@ -334,8 +334,8 @@ class VariantComparison(BaseModel):
     comparison_id: str
     run_a: str = Field(description="run_id of variant_a's EvalRun")
     run_b: str = Field(description="run_id of variant_b's EvalRun")
-    variant_a: Variant
-    variant_b: Variant
+    variant_a: Variant | Literal["P"]
+    variant_b: Variant | Literal["P"]
     split: Split
     difference: MetricEstimate
     flag_set_id: str | None = None
@@ -348,6 +348,12 @@ class VariantComparison(BaseModel):
     )
     failed_cases_a: int = Field(default=0, ge=0)
     failed_cases_b: int = Field(default=0, ge=0)
+    comparison_type: Literal["cases", "questions"] = "cases"
+    question_set_digest: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
+    question_ids: list[str] = Field(default_factory=list)
+    unpaired_question_ids: list[str] = Field(default_factory=list)
+    model_id: str | None = None
+    tool_call_budget: int | None = Field(default=None, ge=1)
 
     @model_validator(mode="after")
     def _two_variants(self) -> "VariantComparison":
@@ -355,6 +361,25 @@ class VariantComparison(BaseModel):
             raise ValueError("a comparison needs two different runs")
         if self.variant_a == self.variant_b:
             raise ValueError("a comparison needs two different variants")
+        if self.comparison_type == "questions":
+            if (
+                not self.question_set_digest
+                or not self.question_ids
+                or self.difference.suite != Suite.QUESTIONS
+            ):
+                raise ValueError(
+                    "a question comparison needs its question set and paired questions"
+                )
+            if self.variant_a not in ("A", "B", "P") or self.variant_b not in ("A", "B", "P"):
+                raise ValueError("question comparisons use A, B or P")
+            if len(set(self.question_ids)) != len(self.question_ids) or set(
+                self.question_ids
+            ) & set(self.unpaired_question_ids):
+                raise ValueError(
+                    "paired question IDs must be unique and distinct from unpaired IDs"
+                )
+        elif self.variant_a == "P" or self.variant_b == "P":
+            raise ValueError("the plain baseline is only scored on questions")
         return self
 
 

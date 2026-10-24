@@ -432,7 +432,10 @@ def main(argv: list[str] | None = None) -> int:
     scored = sub.add_parser("score")
     scored.add_argument("--runs", type=Path, required=True)
     scored.add_argument("--split", choices=["dev", "heldout"], required=True)
-    scored.add_argument("--variant", choices=["A", "B", "P"], required=True)
+    operation = scored.add_mutually_exclusive_group(required=True)
+    operation.add_argument("--variant", choices=["A", "B", "P"])
+    operation.add_argument("--compare", nargs=2, choices=["A", "B", "P"])
+    scored.add_argument("--metric", choices=QUESTION_METRICS, default=QUESTION_METRICS[0])
     scored.add_argument("--questions", type=Path)
     scored.add_argument("--out", type=Path)
     scored.add_argument("--record-dir", type=Path)
@@ -464,21 +467,34 @@ def main(argv: list[str] | None = None) -> int:
         print(f"{len(key)} questions written to {args.out}")
         return 0
     from eval.__main__ import _emit
+    from eval.question_compare import compare_questions
+    from eval.records import reuse_runs
 
     try:
-        result = score_run(
-            args.runs,
-            args.split,
-            args.variant,
-            questions=args.questions,
-            run_id=args.run_id,
-            model_id=args.model_id,
-            tool_call_budget=args.tool_call_budget,
-            seed=args.seed,
-            resamples=args.resamples,
-            after_follow_up=args.after_follow_up,
+        variants = args.compare or [args.variant]
+        runs = [
+            score_run(
+                args.runs,
+                args.split,
+                variant,
+                questions=args.questions,
+                run_id=f"{args.run_id}-{variant}" if args.run_id and args.compare else args.run_id,
+                model_id=args.model_id,
+                tool_call_budget=args.tool_call_budget,
+                seed=args.seed,
+                resamples=args.resamples,
+                after_follow_up=args.after_follow_up,
+            )
+            for variant in variants
+        ]
+        if args.compare and args.record_dir:
+            runs = reuse_runs(runs, args.record_dir)
+        result = (
+            compare_questions(*runs, metric=args.metric, seed=args.seed, resamples=args.resamples)
+            if args.compare
+            else runs[0]
         )
-        _emit(result, args.out, args.record_dir)
+        _emit(result, args.out, args.record_dir, runs if args.compare else [])
     except (OSError, ValueError) as exc:
         parser.error(str(exc))
     return 0

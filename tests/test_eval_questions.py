@@ -186,3 +186,60 @@ def test_verified_question_cards_match_by_primary_class_and_team(question_batch)
     target.write_text(json.dumps(raw) + "\n")
     row = score_run(root, "dev", "A", resamples=100).rows[0]
     assert row.claimed and row.false_claim and not row.right
+
+
+@pytest.mark.parametrize(
+    "first,second,expected", [("A", "P", -0.5), ("A", "B", 0), ("B", "P", -0.5)]
+)
+def test_paired_question_differences(question_batch, first, second, expected):
+    from eval.question_compare import compare_questions
+
+    root, _, _ = question_batch
+    a, b = (score_run(root, "dev", v, resamples=100) for v in (first, second))
+    comparison = compare_questions(a, b, seed=7, resamples=300)
+    assert comparison.difference.value == expected
+    assert comparison.difference.ci_low <= expected <= comparison.difference.ci_high
+    assert len(comparison.question_ids) == 4 and len(comparison.match_ids) == 2
+    assert comparison == compare_questions(a, b, seed=7, resamples=300)
+    with pytest.raises(ValueError, match="question_set_digest"):
+        compare_questions(a, b.model_copy(update={"question_set_digest": "0" * 64}))
+
+
+def test_question_comparison_uses_only_mutually_answered_questions(question_batch):
+    from eval.question_compare import compare_questions
+
+    root, key, _ = question_batch
+    a_path = root / "A/answers.jsonl"
+    values = [json.loads(line) for line in a_path.read_text().splitlines()]
+    values[0] = dict(question=key[0].question.model_dump(mode="json"), error="no answer")
+    a_path.write_text("".join(json.dumps(v) + "\n" for v in values))
+    a, p = (score_run(root, "dev", v, resamples=100) for v in ("A", "P"))
+    result = compare_questions(a, p, resamples=100)
+    assert result.unpaired_question_ids == [key[0].question.question_id]
+    assert len(result.question_ids) == 3 and result.difference.n == 1
+    assert result.difference.value == 0
+
+
+def test_question_comparison_cli_retains_source_records(question_batch, capsys):
+    from contracts.eval_run import VariantComparison
+
+    root, _, _ = question_batch
+    records = root / "records"
+    args = [
+        "score",
+        "--runs",
+        str(root),
+        "--split",
+        "dev",
+        "--compare",
+        "A",
+        "P",
+        "--record-dir",
+        str(records),
+        "--resamples",
+        "100",
+    ]
+    assert main(args) == 0
+    result = VariantComparison.model_validate_json(capsys.readouterr().out)
+    assert result.comparison_type == "questions" and result.variant_b == "P"
+    assert len(load_records(records)) == 3

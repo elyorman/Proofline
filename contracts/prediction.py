@@ -219,6 +219,9 @@ def check_counter_test(hypothesis: Hypothesis, exam: CrossExamination) -> None:
             raise ValueError("a corollary is on another metric; on the claim's own, use a control")
         if counter.direction == Direction.FLAT:
             raise ValueError("a corollary predicts a move")
+        if counter.threshold_kind == ThresholdKind.SIGMA and counter.min_change < MIN_CLAIM_SD:
+            # Under 1 sd either way is ordinary play: it would refute or corroborate by noise.
+            raise ValueError(f"a corollary under {MIN_CLAIM_SD:g} sd is within ordinary play")
         if (counter.window, counter.compare_to) != (claim.window, claim.compare_to):
             raise ValueError("a corollary keeps the hypothesis's window and baseline")
         return

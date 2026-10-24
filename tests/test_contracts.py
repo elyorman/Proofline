@@ -441,6 +441,7 @@ def test_a_corollary_holds_when_what_the_cause_implies_happens():
         (dict(subject="Harbour City"), True),  # a corollary may name another subject
         (dict(metric=Metric.SPRINT_COUNT), False),  # the claim's own metric: a control
         (dict(direction="flat", min_change=0.5), False),
+        (dict(threshold_kind="sigma", min_change=0.5), False),  # under 1 sd: noise decides it
         (dict(window="57:00-63:00"), False),
         (dict(compare_to=BaselineScope.MATCH_SO_FAR), False),
     ],

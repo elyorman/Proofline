@@ -134,31 +134,12 @@ def case_file(outcome: Outcome, variant: Variant) -> CaseFile:
     )
 
 
-def _agents() -> Model:
-    """The agents' model: Foundry's deployment, unless PROOFLINE_AGENT_MODEL names another
-    family to compare with (`claude:<id>[@effort]` or `gemini:<id>`, the `experiments` group). Both
-    variants always use the same one."""
-    provider, _, name = os.getenv("PROOFLINE_AGENT_MODEL", "").partition(":")
-    if provider == "claude":
-        from agents.llm_claude import ClaudeModel
-
-        name, _, effort = name.partition("@")  # claude:<id>@<effort>
-        return ClaudeModel(name or ClaudeModel.model, effort or ClaudeModel.effort)
-    if provider == "gemini":
-        from agents.llm_gemini import GeminiModel
-
-        return GeminiModel(name or GeminiModel.model)
-    if provider:
-        raise ValueError(f"unknown agent model {provider!r}: use claude:<id> or gemini:<id>")
-    return FoundryModel.from_env()
-
-
 def models(record: Path | None = None, replay: Path | None = None) -> tuple[Model, Model]:
     """(agents' model, verifier's model): live, live and recorded, or replayed. The Verifier
     always runs on Foundry, on a family other than the agents'."""
     if replay is not None:
         return Replay(replay), Replay(replay)
-    agents = _agents()
+    agents = FoundryModel.from_env()
     endpoint, deployment = (
         os.environ["AZURE_FOUNDRY_PROJECT_ENDPOINT"],
         os.environ["AZURE_VERIFIER_DEPLOYMENT"],

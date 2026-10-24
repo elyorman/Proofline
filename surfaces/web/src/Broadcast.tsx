@@ -31,7 +31,7 @@ export function Broadcast({ data, elapsed, cues, cards, decisions, onDecide, onR
       const isOnAir = active.some(current => current.cue_id === cue.cue_id);
       const expired = !isOnAir && (elapsed > elapsedAt(cue.show_at.not_after, firstHalf)
         || (['approved', 'aired'].includes(cue.status ?? '') && start !== undefined && elapsed >= start + cue.duration_s));
-      const terminal = cue.status === 'killed' || cue.status === 'cancelled' || expired;
+      const terminal = ['killed', 'cancelled', 'expired'].includes(cue.status ?? '') || expired;
       const status = cue.status === 'killed' ? 'killed' : expired ? 'expired' : cue.status ?? 'pending';
       return <article className="cue-card" key={cue.cue_id}>
         <div className="cue-top"><span className="eyebrow">{isStandInCue(cue) ? text('fixture.short') : cue.template}</span><span className={`status ${status === 'killed' ? 'warn' : ''}`}>{text(`status.${status}`)}</span></div>

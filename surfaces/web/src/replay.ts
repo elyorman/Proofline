@@ -103,6 +103,7 @@ export interface ProducerDecision {
 
 export function applyDecisions(cues: Cue[], decisions: ProducerDecision[], elapsed: number, firstHalfSeconds: number): Cue[] {
   return cues.map(cue => {
+    if (['killed', 'cancelled', 'expired'].includes(cue.status ?? '')) return cue;
     let result = cue;
     for (const decision of decisions) {
       if (decision.cueId !== cue.cue_id || decision.at > elapsed || result.status === 'killed') continue;

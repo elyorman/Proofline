@@ -105,6 +105,12 @@ describe('replay boundaries', () => {
     const result = applyDecisions([cue], [{ cueId: cue.cue_id, at: 3866, status: 'killed' }], 3866, 2700);
     expect(visibleCues(result, 3866, 2700)).toEqual([]);
   });
+  it.each(['expired', 'cancelled', 'killed'] as const)('preserves recorded %s cues despite local approvals', status => {
+    const cue = { ...cueFixture, status };
+    const result = applyDecisions([cue], [{ cueId: cue.cue_id, at: 3820, status: 'approved' }], 3820, 2700);
+    expect(result[0]).toBe(cue);
+    expect(visibleCues(result, 3820, 2700)).toEqual([]);
+  });
   it('uses delivered activity only, including at an exact bucket boundary', () => {
     const built = timelineWithEnds([event('carry', 5, 1), event('carry', 10, 1)]);
     expect(activityAt(built, 300, ['Northvale']).flatMap(b => b.values).reduce((a, b) => a + b, 0)).toBe(1);

@@ -259,8 +259,10 @@ resource modelDeployment 'Microsoft.CognitiveServices/accounts/deployments@2025-
   dependsOn: [foundryProject] // the account accepts one change at a time
 }
 
-// The Verifier's semantic check runs on a different model family from the agents, so it
-// does not share their blind spots (spec §9.2). A chat model, not a reasoning one:
+// Phi-4 was the Verifier's model, a different family from the agents'; it is kept deployed but
+// the Verifier now runs on gpt-5-mini, which on seeded false claims caught as much and rejected
+// no sound card (spec §15). Why Phi-4 was the choice of a second family: a chat model, not a
+// reasoning one:
 // DeepSeek-V3.2-Speciale thought for minutes and left one reply in nine without an answer,
 // against a full-lane budget of 25 s. Microsoft's Phi-4 needs no Marketplace plan, which a
 // Free Trial cannot buy, and is served past 10 November.

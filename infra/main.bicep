@@ -77,7 +77,9 @@ output AZURE_KEY_VAULT_ENDPOINT string = resources.outputs.keyVaultEndpoint
 output AZURE_FOUNDRY_ENDPOINT string = resources.outputs.foundryEndpoint
 output AZURE_FOUNDRY_PROJECT_ENDPOINT string = resources.outputs.foundryProjectEndpoint
 output AZURE_OPENAI_DEPLOYMENT string = resources.outputs.modelDeployment
-output AZURE_VERIFIER_DEPLOYMENT string = resources.outputs.verifierDeployment
+// The Verifier runs on the agents' deployment: measured against Phi-4 on seeded false claims it
+// caught as much and rejected no sound card (spec §15).
+output AZURE_VERIFIER_DEPLOYMENT string = resources.outputs.modelDeployment
 output APPLICATIONINSIGHTS_CONNECTION_STRING string = resources.outputs.appInsightsConnectionString
 output API_URL string = resources.outputs.apiUrl
 output WEB_URL string = resources.outputs.webUrl

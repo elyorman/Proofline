@@ -25,7 +25,7 @@ from contracts.prediction import CrossExamination
 from contracts.taxonomy import CardStatus
 from state.tools import Feed, window_minutes
 
-MODEL_FAMILY = "phi"
+MODEL_FAMILY = "openai"  # gpt-5-mini, as the agents (spec §15)
 
 
 @dataclass

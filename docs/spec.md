@@ -424,7 +424,7 @@ Agents register in `sigma`: a change in standard deviations of normal variation 
 
 ### 9.2 Verifier
 
-An independent stage that sees only the propositions, claim text, variants and evidence references, never the agents' reasoning. The semantic check runs as a **Foundry-hosted agent** on a non-OpenAI model family; the deterministic checks run in the agent service.
+An independent stage that sees only the propositions, claim text, variants and evidence references, never the agents' reasoning. The semantic check runs on Foundry through Agent Framework, on gpt-5-mini with its own prompt (it replaced Phi-4 after a measured comparison, §15); the deterministic checks run in code. It shares the agents' model but none of their context.
 
 | Check | How | Model |
 |---|---|---|
@@ -433,7 +433,7 @@ An independent stage that sees only the propositions, claim text, variants and e
 | Sample size | Minimum `n_events` per metric and window | Deterministic |
 | Contradiction scan | Related metrics checked for an opposite-direction signal | Deterministic |
 | Number check | Every number in every variant matches the evidence | Deterministic |
-| Semantic entailment | Each sentence, in every language and headline, is entailed by the propositions at the allowed language level; flags overstatement | LLM, Foundry-hosted, different model family from the agents; English at build, Spanish as stretch |
+| Semantic entailment | Each sentence, in every language and headline, is entailed by the propositions at the allowed language level; flags overstatement | LLM on Foundry, the agents' model with its own prompt and none of their context; English at build, Spanish as stretch |
 
 **Recompute, defined.** For each evidence number, the Verifier re-runs the tool call named by its `tool_call_id`, with the same arguments, over exactly the events in its evidence set at their recorded versions (never by re-querying the window or scope, which for `match_so_far` grows between the call and verification). The stored value must match exactly; rounding applies only to the number check on text. The Correction Watcher runs the same procedure at the amended versions. This proves each published number is what the tool computes from those events, not that the tool is correct; tool correctness comes from the `state/` unit tests. Evidence sets therefore record every event a tool read, including events it filtered out, so an amendment that moves events into a team or zone a tool filters on still reaches the dependency index.
 
@@ -687,7 +687,7 @@ Every row leaves evidence a judge can see; use that leaves no trace is not claim
 | Role | Model |
 |---|---|
 | Hypothesis agents, synthesis, recap | gpt-5-mini |
-| Verifier semantic check | Microsoft Phi-4, a non-OpenAI chat model sold directly by Azure (Marketplace models such as Mistral cannot be bought on the Free Trial; DeepSeek-V3.2-Speciale reasoned for minutes per card and was retired from the project). Its catch rate on seeded false claims is measured and reported (fallback: a second OpenAI model with a distinct verifier prompt, stated as a limitation) |
+| Verifier semantic check | gpt-5-mini, the agents' model, with its own prompt, seeing only the card's facts and sentences. It replaced Microsoft Phi-4, a non-OpenAI chat model sold directly by Azure, after both were measured on the same 77 seeded false claims from 10 dev cards: each caught all 77, including the 37 only the semantic check can catch, but Phi-4 rejected 1 of the 10 sound control cards and gpt-5-mini none, and live, Phi-4 rejected sound follow-up revisions and timed out under load. Limitation, stated: the Verifier no longer runs on a different model family from the agents; it is independent by role and by what it sees, and the sentences it judges are written by code templates, not by the agents. (Marketplace models such as Mistral cannot be bought on the Free Trial; DeepSeek-V3.2-Speciale reasoned for minutes per card and was retired.) |
 | Narrator variants | gpt-5-mini |
 | Fast lane | Templates |
 | Development runs | gpt-5-mini for all roles |
@@ -898,7 +898,7 @@ proofline/
 - [x] azd skeleton deployed: Container Apps, Container Registry, Cosmos (free tier), Event Hubs, Web PubSub, Static Web Apps, App Insights, Key Vault with managed identity
 - [x] Quota checked in region (Free Trial: gpt-5-mini has quota; gpt-5.6-terra and gpt-5.6-luna have none)
 - [x] gpt-5-mini deployed in Foundry
-- [x] Non-OpenAI model deployed for the Verifier: Phi-4, chosen among models with quota that a Free Trial can deploy
+- [x] Non-OpenAI model deployed for the Verifier: Phi-4, chosen among models with quota that a Free Trial can deploy; replaced by gpt-5-mini after the seeded comparison (§15)
 - [x] Budget alert at 60%
 - [ ] Model prices confirmed in the Azure portal (the Retail Prices API lists only priority-processing meters for gpt-5-mini in eastus2)
 - [x] Azure MCP Server connected to the development agent; transcript capture started (`docs/azure-mcp.md`)

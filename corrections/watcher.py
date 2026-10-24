@@ -6,7 +6,7 @@ change: a correction is always a new revision of the card.
 """
 
 from collections import defaultdict
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Literal
 
 from agents import narrator
@@ -27,7 +27,7 @@ from contracts.card import (
 )
 from contracts.case import Case
 from contracts.event import EventAmendment
-from contracts.prediction import Hypothesis
+from contracts.prediction import CrossExamination, Hypothesis
 from contracts.taxonomy import CardStatus
 from contracts.tool_result import DependencyEntry, EvidenceSet
 from state import natural
@@ -37,12 +37,14 @@ from state.tools import Feed
 @dataclass
 class Published:
     """A published card and what re-verifying it needs: its case (for the cutoff), the
-    primary cause's pre-registered hypothesis and the evidence sets the card depends on."""
+    primary cause's pre-registered hypothesis, the evidence sets the card depends on and the
+    case's cross-examination, which can hold its support down."""
 
     card: InsightCard
     case: Case
     hypothesis: Hypothesis
     evidence: dict[str, EvidenceSet]
+    exams: list[CrossExamination] = field(default_factory=list)
 
 
 @dataclass
@@ -50,6 +52,7 @@ class Correction:
     decision: Literal["revise", "withdraw"]
     card: InsightCard  # the new revision
     was: InsightCard
+    evidence: dict[str, EvidenceSet] = field(default_factory=dict)  # a revision's, re-read
 
 
 class DependencyIndex:
@@ -145,7 +148,7 @@ async def correct(
         )
         for ev, d, b in remeasured
         if d.value is not None and b.baseline is not None
-    ]
+    ] or list(was.evidence)  # nothing left to measure: the record the card stood on
     candidate = InsightCard.model_validate(
         was.model_dump(mode="json")
         | {
@@ -223,7 +226,7 @@ async def correct(
         )
         return Correction("withdraw", _withdrawn(candidate, was, feed, reason), was)
     record = Record.of(tools.log, sink.evidence)
-    verdict = await verify(verifier, candidate, record, feed, [])
+    verdict = await verify(verifier, candidate, record, feed, published.exams)
     if verdict.card.status != CardStatus.VERIFIED:
         rejected = verdict.card.verification.rejection_reason
         reason = f"after {because}, the Verifier rejected it: {rejected}"
@@ -231,4 +234,4 @@ async def correct(
     revised = verdict.card.model_dump(mode="json")
     revised["status"] = CardStatus.REVISED
     revised["variants"] = narrator.updated(verdict.card.variants)
-    return Correction("revise", InsightCard.model_validate(revised), was)
+    return Correction("revise", InsightCard.model_validate(revised), was, sink.evidence)

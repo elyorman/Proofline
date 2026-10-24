@@ -77,13 +77,17 @@ async def studio(
             hypothesis = next(h for h in outcome.finding.hypotheses if h.hypothesis_id == primary)
             # The case the card was built on: its window runs on to the confirming minute.
             built_on = outcome.finding.case
-            published[card.id] = Published(card, built_on, hypothesis, outcome.finding.evidence)
+            published[card.id] = Published(
+                card, built_on, hypothesis, outcome.finding.evidence, outcome.finding.exams
+            )
     index = DependencyIndex()
     for p in published.values():
         index.add(p)
     corrections = []
     for amendment, feed in versions[1:]:
         for card_id in sorted(index.dependents(amendment)):
+            if card_id not in published:
+                continue  # withdrawn by an earlier amendment
             p = published[card_id]
             if not (p.card.timing.verified_at or p.card.timing.detected_at) < amendment.at:
                 continue  # published on the corrected feed already
@@ -99,8 +103,13 @@ async def studio(
                     "amendment_id": amendment.amendment_id,
                 }
             )
-            if fixed.decision == "revise":
-                published[card_id] = Published(fixed.card, p.case, p.hypothesis, p.evidence)
+            if fixed.decision == "revise":  # later amendments re-check it on its new evidence
+                published[card_id] = Published(
+                    fixed.card, p.case, p.hypothesis, fixed.evidence, p.exams
+                )
+                index.add(published[card_id])
+            else:
+                del published[card_id]
     first = versions[0][1]
     schedule = direct(revisions, first.events, first.meta, profile)
     return {

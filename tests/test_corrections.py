@@ -155,3 +155,65 @@ def test_a_card_whose_numbers_the_amendment_does_not_change_needs_nothing(m01):
     shown, a1 = m01
     press = _published(shown, 63, PRESS)
     assert asyncio.run(correct(Scripted(), press, shown.amended(a1), a1)) is None
+
+
+def test_a_card_whose_evidence_the_amendment_takes_away_is_still_withdrawn(m01):
+    shown, a1 = m01
+    flank = _published(shown, 57, _flank(2))
+    window = flank.card.evidence[0].window
+    theirs = [
+        e.event_id
+        for e in shown.events
+        if e.team == "Northvale"
+        and e.type in ("pass", "carry", "dribble")
+        and window.contains(e.clock)
+    ]
+    a3 = a1.model_copy(
+        update={
+            "amendment_id": "a3",
+            "event_ids": theirs,
+            "shift": None,
+            "set": {"team": "Harbour City"},
+            "reason": "these actions were Harbour City's",
+        }
+    )
+    correction = asyncio.run(correct(Scripted(), flank, shown.amended(a3), a3))
+    card = correction.card
+    assert correction.decision == "withdraw" and card.status == CardStatus.WITHDRAWN
+    assert "no longer measurable" in card.verification.rejection_reason
+    assert card.evidence == flank.card.evidence  # nothing left to measure: the record it stood on
+
+
+def test_a_revision_is_verified_with_the_cases_cross_examination(m01, monkeypatch):
+    from contracts.prediction import CrossExamination, Prediction
+    from corrections import watcher
+
+    shown, a1 = m01
+    flank = _published(shown, 57, _flank(2))
+    claim = flank.hypothesis.prediction
+    doubt = CrossExamination(  # a corollary that moved the right way, short of its 1 sd
+        hypothesis_id=flank.hypothesis.hypothesis_id,
+        challenger="tactics",
+        counter_prediction=Prediction(
+            **claim.model_dump() | {"metric": "long_ball_share", "min_change": 1.0}
+        ),
+        tool_call_id="tc-doubt",
+        observed_change=0.4,
+        corollary=True,
+        reason="an overload goes long less",
+    )
+    assert doubt.result == "weakened"  # which caps a strong card at moderate
+    window, moved = flank.card.evidence[0].window, set(a1.event_ids)
+    some = [e.event_id for e in shown.events if e.event_id in moved and window.contains(e.clock)]
+    a2 = a1.model_copy(update={"amendment_id": "a2", "event_ids": some[:12]})
+    seen, real = [], watcher.verify
+
+    async def spy(model, card, record, feed, exams):
+        seen.append(exams)
+        return await real(model, card, record, feed, exams)
+
+    monkeypatch.setattr(watcher, "verify", spy)
+    published = Published(flank.card, flank.case, flank.hypothesis, flank.evidence, [doubt])
+    correction = asyncio.run(correct(Scripted(SOUND), published, shown.amended(a2), a2))
+    assert correction.decision == "revise" and seen == [[doubt]]
+    assert correction.evidence  # the revision's own evidence sets, for the dependency index

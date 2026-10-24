@@ -33,8 +33,7 @@ would hold if that cause were present: the metric, whose metric it is, the direc
 smallest change that would count. The prediction is your cause's evidence, so think about \
 what the cause would do on the pitch, to both teams, and choose one that would hold under it \
 but not under the other causes: re-measuring the confirmed change proves nothing new. A \
-change in one team is often the other team's doing; "both_teams" shows each team's main \
-numbers over the window, measured by code.
+change in one team is often the other team's doing.
 The match's facts limit the causes: a team chases the result only when behind and protects \
 a lead only when ahead, a change in numbers needs a sending-off, and fresh legs need a \
 substitution by that team; code refuses each otherwise. Register nothing for a cause the \
@@ -124,6 +123,8 @@ def roster(meta: MatchMeta) -> dict:
 
 
 def case_prompt(case: Case, meta: MatchMeta, score: dict[str, float]) -> str:
+    """What a specialist pre-registers from: the change and the match's facts, never another
+    number code has measured, so no prediction can copy one."""
     moment = {
         "moment": case.moment_type.value,
         "window": str(case.window),
@@ -135,7 +136,6 @@ def case_prompt(case: Case, meta: MatchMeta, score: dict[str, float]) -> str:
             else "not re-measured after detection"
         ),
         "state_at_detection": state_at(meta, score),
-        "both_teams": both_teams(case),
         "what_the_detector_saw": [
             {
                 "metric": t.metric.value,
@@ -164,3 +164,4 @@ def ranking_prompt(
         },
         indent=1,
     )
+

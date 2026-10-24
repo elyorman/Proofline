@@ -175,7 +175,6 @@ async def challenge(
             {
                 "moment": str(case.window),
                 "state_at_detection": prompts.state_at(meta, score),
-                "both_teams": prompts.both_teams(case),
                 "hypotheses": listed,
                 "match": prompts.match(meta),
             },

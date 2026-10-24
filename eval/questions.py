@@ -6,8 +6,10 @@ and one assuming the opposite of that change. Each decoy gets two whose premises
 planted. Questions alternate English and Spanish. Only the questions go to the product
 (`questions.jsonl`); the answers are rebuilt here from the truth when scoring.
 
-    python -m eval.questions make --split dev --data data/dev --out runs/q1/questions.jsonl
-    python -m eval.questions score --runs runs/q1 --split dev --data data/dev --variant A
+    python -m eval.questions make --split dev --out runs/q1/questions.jsonl
+    python -m eval.questions score --runs runs/q1 --split dev --variant A
+
+Rosters come from the suites' committed scripts, so neither needs a generated match.
 """
 
 import argparse
@@ -22,6 +24,9 @@ from contracts.meta import MatchMeta
 from contracts.prediction import Direction
 from contracts.question import Answer, Question
 from contracts.taxonomy import Cause, Metric
+from engine.io import match_meta
+from engine.script import load_script
+from engine.sim import MatchSim
 from eval.suites import load_suite
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -97,7 +102,7 @@ def _clock(minute: int) -> MatchClock:
     return MatchClock(period=2, minute=minute, second=0)
 
 
-def keys(split: str, data: Path) -> list[Key]:
+def keys(split: str) -> list[Key]:
     """Every question of the split's suite, with its answer, in a fixed order."""
     out: list[Key] = []
 
@@ -115,7 +120,7 @@ def keys(split: str, data: Path) -> list[Key]:
         out.append(Key(question, true, cause, team))
 
     for t in load_suite(ROOT / "engine/suites", "planted", split).truth.entries:
-        meta = _meta(data, t.match_id)
+        meta = _meta("planted", split, t.match_id)
         since = _clock(t.started.minute)
         asked = _clock(min(90, math.ceil(t.window.end.seconds_in_period / 60 + 45)))
         shown = t.observables[1] if t.cause in _PRESS else t.observables[0]
@@ -124,7 +129,7 @@ def keys(split: str, data: Path) -> list[Key]:
         opposite = DOWN if first.direction == UP else UP
         add(meta, first.metric, first.subject, opposite, since, asked, False, t)
     for t in load_suite(ROOT / "engine/suites", "decoys", split).truth.entries:
-        meta = _meta(data, t.match_id)
+        meta = _meta("decoys", split, t.match_id)
         home, away = (meta.teams[s].name for s in ("home", "away"))
         add(meta, Metric.PRESSURE_RATE, home, UP, DECOY_SINCE, DECOY_ASKED, False)
         add(meta, Metric.SPRINT_COUNT, f"{away}.midfield", DOWN, DECOY_SINCE, DECOY_ASKED, False)
@@ -134,8 +139,11 @@ def keys(split: str, data: Path) -> list[Key]:
 _PRESS = (Cause.PRESS_INTENSITY_UP, Cause.PRESS_INTENSITY_DOWN)
 
 
-def _meta(data: Path, match_id: str) -> MatchMeta:
-    return MatchMeta.model_validate_json((Path(data) / match_id / "meta.json").read_text())
+def _meta(suite: str, split: str, match_id: str) -> MatchMeta:
+    """The match's teams and rosters, from its sealed script: what its meta.json will say,
+    without simulating the match."""
+    script = load_script(ROOT / "engine/suites" / suite / split / "scripts" / f"{match_id}.yaml")
+    return match_meta(MatchSim(script))
 
 
 def score(answers: list[Answer], key: list[Key]) -> dict:
@@ -180,15 +188,13 @@ def main(argv: list[str] | None = None) -> int:
     sub = parser.add_subparsers(dest="command", required=True)
     make = sub.add_parser("make")
     make.add_argument("--split", choices=["dev", "heldout"], required=True)
-    make.add_argument("--data", type=Path, required=True)
     make.add_argument("--out", type=Path, required=True)
     scored = sub.add_parser("score")
     scored.add_argument("--runs", type=Path, required=True)
     scored.add_argument("--split", choices=["dev", "heldout"], required=True)
-    scored.add_argument("--data", type=Path, required=True)
     scored.add_argument("--variant", choices=["A", "B"], required=True)
     args = parser.parse_args(argv)
-    key = keys(args.split, args.data)
+    key = keys(args.split)
     if args.command == "make":
         args.out.parent.mkdir(parents=True, exist_ok=True)
         args.out.write_text("".join(k.question.model_dump_json() + "\n" for k in key))

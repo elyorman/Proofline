@@ -123,7 +123,7 @@ def test_a_true_premise_is_investigated_and_verified_like_a_detected_moment(m01)
 
 
 def test_the_question_suite_has_a_true_and_a_false_premise_per_planted_match():
-    suite = keys("dev", ROOT / "data" / "dev")
+    suite = keys("dev")
     assert len(suite) == 32 and len({k.question.question_id for k in suite}) == 32
     assert sum(k.premise_true for k in suite) == 12
     assert {k.question.locale for k in suite} == {"en", "es"}
@@ -132,7 +132,7 @@ def test_the_question_suite_has_a_true_and_a_false_premise_per_planted_match():
 
 
 def test_the_suite_scores_right_causes_and_counts_every_false_claim(m01):
-    suite = keys("dev", ROOT / "data" / "dev")
+    suite = keys("dev")
     assert score([], suite)["missing"] == 32
     result = score([], suite)
     assert result["answered_right"] == "0/12" and result["false_claims"] == 0

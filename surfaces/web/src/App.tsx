@@ -3,7 +3,7 @@ import { Analyst } from './Analyst';
 import { Broadcast } from './Broadcast';
 import { Overlay } from './Overlay';
 import { loadReplay, type ReplayData } from './data';
-import { cards, cues, isStandInCard } from './fixtures';
+import { cards, cues, profile, amendments } from './fixtures';
 import type { Locale } from './i18n';
 import { Insights } from './Insights';
 import { Activity, EventFeed, Pitch } from './Pitch';
@@ -11,14 +11,16 @@ import { clockAt, displayTime, elapsedAt, formatClock, scoreAt, teamStats, visib
 import { Crest, Icon, LocaleContext, SectionTitle, ViewBoundary, useText } from './ui';
 
 type Route = 'fan' | 'analyst' | 'broadcast' | 'overlay';
-const pressureCard = cards.find(card => card.moment_type === 'pressure_shift' && !isStandInCard(card));
+const pressureCard = cards.find(card => card.id === 'ins-m01-063-pressure_shift');
+const flankCard = cards.find(card => card.moment_type === 'shape_change' && card.revision === 1);
+const withdrawal = cards.find(card => card.status === 'withdrawn');
 function routeAtHash(): Route {
   const route = location.hash.replace('#/', '');
   return route === 'analyst' || route === 'broadcast' || route === 'overlay' ? route : 'fan';
 }
 
 export default function App() {
-  const [locale, setLocale] = useState<Locale>('en');
+  const [locale, setLocale] = useState<Locale>(profile.language === 'es' ? 'es' : 'en');
   return <LocaleContext.Provider value={locale}><Workspace locale={locale} setLocale={setLocale} /></LocaleContext.Provider>;
 }
 
@@ -31,9 +33,9 @@ function Workspace({ locale, setLocale }: { locale: Locale; setLocale: (locale: 
   const [elapsed, setElapsed] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [speed, setSpeed] = useState(1);
-  const [mode, setMode] = useState('casual');
-  const [favorite, setFavorite] = useState('Northvale');
-  const [player, setPlayer] = useState('NV-10');
+  const [mode, setMode] = useState(profile.mode === 'player_focus' ? 'player' : 'casual');
+  const [favorite, setFavorite] = useState(profile.favorite_club ?? '');
+  const [player, setPlayer] = useState(profile.favorite_players?.[0] ?? '');
   const [selected, setSelected] = useState(pressureCard?.id ?? '');
   const [decisions, setDecisions] = useState<ProducerDecision[]>([]);
 
@@ -96,10 +98,10 @@ function Workspace({ locale, setLocale }: { locale: Locale; setLocale: (locale: 
   };
   const jumps = [
     { key: 'start', at: 0 },
-    { key: 'flank', at: elapsedAt({ period: 2, minute: 55, second: 20 }, firstHalf) },
+    { key: 'flank', at: flankCard ? elapsedAt(displayTime(flankCard), firstHalf) : 0 },
     { key: 'press', at: pressureCard ? elapsedAt(displayTime(pressureCard), firstHalf) : 0 },
-    ...cues.filter(c => c.template === 'pressure_shift_bar').slice(0, 1).map(cue => ({ key: 'overlay', at: elapsedAt(cue.show_at.not_before, firstHalf) })),
-    { key: 'correction', at: elapsedAt({ period: 2, minute: 68, second: 10 }, firstHalf) },
+    ...cues.filter(c => c.kind === 'withdrawal').slice(0, 1).map(cue => ({ key: 'overlay', at: elapsedAt(cue.show_at.not_before, firstHalf) })),
+    { key: 'correction', at: withdrawal ? elapsedAt(displayTime(withdrawal), firstHalf) : 0 },
     { key: 'full', at: data.timeline.duration },
   ];
   return <div className="app-shell">
@@ -125,7 +127,7 @@ function Workspace({ locale, setLocale }: { locale: Locale; setLocale: (locale: 
             <EventFeed events={delivered} data={data} />
           </div><Insights cards={currentCards} onOpen={openCase} mode={mode} full={full} /></div>
         </ViewBoundary>}
-        {route === 'analyst' && <ViewBoundary key={`analyst:${locale}`}><Analyst cards={currentCards} allRevisions={publishedRevisions} selected={selected} onSelect={setSelected} /></ViewBoundary>}
+        {route === 'analyst' && <ViewBoundary key={`analyst:${locale}`}><Analyst cards={currentCards} allRevisions={publishedRevisions} selected={selected} onSelect={setSelected} amendments={amendments} /></ViewBoundary>}
         {route === 'broadcast' && <ViewBoundary key={`broadcast:${locale}`}><Broadcast data={data} elapsed={elapsed} cues={cues} cards={cards} decisions={decisions} onDecide={decision => setDecisions(previous => [...previous, decision])} onReset={() => setDecisions([])} /></ViewBoundary>}
         {route === 'overlay' && <ViewBoundary key={`overlay:${locale}`}><Overlay data={data} elapsed={elapsed} cards={cards} cues={cues} decisions={decisions} /></ViewBoundary>}
         <footer className="workspace-footer"><span>{text('brand.name')}</span><p>{text('nav.about')}</p><span>{data.matchId} · {text('fixture')}</span></footer>

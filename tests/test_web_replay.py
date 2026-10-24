@@ -1,4 +1,4 @@
-"""Validate the committed web ledger against contracts and a fresh backend replay."""
+"""Only committed inputs: build the Studio take afresh, then validate its web export."""
 
 import asyncio
 import copy
@@ -10,146 +10,97 @@ import pytest
 
 from agents.llm import Replay
 from contracts.card import InsightCard
+from contracts.case_file import CaseFile
 from contracts.cue import Cue
-from contracts.eval_run import Variant
-from contracts.event import Event
-from detector.cusum import detect
-from engine.io import match_meta
+from contracts.event import EventAmendment
+from contracts.tool_result import DependencyEntry
+from engine.io import write_match
 from engine.script import load_script
 from engine.sim import MatchSim
-from orchestration.case import run_case
-from state.tools import Feed
+from orchestration.studio import studio
 from surfaces.web.scripts import export_web_replay as exporter
+from tools_server.server import DirectorySource
 
 ROOT = Path(__file__).resolve().parents[1]
 LEDGER = ROOT / "surfaces/web/src/fixtures/ledger.json"
 
 
 @pytest.fixture(scope="module")
-def replayed():
+def replayed(tmp_path_factory):
+    data = tmp_path_factory.mktemp("studio-source")
     sim = MatchSim(load_script(ROOT / "engine/scripts/planted/m01.yaml"))
-    events = sim.run()
-    feed = Feed(meta=match_meta(sim), events=events, data_version="feed-1")
-    case = next(c for c in detect(feed.meta, events) if c.window.end.minute == 63)
-    replay = Replay(ROOT / "tests/fixtures/cases/m01-063-A")
-    # Tool-call ids name their question, so a replay reproduces the card but its trace id.
+    write_match(sim, sim.run(), data / "m01")
+    replay = Replay(ROOT / "tests/fixtures/studio/m01")
     with patch("agents.llm.FoundryModel.ask", side_effect=AssertionError("No model calls")):
-        outcome = asyncio.run(run_case(Variant.A_PROOFLINE, replay, replay, case, feed))
-    return feed, outcome.verdict.card
+        take = asyncio.run(studio(DirectorySource(data), "m01", replay, replay))
+    return data / "m01", take
 
 
-def test_committed_ledger_validates_every_card_and_cue():
-    ledger = json.loads(LEDGER.read_text())
-    cards = [InsightCard.model_validate(raw) for raw in ledger["cards"]]
-    cues = [Cue.model_validate(raw) for raw in ledger["cues"]]
-    assert len({(c.id, c.revision) for c in cards}) == len(cards)
-    assert len({c.cue_id for c in cues}) == len(cues)
-    assert "ins-m01-063-01" not in {c.id for c in cards}
-    for card in cards:
-        if card.provenance.trace_id.startswith("stand-in-"):
-            assert f"{card.id}@{card.revision}" in ledger["stand_ins"]["cards"]
-    assert set(ledger["stand_ins"]["cues"]) == {c.cue_id for c in cues}
-    original, withdrawal = [c for c in cards if c.id == "ins-m01-055-01"]
-    assert original.status == "shown" and withdrawal.status == "withdrawn"
-    assert withdrawal.revision == 2 and withdrawal.verification.status == "rejected"
+def stable(value):
+    """Only traces and checkpoint wall times vary between recorded replays."""
+    if isinstance(value, dict):
+        return {k: stable(v) for k, v in value.items() if k not in {"trace_id", "wall_clock_ms"}}
+    if isinstance(value, list):
+        return [stable(v) for v in value]
+    return value
 
 
-def test_committed_pressure_card_equals_fresh_backend_replay_except_trace(replayed):
+def test_committed_ledger_validates_every_record():
+    take = json.loads(LEDGER.read_text())
+    for field, contract in {
+        "cards": InsightCard,
+        "cues": Cue,
+        "case_files": CaseFile,
+        "amendments": EventAmendment,
+        "dependencies": DependencyEntry,
+        "corrections": exporter.CorrectionRecord,
+    }.items():
+        assert take[field]
+        for record in take[field]:
+            contract.model_validate(record)
+    assert take["stand_ins"] == {"cards": [], "cues": []}
+    assert take["profile"]["language"] == "es"
+    assert take["profile"]["favorite_club"] == "Northvale"
+
+
+def test_committed_studio_equals_fresh_recorded_take(replayed):
     _, fresh = replayed
-    ledger = json.loads(LEDGER.read_text())
-    committed = next(c for c in ledger["cards"] if c["id"] == fresh.id)
-    actual = copy.deepcopy(committed)
-    expected = fresh.model_dump(mode="json")
-    assert actual["provenance"].pop("trace_id")
-    assert expected["provenance"].pop("trace_id")
-    assert actual == expected
-    # The recorded run's support level is its judgement; a fan surface shows strong or moderate.
-    assert fresh.status == "verified" and fresh.verification.support_level in ("strong", "moderate")
-    assert fresh.timing.published_at is None
-    assert f"{fresh.id}@{fresh.revision}" not in ledger["stand_ins"]["cards"]
+    committed = json.loads(LEDGER.read_text())
+    for field in fresh:
+        assert stable(committed[field]) == stable(fresh[field]), field
 
 
-def test_committed_press_cue_uses_first_dead_ball_and_real_evidence(replayed):
-    feed, card = replayed
-    ledger = json.loads(LEDGER.read_text())
-    cue = Cue.model_validate(next(c for c in ledger["cues"] if c["insight_id"] == card.id))
-    first = next(
-        e
-        for e in feed.events
-        if e.type in exporter.DEAD_BALL and e.clock > exporter.display_time(card)
-    )
-    assert cue.show_at.not_before == first.clock
-    assert cue.fields["team"] == card.subject.team
-    assert cue.fields["before"] == card.evidence[0].baseline.value
-    assert cue.fields["after"] == card.evidence[0].value
-    assert cue.fields["headline"] == card.variants["casual"]["en"]
-    assert (
-        cue.show_at.not_before.seconds_in_period - card.timing.detected_at.seconds_in_period == 29
-    )
+def test_real_correction_changes_only_the_flank_and_keeps_all_revisions():
+    take = json.loads(LEDGER.read_text())
+    flank = [c for c in take["cards"] if c["id"] == "ins-m01-057-shape_change"]
+    hero = [c for c in take["cards"] if c["id"] == "ins-m01-063-pressure_shift"]
+    assert [(c["revision"], c["status"]) for c in flank] == [(1, "shown"), (2, "withdrawn")]
+    assert flank[0]["timing"]["published_at"]["minute"] == 62
+    assert flank[1]["timing"]["published_at"]["minute"] == 70
+    assert flank[1]["variants"]["casual"]["es"]
+    assert flank[0]["evidence"] != flank[1]["evidence"]
+    assert len(hero) == 1 and hero[0]["timing"]["verified_at"]["minute"] == 68
+    assert take["corrections"] == [
+        dict(card_id=flank[1]["id"], decision="withdraw", revision=2, amendment_id="a1")
+    ]
+    cue = next(c for c in take["cues"] if c["kind"] == "withdrawal")
+    assert cue["status"] == "pending" and cue["insight_revision"] == 2
+    assert take["amendments"][0]["event_ids"]
 
 
-@pytest.mark.parametrize("legacy", [False, True])
-def test_export_honors_match_and_output_args_with_no_goals(tmp_path, replayed, legacy):
-    feed, _ = replayed
-    source = tmp_path / "source"
-    source.mkdir()
-    meta = feed.meta.model_dump(mode="json") | {"match_id": "m17"}
-    if legacy:
-        meta.update(seed=1234, score={"home": 99}, period_lengths_s={"1": 9999})
-    (source / "meta.json").write_text(json.dumps(meta))
-    events = [e.model_copy(update={"match_id": "m17"}) for e in feed.events if e.type != "goal"]
-    (source / "events.jsonl").write_text("".join(e.model_dump_json() + "\n" for e in events))
-    out, ledger_path = tmp_path / "public/custom", tmp_path / "custom-ledger.json"
-    exporter.export(source, "m17", out, [], ledger_path)
-    exported = json.loads((out / "meta.json").read_text())
-    assert set(exported) == {"match_id", "teams"} and exported["match_id"] == "m17"
-    assert all(
-        Event.model_validate_json(line).match_id == "m17"
-        for line in (out / "events.jsonl").read_text().splitlines()
-    )
-    ledger = json.loads(ledger_path.read_text())
-    assert len(ledger["cards"]) == 2  # No goal stand-in is invented for a scoreless match.
-    assert all(InsightCard.model_validate(c).match_id == "m17" for c in ledger["cards"])
-    assert all(Cue.model_validate(c).match_id == "m17" for c in ledger["cues"])
-
-
-def test_export_preserves_the_input_card_payload_and_rejects_wrong_match(tmp_path, replayed):
-    feed, card = replayed
-    source = tmp_path / "source"
-    source.mkdir()
-    (source / "meta.json").write_text(feed.meta.model_dump_json())
-    (source / "events.jsonl").write_text("".join(e.model_dump_json() + "\n" for e in feed.events))
-    card_path = tmp_path / "card.json"
-    card_path.write_text(card.model_dump_json())
-    out, target = tmp_path / "out", tmp_path / "ledger.json"
-    exporter.export(source, "m01", out, [card_path], target)
-    stored = next(c for c in json.loads(target.read_text())["cards"] if c["id"] == card.id)
-    assert stored == json.loads(card_path.read_text())
-    with pytest.raises(ValueError, match="different match"):
-        exporter.export(source, "other", out, [card_path], target)
-    with pytest.raises(ValueError, match="duplicate card"):
-        exporter.export(source, "m01", out, [card_path, card_path], target)
-    card_path.write_text(card.model_copy(update={"match_id": "other"}).model_dump_json())
-    with pytest.raises(ValueError, match="card belongs"):
-        exporter.export(source, "m01", out, [card_path], target)
-
-
-def test_press_cue_waits_for_substitution_and_is_omitted_without_dead_ball(replayed):
-    _, card = replayed
-
-    def event(kind, seconds):
-        return Event(
-            event_id=str(seconds),
-            match_id=card.match_id,
-            clock=exporter.later(exporter.display_time(card), seconds),
-            wall_clock_ms=0,
-            type=kind,
-            team=card.subject.team,
-        )
-
-    events = [event("card", 1), event("substitution", 3), event("foul", 4)]
-    (cue,) = exporter.stand_in_cues([card], events)
-    assert cue.show_at.not_before == events[1].clock
-    assert exporter.stand_in_cues([card], events[:1]) == []
-    proposed = InsightCard.model_validate(card.model_dump() | {"status": "proposed"})
-    assert exporter.stand_in_cues([proposed], events) == []
+def test_export_keeps_every_studio_payload_unchanged(tmp_path, replayed):
+    source, take = replayed
+    studio_path = tmp_path / "studio.json"
+    studio_path.write_text(json.dumps(take))
+    target = tmp_path / "web.json"
+    exporter.export(source, "m01", tmp_path / "public", [], target, studio_path)
+    exported = json.loads(target.read_text())
+    assert {k: exported[k] for k in take} == take
+    bad = copy.deepcopy(take)
+    bad["corrections"][0]["amendment_id"] = "missing"
+    with pytest.raises(ValueError, match="missing amendment"):
+        exporter.validate_studio(bad, "m01")
+    bad = copy.deepcopy(take)
+    bad["case_files"][0]["case"]["stage"] = "open"
+    with pytest.raises(ValueError):
+        exporter.validate_studio(bad, "m01")

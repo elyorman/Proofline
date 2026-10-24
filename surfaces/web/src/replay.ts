@@ -52,7 +52,7 @@ export function scoreAt(timeline: Timeline, elapsed: number, teams: string[]): n
 }
 
 export function displayTime(card: InsightCard): MatchClock {
-  return card.timing.published_at ?? card.timing.detected_at;
+  return card.timing.published_at ?? card.timing.verified_at ?? card.timing.detected_at;
 }
 
 export function variantText(card: InsightCard, audience: string, locale: string): string | undefined {

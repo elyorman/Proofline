@@ -7,8 +7,8 @@ import { CueGraphic, overlayTemplate, publishedCues } from './Overlay';
 import { LocaleContext } from './ui';
 import type { Locale } from './i18n';
 
-const press = cards.find(card => card.moment_type === 'pressure_shift')!;
-const cue = cues.find(cue => cue.template === 'pressure_shift_bar')!;
+const press = cards.find(card => card.id === 'ins-m01-063-pressure_shift')!;
+const cue = cues.find(cue => cue.insight_id === press.id)!;
 const render = (node: ReactNode, locale: Locale = 'en') =>
   renderToStaticMarkup(<LocaleContext.Provider value={locale}>{node}</LocaleContext.Provider>);
 
@@ -35,13 +35,13 @@ describe('template-driven overlay', () => {
     expect(render(<CueGraphic cue={{ ...cue, template: 'new_template' as Cue['template'] }} />)).toContain('new_template');
   });
   it('makes a cue available when its real card has no published_at', () => {
-    expect(publishedCues([cue], [press], 63 * 60 - 1, 2700)).toEqual([]);
-    expect(publishedCues([cue], [press], 63 * 60, 2700)).toEqual([cue]);
+    expect(publishedCues([cue], [press], 68 * 60 - 1, 2700)).toEqual([]);
+    expect(publishedCues([cue], [press], 68 * 60, 2700)).toEqual([cue]);
   });
   it('withholds cues linked to unverified cards or superseded revisions', () => {
-    expect(publishedCues([cue], [{ ...press, verification: null }], 63 * 60, 2700)).toEqual([]);
+    expect(publishedCues([cue], [{ ...press, verification: null }], 68 * 60, 2700)).toEqual([]);
     const withdrawal = cards.find(card => card.status === 'withdrawn')!;
     const oldCue = { ...cue, insight_id: withdrawal.id, insight_revision: 1 };
-    expect(publishedCues([oldCue], cards, 69 * 60, 2700)).toEqual([]);
+    expect(publishedCues([oldCue], cards, 71 * 60, 2700)).toEqual([]);
   });
 });

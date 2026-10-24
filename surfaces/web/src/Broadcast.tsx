@@ -4,7 +4,7 @@ import type { ReplayData } from './data';
 import { applyDecisions, cueStart, elapsedAt, formatClock, visibleCues, clockAt, type ProducerDecision } from './replay';
 import { Pitch } from './Pitch';
 import { Empty, SectionTitle, useText } from './ui';
-import { ProgramOverlay, publishedCues } from './Overlay';
+import { CueGraphic, ProgramOverlay, publishedCues } from './Overlay';
 import { isStandInCue } from './fixtures';
 
 export function Broadcast({ data, elapsed, cues, cards, decisions, onDecide, onReset }: {
@@ -37,6 +37,7 @@ export function Broadcast({ data, elapsed, cues, cards, decisions, onDecide, onR
         <div className="cue-top"><span className="eyebrow">{isStandInCue(cue) ? text('fixture.short') : cue.template}</span><span className={`status ${status === 'killed' ? 'warn' : ''}`}>{text(`status.${status}`)}</span></div>
         <h3>{String(cue.fields.headline ?? '')}</h3><p>{String(cue.fields.team ?? '')}</p>
         <small>{text('broadcast.slot', { start: formatClock(cue.show_at.not_before), end: formatClock(cue.show_at.not_after), duration: cue.duration_s })}</small>
+        <details className="cue-field-preview"><summary>{text('broadcast.preview')}</summary><CueGraphic cue={cue} /></details>
         <div className="cue-controls">{(['approved', 'held', 'killed'] as const).map((status, i) => <button key={status} className={i === 0 ? 'button primary' : 'button'} disabled={terminal || cue.status === status} onClick={() => onDecide({ cueId: cue.cue_id, at: elapsed, status })}>{text(['broadcast.approve', 'broadcast.hold', 'broadcast.kill'][i])}</button>)}</div>
       </article>;
     })}

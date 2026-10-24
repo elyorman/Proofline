@@ -5,11 +5,13 @@ import type { Metric } from './types/insight-card';
 import { cards } from './fixtures';
 import { CaseOverview, RevisionHistory, VerificationPanel } from './Analyst';
 import { Evidence, Insight } from './Insights';
+import { RevisionDiff } from './RevisionDiff';
+import { amendments } from './fixtures';
 import { ShotMarker } from './Pitch';
 import { LocaleContext } from './ui';
 import { t, type Locale } from './i18n';
 
-const press = cards.find(card => card.moment_type === 'pressure_shift')!;
+const press = cards.find(card => card.id === 'ins-m01-063-pressure_shift')!;
 const render = (node: ReactNode, locale: Locale = 'en') =>
   renderToStaticMarkup(<LocaleContext.Provider value={locale}>{node}</LocaleContext.Provider>);
 
@@ -91,5 +93,17 @@ describe('shot outcomes', () => {
     expect(markers[1]).toContain('On target');
     expect(markers[2]).toContain('Off target');
     expect(markers[3]).toContain('<rect');
+  });
+});
+
+describe('Studio correction gate', () => {
+  it('shows the actual evidence change, amendment and affected events', () => {
+    const card = cards.find(c => c.status === 'withdrawn')!;
+    const html = render(<RevisionDiff card={card} snapshots={cards} amendments={amendments} />);
+    expect(html).toContain(amendments[0].amendment_id);
+    expect(html).toContain(amendments[0].event_ids[0]);
+    expect(html).toContain(amendments[0].reason);
+    expect(html).toContain('Withdrawn');
+    expect(html).toContain('Published');
   });
 });

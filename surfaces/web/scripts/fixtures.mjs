@@ -7,10 +7,10 @@ const python = process.env.PROOFLINE_PYTHON;
 // Build tooling only. Every case command must carry --replay: never a live model.
 for (const args of [
   ['-m', 'engine.cli', 'generate', '--script', 'engine/scripts/planted/m01.yaml', '--out', 'data/m01'],
-  ['-m', 'orchestration.cli', 'case', '--match', 'm01', '--minute', '63', '--variant', 'A',
-    '--replay', 'tests/fixtures/cases/m01-063-A'],
+  ['-m', 'orchestration.cli', 'run', '--mode', 'studio', '--match', 'm01',
+    '--replay', 'tests/fixtures/studio/m01'],
   ['surfaces/web/scripts/export_web_replay.py', '--source', 'data/m01', '--match', 'm01',
-    '--out', 'surfaces/web/public/fixtures/m01', '--cards', 'runs/ins-m01-063-pressure_shift-A.json'],
+    '--out', 'surfaces/web/public/fixtures/m01', '--studio-ledger', 'runs/studio/m01/ledger.json'],
 ]) {
   const result = spawnSync(python || 'uv', [...(python ? ['-B'] : ['run', 'python']), ...args], {
     cwd: root, stdio: 'inherit',

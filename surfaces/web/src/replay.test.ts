@@ -11,8 +11,8 @@ const event = (type: string, minute: number, period: number, team = 'Northvale')
 const timelineWithEnds = (events: Event[]) => buildTimeline([
   ...events, event('period_end', 45, 1), event('period_end', 90, 2),
 ]);
-const press = cards.find(c => c.moment_type === 'pressure_shift')!;
-const cueFixture = { ...cues.find(c => c.template === 'pressure_shift_bar')!, show_at: {
+const press = cards.find(c => c.id === 'ins-m01-063-pressure_shift')!;
+const cueFixture = { ...cues.find(c => c.template === 'pressure_shift_bar')!, status: 'approved' as const, show_at: {
   mode: 'immediate' as const, not_before: { period: 2 as const, minute: 63, second: 40 },
   not_after: { period: 2 as const, minute: 64, second: 25 },
 } };
@@ -43,23 +43,26 @@ describe('replay boundaries', () => {
     expect(() => timelineWithEnds([event('period_end', 46, 1)])).toThrow('Incomplete replay');
     expect(() => timelineWithEnds([event('pass', 47, 1)])).toThrow('Event after period_end');
   });
-  it('displays a verified card at detected_at until a publication time exists', () => {
-    expect(press.timing.published_at).toBeNull();
+  it('uses publication or confirmation time before falling back to detection', () => {
+    expect(press.timing.verified_at?.minute).toBe(68);
     const at = elapsedAt(displayTime(press), 2820);
     expect(visibleCards([press], at - 1, 2820)).toEqual([]);
     expect(visibleCards([press], at, 2820)).toEqual([press]);
-    const scheduled = { ...press, timing: { ...press.timing, published_at: { period: 2 as const, minute: 64, second: 0 } } };
+    const scheduled = { ...press, timing: { ...press.timing, published_at: { period: 2 as const, minute: 69, second: 0 } } };
     expect(displayTime(scheduled)).toEqual(scheduled.timing.published_at);
     expect(visibleCards([scheduled], at, 2820)).toEqual([]);
+    const unpublished = { ...press, timing: { ...press.timing, published_at: null } };
+    expect(displayTime(unpublished)).toEqual(press.timing.verified_at);
+    expect(visibleCards([unpublished], 63 * 60, 2700)).toEqual([]);
   });
   it('replaces a withdrawal in place without moving it above a newer card', () => {
-    const before = visibleCards(cards, 67 * 60, 2700);
-    const after = visibleCards(cards, 69 * 60, 2700);
+    const before = visibleCards(cards, 69 * 60, 2700);
+    const after = visibleCards(cards, 71 * 60, 2700);
     expect(after.map(c => c.id)).toEqual(before.map(c => c.id));
     expect(after[0].id).toBe(press.id);
-    expect(after.find(c => c.id === 'ins-m01-055-01')?.status).toBe('withdrawn');
-    expect(after.filter(c => c.id === 'ins-m01-055-01')).toHaveLength(1);
-    expect(visibleCards(cards, 67 * 60, 2700)).toEqual(before);
+    expect(after.find(c => c.id === 'ins-m01-057-shape_change')?.status).toBe('withdrawn');
+    expect(after.filter(c => c.id === 'ins-m01-057-shape_change')).toHaveLength(1);
+    expect(visibleCards(cards, 69 * 60, 2700)).toEqual(before);
     expect(visibleCards(cards, 0, 2700)).toEqual([]);
   });
   it('withholds unverified full-lane cards and unpublished proposals', () => {

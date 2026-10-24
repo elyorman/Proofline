@@ -4,6 +4,8 @@ import { Evidence, useCardText } from './Insights';
 import { displayTime, formatClock } from './replay';
 import { isStandInCard } from './fixtures';
 import { Empty, Icon, SectionTitle, useText } from './ui';
+import { RevisionDiff } from './RevisionDiff';
+import type { EventAmendment } from './types/event-amendment';
 
 const checks = ['recompute', 'baseline_check', 'sample_size_check', 'contradiction_check', 'number_check', 'semantic_check'] as const;
 
@@ -104,8 +106,8 @@ export function VerificationPanel({ card }: { card: InsightCard }) {
   </>;
 }
 
-export function Analyst({ cards, allRevisions, selected, onSelect }: {
-  cards: InsightCard[]; allRevisions: InsightCard[]; selected: string; onSelect: (id: string) => void;
+export function Analyst({ cards, allRevisions, selected, onSelect, amendments = [] }: {
+  cards: InsightCard[]; allRevisions: InsightCard[]; selected: string; onSelect: (id: string) => void; amendments?: EventAmendment[];
 }) {
   const { text } = useText();
   const cardText = useCardText();
@@ -133,7 +135,7 @@ export function Analyst({ cards, allRevisions, selected, onSelect }: {
         </div>
         {tab === 'overview' && <CaseOverview card={card} />}
         {tab === 'verification' && <VerificationPanel card={card} />}
-        {tab === 'history' && <RevisionHistory card={card} snapshots={allRevisions} />}
+        {tab === 'history' && <><RevisionDiff card={card} snapshots={allRevisions} amendments={amendments} /><RevisionHistory card={card} snapshots={allRevisions} /></>}
       </>}
     </div>
   </section></div>;

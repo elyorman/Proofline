@@ -47,6 +47,10 @@ def card_data(card: InsightCard) -> dict:
     return data
 
 
+def card_digest(card: InsightCard) -> str:
+    return hashlib.sha256(json.dumps(card_data(card), sort_keys=True).encode()).hexdigest()
+
+
 def scoped_model(model: Model, name: str) -> Model:
     """Identical prompts in different trials must not overwrite recorded replies."""
     if isinstance(model, Recording):
@@ -78,7 +82,7 @@ async def replay_case(
     ):
         raise ValueError(
             f"{match_id}/{expected.case_id}: replayed card differs from the batch beyond trace_id; "
-            "tool/evidence IDs must be stable or persisted by the backend"
+            "check that the feed and source exchanges belong to this batch"
         )
     return outcome
 
@@ -117,9 +121,7 @@ async def benchmark_card(
         case_id=card.case_id,
         card_id=card.id,
         revision=card.revision,
-        card_digest=hashlib.sha256(
-            json.dumps(card_data(card), sort_keys=True).encode()
-        ).hexdigest(),
+        card_digest=card_digest(card),
         control=control.card.verification,
         trials=trials,
     ), usage

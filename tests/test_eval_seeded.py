@@ -365,3 +365,49 @@ def test_seeded_runner_spends_nothing_when_source_card_does_not_match(
             )
         )
     assert model.calls == 0
+
+
+def test_real_batch_reconstructs_and_replays_without_patching_run_case(real_case, tmp_path):
+    from eval.seeded import card_digest
+    from orchestration.batch import _one
+
+    sim, events, feed, case, outcome, _ = real_case
+    source = Replay(EXCHANGES)
+    batch_case = asyncio.run(_one(Variant.A_PROOFLINE, source, source, case, feed))
+    assert batch_case["published"]
+    data, runs, recorded = tmp_path / "data", tmp_path / "runs", tmp_path / "recorded"
+    write_match(sim, events, data / case.match_id)
+    (runs / "A").mkdir(parents=True)
+    (runs / "A" / f"{case.match_id}.json").write_text(
+        json.dumps(dict(match_id=case.match_id, variant="A", cases=[batch_case]))
+    )
+    first = asyncio.run(
+        run_seeded(
+            runs,
+            Variant.A_PROOFLINE,
+            data,
+            EXCHANGES,
+            Recording(AcceptAll(), recorded),
+            recorded,
+            split=Split.DEV,
+            model_id="scripted",
+            resamples=100,
+        )
+    )
+    second = asyncio.run(
+        run_seeded(
+            runs,
+            Variant.A_PROOFLINE,
+            data,
+            EXCHANGES,
+            Replay(recorded),
+            recorded,
+            split=Split.DEV,
+            model_id="scripted",
+            resamples=100,
+        )
+    )
+    assert first.cards == second.cards and first.run_id == second.run_id
+    clone = outcome.verdict.card.model_copy(deep=True)
+    clone.provenance.trace_id = "new-process-trace"
+    assert card_digest(clone) == card_digest(outcome.verdict.card)

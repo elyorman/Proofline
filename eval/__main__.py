@@ -51,6 +51,9 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--metric", choices=METRIC_NAMES, default=PLANTED_RECALL)
     parser.add_argument("--out", type=Path, help="also save JSON to a new file")
     parser.add_argument("--record-dir", type=Path, help="save immutable committed-number records")
+    parser.add_argument(
+        "--after-follow-up", action="store_true", help="score each card as its follow-up left it"
+    )
     args = parser.parse_args(argv)
     try:
         suites = [
@@ -76,6 +79,7 @@ def main(argv: list[str] | None = None) -> int:
                     run_id=(
                         f"{args.run_id}-{variant}" if args.compare and args.run_id else args.run_id
                     ),
+                    after_follow_up=args.after_follow_up,
                     **options,
                 )
                 for variant in variants

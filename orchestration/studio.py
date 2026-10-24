@@ -14,6 +14,7 @@ from agents.confirm import extended
 from agents.director import direct
 from agents.llm import MissingFixture, Model
 from contracts.card import InsightCard
+from contracts.clock import Window
 from contracts.eval_run import Variant
 from contracts.profile import Profile
 from contracts.taxonomy import CardStatus
@@ -64,6 +65,9 @@ async def studio(
     versions, cases = _cases(source, match_id)
     revisions: list[InsightCard] = []
     published: dict[str, Published] = {}
+    followed: dict[
+        str, tuple[InsightCard, Any]
+    ] = {}  # a card's settled follow-up, with its finding
     files, errors = [], []
     for case, feed in cases:
         try:
@@ -86,11 +90,36 @@ async def studio(
             published[card.id] = Published(
                 card, built_on, hypothesis, outcome.finding.evidence, outcome.finding.exams
             )
+            later = outcome.followed.card if outcome.followed else None
+            if later is not None and later.status == CardStatus.REVISED:
+                followed[card.id] = (later, outcome.finding)
     index = DependencyIndex()
     for p in published.values():
         index.add(p)
-    corrections = []
-    for amendment, feed in versions[1:]:
+    corrections, follow_ups = [], []
+    # Amendments and settled follow-ups, in match time: whichever comes first revises a card.
+    timeline = sorted(
+        [(a.at.sort_key, 1, a, feed) for a, feed in versions[1:]]
+        + [(c.timing.verified_at.sort_key, 0, c, finding) for c, finding in followed.values()],
+        key=lambda e: (e[0], e[1]),
+    )
+    for _, _, event, context in timeline:
+        if isinstance(event, InsightCard):
+            p = published.get(event.id)
+            if p is None or p.card.revision != event.revision - 1:
+                continue  # withdrawn, or revised by a correction first: it settles another card
+            revisions.append(event)
+            follow_ups.append(
+                {"card_id": event.id, "status": event.follow_up.status, "revision": event.revision}
+            )
+            primary = event.primary_cause.hypothesis_id
+            hypothesis = next(h for h in context.hypotheses if h.hypothesis_id == primary)
+            # Later amendments re-check it with its tools fixed when the follow-up settled.
+            ready = Window(start=p.case.window.start, end=event.timing.verified_at)
+            case = p.case.model_copy(update={"window": ready})
+            published[event.id] = Published(event, case, hypothesis, p.evidence, p.exams)
+            continue
+        amendment, feed = event, context
         for card_id in sorted(index.dependents(amendment)):
             if card_id not in published:
                 continue  # withdrawn by an earlier amendment
@@ -128,6 +157,7 @@ async def studio(
         "amendments": [a.model_dump(mode="json") for a, _ in versions[1:]],
         "dependencies": [d.model_dump(mode="json") for d in index.entries()],
         "corrections": corrections,
+        "follow_ups": follow_ups,
         "case_errors": errors,
     }
 

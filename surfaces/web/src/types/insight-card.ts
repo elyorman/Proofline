@@ -112,7 +112,7 @@ export type HypothesisId1 = string;
  */
 export type Team1 = string | null;
 export type Reason = string;
-export type RejectedBy = "test" | "cross_examination" | "verifier";
+export type RejectedBy = "test" | "cross_examination" | "verifier" | "follow_up";
 export type ToolCallId1 = string | null;
 export type RejectedAlternatives = RejectedAlternative[];
 export type Agents = AgentRole[];
@@ -154,6 +154,28 @@ export type Revision2 = number;
 export type Reason1 = string;
 export type AmendmentIds = string[];
 export type Revisions = Revision1[];
+export type RivalHypothesisId = string;
+export type RivalTeam = string;
+/**
+ * @minItems 1
+ * @maxItems 2
+ */
+export type Tests = [DecisiveTest] | [DecisiveTest, DecisiveTest];
+export type Side = "primary" | "rival";
+export type HypothesisId2 = string;
+export type Subject3 = string;
+export type Reason2 = string;
+/**
+ * measured, signed, against the first half
+ */
+export type Sigmas = number | null;
+export type Holds = boolean | null;
+/**
+ * what code read, or why it could not
+ */
+export type Measured = string | null;
+export type ToolCallId2 = string | null;
+export type Status1 = "pending" | "confirmed" | "overturned" | "unresolved";
 export type Supersedes = string | null;
 export type SupersededBy = string | null;
 export type TraceId = string;
@@ -182,6 +204,7 @@ export interface InsightCard {
   variants?: Variants;
   broadcast_cue?: BroadcastCueSpec | null;
   revisions?: Revisions;
+  follow_up?: FollowUp | null;
   supersedes?: Supersedes;
   superseded_by?: SupersededBy;
   provenance: Provenance;
@@ -302,6 +325,47 @@ export interface Revision1 {
   at: MatchClock;
   reason: Reason1;
   amendment_ids?: AmendmentIds;
+}
+/**
+ * Keep watching: two causes survived and the data could not tell them apart, so each
+ * side pre-registered a decisive test for the minutes after the card. Only the primary's
+ * holding confirms it; only the rival's overturns it; both or neither leave it open.
+ */
+export interface FollowUp {
+  window: Window1;
+  rival_hypothesis_id: RivalHypothesisId;
+  rival_cause: Cause;
+  rival_agent: AgentRole;
+  rival_team: RivalTeam;
+  tests: Tests;
+  status?: Status1;
+}
+/**
+ * Half-open match-clock window [start, end). Accepts "58:00-63:00".
+ */
+export interface Window1 {
+  start: MatchClock;
+  end: MatchClock;
+}
+/**
+ * One side's prediction for minutes nobody had seen when it was made: a move its cause
+ * implies and the rival's would not cause (up or down), or a number its cause leaves at
+ * ordinary play where the rival's would move it (flat). Code measures it once the minutes
+ * are played; a reading too thin to measure does not hold.
+ */
+export interface DecisiveTest {
+  side: Side;
+  hypothesis_id: HypothesisId2;
+  cause: Cause;
+  agent: AgentRole;
+  metric: Metric;
+  subject: Subject3;
+  direction: Direction;
+  reason: Reason2;
+  sigmas?: Sigmas;
+  holds?: Holds;
+  measured?: Measured;
+  tool_call_id?: ToolCallId2;
 }
 export interface Provenance {
   trace_id: TraceId;

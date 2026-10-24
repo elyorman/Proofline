@@ -161,12 +161,17 @@ def _meta(suite: str, split: str, match_id: str) -> MatchMeta:
     return match_meta(MatchSim(script))
 
 
-def claim(answer: Answer | PlainAnswer) -> tuple[bool, Cause | None, str | None]:
+def claim(
+    answer: Answer | PlainAnswer, after_follow_up: bool = False
+) -> tuple[bool, Cause | None, str | None]:
     """(whether the answer publishes a cause, the cause, its team). Proofline publishes one
-    on a verified card; the plain agent whenever it says the change happens and names one."""
+    on a verified card; the plain agent whenever it says the change happens and names one.
+    `after_follow_up` reads the card as its follow-up left it: an unresolved one names none."""
     if isinstance(answer, PlainAnswer):
         return answer.claims, answer.cause, answer.team
-    card = answer.card
+    card = answer.final if after_follow_up and answer.final else answer.card
+    if card and card.follow_up and card.follow_up.status == "unresolved":
+        return False, None, None
     return (True, card.primary_cause.cause, card.subject.team) if card else (False, None, None)
 
 
@@ -176,14 +181,16 @@ def outcome(answer: Answer | PlainAnswer) -> str:
     return answer.outcome
 
 
-def score(answers: list[Answer | PlainAnswer], key: list[Key]) -> dict:
+def score(
+    answers: list[Answer | PlainAnswer], key: list[Key], after_follow_up: bool = False
+) -> dict:
     """Right answers on true premises; no claim on false ones; and every false claim. An
     excluded question is listed but counts in none of them."""
     by_id = {a.question.question_id: a for a in answers}
     rows = []
     for k in key:
         a = by_id.get(k.question.question_id)
-        claimed, cause, team = claim(a) if a is not None else (False, None, None)
+        claimed, cause, team = claim(a, after_follow_up) if a is not None else (False, None, None)
         if k.premise_true:
             right = claimed and cause == k.cause and team == k.team
         else:
@@ -225,6 +232,9 @@ def main(argv: list[str] | None = None) -> int:
     scored.add_argument("--runs", type=Path, required=True)
     scored.add_argument("--split", choices=["dev", "heldout"], required=True)
     scored.add_argument("--variant", choices=["A", "B", "P"], required=True)
+    scored.add_argument(
+        "--after-follow-up", action="store_true", help="score each card as its follow-up left it"
+    )
     args = parser.parse_args(argv)
     key = keys(args.split)
     if args.command == "make":
@@ -235,7 +245,7 @@ def main(argv: list[str] | None = None) -> int:
     lines = (args.runs / args.variant / "answers.jsonl").read_text().splitlines()
     model = PlainAnswer if args.variant == "P" else Answer
     answers = [model.model_validate_json(x) for x in lines if '"error"' not in x[:400]]
-    result = score(answers, key)
+    result = score(answers, key, args.after_follow_up)
     print(json.dumps({k: v for k, v in result.items() if k != "rows"}, indent=1))
     for r in result["rows"]:
         mark = "xx " if r["excluded"] else "OK " if r["right"] else "-- "

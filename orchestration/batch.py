@@ -1,8 +1,8 @@
 """Batch mode: every case the detector opens on a folder of matches, through one variant.
 
 Each match's results are written to <out>/<variant>/<match_id>.json: when it started, and
-every case with its outcome, its card if one was published, its tool calls, tokens and
-recovery flag. The
+every case with its outcome, its card if one was published and its revision once a
+follow-up settled, its tool calls, tokens and recovery flag. The
 Evaluator scores those files against the sealed ground truth; this module never reads it.
 """
 
@@ -32,10 +32,13 @@ async def _one(variant: Variant, agents: Model, verifier: Model, case, feed) -> 
         return record | {"error": f"{type(exc).__name__}: {exc}", "trace": traceback.format_exc()}
     f = outcome.finding
     card = outcome.verdict.card if outcome.verdict else None
+    final = outcome.followed.card if outcome.followed else None
     return record | {
         "outcome": f.ranking.outcome,
         "card": card.model_dump(mode="json") if card else None,
         "published": bool(card and card.status == "verified"),
+        # The card's next revision once its follow-up settled, if it had one and it passed.
+        "final": final.model_dump(mode="json") if final and final.status == "revised" else None,
         "tool_calls": f.tools.used,
         "tokens": [f.usage.input_tokens, f.usage.output_tokens],
         "recovered": f.recovered,

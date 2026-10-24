@@ -14,13 +14,12 @@ from agents.investigation import Tools
 from agents.llm import Model, Usage
 from agents.plain import answer as plain_answer
 from agents.propose import propose
-from agents.verifier.checks import Record
-from agents.verifier.verify import verify
 from contracts.case import Case, TriggerMetric
 from contracts.eval_run import Variant
 from contracts.question import Answer, Question
 from contracts.taxonomy import AgentRole, CardStatus, Metric, MomentType
 from orchestration import workflow
+from orchestration.case import keep_watching
 from state.tools import Feed
 from tools_server.server import DirectorySource, FeedSource, MemorySink, build_server
 
@@ -46,7 +45,9 @@ async def run_question(
     role = AgentRole.LEAD if variant == Variant.A_PROOFLINE else AgentRole.SINGLE
     premise, why, usage = await lead.frame(agents, role, question, meta)
 
-    def answered(outcome: str, reason: str, test=None, card=None, spent: Usage = usage) -> Answer:
+    def answered(
+        outcome: str, reason: str, test=None, card=None, spent: Usage = usage, final=None
+    ) -> Answer:
         return Answer(
             question=question,
             variant=variant,
@@ -56,6 +57,7 @@ async def run_question(
             reason=reason,
             card=card,
             text=narrator.answer(outcome, premise, test, card, meta),
+            final=final,
             input_tokens=spent.input_tokens,
             output_tokens=spent.output_tokens,
         )
@@ -97,17 +99,19 @@ async def run_question(
     finding.explained = await explained(
         tools, premise.metric, premise.subject, premise.direction, window
     )
-    spent = usage + finding.usage
     card = propose(finding, feed)
     if card is None:
+        spent = usage + finding.usage
         return answered(finding.ranking.outcome, finding.ranking.why, test, spent=spent)
-    verdict = await verify(verifier, card, Record.of(tools.log, sink.evidence), feed, finding.exams)
-    spent = spent + verdict.usage
+    # Keep watching: a rival that survived is settled on the minutes after the question.
+    verdict, followed = await keep_watching(agents, verifier, finding, card, feed)
+    spent = usage + finding.usage + verdict.usage + (followed.usage if followed else Usage())
     shown = verdict.card if verdict.card.status == CardStatus.VERIFIED else None
+    final = followed.card if followed and followed.card.status == CardStatus.REVISED else None
     reason = (
         finding.ranking.why if shown else f"rejected: {verdict.card.verification.rejection_reason}"
     )
-    return answered("explained", reason, test, shown, spent)
+    return answered("explained", reason, test, shown, spent, final if shown else None)
 
 
 async def answer_all(

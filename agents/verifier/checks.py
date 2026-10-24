@@ -131,11 +131,10 @@ def contradicted(card: InsightCard, feed: Feed) -> bool:
 
 
 def numbers_match(card: InsightCard, texts: list[str]) -> bool:
-    """Every number in the text is one the evidence or the window states."""
-    allowed = {
-        str(card.timing.change_window.start.minute),
-        str(card.timing.change_window.end.minute),
-    }
+    """Every number in the text is one the evidence, the window or a follow-up's minutes
+    state."""
+    windows = [card.timing.change_window] + ([card.follow_up.window] if card.follow_up else [])
+    allowed = {str(m) for w in windows for m in (w.start.minute, w.end.minute)}
     for ev in card.evidence:
         for value in (ev.value, ev.baseline.value):
             allowed |= set(re.findall(r"\d+(?:\.\d+)?", narrator.number(ev.metric, value)))

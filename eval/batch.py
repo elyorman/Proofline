@@ -26,6 +26,7 @@ class BatchCase(BaseModel):
     recovered: StrictBool
     hypotheses: NonNegativeInt
     counter_tests: NonNegativeInt
+    final: InsightCard | None = None  # the card's revision once its follow-up settled
     error: None = None
 
 
@@ -58,6 +59,8 @@ class BatchMatch(BaseModel):
                     raise ValueError("card identity must match its batch match and case")
                 if case.outcome != case.card.case_outcome:
                     raise ValueError("card outcome must match its batch case")
+            if case.final is not None and (case.card is None or case.final.id != case.card.id):
+                raise ValueError("a settled follow-up is a later revision of the case's card")
         return self
 
 
@@ -75,7 +78,10 @@ def evaluate_batch(
     finished_at_ms: int | None = None,
     seed: int = 0,
     resamples: int = 2000,
+    after_follow_up: bool = False,
 ) -> EvalRun:
+    """Score a batch's published cards; `after_follow_up` scores each card as its follow-up
+    left it, where an unresolved follow-up claims no cause."""
     variant = Variant(variant)
     folder = Path(root) / variant.value
     cohort = {entry.match_id for suite in suites for entry in suite.truth.entries}
@@ -106,12 +112,15 @@ def evaluate_batch(
             if isinstance(case, BatchFailure):
                 errors[match.match_id][case.case_id] = case.error
             elif case.published:
-                cards.append(case.card)
+                last = case.final if after_follow_up and case.final else case.card
+                if not (last.follow_up and last.follow_up.status == "unresolved"):
+                    cards.append(last)
     batch_digest = digest.hexdigest()
+    settled = "-after-follow-up" if after_follow_up else ""
     run = evaluate(
         suites,
         cards,
-        run_id=run_id or f"batch-{variant}-{batch_digest[:16]}",
+        run_id=run_id or f"batch-{variant}-{batch_digest[:16]}{settled}",
         variant=variant,
         model_id=model_id,
         model_tier=model_tier,

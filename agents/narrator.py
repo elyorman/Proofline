@@ -7,6 +7,7 @@ A model-written narrator replaces these later; they stay as its fallback.
 from agents.confirm import PERSIST_SD
 from contracts.card import InsightCard
 from contracts.case_file import Persistence
+from contracts.clock import Window
 from contracts.meta import MatchMeta
 from contracts.prediction import Direction
 from contracts.question import Premise
@@ -151,32 +152,77 @@ def variants(
     """Casual and analyst text in every locale, at the language level `support` allows."""
     level = LANGUAGE_FOR_SUPPORT[support]
     primary = card.primary_cause
+    f = card.follow_up
+    later = f.window if f else None
     out: dict[str, dict[str, str]] = {"casual": {}, "analyst": {}}
     for i, locale in enumerate(LOCALES):
         team = card.subject.team
         because = LEVEL[level][i].format(cause=cause_phrase(primary.cause, team, i))
+        if f:  # keep watching: what the next minutes will settle, or what they settled
+            because = f"{because} {_follow_up(card, i)}"
+            if f.status == "unresolved":  # the minutes did not choose: no cause is asserted
+                because = _follow_up(card, i)
         out["casual"][locale] = f"{_sentence(card, meta, i)} {because}"
-        facts = []
-        for ev in card.evidence:
-            facts.append(
+
+        def facts(window: Window | None, i: int = i) -> str:
+            return "; ".join(
                 f"{LABEL[ev.metric][i]} ({who(meta, ev.subject)[0]}): "
                 f"{number(ev.metric, ev.baseline.value)} → {number(ev.metric, ev.value)}"
+                for ev in card.evidence
+                if (ev.window == later) == (window is not None)
             )
-        ruled = [cause_phrase(r.taxonomy, r.team or team, i) for r in card.rejected_alternatives]
+
+        ruled = [
+            cause_phrase(r.taxonomy, r.team or team, i)
+            for r in card.rejected_alternatives
+            if r.rejected_by != "follow_up"  # named by the follow-up's own sentence
+        ]
         strength = SUPPORT[support.value][i]
         window = (
             f"{card.timing.change_window.start.minute}'-{card.timing.change_window.end.minute}'"
         )
+        then = (
+            f" {later.start.minute}'-{later.end.minute}': {facts(later)}."
+            if later and facts(later)
+            else ""
+        )
         if i == 0:
-            text = f"{'; '.join(facts)}, {window} against the first half. {because}"
+            text = f"{facts(None)}, {window} against the first half.{then} {because}"
             text += f" Ruled out: {', '.join(ruled)}." if ruled else ""
             text += f" Support: {strength}."
         else:
-            text = f"{'; '.join(facts)}, {window} frente a la primera parte. {because}"
+            text = f"{facts(None)}, {window} frente a la primera parte.{then} {because}"
             text += f" Descartado: {', '.join(ruled)}." if ruled else ""
             text += f" Apoyo: {strength}."
         out["analyst"][locale] = text
     return out
+
+
+# Keep watching (agents/follow_up.py): one sentence per state, English and Spanish.
+PENDING = (
+    "We'll check it against {rival} by {end}'.",
+    "Lo comprobaremos frente a {rival} antes del minuto {end}.",
+)
+CHECKED = ("Checked by {end}': not {loser}.", "Comprobado en el minuto {end}: no es {loser}.")
+STILL_OPEN = (
+    "It could be {cause} or {rival}: by {end}' the numbers still fit both.",
+    "Puede ser {cause} o {rival}: en el minuto {end} los números aún encajan con ambos.",
+)
+
+
+def _follow_up(card: InsightCard, locale: int) -> str:
+    f, primary = card.follow_up, card.primary_cause
+    end = f.window.end.minute
+    rival = cause_phrase(f.rival_cause, f.rival_team, locale)
+    if f.status == "pending":
+        return PENDING[locale].format(rival=rival, end=end)
+    if f.status == "unresolved":
+        cause = cause_phrase(primary.cause, card.subject.team, locale)
+        return STILL_OPEN[locale].format(cause=cause, rival=rival, end=end)
+    if f.status == "confirmed":
+        return CHECKED[locale].format(end=end, loser=rival)
+    was = next(r for r in card.rejected_alternatives if r.rejected_by == "follow_up")
+    return CHECKED[locale].format(end=end, loser=cause_phrase(was.taxonomy, was.team, locale))
 
 
 WITHDRAWN = (

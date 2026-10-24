@@ -10,7 +10,7 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from contracts.clock import MatchClock, Window
-from contracts.prediction import Direction
+from contracts.prediction import MIN_CLAIM_SD, Direction
 from contracts.taxonomy import (
     LANGUAGE_FOR_SUPPORT,
     AgentRole,
@@ -85,7 +85,7 @@ class RejectedAlternative(BaseModel):
     agent: AgentRole
     team: str | None = Field(default=None, description="the team the ruled-out cause is about")
     reason: str
-    rejected_by: Literal["test", "cross_examination", "verifier"]
+    rejected_by: Literal["test", "cross_examination", "verifier", "follow_up"]
     tool_call_id: str | None = None
 
 
@@ -195,6 +195,85 @@ class Revision(BaseModel):
     amendment_ids: list[str] = Field(default_factory=list)
 
 
+# A follow-up's bars (spec §9.1, "Keep watching"), fixed by code so no side picks its own: a
+# predicted move must clear what a confirmed change clears, and a number left at ordinary
+# play stays inside what a claim may not be.
+MOVE_SD = 1.5
+STILL_SD = MIN_CLAIM_SD
+
+
+class DecisiveTest(BaseModel):
+    """One side's prediction for minutes nobody had seen when it was made: a move its cause
+    implies and the rival's would not cause (up or down), or a number its cause leaves at
+    ordinary play where the rival's would move it (flat). Code measures it once the minutes
+    are played; a reading too thin to measure does not hold."""
+
+    model_config = ConfigDict(allow_inf_nan=False)
+
+    side: Literal["primary", "rival"]
+    hypothesis_id: str
+    cause: Cause
+    agent: AgentRole
+    metric: Metric
+    subject: str
+    direction: Direction
+    reason: str
+    sigmas: float | None = Field(
+        default=None, description="measured, signed, against the first half"
+    )
+    holds: bool | None = None
+    measured: str | None = Field(default=None, description="what code read, or why it could not")
+    tool_call_id: str | None = None
+
+    @model_validator(mode="after")
+    def _judged(self) -> "DecisiveTest":
+        if self.sigmas is not None:
+            way = {Direction.UP: 1, Direction.DOWN: -1}.get(self.direction)
+            expected = abs(self.sigmas) < STILL_SD if way is None else way * self.sigmas >= MOVE_SD
+            if self.holds != expected:
+                raise ValueError("a decisive test holds exactly when its reading clears its bar")
+        elif self.holds:
+            raise ValueError("a decisive test that was not measured does not hold")
+        return self
+
+
+class FollowUp(BaseModel):
+    """Keep watching: two causes survived and the data could not tell them apart, so each
+    side pre-registered a decisive test for the minutes after the card. Only the primary's
+    holding confirms it; only the rival's overturns it; both or neither leave it open."""
+
+    window: Window = Field(description="the minutes not yet played when the tests were made")
+    rival_hypothesis_id: str
+    rival_cause: Cause
+    rival_agent: AgentRole
+    rival_team: str
+    tests: list[DecisiveTest] = Field(min_length=1, max_length=2)
+    status: Literal["pending", "confirmed", "overturned", "unresolved"] = "pending"
+
+    @model_validator(mode="after")
+    def _settled(self) -> "FollowUp":
+        if len({t.side for t in self.tests}) != len(self.tests):
+            raise ValueError("one decisive test per side")
+        if self.status == "pending":
+            if any(t.holds is not None for t in self.tests):
+                raise ValueError("a pending follow-up has measured nothing")
+            return self
+        if any(t.holds is None for t in self.tests):
+            raise ValueError("a settled follow-up has judged every test")
+        primary = any(t.holds for t in self.tests if t.side == "primary")
+        rival = any(t.holds for t in self.tests if t.side == "rival")
+        expected = (
+            "confirmed"
+            if primary and not rival
+            else "overturned"
+            if rival and not primary
+            else "unresolved"
+        )
+        if self.status != expected:
+            raise ValueError(f"tests that held say {expected}, not {self.status}")
+        return self
+
+
 # What a full-lane card's verification must say at each lifecycle status (CLAUDE.md rule 6,
 # spec §5 and §10). Every status from `verified` on has passed the Verifier, including a card
 # that expired to the recap or that a producer killed; rejected and withdrawn ones failed it.
@@ -236,6 +315,7 @@ class InsightCard(BaseModel):
     )
     broadcast_cue: BroadcastCueSpec | None = None
     revisions: list[Revision] = Field(default_factory=list)
+    follow_up: FollowUp | None = None
     supersedes: str | None = None
     superseded_by: str | None = None
     provenance: Provenance
@@ -293,4 +373,8 @@ class InsightCard(BaseModel):
             )
         if self.status == CardStatus.REVISED and self.revision < 2:
             raise ValueError("a revised card is at revision 2 or later")
+        if self.follow_up and self.primary_cause:
+            names_rival = self.primary_cause.hypothesis_id == self.follow_up.rival_hypothesis_id
+            if names_rival != (self.follow_up.status == "overturned"):
+                raise ValueError("a card names its rival as primary exactly when overturned")
         return self

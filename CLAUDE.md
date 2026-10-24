@@ -60,9 +60,9 @@ uv run proofline batch --data data/dev --variant A --out runs/dev   # every dete
 uv run proofline ask --match m01 --at 68:00 --question "Why are Northvale going long so much?" --variant A   # one viewer question: the Lead's premise, tested, then investigated
 uv run python -m eval.questions make --split dev --out runs/q1/questions.jsonl   # the question suite from the sealed truth (questions only)
 uv run proofline questions --data data/dev --questions runs/q1/questions.jsonl --variant A --out runs/q1   # answer them (resumable); --variant P is the plain tool-using agent baseline; --replay DIR answers from recordings (tests/fixtures/questions/m01 holds the demo's)
-uv run python -m eval.questions score --runs runs/q1 --split dev --variant A   # right answers, false premises rejected, false claims
+uv run python -m eval.questions score --runs runs/q1 --split dev --variant A   # right answers, false premises rejected, false claims; --after-follow-up scores each card as its follow-up left it
 uv run proofline-engine season   # rebuild state/season_baselines.json, the normal variation every test reads against
-uv run python -m eval --runs runs/dev --split dev --variant A       # score a batch against the sealed truth; --compare A B for the paired difference
+uv run python -m eval --runs runs/dev --split dev --variant A       # score a batch against the sealed truth; --compare A B for the paired difference; --after-follow-up for the cards as their follow-ups left them
 azd up                                    # provision + deploy everything
 azd env get-values                        # endpoints and resource names
 pnpm --dir surfaces/web dev

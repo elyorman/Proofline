@@ -34,3 +34,10 @@ class Framing(BaseModel):
     direction: str | None = Field(description="'up' or 'down', the way the question assumes")
     since: str | None = Field(description="a second-half minute as mm:00, e.g. '60:00'; or null")
     why: str = Field(description="one short sentence: what the question assumes")
+
+
+class Decisive(BaseModel):
+    metric: str = Field(description="one of the measurable metrics")
+    subject: str = Field(description="a team, 'Team.unit', or a player id")
+    direction: str = Field(description="'up', 'down' or 'flat'")
+    why: str = Field(description="one short sentence: why your cause, not the rival's, predicts it")

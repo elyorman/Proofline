@@ -241,8 +241,9 @@ def test_the_demo_questions_replay_from_their_recorded_exchanges(tmp_path):
                 a = a.model_copy(
                     update={"card": a.card.model_copy(update={"provenance": None})}, deep=True
                 )
+            # A card's trace id is minted per run, for the first card and its settled revision.
             out[a.question.question_id] = a.model_dump(
-                mode="json", exclude={"card": {"provenance"}}
+                mode="json", exclude={"card": {"provenance"}, "final": {"provenance"}}
             )
         return out
 
@@ -256,3 +257,4 @@ def test_the_demo_questions_replay_from_their_recorded_exchanges(tmp_path):
         "premise_false",
         "unanswerable",
     }
+    assert any(a["final"] for a in committed.values())  # a follow-up settled after a question

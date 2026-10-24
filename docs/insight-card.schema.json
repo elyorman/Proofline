@@ -243,6 +243,105 @@
       "title": "CheckResult",
       "type": "string"
     },
+    "DecisiveTest": {
+      "description": "One side's prediction for minutes nobody had seen when it was made: a move its cause\nimplies and the rival's would not cause (up or down), or a number its cause leaves at\nordinary play where the rival's would move it (flat). Code measures it once the minutes\nare played; a reading too thin to measure does not hold.",
+      "properties": {
+        "side": {
+          "enum": [
+            "primary",
+            "rival"
+          ],
+          "title": "Side",
+          "type": "string"
+        },
+        "hypothesis_id": {
+          "title": "Hypothesis Id",
+          "type": "string"
+        },
+        "cause": {
+          "$ref": "#/$defs/Cause"
+        },
+        "agent": {
+          "$ref": "#/$defs/AgentRole"
+        },
+        "metric": {
+          "$ref": "#/$defs/Metric"
+        },
+        "subject": {
+          "title": "Subject",
+          "type": "string"
+        },
+        "direction": {
+          "$ref": "#/$defs/Direction"
+        },
+        "reason": {
+          "title": "Reason",
+          "type": "string"
+        },
+        "sigmas": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "measured, signed, against the first half",
+          "title": "Sigmas"
+        },
+        "holds": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Holds"
+        },
+        "measured": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "what code read, or why it could not",
+          "title": "Measured"
+        },
+        "tool_call_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Tool Call Id"
+        }
+      },
+      "required": [
+        "side",
+        "hypothesis_id",
+        "cause",
+        "agent",
+        "metric",
+        "subject",
+        "direction",
+        "reason"
+      ],
+      "title": "DecisiveTest",
+      "type": "object"
+    },
     "DependsOn": {
       "properties": {
         "evidence_sets": {
@@ -312,6 +411,59 @@
         "tool_call_id"
       ],
       "title": "Evidence",
+      "type": "object"
+    },
+    "FollowUp": {
+      "description": "Keep watching: two causes survived and the data could not tell them apart, so each\nside pre-registered a decisive test for the minutes after the card. Only the primary's\nholding confirms it; only the rival's overturns it; both or neither leave it open.",
+      "properties": {
+        "window": {
+          "$ref": "#/$defs/Window",
+          "description": "the minutes not yet played when the tests were made"
+        },
+        "rival_hypothesis_id": {
+          "title": "Rival Hypothesis Id",
+          "type": "string"
+        },
+        "rival_cause": {
+          "$ref": "#/$defs/Cause"
+        },
+        "rival_agent": {
+          "$ref": "#/$defs/AgentRole"
+        },
+        "rival_team": {
+          "title": "Rival Team",
+          "type": "string"
+        },
+        "tests": {
+          "items": {
+            "$ref": "#/$defs/DecisiveTest"
+          },
+          "maxItems": 2,
+          "minItems": 1,
+          "title": "Tests",
+          "type": "array"
+        },
+        "status": {
+          "default": "pending",
+          "enum": [
+            "pending",
+            "confirmed",
+            "overturned",
+            "unresolved"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "window",
+        "rival_hypothesis_id",
+        "rival_cause",
+        "rival_agent",
+        "rival_team",
+        "tests"
+      ],
+      "title": "FollowUp",
       "type": "object"
     },
     "Investigation": {
@@ -519,7 +671,8 @@
           "enum": [
             "test",
             "cross_examination",
-            "verifier"
+            "verifier",
+            "follow_up"
           ],
           "title": "Rejected By",
           "type": "string"
@@ -897,6 +1050,17 @@
       },
       "title": "Revisions",
       "type": "array"
+    },
+    "follow_up": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/FollowUp"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
     },
     "supersedes": {
       "anyOf": [

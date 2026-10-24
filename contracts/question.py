@@ -80,6 +80,9 @@ class Answer(BaseModel):
     reason: str
     card: InsightCard | None = Field(default=None, description="the verified card, if any")
     text: dict[str, str] = Field(description="the answer as the viewer reads it, by locale")
+    final: InsightCard | None = Field(
+        default=None, description="the card once its follow-up was settled, if it had one"
+    )
     input_tokens: int = Field(default=0, ge=0)
     output_tokens: int = Field(default=0, ge=0)
 
@@ -92,6 +95,8 @@ class Answer(BaseModel):
             raise ValueError("the premise is false exactly when its test did not hold")
         if self.card is not None and self.outcome != "explained":
             raise ValueError("only an explained question carries a card")
+        if self.final is not None and (self.card is None or self.final.id != self.card.id):
+            raise ValueError("a settled follow-up is a later revision of the answer's card")
         if set(self.text) != {"en", "es"}:
             raise ValueError("an answer is written in English and Spanish")
         return self

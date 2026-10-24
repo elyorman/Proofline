@@ -1,4 +1,5 @@
-"""Run one detected case end to end: investigate, propose a card, verify it."""
+"""Run one detected case end to end: investigate, propose a card, verify it, and keep
+watching when a rival cause survived (agents/follow_up.py)."""
 
 import os
 from dataclasses import dataclass
@@ -6,16 +7,18 @@ from pathlib import Path
 
 from agents import single
 from agents.confirm import both_teams, confirm, explained, extended
+from agents.follow_up import open_follow_up, resolved, settle
 from agents.llm import FoundryModel, Model, Recording, Replay, Usage
 from agents.outputs import Ranking
 from agents.propose import propose
 from agents.single import Finding, case_tools
 from agents.verifier.checks import Record
 from agents.verifier.verify import Verdict, verify
+from contracts.card import InsightCard
 from contracts.case import Case, CaseStage
 from contracts.case_file import CaseFile, CaseRanking, RefusedProposal, ToolCall
 from contracts.eval_run import Variant
-from contracts.taxonomy import AgentRole
+from contracts.taxonomy import AgentRole, CardStatus
 from orchestration import workflow
 from state.tools import Feed
 
@@ -24,6 +27,31 @@ from state.tools import Feed
 class Outcome:
     finding: Finding
     verdict: Verdict | None  # None when the case closed without a card
+    followed: Verdict | None = None  # the card's next revision once its follow-up settled
+
+
+async def keep_watching(
+    agents: Model, verifier: Model, finding: Finding, card: InsightCard, feed: Feed
+) -> tuple[Verdict, Verdict | None]:
+    """Verify the card, opening a follow-up first if a rival survived, so its promise is
+    verified too; then settle the follow-up and verify the revision it makes."""
+    opened = await open_follow_up(agents, finding, card, feed)
+    finding.usage = finding.usage + opened.usage
+    if opened.follow_up:
+        card = InsightCard.model_validate(card.model_dump() | {"follow_up": opened.follow_up})
+    record = Record.of(finding.tools.log, finding.evidence)
+    verdict = await verify(verifier, card, record, feed, finding.exams)
+    if not opened.follow_up or verdict.card.status != CardStatus.VERIFIED:
+        return verdict, None
+    settled = await settle(opened.follow_up, feed)
+    candidate = resolved(verdict.card, settled, finding, feed)
+    both = Record.of(
+        finding.tools.log + settled.tools.log, finding.evidence | settled.sink.evidence
+    )
+    followed = await verify(verifier, candidate, both, feed, finding.exams)
+    if followed.card.status == CardStatus.VERIFIED:  # a later revision of a shown card
+        followed.card = followed.card.model_copy(update={"status": CardStatus.REVISED})
+    return verdict, followed
 
 
 async def run_case(
@@ -72,8 +100,7 @@ async def run_case(
     card = propose(finding, feed)
     if card is None:
         return Outcome(finding, None)
-    record = Record.of(finding.tools.log, finding.evidence)
-    return Outcome(finding, await verify(verifier, card, record, feed, finding.exams))
+    return Outcome(finding, *await keep_watching(agents, verifier, finding, card, feed))
 
 
 def _call(entry: dict) -> ToolCall:

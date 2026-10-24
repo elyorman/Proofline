@@ -227,6 +227,23 @@ def _case(parser: argparse.ArgumentParser, args: argparse.Namespace) -> int:
     out.parent.mkdir(exist_ok=True)
     out.write_text(card.model_dump_json(indent=2) + "\n", encoding="utf-8")
     print(f"  written to {out}")
+    if outcome.followed:  # keep watching: the decisive tests, measured once played
+        later = outcome.followed.card
+        for t in later.follow_up.tests:
+            print(
+                f"  decisive test, {t.side} ({t.cause.value}): {t.metric} of {t.subject} "
+                f"{t.direction}; {'holds' if t.holds else 'fails'}: {t.measured}"
+            )
+        rejected = later.verification.rejection_reason or ""
+        print(
+            f"  follow-up {later.follow_up.status}: revision {later.revision} {later.status} "
+            f"{rejected}"
+        )
+        for locale, text in later.variants.get("casual", {}).items():
+            print(f"    casual/{locale}: {text}")
+        settled = Path("runs") / f"{card.id}-{args.variant}-r{later.revision}.json"
+        settled.write_text(later.model_dump_json(indent=2) + "\n", encoding="utf-8")
+        print(f"  written to {settled}")
     return 0
 
 

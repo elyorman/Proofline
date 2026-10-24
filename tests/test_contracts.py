@@ -1150,3 +1150,75 @@ def test_sprint_and_set_piece_qualifiers_are_typed():
             Event(**broken)
     with pytest.raises(ValidationError, match="set piece's kind"):
         Event(**_event("set_piece", kind="corner"))
+
+
+def _decisive(side="primary", direction="up", sigmas=None, holds=None, **overrides):
+    from contracts.card import DecisiveTest
+
+    base = dict(
+        side=side,
+        hypothesis_id=f"hyp-{side}",
+        cause=Cause.CHASING_RESULT if side == "primary" else Cause.PRESS_INTENSITY_UP,
+        agent=AgentRole.GAME_STATE if side == "primary" else AgentRole.TACTICS,
+        metric=Metric.LONG_BALL_SHARE,
+        subject="Harbour City",
+        direction=direction,
+        reason="a chasing side goes direct",
+        sigmas=sigmas,
+        holds=holds,
+    )
+    return DecisiveTest(**base | overrides)
+
+
+@pytest.mark.parametrize(
+    "direction,sigmas,holds",
+    [
+        ("up", 1.5, True),  # a move clears 1.5 sd
+        ("up", 1.4, False),
+        ("down", -2.0, True),
+        ("down", 2.0, False),
+        ("flat", 0.9, True),  # ordinary play stays within 1 sd
+        ("flat", -1.0, False),
+        ("up", None, False),  # too thin to measure: it does not hold
+    ],
+)
+def test_a_decisive_test_holds_exactly_when_its_reading_clears_a_fixed_bar(
+    direction, sigmas, holds
+):
+    assert _decisive(direction=direction, sigmas=sigmas, holds=holds).holds is holds
+    with pytest.raises(ValidationError, match="decisive test"):
+        _decisive(direction=direction, sigmas=sigmas, holds=not holds)
+
+
+def _follow_up(status, primary_holds, rival_holds):
+    from contracts.card import FollowUp
+
+    reading = {True: 2.0, False: 0.0}
+    return FollowUp(
+        window="68:00-83:00",
+        rival_hypothesis_id="hyp-rival",
+        rival_cause=Cause.PRESS_INTENSITY_UP,
+        rival_agent=AgentRole.TACTICS,
+        rival_team="Harbour City",
+        tests=[
+            _decisive("primary", sigmas=reading[primary_holds], holds=primary_holds),
+            _decisive("rival", sigmas=reading[rival_holds], holds=rival_holds),
+        ],
+        status=status,
+    )
+
+
+@pytest.mark.parametrize(
+    "primary,rival,status",
+    [
+        (True, False, "confirmed"),
+        (False, True, "overturned"),
+        (True, True, "unresolved"),  # both came true: the minutes did not choose
+        (False, False, "unresolved"),
+    ],
+)
+def test_a_follow_up_is_settled_by_which_side_came_true(primary, rival, status):
+    assert _follow_up(status, primary, rival).status == status
+    wrong = next(s for s in ("confirmed", "overturned", "unresolved") if s != status)
+    with pytest.raises(ValidationError, match="tests that held say"):
+        _follow_up(wrong, primary, rival)

@@ -403,6 +403,30 @@ def verification_no_answer(verification: Verification | None) -> bool:
     )
 
 
+def verification_catches(verification: Verification | None) -> tuple[bool, bool]:
+    """Independent deterministic/semantic rejection flags; unanswered is neither."""
+    if (
+        not verification
+        or verification.status != "rejected"
+        or verification_no_answer(verification)
+    ):
+        return False, False
+    deterministic = (
+        verification.recompute == "mismatch"
+        or any(
+            getattr(verification, name) == "failed"
+            for name in (
+                "baseline_check",
+                "sample_size_check",
+                "contradiction_check",
+                "number_check",
+            )
+        )
+        or verification.rejection_reason == "below support rules"
+    )
+    return deterministic, verification.semantic_check == "failed"
+
+
 def check_rate(metric: MetricEstimate | None, numerator: int, denominator: int) -> None:
     if denominator == 0:
         if metric is not None:
@@ -421,6 +445,16 @@ class SeedTrial(BaseModel):
     verification: Verification | None = None
     caught: bool | None = None
     no_answer: bool = False
+
+    @computed_field
+    @property
+    def deterministic_caught(self) -> bool:
+        return bool(self.caught and verification_catches(self.verification)[0])
+
+    @computed_field
+    @property
+    def semantic_caught(self) -> bool:
+        return bool(self.caught and verification_catches(self.verification)[1])
 
     @model_validator(mode="after")
     def _verdict(self) -> "SeedTrial":
@@ -471,6 +505,10 @@ class SeedTypeResult(BaseModel):
     no_answer: int = Field(default=0, ge=0)
     eligible: int = Field(default=0, ge=0)
     eligible_caught: int = Field(default=0, ge=0)
+    deterministic_caught: int | None = Field(default=None, ge=0)
+    semantic_caught: int | None = Field(default=None, ge=0)
+    both_caught: int | None = Field(default=None, ge=0)
+    unclassified_caught: int | None = Field(default=None, ge=0)
     checks: dict[str, int] = Field(default_factory=dict)
     estimate: MetricEstimate | None = None
     all_cards_estimate: MetricEstimate | None = None
@@ -537,6 +575,18 @@ class SeededRun(BaseModel):
                 sum(bool(t.caught) for t in eligible),
             ):
                 raise ValueError("headline counts must use sound controls only")
+            categories = {
+                "deterministic_caught": sum(t.deterministic_caught for t in trials),
+                "semantic_caught": sum(t.semantic_caught for t in trials),
+                "both_caught": sum(t.deterministic_caught and t.semantic_caught for t in trials),
+                "unclassified_caught": sum(
+                    bool(t.caught) and not (t.deterministic_caught or t.semantic_caught)
+                    for t in trials
+                ),
+            }
+            for name, count in categories.items():
+                if getattr(result, name) is not None and getattr(result, name) != count:
+                    raise ValueError("catch categories must agree with the recorded checks")
             check_rate(result.estimate, result.eligible_caught, result.eligible)
             check_rate(result.all_cards_estimate, result.caught, len(trials) - unanswered)
         seeded, caught = sum(t.seeded for t in self.types), sum(t.caught for t in self.types)

@@ -294,6 +294,58 @@
           "title": "Eligible Caught",
           "type": "integer"
         },
+        "deterministic_caught": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Deterministic Caught"
+        },
+        "semantic_caught": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Semantic Caught"
+        },
+        "both_caught": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Both Caught"
+        },
+        "unclassified_caught": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Unclassified Caught"
+        },
         "checks": {
           "additionalProperties": {
             "type": "integer"

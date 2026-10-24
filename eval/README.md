@@ -165,3 +165,11 @@ New standalone rates record `ci_method: "wilson"`; paired differences record
 `"paired_match_bootstrap"`. Older records without a method stay labelled
 "method unrecorded" and are never silently recomputed. Fresh automatic run IDs
 include the scoring revision, avoiding collisions with earlier bootstrap records.
+
+Seeded catch columns distinguish deterministic checks (recompute, baseline,
+sample size, contradiction, numeric grounding and support rules) from answered
+semantic failures. A trial may appear in both columns: `both_caught` records the
+overlap, so deterministic + semantic - both + unclassified equals total caught.
+No-answer trials count in neither column. JSON retains these counts per type,
+in `catch_counts` totals, and the two flags on each trial. These counts cover
+all tested cards; the headline rate still conditions on sound controls.

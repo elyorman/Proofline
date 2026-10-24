@@ -12,6 +12,7 @@ from contracts.eval_run import (
     SeededRun,
     Split,
     VariantComparison,
+    verification_catches,
 )
 from eval.records import Record, identity, load_records
 from eval.seed_checks import failed_checks
@@ -158,6 +159,18 @@ def trial_result(trial) -> str:
     )
 
 
+def catch_counts(record: SeededRun, kind=None) -> dict[str, int]:
+    trials = [t for c in record.cards for t in c.trials if kind is None or t.kind == kind]
+    return dict(
+        deterministic_caught=sum(t.deterministic_caught for t in trials),
+        semantic_caught=sum(t.semantic_caught for t in trials),
+        both_caught=sum(t.deterministic_caught and t.semantic_caught for t in trials),
+        unclassified_caught=sum(
+            bool(t.caught) and not (t.deterministic_caught or t.semantic_caught) for t in trials
+        ),
+    )
+
+
 def scoreboard_data(records: list[Record]) -> dict:
     runs = {r.run_id: r for r in records if isinstance(r, (EvalRun, QuestionRun))}
     entries = []
@@ -201,11 +214,17 @@ def scoreboard_data(records: list[Record]) -> dict:
                 if m is not None
             ]
             data["undefined_metrics"] = [name for name, m in rates.items() if m is None]
+            for result in data["types"]:
+                result.update(catch_counts(record, result["kind"]))
+            data["catch_counts"] = catch_counts(record)
             for card, encoded in zip(record.cards, data["cards"], strict=True):
                 encoded["control_result"] = (
                     "no_answer" if card.control_no_answer else card.control.status
                 )
                 encoded["control_checks"] = failed_checks(card.control)
+                deterministic, semantic = verification_catches(card.control)
+                encoded["control_deterministic_rejection"] = deterministic
+                encoded["control_semantic_rejection"] = semantic
                 for trial, output in zip(card.trials, encoded["trials"], strict=True):
                     output["result"] = trial_result(trial)
                     output["checks"] = failed_checks(trial.verification)
@@ -338,12 +357,14 @@ def render(records: list[Record]) -> str:
             f"No answer: {record.seed_no_answers} seeded trials; "
             f"{record.control_no_answers} controls.",
             "",
-            "| Type | Seeded | Caught | No answer | Sound-control trials | Headline rate (95% CI) "
+            "| Type | Seeded | Caught | Deterministic | Semantic | Both | Unclassified "
+            "| No answer | Sound-control trials | Headline rate (95% CI) "
             "| All-cards rate (95% CI) "
             "| Checks that rejected seeds |",
-            "|---|---|---|---|---|---|---|---|",
+            "|---|---|---|---|---|---|---|---|---|---|---|---|",
         ]
         for result in record.types:
+            categories = catch_counts(record, result.kind)
             lines.append(
                 "| "
                 + " | ".join(
@@ -352,6 +373,7 @@ def render(records: list[Record]) -> str:
                         result.kind,
                         result.seeded,
                         result.caught,
+                        *categories.values(),
                         result.no_answer,
                         result.eligible,
                         estimate(result.estimate),
@@ -367,6 +389,7 @@ def render(records: list[Record]) -> str:
             "Total",
             total_seeded,
             total_caught,
+            *catch_counts(record).values(),
             record.seed_no_answers,
             sum(t.eligible for t in record.types),
             estimate(record.catch_rate),

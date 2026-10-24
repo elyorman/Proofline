@@ -313,6 +313,12 @@ def test_seeded_runner_saves_complete_replayable_results(real_case, tmp_path, mo
     assert len(encoded["types"]) == len(SeedType)
     assert "recompute" in encoded["cards"][0]["trials"][0]["checks"]
     assert encoded["citations"]["record"] == f"{run.run_id}.json"
+    counts = encoded["catch_counts"]
+    assert counts["deterministic_caught"] > 0
+    assert counts["deterministic_caught"] + counts["semantic_caught"] - counts[
+        "both_caught"
+    ] + counts["unclassified_caught"] == sum(t.caught for t in run.types)
+    assert "| Caught | Deterministic | Semantic | Both |" in rendered
 
 
 def test_seeded_cli_records_and_replays_without_live_models(
@@ -538,3 +544,33 @@ def test_cli_replay_verifies_existing_record_without_rewriting(
     with pytest.raises(SystemExit):
         main([*args, "--replay", str(recorded)])
     assert path.read_bytes() == tampered
+
+
+def test_catch_categories_separate_deterministic_semantic_and_overlap():
+    from contracts.card import Verification
+    from contracts.eval_run import verification_catches
+
+    base = dict(
+        status="rejected",
+        recompute="match",
+        baseline_check="passed",
+        sample_size_check="passed",
+        contradiction_check="passed",
+        number_check="passed",
+        semantic_check="passed",
+        verifier_model_family="phi",
+        rejection_reason="scripted rejection",
+    )
+
+    def flags(**changes):
+        return verification_catches(Verification(**(base | changes)))
+
+    assert flags(recompute="mismatch", semantic_check="skipped") == (True, False)
+    assert flags(semantic_check="failed") == (False, True)
+    assert flags(number_check="failed", semantic_check="failed") == (True, True)
+    assert flags(
+        number_check="failed",
+        semantic_check="failed",
+        rejection_reason="number check failed; the semantic check gave no answer (empty)",
+    ) == (False, False)
+    assert flags(rejection_reason="below support rules", semantic_check="skipped") == (True, False)

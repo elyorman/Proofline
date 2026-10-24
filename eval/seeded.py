@@ -174,6 +174,24 @@ def summarize(cards: list[SeedCardResult], seed: int, resamples: int):
                 no_answer=sum(t.no_answer for c in cards for t in c.trials if t.kind == kind),
                 eligible=sum(d for _, d in eligible_rows),
                 eligible_caught=sum(n for n, _ in eligible_rows),
+                deterministic_caught=sum(
+                    t.deterministic_caught for c in cards for t in c.trials if t.kind == kind
+                ),
+                semantic_caught=sum(
+                    t.semantic_caught for c in cards for t in c.trials if t.kind == kind
+                ),
+                both_caught=sum(
+                    t.deterministic_caught and t.semantic_caught
+                    for c in cards
+                    for t in c.trials
+                    if t.kind == kind
+                ),
+                unclassified_caught=sum(
+                    bool(t.caught) and not (t.deterministic_caught or t.semantic_caught)
+                    for c in cards
+                    for t in c.trials
+                    if t.kind == kind
+                ),
                 checks=dict(checks),
                 estimate=estimate(
                     kind.value,

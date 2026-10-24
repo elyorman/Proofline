@@ -10,6 +10,7 @@ from dataclasses import dataclass
 from typing import Literal
 
 from agents import narrator
+from agents.confirm import PERSIST_SD
 from agents.investigation import change_of
 from agents.llm import Model
 from agents.single import case_tools
@@ -29,6 +30,7 @@ from contracts.event import EventAmendment
 from contracts.prediction import Hypothesis
 from contracts.taxonomy import CardStatus
 from contracts.tool_result import DependencyEntry, EvidenceSet
+from state import natural
 from state.tools import Feed
 
 
@@ -109,8 +111,9 @@ async def correct(
     """Re-verify one dependent card on the amended `feed`; None when its numbers are the same.
 
     Each evidence call is run again through the MCP tools over the amended feed, at the
-    card's own cutoff. If the primary cause's pre-registered prediction no longer holds, the
-    card is withdrawn; otherwise the new revision goes through the whole Verifier again.
+    card's own cutoff. If the change the card explains is no longer beyond ordinary play, or
+    the primary cause's pre-registered prediction no longer holds, the card is withdrawn;
+    otherwise the new revision goes through the whole Verifier again.
     """
     was = published.card
     tools, sink = case_tools(published.case, feed)
@@ -170,21 +173,53 @@ async def correct(
             | {"verified_at": str(amendment.at), "published_at": None},
         }
     )
+    # First, the change the card explains: if the amended data no longer show it beyond
+    # ordinary play, there is nothing to explain.
+    effect = next(x for x in was.propositions if x.id == was.primary_cause.effect)
+    shown = next(
+        (
+            (d, b)
+            for ev, d, b in remeasured
+            if (ev.metric, ev.subject) == (effect.metric, effect.subject)
+        ),
+        None,
+    )
+    still = (
+        natural.sigmas(
+            feed.meta,
+            effect.metric,
+            effect.subject,
+            effect.window,
+            shown[0].value,
+            shown[1].baseline.value,
+        )
+        if shown and shown[0].value is not None and shown[1].baseline is not None
+        else None
+    )
+    way = 1 if effect.direction == "up" else -1
+    if still is None or way * still[0] < PERSIST_SD:
+        size = "no longer measurable" if still is None else f"now {still[0]:+.2f} sd"
+        reason = (
+            f"after {because}, {effect.metric} of {effect.subject} is {size}, within ordinary "
+            f"play (a change needs {PERSIST_SD:g} sd)"
+        )
+        return Correction("withdraw", _withdrawn(candidate, was, feed, reason), was)
     p = published.hypothesis.prediction
     lead = next(
         ((d, b) for ev, d, b in remeasured if (ev.metric, ev.subject) == (p.metric, p.subject)),
         None,
     )
     moved = (
-        change_of(p, lead[0].value, lead[1].baseline.value)
+        change_of(p, lead[0].value, lead[1].baseline.value, feed.meta)
         if lead and lead[0].value is not None and lead[1].baseline is not None
         else None
     )
     if moved is None or not p.supported_by(moved):
-        size = "no longer measurable" if moved is None else f"now {moved:+.3f}"
+        unit = " sd" if p.threshold_kind == "sigma" else ""
+        size = "no longer measurable" if moved is None else f"now {moved:+.3f}{unit}"
         reason = (
             f"after {because}, {p.metric} of {p.subject} is {size}, short of the claim of "
-            f"{p.direction} by {p.min_change:g}"
+            f"{p.direction} by {p.min_change:g}{unit}"
         )
         return Correction("withdraw", _withdrawn(candidate, was, feed, reason), was)
     record = Record.of(tools.log, sink.evidence)

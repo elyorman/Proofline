@@ -1,8 +1,10 @@
 """proofline-engine: generate synthetic matches from tactical scripts."""
 
 import argparse
+import json
 import os
 import sys
+from pathlib import Path
 
 import yaml
 from pydantic import ValidationError
@@ -11,6 +13,7 @@ from contracts.eval_run import Split
 from engine.clock import event_hubs_sender, messages, publish
 from engine.io import write_match
 from engine.script import load_script
+from engine.season import SEASON_SEEDS, season
 from engine.sim import MatchSim
 from engine.suite_builder import decoys, planted, write
 
@@ -43,6 +46,11 @@ def main(argv: list[str] | None = None) -> int:
     suite.add_argument(
         "--size", type=_size, default=None, help="scripts per class (planted) or matches (decoys)"
     )
+    season_cmd = sub.add_parser(
+        "season", help="measure normal variation over matches with nothing planted"
+    )
+    season_cmd.add_argument("--out", default="state/season_baselines.json")
+    season_cmd.add_argument("--matches", type=_size, default=len(SEASON_SEEDS))
     clock = sub.add_parser("clock", help="replay a written match onto the Event Hubs feed")
     clock.add_argument("--match-dir", required=True, help="a folder written by generate")
     clock.add_argument("--run-id", required=True, help="tags every message of this replay")
@@ -54,6 +62,14 @@ def main(argv: list[str] | None = None) -> int:
         return _suite(parser, args)
     if args.command == "clock":
         return _clock(parser, args)
+    if args.command == "season":
+        try:
+            doc = season(args.matches)
+        except ValueError as exc:
+            parser.error(str(exc))
+        Path(args.out).write_text(json.dumps(doc, indent=1) + "\n", encoding="utf-8")
+        print(f"season of {doc['matches']} matches: {len(doc['spreads'])} spreads in {args.out}")
+        return 0
 
     try:
         script = load_script(args.script)

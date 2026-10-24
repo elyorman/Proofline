@@ -27,7 +27,7 @@ M01 = load_script(M01_PATH)
 WITHOUT_S1 = M01.model_copy(update={"scripts": [s for s in M01.scripts if s.id != "s1"]})
 VALIDATION = range(100, 140)
 CARD = Window.model_validate("58:00-63:00")  # the 63' press card's change window
-FLANK = Window.model_validate("45:00-55:00")  # a1's window, and the 55' flank card's
+FLANK = Window.model_validate("45:00-65:00")  # a1's window
 PRESS = {
     "pressure_rate": pressure_rate("Harbour City", "Northvale"),
     "long_ball_share": long_ball_share("Northvale"),

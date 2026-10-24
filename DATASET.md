@@ -7,7 +7,7 @@ Every club, player and competition here is fictional. Matches come from the Matc
 [`engine/scripts/planted/m01.yaml`](engine/scripts/planted/m01.yaml) plants one tactical change and one feed error:
 
 - **s1** raises Harbour City's press height from 0.3 to 0.9 from 56:00, reaching it at 58:00.
-- **a1** is a provider error: the feed first shows Northvale's 45:00–55:00 passes, carries and dribbles whose true start and end lie within 46 m of the left touchline (in Northvale's frame) 22 m to the right of where they happened, and a batch amendment at 68:00 moves them back.
+- **a1** is a provider error: the feed first shows Northvale's 45:00–65:00 passes, carries and dribbles whose true start and end lie within 46 m of the left touchline (in Northvale's frame) 22 m to the right of where they happened, and a batch amendment at 70:00 moves them back. The error lasts to 65:00 so the flank card it causes outlasts the five minutes Proofline waits to confirm a change.
 
 Its seed is chosen by a stated rule, never by eye: **the first seed from 4417 upwards on which, in that one match, every observable in the table below changes by at least its median over validation seeds 100–139 and clears two natural standard deviations, and on which the corrected right-channel change does not clear them.** Medians, means and standard deviations all come from those validation seeds. The scan starts at 4417 because that was the demo match's seed before any of this was measured. [`tests/test_engine_planted_signal.py`](tests/test_engine_planted_signal.py) applies the rule and fails if the script's seed is not the one it picks. The demo match is therefore a clear instance of each story rather than an average one, and no evaluation or scoreboard number comes from it. The visibility and realism figures use validation seeds 100–139, which played no part in tuning the engine; the evaluation suites draw their dev and held-out seeds from 1000 up, which none of this touches (spec §11.1). If a later demo beat needs another condition, the rule is extended here openly and the seed it replaces is recorded.
 
@@ -21,7 +21,7 @@ The windows are the demo cards' windows. Scoring a planted suite uses each scrip
 |---|---|---|
 | s1 | Pressure rate: Harbour City pressures in Northvale's first 60% of the pitch, divided by Northvale on-ball actions starting in that same zone (x < 63 in Northvale's frame, x > 42 in Harbour City's) | 58:00–63:00 |
 | s1 | Share of Northvale's passes longer than 30 m | 58:00–63:00 |
-| a1 | Share of Northvale's on-ball actions starting in the right third of the width, as first delivered | 45:00–55:00 |
+| a1 | Share of Northvale's on-ball actions starting in the right third of the width, as first delivered | 45:00–65:00 |
 
 ## Planted and decoy suites
 
@@ -45,3 +45,7 @@ A class's window opens when its change starts: minutes 0–8 after it for the pr
 **Hygiene.** A planted match takes the first seed on which its class is the only fair answer, from the change's start to the end of its window. A press rise is planted only while the team is not trailing, and a press drop only while it is not leading, so chasing the result or protecting a lead is never also right. A chasing or protecting change starts with the first possession, from its `at`, in which the team trails or leads, by 65:00 at the latest, and keeps that score through its window.
 
 **Flags.** Each planted match is run with and without its change, on seeds from 500 above the split's first, until every observable has a value on 30 of them. Sprint speed has none when nobody in the subject sprints in the window. The paired-effect interval is a 95% t-interval on the per-seed differences, and separation is as defined above. A match is excluded under the first rule of spec §7.2 it meets. `ground_truth_flags.json` lists every planted match, the seeds measured for it, and each excluded match with its class, its rule and each observable's numbers. Its `flag_set_id` is a digest of that content, and every planted evaluation run embeds the flag set.
+
+## The season behind normal variation
+
+`state/season_baselines.json` is how far each metric moves in ordinary play: 200 matches with nothing planted, seeds 3000–3199 (a range nothing else draws from), each with one team set up in the starting style of one class's template in turn, as the decoys are. For every metric and subject level (team, unit, player), and every second-half window of 5, 10, 15 or 20 minutes ending at 50' to 90', it records the mean and standard deviation of the change from the first half, in the metric's threshold units, leaving out measurements on fewer events than a card needs. Sprints fall late in every match (a team's rate is about 30% below its first half by 80'), so the mean matters as much as the spread. `uv run proofline-engine season` rebuilds it.

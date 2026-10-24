@@ -22,7 +22,7 @@ from agent_framework import (
     handler,
 )
 
-from agents.cross_exam import Examined, Refusal, challenge, describe, run_counter
+from agents.cross_exam import Examined, Refusal, challenge, settle
 from agents.investigation import Refused, Tested, Tools, rank, register, run_test
 from agents.llm import MissingFixture, Model, Usage
 from agents.outputs import Ranking
@@ -31,6 +31,7 @@ from contracts.case import Case, CaseStage, Checkpoint
 from contracts.prediction import CrossExamination, Hypothesis
 from contracts.taxonomy import AgentRole
 from state.tools import Feed
+from tools_server.server import MemorySink
 
 AGENTS = (AgentRole.TACTICS, AgentRole.PHYSICAL, AgentRole.GAME_STATE)
 PER_AGENT = 2  # hypotheses each domain agent may register
@@ -182,7 +183,7 @@ class Tester(Executor):
         ordered = sorted(registered, key=lambda r: AGENTS.index(r.role))
         hypotheses = [h for r in ordered for h in r.hypotheses]
         self.run.checkpoint(CaseStage.PREREGISTERED, f"{len(hypotheses)} hypotheses")
-        tested = [await run_test(self.run.tools, h) for h in hypotheses]
+        tested = [await run_test(self.run.tools, h, self.run.feed.meta) for h in hypotheses]
         self.run.checkpoint(CaseStage.TESTED, f"{sum(t.supported for t in tested)} supported")
         refused = [x for r in ordered for x in r.refused]
         self.run.tested = TestedAll(hypotheses, refused, tested)
@@ -225,43 +226,27 @@ class Synthesizer(Executor):
         self, challenges: list[Challenged], ctx: WorkflowContext[Never, Ranking]
     ) -> None:
         r = self.run
-        proposed = [
-            e for c in sorted(challenges, key=lambda c: AGENTS.index(c.role)) for e in c.exams
-        ]
-        scored = [(e, await run_counter(r.tools, e)) for e in proposed]
-        exams = [x.exam for _, x in scored if x is not None]
-        r.exams = exams
-        r.corroborations = [
-            x for _, x in scored if x is not None and x.exam.corollary and x.exam.result == "holds"
-        ]
-        r.unrun += [
-            f"{c.challenger} on {c.counter.hypothesis_id}: refused, {c.reason}"
-            for ch in challenges
-            for c in ch.refusals
-        ]
-        r.unrun += [
-            f"{e.challenger} on {e.hypothesis_id}: not measurable" for e, x in scored if x is None
-        ]
-        refuted = {e.hypothesis_id for e in exams if e.result == "refuted"}
-        r.checkpoint(
-            CaseStage.CROSS_EXAMINED, f"{len(exams)} counter-tests, {len(refuted)} refuted"
+        ordered = sorted(challenges, key=lambda c: AGENTS.index(c.role))
+        settled = await settle(
+            r.tools,
+            r.feed.meta,
+            r.tested.tested,
+            [e for c in ordered for e in c.exams],
+            [x for c in ordered for x in c.refusals],
         )
-        everything = r.tested
-        survivors = [
-            t
-            for t in everything.tested
-            if t.supported and t.hypothesis.hypothesis_id not in refuted
-        ]
-        notes = {
-            t.hypothesis.hypothesis_id: {
-                "cross_examination": [
-                    describe(e) for e in exams if e.hypothesis_id == t.hypothesis.hypothesis_id
-                ]
-            }
-            for t in survivors
-        }
+        r.exams, r.corroborations, r.unrun = settled.exams, settled.corroborations, settled.unrun
+        refuted = sum(e.result == "refuted" for e in settled.exams)
+        r.checkpoint(
+            CaseStage.CROSS_EXAMINED, f"{len(settled.exams)} counter-tests, {refuted} refuted"
+        )
         ranking, usage = await rank(
-            r.model, AgentRole.SYNTHESIS, r.case, r.feed.meta, r.score, survivors, notes
+            r.model,
+            AgentRole.SYNTHESIS,
+            r.case,
+            r.feed.meta,
+            r.score,
+            settled.survivors,
+            settled.notes,
         )
         r.usage = r.usage + usage
         r.checkpoint(CaseStage.SYNTHESIZED, ranking.outcome)
@@ -269,10 +254,14 @@ class Synthesizer(Executor):
 
 
 async def investigate(
-    model: Model, case: Case, feed: Feed, stop: dict[AgentRole, int] | None = None
+    model: Model,
+    case: Case,
+    feed: Feed,
+    stop: dict[AgentRole, int] | None = None,
+    opened: tuple[Tools, MemorySink] | None = None,
 ) -> Finding:
     """Run variant A on one case; `stop` makes agents fail, to exercise recovery."""
-    tools, sink = case_tools(case, feed)
+    tools, sink = opened or case_tools(case, feed)
     run = Run(model, case, feed, tools, sink.evidence, dict(stop or {}))
     opener = Opener(run)
     specialists = [Specialist(run, a) for a in AGENTS]
@@ -289,4 +278,6 @@ async def investigate(
     )
     result = await workflow.run(Start())
     (ranking,) = result.get_outputs()
+    if run.failed == set(AGENTS):  # no one investigated: that is no finding, not "no clear cause"
+        raise AgentDown(f"every agent failed on {case.case_id}")
     return run.finding(ranking)

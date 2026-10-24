@@ -9,9 +9,10 @@ from typing import Any
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from contracts.case import Case, CaseStage
+from contracts.clock import Window
 from contracts.eval_run import Variant
-from contracts.prediction import CrossExamination, Hypothesis, HypothesisTest
-from contracts.taxonomy import AgentRole, CaseOutcome
+from contracts.prediction import CrossExamination, Direction, Hypothesis, HypothesisTest
+from contracts.taxonomy import AgentRole, CaseOutcome, Metric
 
 
 class RefusedProposal(BaseModel):
@@ -38,6 +39,31 @@ class ToolCall(BaseModel):
     error: str | None = None
 
 
+class Persistence(BaseModel):
+    """A change the detector saw, re-measured by code over the minutes after it fired, events
+    the detector never read, in standard deviations of normal variation (spec §9.1)."""
+
+    model_config = ConfigDict(allow_inf_nan=False)
+
+    metric: Metric
+    subject: str
+    direction: Direction
+    window: Window
+    value: float | None = None
+    baseline: float | None = None
+    n_events: int | None = Field(default=None, ge=0)
+    sigmas: float | None = None
+    holds: bool
+    reason: str
+    tool_call_id: str | None = None
+
+    @model_validator(mode="after")
+    def _held_means_measured(self) -> "Persistence":
+        if self.holds and self.sigmas is None:
+            raise ValueError("a change holds only on a measured change")
+        return self
+
+
 class CaseRanking(BaseModel):
     outcome: CaseOutcome
     primary: str | None
@@ -50,6 +76,9 @@ class CaseFile(BaseModel):
 
     case: Case
     variant: Variant
+    confirmation: list[Persistence] = Field(
+        default_factory=list, description="each detected change re-measured after it fired"
+    )
     agents: list[AgentRole]
     hypotheses: list[Hypothesis]
     refused: list[RefusedProposal]
@@ -75,4 +104,6 @@ class CaseFile(BaseModel):
             raise ValueError("the ranking names a hypothesis the case does not hold")
         if self.case.stage != CaseStage.CLOSED or self.case.outcome != self.ranking.outcome:
             raise ValueError("a case file is written once the case closes, with its outcome")
+        if self.confirmation and not any(p.holds for p in self.confirmation) and ids:
+            raise ValueError("a change that faded is not investigated")
         return self

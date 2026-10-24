@@ -20,6 +20,8 @@ from contracts.taxonomy import (
     ThresholdKind,
 )
 
+MIN_CLAIM_SD = 1.0  # the smallest change in sigmas a hypothesis may claim
+
 
 class Direction(StrEnum):
     UP = "up"
@@ -76,14 +78,19 @@ class Hypothesis(BaseModel):
 
     @model_validator(mode="after")
     def _agent_owns_cause(self) -> "Hypothesis":
-        if self.agent == AgentRole.SYNTHESIS:
-            raise ValueError("synthesis ranks hypotheses; it does not register them")
+        if self.agent in (AgentRole.SYNTHESIS, AgentRole.LEAD):
+            raise ValueError(f"{self.agent} frames or ranks hypotheses; it does not register them")
         if self.taxonomy.domain == "fallback":
             raise ValueError("'other' and 'none' are synthesis outcomes, not hypotheses")
         if self.agent != AgentRole.SINGLE and self.taxonomy.domain != DOMAIN_OF_AGENT[self.agent]:
             raise ValueError(f"{self.agent} cannot register a {self.taxonomy.domain} cause")
         if self.prediction.direction == Direction.FLAT:
             raise ValueError("a hypothesis predicts a change; flat is for counter-tests")
+        p = self.prediction
+        if p.threshold_kind == ThresholdKind.SIGMA and p.min_change < MIN_CLAIM_SD:
+            raise ValueError(
+                f"a claim under {MIN_CLAIM_SD:g} sd is within ordinary play, not a change"
+            )
         return self
 
 
@@ -153,9 +160,9 @@ class CrossExamination(BaseModel):
         return exam
 
     @model_validator(mode="after")
-    def _challenger_is_a_domain_agent(self) -> "CrossExamination":
-        if self.challenger in (AgentRole.SYNTHESIS, AgentRole.SINGLE):
-            raise ValueError(f"{self.challenger} does not cross-examine")
+    def _challenger_investigates(self) -> "CrossExamination":
+        if self.challenger in (AgentRole.SYNTHESIS, AgentRole.LEAD):
+            raise ValueError(f"{self.challenger} frames or ranks; it does not cross-examine")
         return self
 
     @computed_field
@@ -203,8 +210,8 @@ def check_counter_test(hypothesis: Hypothesis, exam: CrossExamination) -> None:
     claim, counter = hypothesis.prediction, exam.counter_prediction
     if exam.hypothesis_id != hypothesis.hypothesis_id:
         raise ValueError("the counter-test names a different hypothesis")
-    if exam.challenger == hypothesis.agent:
-        raise ValueError("an agent does not cross-examine its own hypothesis")
+    if exam.challenger == hypothesis.agent and hypothesis.agent != AgentRole.SINGLE:
+        raise ValueError("an agent does not cross-examine its own hypothesis")  # one agent may
     if exam.corollary:
         if exam.hypothesis_change is not None:
             raise ValueError("only a control carries the hypothesis's own change")

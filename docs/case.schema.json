@@ -6,6 +6,7 @@
         "physical",
         "game_state",
         "synthesis",
+        "lead",
         "single"
       ],
       "title": "AgentRole",
@@ -214,13 +215,26 @@
       "default": "auto",
       "enum": [
         "auto",
-        "on_demand"
+        "on_demand",
+        "question"
       ],
       "title": "Origin",
       "type": "string"
     },
     "window": {
       "$ref": "#/$defs/Window"
+    },
+    "detected_at": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/MatchClock"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "when the detector fired, once the window runs on to confirm the change"
     },
     "triggers": {
       "items": {

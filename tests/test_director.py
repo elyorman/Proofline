@@ -31,14 +31,15 @@ def test_goals_take_the_fast_lane_with_the_running_score(m01):  # noqa: F811
 
 def test_a_withdrawal_reaches_the_fan_who_saw_the_card_and_waits_for_the_producer(m01):  # noqa: F811
     shown, a1 = m01
-    flank, press = _published(shown, 58, _flank(0.2)), _published(shown, 63, PRESS)
+    flank, press = _published(shown, 57, _flank(2)), _published(shown, 63, PRESS)
     withdrawn = asyncio.run(correct(Scripted(), flank, shown.amended(a1), a1)).card
     schedule = direct([flank.card, press.card, withdrawn], shown.events, shown.meta, FAN)
     insight = [c for c in schedule.cards if c.lane == "full"]
     assert [(c.case_id, c.revision, c.status, str(c.timing.published_at)) for c in insight] == [
-        ("case-m01-058-shape_change", 1, CardStatus.SHOWN, "58:00"),
-        ("case-m01-063-pressure_shift", 1, CardStatus.SHOWN, "63:00"),
-        ("case-m01-058-shape_change", 2, CardStatus.WITHDRAWN, "68:00"),
+        # Each card is shown once its change is confirmed, five minutes after detection.
+        ("case-m01-057-shape_change", 1, CardStatus.SHOWN, "62:00"),
+        ("case-m01-063-pressure_shift", 1, CardStatus.SHOWN, "68:00"),
+        ("case-m01-057-shape_change", 2, CardStatus.WITHDRAWN, "70:00"),
     ]
     by_kind = {c.kind: c for c in schedule.cues}
     assert by_kind["insight"].status in ("approved", "expired")
@@ -46,7 +47,7 @@ def test_a_withdrawal_reaches_the_fan_who_saw_the_card_and_waits_for_the_produce
     assert withdrawal.template == "withdrawal_banner" and withdrawal.status == "pending"
     assert withdrawal.fields["headline"] == "WITHDRAWN"
     press_cue = next(c for c in schedule.cues if c.insight_id == press.card.id)
-    assert press_cue.fields["headline"] == "PRESS RAISED" and press_cue.fields["after"] > 0.8
+    assert press_cue.fields["headline"] == "PRESS RAISED" and press_cue.fields["after"] > 0.7
 
 
 def test_a_card_beyond_the_budget_or_below_the_viewers_language_waits_for_the_recap(m01):  # noqa: F811

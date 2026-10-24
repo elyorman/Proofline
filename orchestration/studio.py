@@ -10,6 +10,7 @@ import json
 from pathlib import Path
 from typing import Any
 
+from agents.confirm import extended
 from agents.director import direct
 from agents.llm import Model
 from contracts.card import InsightCard
@@ -34,8 +35,9 @@ DEMO_FAN = Profile(
 
 
 def _cases(source: DirectorySource, match_id: str):
-    """Every case with the feed as it stood when the case opened: detected on the feed as
-    first delivered until the first amendment, then on the amended feed."""
+    """Every case with the feed as it stood when the case opened, once its change was
+    confirmed: detected on the feed as first delivered until the first amendment, then on the
+    amended feed."""
     feed = source.feed(match_id)
     versions: list[tuple[Any, Feed]] = [(None, feed)]
     for amendment in source.amendments(match_id):
@@ -45,7 +47,7 @@ def _cases(source: DirectorySource, match_id: str):
     for i, (applied, version) in enumerate(versions):
         until = versions[i + 1][0].at if i + 1 < len(versions) else None
         for case in detect(version.meta, version.events):
-            opened = case.window.end
+            opened = extended(case).window.end
             if (applied is None or not opened < applied.at) and (until is None or opened < until):
                 out.append((case, version))
     return versions, sorted(out, key=lambda c: c[0].window.end.sort_key)
@@ -73,7 +75,9 @@ async def studio(
         if card.status == CardStatus.VERIFIED:
             primary = card.primary_cause.hypothesis_id
             hypothesis = next(h for h in outcome.finding.hypotheses if h.hypothesis_id == primary)
-            published[card.id] = Published(card, case, hypothesis, outcome.finding.evidence)
+            # The case the card was built on: its window runs on to the confirming minute.
+            built_on = outcome.finding.case
+            published[card.id] = Published(card, built_on, hypothesis, outcome.finding.evidence)
     index = DependencyIndex()
     for p in published.values():
         index.add(p)
@@ -81,7 +85,7 @@ async def studio(
     for amendment, feed in versions[1:]:
         for card_id in sorted(index.dependents(amendment)):
             p = published[card_id]
-            if not p.card.timing.detected_at < amendment.at:
+            if not (p.card.timing.verified_at or p.card.timing.detected_at) < amendment.at:
                 continue  # published on the corrected feed already
             fixed = await correct(verifier, p, feed, amendment)
             if fixed is None:

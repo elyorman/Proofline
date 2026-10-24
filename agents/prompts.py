@@ -7,27 +7,34 @@ from contracts.case import Case
 from contracts.meta import MatchMeta
 from contracts.taxonomy import DOMAIN_OF_AGENT, AgentRole, Cause
 
-METRICS = """\
+METRIC_LIST = """\
 - pressure_rate (team): the team's pressures in the opponent's first 60% of the pitch per \
-opponent pass, carry or dribble starting there. A first half is often 0.2-0.5. \
-min_change in absolute units, e.g. 0.15.
+opponent pass, carry or dribble starting there. A first half is often 0.2-0.5.
 - long_ball_share (team): share of the team's passes longer than 30 m. A first half is often \
-0.05-0.2. Absolute units, e.g. 0.10.
+0.05-0.2.
 - channel_share_left / channel_share_centre / channel_share_right (team): share of the \
-team's passes, carries and dribbles starting in that third of the width. Absolute units.
+team's passes, carries and dribbles starting in that third of the width.
 - sprint_count (team, "Team.defence", "Team.midfield", "Team.attack", or a player id): \
-sprints per minute of play. min_change is a fraction of the first-half rate, e.g. 0.3 for \
-a 30% fall.
-- sprint_speed (same subjects): mean sprint speed in km/h. Absolute units, e.g. 1.0."""
+sprints per minute of play. Sprints fall late in every match; the normal range allows for it.
+- sprint_speed (same subjects): mean sprint speed in km/h. It falls late in every match too."""
+
+METRICS = f"""{METRIC_LIST}
+Every change is measured against the first half and read in standard deviations (sd) of how \
+far that metric moves in ordinary play over the same window and minute, so min_change is in \
+sd: about 1 sd is a common swing, 2 sd an unusual one, 3 sd rare. A claim under 1 sd is \
+refused."""
 
 RULES = """\
 You never compute or estimate a number. You pre-register predictions; code tests each one \
 with deterministic tools, comparing the case's window with the first half, and judges it.
-Each hypothesis names one cause and one prediction that would hold if that cause were \
-present: the metric, whose metric it is, the direction, and the smallest change that would \
-count. Think about what the cause would do on the pitch, to both teams, and choose the \
-prediction that would hold under it but not under the other causes that could explain what \
-the detector saw: a prediction every candidate shares proves little.
+Code has already confirmed the change the detector saw, and the card will report it: every \
+hypothesis is an explanation of that change. Each names one cause and one prediction that \
+would hold if that cause were present: the metric, whose metric it is, the direction, and the \
+smallest change that would count. The prediction is your cause's evidence, so think about \
+what the cause would do on the pitch, to both teams, and choose one that would hold under it \
+but not under the other causes: re-measuring the confirmed change proves nothing new. A \
+change in one team is often the other team's doing; "both_teams" shows each team's main \
+numbers over the window, measured by code.
 The match's facts limit the causes: a team chases the result only when behind and protects \
 a lead only when ahead, a change in numbers needs a sending-off, and fresh legs need a \
 substitution by that team; code refuses each otherwise. Register nothing for a cause the \
@@ -72,6 +79,20 @@ surviving cause, the outcome is 'other'. Otherwise it is 'explained', with the b
 supported cause as primary."""
 
 
+def both_teams(case: Case) -> list[dict]:
+    """Each team's main numbers over the case's window, as code measured them."""
+    return [
+        {
+            "metric": r.metric.value,
+            "team": r.subject,
+            "first_half": round(r.baseline_value, 3),
+            "window": round(r.value, 3),
+            "sd": r.sigmas,
+        }
+        for r in case.both_teams
+    ]
+
+
 def state_at(meta: MatchMeta, state: dict[str, float]) -> dict[str, dict[str, int]]:
     """Each team's goals, players sent off and substitutions so far."""
     return {
@@ -94,8 +115,15 @@ def case_prompt(case: Case, meta: MatchMeta, score: dict[str, float]) -> str:
     moment = {
         "moment": case.moment_type.value,
         "window": str(case.window),
-        "detected_at": str(case.window.end),
+        "detected_at": str(case.detected_at or case.window.end),
+        "confirmed": (
+            f"code re-measured the change over {case.detected_at}-{case.window.end}, after "
+            "the detector fired, and it held beyond normal variation"
+            if case.detected_at
+            else "not re-measured after detection"
+        ),
         "state_at_detection": state_at(meta, score),
+        "both_teams": both_teams(case),
         "what_the_detector_saw": [
             {
                 "metric": t.metric.value,
@@ -119,6 +147,7 @@ def ranking_prompt(
             "moment": case.moment_type.value,
             "window": str(case.window),
             "state_at_detection": state_at(meta, score),
+            "both_teams": both_teams(case),
             "survivors": survivors,
         },
         indent=1,

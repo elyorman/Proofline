@@ -97,18 +97,18 @@ def test_a_written_match_carries_its_first_delivered_feed_and_the_batch_that_cor
     source = DirectorySource(tmp_path)
     shown = source.feed("m01")
     (a1,) = source.amendments("m01")
-    assert a1.amendment_id == "a1" and a1.at == MatchClock.parse("68:00") and a1.shift.dy_m == -22
+    assert a1.amendment_id == "a1" and a1.at == MatchClock.parse("70:00") and a1.shift.dy_m == -22
     fixed = shown.amended(a1)
     true_by_id = {e.event_id: e for e in truth}
     for e in fixed.events:
         assert (e.start, e.end) == (true_by_id[e.event_id].start, true_by_id[e.event_id].end)
         assert e.version == (2 if e.event_id in a1.event_ids else 1)
-    assert fixed.data_version == "feed-1+a1" and len(a1.event_ids) == 54
+    assert fixed.data_version == "feed-1+a1" and len(a1.event_ids) == 81
 
     def right_share(feed):
-        call = Call(tool_call_id="tc-1", as_of=MatchClock.parse("68:00"), now_ms=0)
-        window = Window.model_validate("45:00-55:00")
+        call = Call(tool_call_id="tc-1", as_of=MatchClock.parse("70:00"), now_ms=0)
+        window = Window.model_validate("45:00-65:00")
         result, _ = metric(feed, Metric.CHANNEL_SHARE_RIGHT, "Northvale", window, call)
         return round(result.value, 3)
 
-    assert (right_share(shown), right_share(fixed)) == (0.625, 0.375)
+    assert (right_share(shown), right_share(fixed)) == (0.715, 0.368)

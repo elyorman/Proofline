@@ -10,7 +10,7 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from contracts.clock import Window
+from contracts.clock import MatchClock, Window
 from contracts.taxonomy import AgentRole, CaseOutcome, Metric, MomentType
 
 
@@ -45,13 +45,34 @@ class TriggerMetric(BaseModel):
     n_events: int = Field(ge=0)
 
 
+class Reading(BaseModel):
+    """One team's metric over a case's window against its first half, as code measured it."""
+
+    model_config = ConfigDict(allow_inf_nan=False)
+
+    metric: Metric
+    subject: str
+    value: float
+    baseline_value: float
+    sigmas: float | None = Field(description="in standard deviations of normal variation")
+
+
 class Case(BaseModel):
     case_id: str
     match_id: str
     moment_type: MomentType
-    origin: Literal["auto", "on_demand"] = "auto"
+    origin: Literal["auto", "on_demand", "question"] = "auto"
     window: Window
+    detected_at: MatchClock | None = Field(
+        default=None,
+        description="when the detector fired, once the window runs on to confirm the change",
+    )
     triggers: list[TriggerMetric] = Field(min_length=1)
+    both_teams: list[Reading] = Field(
+        default_factory=list,
+        description="each team's main metrics over the window, so a change in one team can "
+        "be read against the other's; measured by code when the case opens",
+    )
     stage: CaseStage = CaseStage.OPEN
     outcome: CaseOutcome | None = None
     hypothesis_ids: list[str] = Field(default_factory=list)
@@ -70,4 +91,9 @@ class Case(BaseModel):
             raise ValueError("a closed case has an outcome")
         if self.tool_calls_used > self.tool_call_budget:
             raise ValueError("tool calls exceed the case budget")
+        if (
+            self.detected_at is not None
+            and not self.window.start < self.detected_at < self.window.end
+        ):
+            raise ValueError("the detector fires inside the window that confirms it")
         return self

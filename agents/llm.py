@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import Protocol, TypeVar
 
 from agent_framework import Agent
+from agent_framework.exceptions import ChatClientException
 from agent_framework.foundry import FoundryChatClient
 from azure.identity import DefaultAzureCredential
 from pydantic import BaseModel
@@ -22,6 +23,7 @@ from pydantic import BaseModel
 T = TypeVar("T", bound=BaseModel)
 MAX_TEXT_TOKENS = 8000  # the verifier's whole reply: its checks, then the JSON
 MODEL_TIMEOUT_S = 90  # one reply; a slower one counts as no answer, so a case never hangs
+CONNECT_TRIES = 4  # attempts at a request whose connection drops, backing off 1, 2, 4 s
 
 
 @dataclass(frozen=True)
@@ -62,10 +64,15 @@ def last_json[T: BaseModel](text: str, schema: type[T]) -> T:
 
 
 async def _run(agent: Agent, prompt: str, options: dict, schema: type[BaseModel]):
-    try:
-        return await asyncio.wait_for(agent.run(prompt, options=options), MODEL_TIMEOUT_S)
-    except TimeoutError as exc:
-        raise ValueError(f"no {schema.__name__} within {MODEL_TIMEOUT_S} s") from exc
+    for attempt in range(CONNECT_TRIES):
+        try:
+            return await asyncio.wait_for(agent.run(prompt, options=options), MODEL_TIMEOUT_S)
+        except TimeoutError as exc:
+            raise ValueError(f"no {schema.__name__} within {MODEL_TIMEOUT_S} s") from exc
+        except ChatClientException as exc:  # a dropped connection is not the model's answer
+            if "Connection error" not in str(exc) or attempt == CONNECT_TRIES - 1:
+                raise
+            await asyncio.sleep(2**attempt)
 
 
 @dataclass

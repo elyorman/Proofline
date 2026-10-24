@@ -23,6 +23,7 @@ from contracts.planted import CAUSE_OBSERVABLES
 from contracts.prediction import Direction, Hypothesis, HypothesisTest, Prediction, TestOutcome
 from contracts.taxonomy import AgentRole, BaselineScope, CaseOutcome, Cause, Metric, ThresholdKind
 from contracts.tool_result import ToolResult
+from state import natural
 from state.subjects import opponent, resolve
 from state.tools import MEASURED
 
@@ -165,6 +166,7 @@ async def register(
                     window=case.window,
                     compare_to=BaselineScope.FIRST_HALF,
                     direction=proposal.direction,
+                    threshold_kind=ThresholdKind.SIGMA,
                     min_change=proposal.min_change,
                 ),
             )
@@ -176,24 +178,44 @@ async def register(
     return accepted, refused, usage
 
 
-def change_of(prediction: Prediction, during: float, before: float) -> float | None:
-    """The signed change in the prediction's threshold units, or None if undefined."""
+def change_of(
+    prediction: Prediction, during: float, before: float, meta: MatchMeta
+) -> float | None:
+    """The signed change in the prediction's threshold units, or None if undefined. In sigmas
+    it is the change in standard deviations of normal variation (`state/natural.py`)."""
     if prediction.threshold_kind == ThresholdKind.ABSOLUTE:
         return during - before
-    if prediction.threshold_kind == ThresholdKind.RELATIVE and before > 0:
-        return (during - before) / before
-    return None  # sigma needs the distribution tool, which is not built yet
+    if prediction.threshold_kind == ThresholdKind.RELATIVE:
+        return (during - before) / before if before > 0 else None
+    read = natural.sigmas(
+        meta, prediction.metric, prediction.subject, prediction.window, during, before
+    )
+    return read[0] if read else None
 
 
-def too_few(metric: Metric, during: ToolResult, before: ToolResult) -> str | None:
+def normally(prediction: Prediction, meta: MatchMeta) -> str:
+    """How far the prediction's metric moves in ordinary play over its window, as text."""
+    s = natural.spread(
+        prediction.metric, natural.level(meta, prediction.subject), prediction.window
+    )
+    if s is None:
+        return "no normal range for this window"
+    unit = " of the first-half rate" if prediction.metric == Metric.SPRINT_COUNT else ""
+    return f"ordinary play moves it {s.mean:+.3f} ± {s.sd:.3f}{unit} here"
+
+
+def too_few(
+    metric: Metric, during: ToolResult, before: ToolResult, share: float = 1.0
+) -> str | None:
     """Why a measurement rests on fewer events than a card may (the Verifier's minimum
-    samples), or None. Code judges nothing on data a card could not be published on."""
+    samples, or `share` of them), or None. Code judges nothing on data a card could not be
+    published on."""
     n = before.baseline.n_events if metric == Metric.SPRINT_COUNT else during.n_events
-    minimum = MIN_SAMPLE.get(metric, 0)
-    return f"{n} events, fewer than the {minimum} a claim needs" if n < minimum else None
+    minimum = MIN_SAMPLE.get(metric, 0) * share
+    return f"{n} events, fewer than the {minimum:g} a claim needs" if n < minimum else None
 
 
-async def run_test(tools: Tools, hypothesis: Hypothesis) -> Tested:
+async def run_test(tools: Tools, hypothesis: Hypothesis, meta: MatchMeta) -> Tested:
     """Measure the prediction's metric over its window and its baseline, and judge it."""
     p = hypothesis.prediction
 
@@ -218,19 +240,25 @@ async def run_test(tools: Tools, hypothesis: Hypothesis) -> Tested:
         return failed(f"insufficient data: {why}", during=during, before=before)
     if thin := too_few(p.metric, during, before):
         return failed(f"too little data: {thin}", during=during, before=before)
-    change = change_of(p, during.value, before.baseline.value)
+    change = change_of(p, during.value, before.baseline.value, meta)
     if change is None:
-        return failed("no change defined from a zero baseline", during=during, before=before)
+        why = "no normal range for this window" if p.threshold_kind == ThresholdKind.SIGMA else ""
+        return failed(why or "no change defined from a zero baseline", during=during, before=before)
     held = p.supported_by(change)
-    claim = f"{p.direction} by {p.min_change:g}"
+    sigma = p.threshold_kind == ThresholdKind.SIGMA
+    measured = (
+        f"{normally(p, meta)}, so {change:+.2f} sd against a claim of {p.direction} by "
+        f"{p.min_change:g} sd"
+        if sigma
+        else f"a change of {change:+.3f} against a claim of {p.direction} by {p.min_change:g}"
+    )
     record = HypothesisTest(
         hypothesis_id=hypothesis.hypothesis_id,
         tool_call_id=during.tool_call_id,
         observed_change=change,
         outcome=TestOutcome.SUPPORTED if held else TestOutcome.FAILED,
         reason=f"{p.metric} of {p.subject}: {before.baseline.value:.3f} in the first half, "
-        f"{during.value:.3f} in {p.window}, a change of {change:+.3f} against a claim of "
-        f"{claim}",
+        f"{during.value:.3f} in {p.window}; {measured}",
     )
     return Tested(hypothesis, record, during, before)
 
@@ -241,7 +269,8 @@ def _summary(t: Tested, case: Case) -> dict[str, Any]:
         "hypothesis_id": t.hypothesis.hypothesis_id,
         "cause": t.hypothesis.taxonomy.value,
         "agent": t.hypothesis.agent.value,
-        "prediction": f"{p.metric} of {p.subject} {p.direction} by at least {p.min_change:g}",
+        "prediction": f"{p.metric} of {p.subject} {p.direction} by at least {p.min_change:g}"
+        + (" sd" if p.threshold_kind == ThresholdKind.SIGMA else ""),
         "predicts_the_detected_change": predicts_the_detected_change(case, p),
         "result": t.test.reason,
     }

@@ -89,10 +89,15 @@ def propose(finding: Finding, feed: Feed) -> InsightCard | None:
         propositions.append(make(pid))
         return pid
 
-    changes = {(p.metric, p.subject, p.direction): add(lambda pid: _change(pid, p))}
+    # The card explains the confirmed change; the primary's own prediction is its evidence.
+    # A finding without one (a case investigated directly) explains its primary's prediction.
+    q = finding.explained[0] if finding.explained else p
+    changes = {(q.metric, q.subject, q.direction): add(lambda pid: _change(pid, q))}
     add(
-        lambda pid: _attribution(primary, pid, "primary", changes[p.metric, p.subject, p.direction])
+        lambda pid: _attribution(primary, pid, "primary", changes[q.metric, q.subject, q.direction])
     )
+    if (p.metric, p.subject, p.direction) not in changes:
+        changes[p.metric, p.subject, p.direction] = add(lambda pid: _change(pid, p))
     for t in secondary:  # a secondary cause points at its own change
         q = t.hypothesis.prediction
         key = (q.metric, q.subject, q.direction)
@@ -110,11 +115,17 @@ def propose(finding: Finding, feed: Feed) -> InsightCard | None:
         if (q.metric, q.subject, q.direction) not in changes:
             changes[q.metric, q.subject, q.direction] = add(lambda pid, q=q: _change(pid, q))
     backing = [primary, *secondary]
-    measured = {  # one evidence line per tool call
-        t.during.tool_call_id: (t.hypothesis.prediction, t.during, t.before) for t in backing
-    } | {
-        x.during.tool_call_id: (x.exam.counter_prediction, x.during, x.before) for x in corroborated
-    }
+    first = {finding.explained[1].tool_call_id: finding.explained} if finding.explained else {}
+    measured = (
+        first
+        | {  # one evidence line per tool call, the explained change first
+            t.during.tool_call_id: (t.hypothesis.prediction, t.during, t.before) for t in backing
+        }
+        | {
+            x.during.tool_call_id: (x.exam.counter_prediction, x.during, x.before)
+            for x in corroborated
+        }
+    )
     refuted = {e.hypothesis_id: e for e in finding.exams if e.result == "refuted"}
     # A cause the card names is never also ruled out: one registered twice, with one of its
     # predictions failing, still stands on the other.
@@ -138,7 +149,13 @@ def propose(finding: Finding, feed: Feed) -> InsightCard | None:
         and (not t.supported or t.hypothesis.hypothesis_id in refuted)
         and (t.hypothesis.taxonomy, cause_team(feed.meta, t.hypothesis)) not in claimed
     ]
-    who = resolve(feed.meta, p.subject)
+    players = list(
+        dict.fromkeys(  # whoever the change or the primary's evidence is about
+            w.player_id
+            for w in (resolve(feed.meta, q.subject), resolve(feed.meta, p.subject))
+            if w.player_id
+        )
+    )
     team = cause_team(feed.meta, primary.hypothesis)
     card = InsightCard(
         id=f"ins-{case.case_id.removeprefix('case-')}",
@@ -147,8 +164,13 @@ def propose(finding: Finding, feed: Feed) -> InsightCard | None:
         case_outcome=CaseOutcome.EXPLAINED,
         moment_type=case.moment_type,
         status=CardStatus.PROPOSED,
-        subject=Subject(team=team, players=[who.player_id] if who.player_id else []),
-        timing=Timing(change_window=case.window, detected_at=case.window.end),
+        subject=Subject(team=team, players=players),
+        # A confirmed change is ready once it held: the end of its run-on window.
+        timing=Timing(
+            change_window=case.window,
+            detected_at=case.detected_at or case.window.end,
+            verified_at=case.window.end if case.detected_at else None,
+        ),
         propositions=propositions,
         claim="",
         evidence=[_evidence(*m) for m in measured.values()],

@@ -5,9 +5,11 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from agents import single
+from agents.confirm import both_teams, confirm, explained, extended
 from agents.llm import FoundryModel, Model, Recording, Replay, Usage
+from agents.outputs import Ranking
 from agents.propose import propose
-from agents.single import Finding
+from agents.single import Finding, case_tools
 from agents.verifier.checks import Record
 from agents.verifier.verify import Verdict, verify
 from contracts.case import Case, CaseStage
@@ -32,13 +34,41 @@ async def run_case(
     feed: Feed,
     stop: dict[AgentRole, int] | None = None,
 ) -> Outcome:
-    """Investigate with variant A (the workflow) or B (one agent), then propose and verify."""
-    if variant == Variant.A_PROOFLINE:
-        finding = await workflow.investigate(agents, case, feed, stop)
-    elif variant == Variant.B_SINGLE_AGENT:
-        finding = await single.investigate(agents, case, feed)
-    else:
+    """Confirm the detected change on the minutes after it fired; if it held, investigate with
+    variant A (the workflow) or B (one agent) over the window run on to that minute, then
+    propose and verify. Both variants share the confirmation, which asks no model."""
+    if variant not in (Variant.A_PROOFLINE, Variant.B_SINGLE_AGENT):
         raise NotImplementedError(f"variant {variant} is a stretch, not built")
+    case = extended(case)
+    opened = case_tools(case, feed)
+    persisted = await confirm(opened[0], case, feed.meta)
+    if not any(p.holds for p in persisted):
+        best = max(persisted, key=lambda p: p.sigmas if p.sigmas is not None else -99)
+        tools, sink = opened
+        return Outcome(
+            Finding(
+                case=case,
+                agents=[],
+                hypotheses=[],
+                refused=[],
+                tested=[],
+                ranking=Ranking(outcome="none", primary=None, secondary=[], why=best.reason),
+                score={},
+                tools=tools,
+                evidence=sink.evidence,
+                usage=Usage(),
+                confirmation=persisted,
+            ),
+            None,
+        )
+    case = case.model_copy(update={"both_teams": both_teams(feed, case.window)})
+    held = max((p for p in persisted if p.holds), key=lambda p: p.sigmas)
+    change = await explained(opened[0], held.metric, held.subject, held.direction, case.window)
+    if variant == Variant.A_PROOFLINE:
+        finding = await workflow.investigate(agents, case, feed, stop, opened)
+    else:
+        finding = await single.investigate(agents, case, feed, opened)
+    finding.confirmation, finding.explained = persisted, change
     card = propose(finding, feed)
     if card is None:
         return Outcome(finding, None)
@@ -81,6 +111,7 @@ def case_file(outcome: Outcome, variant: Variant) -> CaseFile:
     return CaseFile(
         case=case,
         variant=variant,
+        confirmation=f.confirmation,
         agents=f.agents,
         hypotheses=f.hypotheses,
         refused=[

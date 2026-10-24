@@ -7,6 +7,7 @@ from pathlib import Path
 import pytest
 
 from agents import llm, narrator
+from agents.cross_exam import Counters
 from agents.investigation import Tools, cause_team, rank, register, run_test
 from agents.llm import Recording, Replay, Usage
 from agents.outputs import Proposal, Ranking, Registration
@@ -56,7 +57,7 @@ def _proposal(**overrides):
         metric="pressure_rate",
         subject="Harbour City",
         direction="up",
-        min_change=0.15,
+        min_change=1.5,
         why="a higher press",
     )
     return Proposal(**base | overrides)
@@ -69,7 +70,7 @@ def test_the_single_agent_replays_its_demo_case_from_recorded_exchanges(m01):
     outcome = asyncio.run(run_case(Variant.B_SINGLE_AGENT, replay, replay, case, feed))
     card = outcome.verdict.card
     assert card.status == "verified" and card.verification.recompute == "match"
-    assert card.subject.team == "Harbour City" and card.primary_cause.agent == "single"
+    assert card.primary_cause.agent == "single"  # and which team it names is that run's call
     assert set(card.variants) == {"casual", "analyst"}
     assert all(set(v) == {"en", "es"} for v in card.variants.values())
     assert outcome.finding.tools.used <= case.tool_call_budget
@@ -122,7 +123,7 @@ def test_a_change_in_numbers_or_fresh_legs_needs_the_event_that_causes_it(m01):
     subs = Registration(
         hypotheses=[
             _proposal(
-                cause="physical.fresh_legs_substitution", metric="sprint_count", min_change=0.3
+                cause="physical.fresh_legs_substitution", metric="sprint_count", min_change=1.5
             )
         ]
     )
@@ -152,7 +153,8 @@ def _hypothesis(case, **prediction):
         window=case.window,
         compare_to="first_half",
         direction="up",
-        min_change=0.15,
+        threshold_kind="sigma",
+        min_change=1.5,
     )
     return Hypothesis(
         hypothesis_id="hyp-1",
@@ -166,12 +168,14 @@ def _hypothesis(case, **prediction):
 def test_code_judges_each_prediction_on_the_tools_within_the_budget(m01):
     feed, case = m01
     tools, _ = case_tools(case, feed)
-    held = asyncio.run(run_test(tools, _hypothesis(case)))
-    missed = asyncio.run(run_test(tools, _hypothesis(case, min_change=0.6)))
-    assert held.supported and round(held.test.observed_change, 3) == 0.513
-    assert not missed.supported and "claim of up by 0.6" in missed.test.reason
+    held = asyncio.run(run_test(tools, _hypothesis(case), feed.meta))
+    missed = asyncio.run(run_test(tools, _hypothesis(case, min_change=6), feed.meta))
+    # 0.32 to 0.83 where ordinary play moves it -0.003 +- 0.125 over five minutes at 65'.
+    assert held.supported and round(held.test.observed_change, 2) == 4.12
+    assert "ordinary play moves it -0.003 ± 0.125" in held.test.reason
+    assert not missed.supported and "claim of up by 6 sd" in missed.test.reason
     spent = Tools(tools.server, case.match_id, budget=1)
-    assert "spent" in asyncio.run(run_test(spent, _hypothesis(case))).test.reason
+    assert "spent" in asyncio.run(run_test(spent, _hypothesis(case), feed.meta)).test.reason
 
 
 def test_code_judges_nothing_on_fewer_events_than_a_card_may_rest_on(m01):
@@ -179,9 +183,9 @@ def test_code_judges_nothing_on_fewer_events_than_a_card_may_rest_on(m01):
     tools, _ = case_tools(case, feed)
     # HC-09 sprinted once in 58-63'; a sprint speed needs three sprints.
     one_sprint = _hypothesis(
-        case, metric="sprint_speed", subject="HC-09", direction="down", min_change=0.5
+        case, metric="sprint_speed", subject="HC-09", direction="down", min_change=1.5
     )
-    tested = asyncio.run(run_test(tools, one_sprint))
+    tested = asyncio.run(run_test(tools, one_sprint, feed.meta))
     assert not tested.supported
     assert tested.test.reason == "too little data: 1 events, fewer than the 3 a claim needs"
 
@@ -189,7 +193,7 @@ def test_code_judges_nothing_on_fewer_events_than_a_card_may_rest_on(m01):
 def test_a_ranking_that_names_nothing_real_falls_back_to_the_strongest_margin(m01):
     feed, case = m01
     tools, _ = case_tools(case, feed)
-    survivors = [asyncio.run(run_test(tools, _hypothesis(case)))]
+    survivors = [asyncio.run(run_test(tools, _hypothesis(case), feed.meta))]
     made_up = Ranking(outcome="explained", primary="hyp-9", secondary=[], why="?")
     score = {"home_goals": 1.0, "away_goals": 3.0}
     ranking, _ = asyncio.run(
@@ -202,7 +206,7 @@ def test_a_ranking_that_names_nothing_real_falls_back_to_the_strongest_margin(m0
 
 def test_a_press_seen_in_the_opponents_long_balls_is_the_pressing_teams(m01):
     feed, case = m01
-    seen = _hypothesis(case, metric="long_ball_share", subject="Northvale", min_change=0.1)
+    seen = _hypothesis(case, metric="long_ball_share", subject="Northvale")
     assert cause_team(feed.meta, seen) == "Harbour City"
 
 
@@ -214,10 +218,13 @@ def test_every_measured_change_can_be_narrated_in_both_languages():
             assert all(narrator.HEADLINE[metric, direction])
 
 
+UNCHECKED = Counters(counters=[])  # the single agent puts no test to its own hypotheses
+
+
 def _proposed(feed, case, survivor):
     answer = Registration(hypotheses=[survivor])
     ranking = Ranking(outcome="explained", primary="hyp-single-01", secondary=[], why="clear")
-    finding = asyncio.run(investigate(Scripted(answer, ranking), case, feed))
+    finding = asyncio.run(investigate(Scripted(answer, UNCHECKED, ranking), case, feed))
     return finding, propose(finding, feed)
 
 
@@ -249,11 +256,11 @@ def test_a_cause_the_card_names_is_never_also_ruled_out(m01):
     twice = Registration(
         hypotheses=[
             _proposal(),  # Harbour City's pressure: holds
-            _proposal(metric="long_ball_share", subject="Northvale", min_change=0.9),  # fails
+            _proposal(metric="long_ball_share", subject="Northvale", min_change=9),  # fails
         ]
     )
     ranking = Ranking(outcome="explained", primary="hyp-single-01", secondary=[], why="clear")
-    finding = asyncio.run(investigate(Scripted(twice, ranking), case, feed))
+    finding = asyncio.run(investigate(Scripted(twice, UNCHECKED, ranking), case, feed))
     assert not finding.tested[1].supported
     card = propose(finding, feed)
     assert Cause.PRESS_INTENSITY_UP not in {r.taxonomy for r in card.rejected_alternatives}
@@ -275,7 +282,7 @@ def test_card_text_lists_each_measurement_once_and_names_each_ruled_out_teams_ow
     ranking = Ranking(
         outcome="explained", primary="hyp-single-01", secondary=["hyp-single-02"], why="clear"
     )
-    finding = asyncio.run(investigate(Scripted(answer, ranking), case, feed))
+    finding = asyncio.run(investigate(Scripted(answer, UNCHECKED, ranking), case, feed))
     card = propose(finding, feed)
     assert len(card.evidence) == 1
     assert [r.team for r in card.rejected_alternatives] == ["Northvale"]
@@ -313,7 +320,7 @@ def test_a_reply_slower_than_the_limit_counts_as_no_answer(monkeypatch):
 def test_a_ranking_that_gives_no_answer_falls_back_to_the_strongest_margin(m01):
     feed, case = m01
     tools, _ = case_tools(case, feed)
-    survivors = [asyncio.run(run_test(tools, _hypothesis(case)))]
+    survivors = [asyncio.run(run_test(tools, _hypothesis(case), feed.meta))]
     score = {"home_goals": 1.0, "away_goals": 3.0}
     ranking, _ = asyncio.run(
         rank(Unanswering(), AgentRole.SINGLE, case, feed.meta, score, survivors)

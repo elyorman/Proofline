@@ -1,0 +1,30 @@
+{
+  "role": "verifier",
+  "prompt": "{\n \"facts\": {\n  \"change\": {\n   \"metric\": \"channel_share_right\",\n   \"subject\": \"Northvale\",\n   \"direction\": \"up\",\n   \"window\": \"47:00-62:00\",\n   \"compared_with\": \"first_half\"\n  },\n  \"causes\": [\n   {\n    \"cause\": \"tactical.flank_overload\",\n    \"role\": \"primary\",\n    \"plain\": \"Northvale overloading one flank\"\n   }\n  ],\n  \"evidence\": [\n   {\n    \"metric\": \"channel_share_right\",\n    \"subject\": \"Northvale\",\n    \"first_half\": \"24%\",\n    \"window\": \"76%\"\n   }\n  ],\n  \"ruled_out\": [\n   \"a deliberate step up in Harbour City's press\",\n   \"tiring legs in Harbour City's side\",\n   \"a tiring Harbour City player\",\n   \"Harbour City chasing the result\",\n   \"Northvale protecting their lead\"\n  ],\n  \"names\": {\n   \"Northvale\": \"Northvale\"\n  },\n  \"team_the_cause_is_about\": \"Northvale\",\n  \"support_level\": \"moderate\",\n  \"language_level\": \"measured\",\n  \"published_at\": \"57:00\"\n },\n \"sentences\": [\n  \"Northvale are playing more down the right since 47'.\",\n  \"Northvale are playing more down the right since 47'. It looks like Northvale overloading one flank.\",\n  \"Share down the right (Northvale): 24% \\u2192 76%, 47'-62' against the first half. It looks like Northvale overloading one flank. Ruled out: a deliberate step up in Harbour City's press, tiring legs in Harbour City's side, a tiring Harbour City player, Harbour City chasing the result, Northvale protecting their lead. Support: moderate.\"\n ]\n}",
+  "answer": {
+    "sentences": [
+      {
+        "sentence": "Northvale are playing more down the right since 47'.",
+        "entailed": true,
+        "overstated": false,
+        "reason": "Metric 'channel_share_right' direction and window '47:00-62:00' entail this."
+      },
+      {
+        "sentence": "Northvale are playing more down the right since 47'. It looks like Northvale overloading one flank.",
+        "entailed": true,
+        "overstated": false,
+        "reason": "Metric direction and 'tactical.flank_overload' entailed. 'looks like' consistent with 'measured' language."
+      },
+      {
+        "sentence": "Share down the right (Northvale): 24% \u2192 76%, 47'-62' against the first half. It looks like Northvale overloading one flank. Ruled out: a deliberate step up in Harbour City's press, tiring legs in Harbour City's side, a tiring Harbour City player, Harbour City chasing the result, Northvale protecting their lead. Support: moderate.",
+        "entailed": true,
+        "overstated": false,
+        "reason": "Metrics, causes, ruled outs, and support level match facts. 'It looks like' fits 'measured' language."
+      }
+    ]
+  },
+  "usage": {
+    "input_tokens": 850,
+    "output_tokens": 290
+  }
+}

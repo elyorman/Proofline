@@ -6,6 +6,7 @@
         "physical",
         "game_state",
         "synthesis",
+        "lead",
         "single"
       ],
       "title": "AgentRole",

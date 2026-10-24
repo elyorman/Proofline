@@ -2,6 +2,7 @@ import asyncio
 import json
 from pathlib import Path
 
+from agents.cross_exam import Counters
 from agents.llm import Usage
 from agents.outputs import Proposal, Ranking, Registration
 from agents.verifier.semantic import SemanticReport, SentenceCheck
@@ -28,11 +29,12 @@ PRESS = Proposal(
     metric="pressure_rate",
     subject="Harbour City",
     direction="up",
-    min_change=0.15,
+    min_change=1.5,
     why="a higher press",
 )
 ANSWERS = {
     ("single", "Registration"): Registration(hypotheses=[PRESS]),
+    ("single", "Counters"): Counters(counters=[]),
     ("single", "Ranking"): Ranking(
         outcome="explained", primary="hyp-single-01", secondary=[], why="held"
     ),
@@ -55,7 +57,7 @@ def test_a_batch_writes_every_case_of_every_match_and_resumes(tmp_path):
     by_id = {c["case_id"]: c for c in doc["cases"]}
     press = by_id["case-m01-063-pressure_shift"]
     assert press["published"] and press["card"]["subject"]["team"] == "Harbour City"
-    assert press["tokens"] == [20, 10] and "error" not in press
+    assert press["tokens"] == [30, 15] and "error" not in press  # register, self-check, rank
     asked = model.asked
     asyncio.run(run_batch(tmp_path / "data", Variant.B_SINGLE_AGENT, out, model, model))
     assert model.asked == asked  # a finished match is not run again

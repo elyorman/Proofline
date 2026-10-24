@@ -56,11 +56,11 @@ def test_a_flank_shown_wrongly_opens_a_case_that_its_correction_takes_away(tmp_p
     shown = source.feed("m01")
     fixed = shown.amended(source.amendments("m01")[0])
     (flank,) = [c for c in detect(shown.meta, shown.events) if c.moment_type == "shape_change"]
-    assert flank.case_id == "case-m01-058-shape_change" and str(flank.window) == "48:00-58:00"
+    assert flank.case_id == "case-m01-057-shape_change" and str(flank.window) == "47:00-57:00"
     (trigger,) = flank.triggers
     assert (trigger.metric, trigger.subject, round(trigger.value, 3)) == (
         "channel_share_right",
         "Northvale",
-        0.636,
+        0.691,
     )
     assert not [c for c in detect(fixed.meta, fixed.events) if c.moment_type == "shape_change"]

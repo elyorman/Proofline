@@ -19,14 +19,14 @@ scripts:
 
 amendments:
   - id: a1
-    at: "68:00"   # after the 63' press card, so the demo shows a published card withdrawn
+    at: "70:00"   # after the press card, confirmed at 68', so the demo shows a card withdrawn
     batch:
       # Northvale's on-ball events whose true start and end both lie in y 0-46;
       # the feed first showed them 22 m to the right.
       filter:
         types: [pass, carry, dribble]
         team: away
-        window: "45:00-55:00"
+        window: "45:00-65:00"   # long enough to outlast the flank card's confirmation
         y_min: 0
         y_max: 46
       shift: { dy_m: -22 }

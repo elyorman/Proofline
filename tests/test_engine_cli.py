@@ -60,6 +60,6 @@ def test_the_demo_match_is_pinned(tmp_path, capsys):
     moved = "the demo match changed: if intended, update this pin and re-check the demo beats"
     assert out == "m01 seed 4434: 2963 events, Harbour City 2-3 Northvale", moved
     digest = hashlib.sha256((tmp_path / "events.jsonl").read_bytes()).hexdigest()
-    assert digest == "e84a27ec047a5400831148e5804db46c9fc45bf6152c61d770e944ea5c43bfac", moved
+    assert digest == "c2a7a473139977d0141181bea40de2009412c3d63a5c557210e33c4c74905d4e", moved
     batch = hashlib.sha256((tmp_path / "amendments.jsonl").read_bytes()).hexdigest()
-    assert batch == "be0263380c9958caf4fa204b8fe0f7e4fcc735cb8ac8853c5a02c1c5e679b7ca", moved
+    assert batch == "f6af15c1ac682a384a65ca79ba55d6a13d47d368bfc45a96243038cf0770fa82", moved

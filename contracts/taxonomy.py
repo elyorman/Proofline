@@ -37,6 +37,7 @@ class AgentRole(StrEnum):
     PHYSICAL = "physical"
     GAME_STATE = "game_state"
     SYNTHESIS = "synthesis"
+    LEAD = "lead"  # states a viewer's question as a testable premise; registers no cause
     SINGLE = "single"  # ablation B: one agent with every tool, any domain
 
 

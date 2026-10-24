@@ -1,0 +1,28 @@
+{
+  "role": "tactics",
+  "prompt": "Pre-register your hypotheses for this moment.\n{\n \"moment\": \"pressure_shift\",\n \"window\": \"52:00-62:00\",\n \"detected_at\": \"57:00\",\n \"confirmed\": \"code re-measured the change over 57:00-62:00, after the detector fired, and it held beyond normal variation\",\n \"state_at_detection\": {\n  \"Harbour City\": {\n   \"goals\": 1,\n   \"sent_off\": 0,\n   \"substitutions\": 0\n  },\n  \"Northvale\": {\n   \"goals\": 3,\n   \"sent_off\": 0,\n   \"substitutions\": 0\n  }\n },\n \"both_teams\": [\n  {\n   \"metric\": \"pressure_rate\",\n   \"team\": \"Harbour City\",\n   \"first_half\": 0.32,\n   \"window\": 0.528,\n   \"sd\": 2.37\n  },\n  {\n   \"metric\": \"long_ball_share\",\n   \"team\": \"Harbour City\",\n   \"first_half\": 0.119,\n   \"window\": 0.2,\n   \"sd\": 1.15\n  },\n  {\n   \"metric\": \"sprint_count\",\n   \"team\": \"Harbour City\",\n   \"first_half\": 4.06,\n   \"window\": 2.5,\n   \"sd\": -1.44\n  },\n  {\n   \"metric\": \"pressure_rate\",\n   \"team\": \"Northvale\",\n   \"first_half\": 0.395,\n   \"window\": 0.5,\n   \"sd\": 1.2\n  },\n  {\n   \"metric\": \"long_ball_share\",\n   \"team\": \"Northvale\",\n   \"first_half\": 0.111,\n   \"window\": 0.469,\n   \"sd\": 5.42\n  },\n  {\n   \"metric\": \"sprint_count\",\n   \"team\": \"Northvale\",\n   \"first_half\": 3.741,\n   \"window\": 3.2,\n   \"sd\": 0.3\n  }\n ],\n \"what_the_detector_saw\": [\n  {\n   \"metric\": \"long_ball_share\",\n   \"subject\": \"Northvale\",\n   \"first_half\": 0.111,\n   \"window\": 0.538,\n   \"sample\": 13\n  }\n ],\n \"match\": {\n  \"home\": {\n   \"team\": \"Harbour City\",\n   \"players\": [\n    \"HC-01 GK (goalkeeper)\",\n    \"HC-02 RB (defence)\",\n    \"HC-03 RCB (defence)\",\n    \"HC-04 LCB (defence)\",\n    \"HC-05 LB (defence)\",\n    \"HC-06 RCM (midfield)\",\n    \"HC-07 CM (midfield)\",\n    \"HC-08 LCM (midfield)\",\n    \"HC-09 RW (attack)\",\n    \"HC-10 ST (attack)\",\n    \"HC-11 LW (attack)\"\n   ]\n  },\n  \"away\": {\n   \"team\": \"Northvale\",\n   \"players\": [\n    \"NV-01 GK (goalkeeper)\",\n    \"NV-02 RB (defence)\",\n    \"NV-03 RCB (defence)\",\n    \"NV-04 LCB (defence)\",\n    \"NV-05 LB (defence)\",\n    \"NV-06 RDM (midfield)\",\n    \"NV-07 LDM (midfield)\",\n    \"NV-08 RAM (midfield)\",\n    \"NV-09 CAM (midfield)\",\n    \"NV-10 LAM (midfield)\",\n    \"NV-11 ST (attack)\"\n   ]\n  }\n }\n}",
+  "answer": {
+    "hypotheses": [
+      {
+        "cause": "tactical.press_intensity_up",
+        "metric": "pressure_rate",
+        "subject": "Harbour City",
+        "direction": "up",
+        "min_change": 1.5,
+        "why": "Harbour City chasing the game would press higher and increase their pressure in the opponent's half."
+      },
+      {
+        "cause": "tactical.formation_change",
+        "metric": "long_ball_share",
+        "subject": "Northvale",
+        "direction": "up",
+        "min_change": 3.0,
+        "why": "Northvale protecting a lead may switch to a more direct shape, increasing their share of long passes."
+      }
+    ]
+  },
+  "usage": {
+    "input_tokens": 1564,
+    "output_tokens": 1791
+  }
+}

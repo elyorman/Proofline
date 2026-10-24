@@ -37,7 +37,7 @@ def test_every_case_of_the_match_is_filed_and_every_card_scheduled(ledger):
     assert [f.case.case_id for f in files] == [
         "case-m01-051-pressure_shift",
         "case-m01-057-pressure_shift",
-        "case-m01-058-shape_change",
+        "case-m01-057-shape_change",
         "case-m01-063-pressure_shift",
         "case-m01-078-pressure_shift",
     ]
@@ -52,7 +52,11 @@ def test_every_case_of_the_match_is_filed_and_every_card_scheduled(ledger):
             assert c.timing.published_at is not None
     assert all(Cue.model_validate(c) for c in ledger["cues"])
     (a1,) = [EventAmendment.model_validate(a) for a in ledger["amendments"]]
-    assert a1.amendment_id == "a1" and len(a1.event_ids) == 54
+    assert a1.amendment_id == "a1" and len(a1.event_ids) == 81
+    # The recorded take's correction beat: the flank card withdrawn, the press card left alone.
+    assert [(c["card_id"], c["decision"]) for c in ledger["corrections"]] == [
+        ("ins-m01-057-shape_change", "withdraw")
+    ]
 
 
 def test_a_studio_replay_is_the_same_ledger_every_time(ledger, tmp_path):

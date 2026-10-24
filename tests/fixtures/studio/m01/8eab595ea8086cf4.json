@@ -1,0 +1,30 @@
+{
+  "role": "verifier",
+  "prompt": "{\n \"facts\": {\n  \"change\": {\n   \"metric\": \"long_ball_share\",\n   \"subject\": \"Northvale\",\n   \"direction\": \"up\",\n   \"window\": \"52:00-62:00\",\n   \"compared_with\": \"first_half\"\n  },\n  \"causes\": [\n   {\n    \"cause\": \"physical.unit_fatigue\",\n    \"role\": \"primary\",\n    \"plain\": \"tiring legs in Harbour City's side\"\n   },\n   {\n    \"cause\": \"tactical.press_intensity_up\",\n    \"role\": \"secondary\",\n    \"plain\": \"a deliberate step up in Harbour City's press\"\n   },\n   {\n    \"cause\": \"game_state.protecting_lead\",\n    \"role\": \"secondary\",\n    \"plain\": \"Harbour City protecting their lead\"\n   },\n   {\n    \"cause\": \"tactical.formation_change\",\n    \"role\": \"secondary\",\n    \"plain\": \"a change of shape by Harbour City\"\n   }\n  ],\n  \"evidence\": [\n   {\n    \"metric\": \"long_ball_share\",\n    \"subject\": \"Northvale\",\n    \"first_half\": \"11%\",\n    \"window\": \"47%\"\n   },\n   {\n    \"metric\": \"sprint_count\",\n    \"subject\": \"Harbour City\",\n    \"first_half\": \"4.06\",\n    \"window\": \"2.50\"\n   },\n   {\n    \"metric\": \"pressure_rate\",\n    \"subject\": \"Harbour City\",\n    \"first_half\": \"0.32\",\n    \"window\": \"0.53\"\n   },\n   {\n    \"metric\": \"sprint_speed\",\n    \"subject\": \"Harbour City\",\n    \"first_half\": \"32.6 km/h\",\n    \"window\": \"31.3 km/h\"\n   }\n  ],\n  \"ruled_out\": [\n   \"Harbour City chasing the result\"\n  ],\n  \"names\": {\n   \"Northvale\": \"Northvale\",\n   \"Harbour City\": \"Harbour City\"\n  },\n  \"team_the_cause_is_about\": \"Harbour City\",\n  \"support_level\": \"strong\",\n  \"language_level\": \"assertive\",\n  \"published_at\": \"57:00\"\n },\n \"sentences\": [\n  \"Northvale are going long more often since 52'.\",\n  \"Northvale are going long more often since 52'. That is tiring legs in Harbour City's side.\",\n  \"Long-ball share (Northvale): 11% \\u2192 47%; Sprints a minute (Harbour City): 4.06 \\u2192 2.50; Pressure rate (Harbour City): 0.32 \\u2192 0.53; Sprint speed (Harbour City): 32.6 km/h \\u2192 31.3 km/h, 52'-62' against the first half. That is tiring legs in Harbour City's side. Ruled out: Harbour City chasing the result. Support: strong.\"\n ]\n}",
+  "answer": {
+    "sentences": [
+      {
+        "sentence": "Northvale are going long more often since 52'.",
+        "entailed": true,
+        "overstated": false,
+        "reason": "Fact stated change in direction and timing."
+      },
+      {
+        "sentence": "Northvale are going long more often since 52'. That is tiring legs in Harbour City's side.",
+        "entailed": true,
+        "overstated": false,
+        "reason": "Assertive language reflecting a primary cause from facts."
+      },
+      {
+        "sentence": "Long-ball share (Northvale): 11% \u2192 47%; Sprints a minute (Harbour City): 4.06 \u2192 2.50; Pressure rate (Harbour City): 0.32 \u2192 0.53; Sprint speed (Harbour City): 32.6 km/h \u2192 31.3 km/h, 52'-62' against the first half. That is tiring legs in Harbour City's side. Ruled out: Harbour City chasing the result. Support: strong.",
+        "entailed": true,
+        "overstated": false,
+        "reason": "Summarizes all given metrics and causes, with correct cause-level assertion."
+      }
+    ]
+  },
+  "usage": {
+    "input_tokens": 1088,
+    "output_tokens": 504
+  }
+}

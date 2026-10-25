@@ -78,9 +78,10 @@ The generated event feed stays in ignored `public/fixtures/m01/`; `data/`,
   verification and history remain available; the flank's history includes the
   evidence diff, amendment a1 and its affected event IDs.
 - **Same-moment comparison.** On the 63-minute case, Compare with one agent
-  places the standalone A and B recordings beside each other, clearly labelled
-  as one recorded A/B run. It does not replace the Studio take or claim a
-  winner. The scoreboard link opens Evaluation, currently an honest empty state.
+  places the Studio take's own 63-minute case beside the single agent's
+  recording of the same moment, clearly labelled as one recorded A/B pair. It
+  does not claim a winner. The scoreboard link opens Evaluation, which renders
+  `src/fixtures/scoreboard.json`, exported from `eval/records/`.
 - **Broadcast (`#/broadcast`) and overlay (`#/overlay`).** The real withdrawal
   cue is pending at 70:25. Approve it to put its recorded fields on screen for
   eight seconds. Hold, approve and kill affect only the local browser session;
@@ -139,5 +140,4 @@ comparison pairing. No dependencies were added.
   saved explanation cards can be displayed without inventing a timestamp.
 - Recovery shows the recorded flag and completed/failed agents per checkpoint.
   Case files do not identify successfully retried agents separately.
-- Evaluation scores and trace URLs are not supplied. Their UI remains empty or
-  shows the recorded identifier. Hosting, CI, backend and root docs are unchanged.
+- Trace URLs are not supplied; the UI shows the recorded trace identifier.

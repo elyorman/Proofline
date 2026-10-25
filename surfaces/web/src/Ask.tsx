@@ -45,6 +45,7 @@ export function AnswerView({ answer, data, elapsed, live = false }: { answer: An
     <h3>{answer.text[locale] ?? answer.text.en}</h3>
     <h4>{text('ask.premise')}</h4>
     {premise ? <p>{text(`ask.premise.${premise.direction}`, { subject, metric: text(`metric.${premise.metric}`), clock: formatClock(premise.since) })}</p> : <p>{text('ask.noPremise')}</p>}
+    {answer.outcome === 'unanswerable' && <p className="muted ask-hint">{text('ask.hint')}</p>}
     {answer.premise_test && <PersistenceView item={answer.premise_test} label={premise && answer.premise_test.subject === premise.subject ? subject : undefined} />}
     {card && <Insight card={card} />}
     {answer.outcome === 'explained' && answer.card && !card && <p className="muted ask-time-note">{text('ask.cardUnavailable')}</p>}
@@ -92,20 +93,26 @@ export function Ask({ answers, data, elapsed, onSeek }: {
     setQuery(label); setSelected(answer.question.question_id); setUnknown(false); setLive(undefined); setProblem(undefined);
     onSeek(elapsedAt(answer.question.asked_at, data.timeline.firstHalfSeconds));
   }
+  // One live question at a time: a second click while it runs must not abandon it.
+  const busy = live?.status === 'queued' || live?.status === 'running';
   function submit(event: FormEvent) {
     event.preventDefault();
     const found = recordedAnswer(query, answers);
     if (found) { choose(found, query); return; }
-    setSelected(undefined); setLive(undefined); setProblem(undefined);
-    if (!LIVE_API) { setUnknown(true); return; }
+    if (busy) return;
+    setSelected(undefined); setProblem(undefined);
+    if (!LIVE_API) { setLive(undefined); setUnknown(true); return; }
     setUnknown(false);
     const asked = clockAt(elapsed, data.timeline.firstHalfSeconds);
     if (asked.period !== 2) { setProblem({ reason: 'first_half', values: {} }); return; }
-    following.current?.abort();
-    const control = new AbortController();
-    following.current = control;
     askLive({ match_id: data.matchId, asked_at: asked, text: query.trim(), locale })
-      .then(job => { setLive(job); return followLive(job, setLive, { signal: control.signal }); })
+      .then(job => {
+        following.current?.abort();  // only an admitted question replaces the one shown
+        const control = new AbortController();
+        following.current = control;
+        setLive(job);
+        return followLive(job, setLive, { signal: control.signal });
+      })
       .catch(error => setProblem(error instanceof LiveRefused && error.reason !== 'unconfigured'
         ? { reason: error.reason, values: { seconds: error.retryAfterS ?? 60, detail: error.detail ?? '' } }
         : { reason: 'unavailable', values: {} }));
@@ -113,7 +120,7 @@ export function Ask({ answers, data, elapsed, onSeek }: {
   return <section className="panel ask-panel">
     <SectionTitle title={text('ask.title')} sub={text('ask.replayOnly')} />
     <form onSubmit={submit} className="ask-form"><label htmlFor={inputId}>{text('ask.label')}</label>
-      <div><input id={inputId} value={query} onChange={event => setQuery(event.target.value)} placeholder={text('ask.placeholder')} maxLength={300} required /><button className="button primary" type="submit">{text('ask.submit')}</button></div>
+      <div><input id={inputId} value={query} onChange={event => setQuery(event.target.value)} placeholder={text('ask.placeholder')} maxLength={300} required /><button className="button primary" type="submit" disabled={busy}>{text(busy ? 'ask.live.busy' : 'ask.submit')}</button></div>
     </form>
     <div className="question-chips" aria-label={text('ask.suggestions')}>{answers.slice().sort((a, b) => a.question.question_id.localeCompare(b.question.question_id)).map(answer => <button key={`${answer.question.question_id}-${answer.variant}`} onClick={() => choose(answer, questionLabel(answer, locale))} aria-pressed={selected === answer.question.question_id}>
       {questionLabel(answer, locale)}<time>{formatClock(answer.question.asked_at)}</time>

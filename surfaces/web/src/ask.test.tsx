@@ -97,6 +97,12 @@ describe('live questions', () => {
     expect(html).toContain('<strong>Ambrel · ');
     expect(render(<AnswerView answer={ambrel} data={data} elapsed={6000} />)).toContain('Recorded at');
   });
+  it('shows a declined question what Proofline can answer instead', () => {
+    const declined = answers.find(a => a.outcome === 'unanswerable')!;
+    expect(render(<AnswerView answer={declined} data={data} elapsed={6000} />)).toContain('Proofline explains what changed in the match and why');
+    expect(render(<AnswerView answer={declined} data={data} elapsed={6000} />, 'es')).toContain('Proofline explica qué cambió');
+    expect(render(<AnswerView answer={explained} data={data} elapsed={6000} />)).not.toContain('Proofline explains what changed');
+  });
   it('stops at the premise when it is turned away', () => {
     const job: LiveJob = { job_id: 'live-1', question, status: 'done', created_ms: 0, answer: { ...turnedAway, question },
       stages: [{ stage: 'framed', at_ms: 1 }, { stage: 'premise', at_ms: 2 }] };

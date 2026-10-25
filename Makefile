@@ -41,10 +41,12 @@ scoreboard:
 	uv run python -m eval scoreboard --records eval/records --write README.md > /dev/null
 	uv run python surfaces/web/scripts/export_scoreboard.py
 
-# The public link: the replay build on the azd environment's Static Web App. The deployment
-# token is read at deploy time and never stored.
+# The public link: the replay build on the azd environment's Static Web App, pointed at the
+# environment's live API for typed questions. The deployment token is read at deploy time and
+# never stored.
 deploy-web:
-	cd surfaces/web && corepack pnpm install --frozen-lockfile && corepack pnpm fixtures && corepack pnpm build
+	api=$$(azd env get-value API_URL) && cd surfaces/web && corepack pnpm install --frozen-lockfile \
+		&& corepack pnpm fixtures && VITE_PROOFLINE_API=$$api corepack pnpm build
 	rg=$$(azd env get-value AZURE_RESOURCE_GROUP) && \
 	name=$$(az staticwebapp list -g $$rg --query '[0].name' -o tsv) && \
 	SWA_CLI_DEPLOYMENT_TOKEN=$$(az staticwebapp secrets list -n $$name -g $$rg --query properties.apiKey -o tsv) \

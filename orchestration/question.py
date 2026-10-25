@@ -18,7 +18,7 @@ from contracts.case import Case, TriggerMetric
 from contracts.eval_run import Variant
 from contracts.question import Answer, Question
 from contracts.taxonomy import AgentRole, CardStatus, Metric, MomentType
-from orchestration import workflow
+from orchestration import progress, workflow
 from orchestration.case import keep_watching
 from state.tools import Feed
 from tools_server.server import DirectorySource, FeedSource, MemorySink, build_server
@@ -44,6 +44,7 @@ async def run_question(
     meta = feed.meta
     role = AgentRole.LEAD if variant == Variant.A_PROOFLINE else AgentRole.SINGLE
     premise, why, usage = await lead.frame(agents, role, question, meta)
+    progress.report("framed", why)
 
     def answered(
         outcome: str, reason: str, test=None, card=None, spent: Usage = usage, final=None
@@ -71,6 +72,7 @@ async def run_question(
     test = await measure(
         tools, meta, premise.metric, premise.subject, premise.direction, window, PREMISE_SD
     )
+    progress.report("premise", test.reason)
     if not test.holds:
         return answered("premise_false", test.reason, test)
     case = Case(
@@ -105,6 +107,7 @@ async def run_question(
         return answered(finding.ranking.outcome, finding.ranking.why, test, spent=spent)
     # Keep watching: a rival that survived is settled on the minutes after the question.
     verdict, followed = await keep_watching(agents, verifier, finding, card, feed)
+    progress.report("verified", verdict.card.verification.status)
     spent = usage + finding.usage + verdict.usage + (followed.usage if followed else Usage())
     shown = verdict.card if verdict.card.status == CardStatus.VERIFIED else None
     final = followed.card if followed and followed.card.status == CardStatus.REVISED else None

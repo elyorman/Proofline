@@ -19,6 +19,7 @@ from contracts import (
 )
 from contracts.case_file import CaseFile
 from contracts.eval_run import SeededRun
+from contracts.live import LiveJob
 from contracts.prediction import Hypothesis
 from contracts.question import Answer, PlainAnswer, Question
 
@@ -42,6 +43,7 @@ SCHEMAS = {
     "answer": Answer,
     "plain-answer": PlainAnswer,
     "question-run": __import__("contracts.eval_run", fromlist=["QuestionRun"]).QuestionRun,
+    "live-job": LiveJob,
 }
 
 

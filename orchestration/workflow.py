@@ -30,6 +30,7 @@ from agents.single import Finding, case_tools
 from contracts.case import Case, CaseStage, Checkpoint
 from contracts.prediction import CrossExamination, Hypothesis
 from contracts.taxonomy import AgentRole
+from orchestration import progress
 from state.tools import Feed
 from tools_server.server import MemorySink
 
@@ -85,6 +86,7 @@ class Run:
     def checkpoint(self, stage: CaseStage, note: str = "") -> None:
         note = "; ".join(filter(None, [note, *self.failures]))
         self.failures.clear()
+        progress.report(stage.value, note)
         self.checkpoints.append(
             Checkpoint(
                 stage=stage,

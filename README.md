@@ -600,6 +600,7 @@ Record provenance:
 | [`surfaces/web/`](surfaces/web/) | Fan Companion, Analyst Console, broadcast and overlay: one replay app ([its README](surfaces/web/README.md)) |
 | [`infra/`](infra/) | Bicep for every Azure resource, deployed with `azd` |
 | [`docs/spec.md`](docs/spec.md) | Product spec |
+| [`docs/submission.md`](docs/submission.md) | Pitch, description and testing instructions for judges |
 | [`scripts/check_engine_isolation.py`](scripts/check_engine_isolation.py) | CI guard: product code never imports the engine or reads ground truth |
 
 ## Licence

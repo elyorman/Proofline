@@ -1,0 +1,18 @@
+{
+  "minute": "{minute}'",
+  "stoppage": "{base}+{extra}'",
+  "kick_off": "Kick-off: {home} v {away}",
+  "goal": "Goal — {player} ({team}), {minute} · {home} {home_score}–{away_score} {away}",
+  "shot": "Shot — {player}, {minute} · {speed} km/h",
+  "shot.on_target": "Shot on target — {player}, {minute} · {speed} km/h",
+  "shot.off_target": "Shot wide — {player}, {minute} · {speed} km/h",
+  "shot.blocked": "Shot blocked — {player}, {minute} · {speed} km/h",
+  "foul": "Foul by {player} ({team}), {minute}",
+  "free_kick": "Free kick to {team}, {minute}",
+  "card": "Card — {player} ({team}), {minute}",
+  "substitution": "Substitution — {team}, {minute}",
+  "half_time": "Half-time: {home} {home_score}–{away_score} {away}",
+  "second_half": "Second half under way: {home} {home_score}–{away_score} {away}",
+  "full_time": "Full time: {home} {home_score}–{away_score} {away}",
+  "pass_badge": "Standout pass — {player}, {minute} · difficulty {difficulty}"
+}

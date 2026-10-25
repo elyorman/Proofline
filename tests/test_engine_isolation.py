@@ -91,3 +91,13 @@ def test_prose_that_states_the_rule_passes(tmp_path):
         "    return 1\n"
     )
     assert guard.scan(repo) == []
+
+
+def test_the_ambient_layer_is_product_code(tmp_path):
+    guard = _load()
+    assert guard.ROOT / "ambient" in guard.product_dirs()
+    repo = _repo(tmp_path)
+    (repo / "ambient").mkdir()
+    (repo / "ambient" / "strips.py").write_text("from engine.sim import MatchSim\n")
+    found = guard.scan(repo)
+    assert len(found) == 1 and "ambient/strips.py" in found[0]

@@ -45,6 +45,7 @@ packages = [
     "agents",
     "eval",
     "corrections",
+    "ambient",
 ]
 exclude = ["engine/suites"]  # sealed answers never ship in a package
 

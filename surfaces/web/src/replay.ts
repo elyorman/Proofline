@@ -69,7 +69,8 @@ export function parseLink(hash: string): Link {
   const route = (['analyst', 'broadcast', 'overlay'] as const).find(name => name === path) ?? 'fan';
   const params = new URLSearchParams(query);
   const lang = params.get('lang');
-  const t = params.get('t');
+  // A query string decodes '+' as a space; a clock never contains one, so "45+2:10" survives.
+  const t = params.get('t')?.replaceAll(' ', '+');
   return {
     route,
     ...(t && parseClock(t) ? { clock: parseClock(t) } : {}),

@@ -10,7 +10,7 @@ import type { Locale } from './i18n';
 import { Insights } from './Insights';
 import { MatchHeader } from './MatchHeader';
 import { Activity, Pitch, involves } from './Pitch';
-import { displayElapsed, displayTime, elapsedAt, parseLink, teamStats, visibleCards, type ProducerDecision, type Route } from './replay';
+import { displayElapsed, displayTime, elapsedAt, linkedElapsed, parseLink, teamStats, visibleCards, type ProducerDecision, type Route } from './replay';
 import { Icon, LocaleContext, SectionTitle, ViewBoundary, useText } from './ui';
 
 const pressureCard = cards.find(card => card.id === 'ins-m01-063-pressure_shift');
@@ -18,7 +18,7 @@ const flankCard = cards.find(card => card.moment_type === 'shape_change' && card
 const withdrawal = cards.find(card => card.status === 'withdrawn');
 
 export default function App() {
-  const [locale, setLocale] = useState<Locale>(profile.language === 'es' ? 'es' : 'en');
+  const [locale, setLocale] = useState<Locale>(() => parseLink(location.hash).locale ?? (profile.language === 'es' ? 'es' : 'en'));
   return <LocaleContext.Provider value={locale}><Workspace setLocale={setLocale} /></LocaleContext.Provider>;
 }
 
@@ -38,10 +38,23 @@ function Workspace({ setLocale }: { setLocale: (locale: Locale) => void }) {
   const [decisions, setDecisions] = useState<ProducerDecision[]>([]);
 
   useEffect(() => {
-    const follow = () => setRoute(parseLink(location.hash).route);
+    if (!data) return;
+    // Deep links: `#/fan?t=70:00&lang=en` opens that route at that clock, paused.
+    const follow = () => {
+      const link = parseLink(location.hash);
+      setRoute(link.route);
+      if (link.locale) setLocale(link.locale);
+      if (link.clock) {
+        const target = linkedElapsed(link.clock, data.timeline);
+        setElapsed(target);
+        setPlaying(false);
+        setDecisions(previous => previous.filter(d => d.at <= target));
+      }
+    };
+    follow();
     window.addEventListener('hashchange', follow);
     return () => window.removeEventListener('hashchange', follow);
-  }, []);
+  }, [data, setLocale]);
 
   useEffect(() => {
     const controller = new AbortController();

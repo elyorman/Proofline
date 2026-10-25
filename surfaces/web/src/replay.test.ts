@@ -174,6 +174,8 @@ describe('deep links', () => {
   it('opens a route at a clock and language, and ignores what it cannot read', () => {
     expect(parseLink('#/analyst?t=68:00&lang=en')).toEqual({ route: 'analyst', clock: { period: 2, minute: 68, second: 0 }, locale: 'en' });
     expect(parseLink('#/fan?t=70:00')).toEqual({ route: 'fan', clock: { period: 2, minute: 70, second: 0 } });
+    expect(parseLink('#/fan?t=45+2:10').clock).toEqual({ period: 1, minute: 47, second: 10 });
+    expect(parseLink('#/fan?t=90%2B3').clock).toEqual({ period: 2, minute: 93, second: 0 });
     expect(parseLink('#/overlay')).toEqual({ route: 'overlay' });
     expect(parseLink('')).toEqual({ route: 'fan' });
     expect(parseLink('#/nowhere?t=soon&lang=fr')).toEqual({ route: 'fan' });

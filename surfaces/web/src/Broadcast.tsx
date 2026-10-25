@@ -35,7 +35,7 @@ export function Broadcast({ data, elapsed, cues, cards, decisions, onDecide, onR
       const terminal = ['killed', 'cancelled', 'expired'].includes(cue.status ?? '') || expired;
       const status = cue.status === 'killed' ? 'killed' : expired ? 'expired' : cue.status ?? 'pending';
       return <article className="cue-card" key={cue.cue_id}>
-        <div className="cue-top"><span className="eyebrow">{isStandInCue(cue) ? text('fixture.short') : cue.template}</span><span className={`status ${status === 'killed' ? 'warn' : ''}`}>{text(`status.${status}`)}</span></div>
+        <div className="cue-top"><span className="eyebrow">{isStandInCue(cue) ? text('fixture.short') : text(`template.${cue.template}`)}</span><span className={`status ${status === 'killed' ? 'warn' : ''}`}>{text(`status.${status}`)}</span></div>
         <h3>{String(cue.fields.headline ?? '')}</h3><p>{String(cue.fields.team ?? '')}</p>
         <small>{text('broadcast.slot', { start: formatClock(cue.show_at.not_before), end: formatClock(cue.show_at.not_after), duration: cue.duration_s })}</small>
         <details className="cue-field-preview"><summary>{text('broadcast.preview')}</summary><CueGraphic cue={cue} /></details>

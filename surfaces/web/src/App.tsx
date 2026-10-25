@@ -135,7 +135,7 @@ function Workspace({ setLocale }: { setLocale: (locale: Locale) => void }) {
             </div>
           </div>
         </div></ViewBoundary>}
-        {route === 'analyst' && <ViewBoundary key="analyst">{ask}<Analyst cards={currentCards} allRevisions={publishedRevisions} selected={selected} onSelect={setSelected} amendments={amendments} files={caseFiles.filter(f => elapsedAt(f.case.window.end, firstHalf) <= elapsed)} /></ViewBoundary>}
+        {route === 'analyst' && <ViewBoundary key="analyst"><Analyst cards={currentCards} allRevisions={publishedRevisions} selected={selected} onSelect={setSelected} amendments={amendments} files={caseFiles.filter(f => elapsedAt(f.case.window.end, firstHalf) <= elapsed)} /><div className="below-fold">{ask}</div></ViewBoundary>}
         {route === 'broadcast' && <ViewBoundary key="broadcast"><Broadcast data={data} elapsed={elapsed} cues={cues} cards={cards} decisions={decisions} ambient={ambient} onDecide={decision => setDecisions(previous => [...previous, decision])} onReset={() => setDecisions([])} /></ViewBoundary>}
         {route === 'overlay' && <ViewBoundary key="overlay"><Overlay data={data} elapsed={elapsed} cards={cards} cues={cues} decisions={decisions} ambient={ambient} /></ViewBoundary>}
         <footer className="workspace-footer"><span>{text('brand.name')}</span><p>{text('nav.about')}</p><span>{data.matchId} · {text('fixture')}</span></footer>

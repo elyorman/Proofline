@@ -26,15 +26,15 @@ state/          State Builder metrics (pure functions over events) + windows
 ambient/        deterministic tags, momentum, gauge, ticker
 tools_server/   MCP server exposing the State Builder catalog (never name a package `mcp`: it shadows the SDK)
 detector/       Moment Detector (CUSUM-style change points)
-agents/         tactics, physical, game_state, synthesis, verifier, narrator, director
+agents/         tactics, physical, game_state, lead, single, plain, follow_up, synthesis, verifier, narrator (templates), director
 orchestration/  Agent Framework workflows, pre-registration validation, budgets, checkpoints
 corrections/    Correction Watcher + dependency index
 ledger/         Cosmos DB models, change-feed handlers
-eval/           Evaluator, matching rules, ablation B, seeded false claims, Foundry eval logging
+eval/           Evaluator, matching rules, ablation B, seeded false claims, question suite, scoreboard, Foundry evaluations (foundry_evals.py)
 surfaces/web/   Fan Companion, Analyst Console, overlay renderer (one SPA, three routes)
-surfaces/api/   cue feed, profiles, "Why?" endpoint, run-live endpoint
+surfaces/api/   live question API (Container App): typed questions through the real agents, with stages, caps, ledger writes and tracing
 infra/          Bicep + azd
-docs/           spec.md, architecture.md, taxonomy.md, support-rules.md, demo-script.md, azure-mcp.md, copilot.md, schemas
+docs/           spec.md, support-rules.md, demo-script.md, azure-mcp.md, reviews/, schemas
 ```
 
 ## Stack and commands
@@ -63,6 +63,9 @@ uv run proofline questions --data data/dev --questions runs/q1/questions.jsonl -
 uv run python -m eval.questions score --runs runs/q1 --split dev --variant A   # right answers, false premises rejected, false claims; --after-follow-up scores each card as its follow-up left it
 uv run proofline-engine season   # rebuild state/season_baselines.json, the normal variation every test reads against
 uv run python -m eval --runs runs/dev --split dev --variant A       # score a batch against the sealed truth; --compare A B for the paired difference; --after-follow-up for the cards as their follow-ups left them
+azd deploy api                            # build the live API's image and roll it out to the Container App
+uv run uvicorn surfaces.api.app:create --factory --port 8000   # the live API locally (needs the azd env values)
+make deploy-web                           # the replay on Static Web Apps, pointed at the live API
 make scoreboard                           # after any new record in eval/records: rewrite the README's scoreboard block and the console's fixture (CI checks both the block and every figure the README quotes)
 azd up                                    # provision + deploy everything
 azd env get-values                        # endpoints and resource names
@@ -77,11 +80,11 @@ Add a `Makefile` target for anything run more than twice.
 - **Small, named commits.** One concern per commit, imperative subject, body says why. Commit messages must not reference real clubs or leagues. Commits are authored by the repository owner only: no `Co-Authored-By` or AI attribution trailers.
 - **Tests for every deterministic layer.** `state/`, `detector/`, `corrections/`, the Verifier's deterministic checks and the Evaluator's matching rules get unit tests with hand-built event fixtures. Agents are tested with recorded tool results, never live model calls.
 - **No live model calls in tests or CI.** Record fixtures in `tests/fixtures/` and replay.
-- **Cost discipline.** Every role runs on gpt-5-mini, the only gpt-5 model with quota on our Free Trial subscription (gpt-5.6-terra and gpt-5.6-luna have none). A larger model is used only if we upgrade and get quota, set via `PROOFLINE_MODEL_TIER=final`; both ablation variants always use the same model. Role prompts and tool schemas are cached. Log tokens per case to App Insights; check `proofline cost --match <id>` after the first full match and update `docs/cost.md`.
-- **Checkpoints are real.** Every Why Engine stage writes to `cases` before the next starts; the recovery path (kill an agent mid-case, resume from checkpoint, flag `recovered_from_checkpoint`) has a test and a `proofline demo kill-agent` command used in the video.
-- **Replay is the public path.** The judging link serves recorded ledgers; "Run live" is rate-limited per viewer and per day and shares the same code path as replay. Never make the public link depend on a model call.
+- **Cost discipline.** Every role runs on gpt-5-mini, the only gpt-5 model with quota on our Free Trial subscription (gpt-5.6-terra and gpt-5.6-luna have none). A larger model is used only if we upgrade and get quota, set via `PROOFLINE_MODEL_TIER=final`; both ablation variants always use the same model. Role prompts and tool schemas are cached. Tokens are recorded on every answer, case file and evaluation record; the live API caps questions per viewer and per day.
+- **Checkpoints are real, and in memory.** Every Why Engine stage records a checkpoint before the next starts, and all of them go into the case file; a failed agent is retried once inside its stage without re-running finished stages, and the card is flagged `recovered_from_checkpoint`. A process that dies starts its open cases over. The recovery path has a test and is shown with `proofline case --kill-agent physical --replay tests/fixtures/studio/m01`.
+- **Replay is the public path.** The judging link serves recorded ledgers. A typed question no recording holds goes to the live API, which shares `run_question` with every other path and is capped per viewer and per day. Never make the replay itself depend on a model call.
 - **Localization.** All viewer-facing strings go through `narrator/` (model) or `ambient/i18n/` (templates). English and Spanish are required; never hard-code UI copy in components.
-- **Observability.** Every case carries an OpenTelemetry trace ID and, once verified, a Foundry eval run ID; both are shown on the Analyst Console.
+- **Observability.** Every live question is traced with OpenTelemetry to Application Insights through Agent Framework's instrumentation, and its job carries the trace id. Foundry's built-in evaluators judge the demo take's viewer text (`eval/foundry_evals.py`).
 
 ## Build order and gates
 
@@ -102,14 +105,15 @@ Every Microsoft technology we use must leave something a judge can click or see.
 
 | Technology | Where it lives | Evidence |
 |---|---|---|
-| Microsoft Foundry | `agents/verifier/semantic.py` (hosted agent), `eval/foundry_evals.py`, tracing | eval run links on the console |
-| Agent Framework | `orchestration/` | workflow diagram, recovery beat |
+| Microsoft Foundry | gpt-5-mini for every role (`agents/llm.py`), the Verifier's semantic check (`agents/verifier/semantic.py`), Foundry evaluations (`eval/foundry_evals.py`) | `eval/foundry/`, the seeded Verifier records |
+| Agent Framework | `orchestration/`, its OpenTelemetry instrumentation in `surfaces/api/` | workflow diagram, recovery beat, live traces |
 | Custom MCP server | `tools_server/` | tool-call log per hypothesis |
-| Azure MCP Server | console Ops panel, `docs/azure-mcp.md` transcripts | panel in video |
-| Event Hubs, Cosmos DB, Container Apps, Web PubSub, Static Web Apps, App Insights, Key Vault | `infra/`, `ledger/` | architecture diagram, ledger view, trace IDs |
-| azd + Bicep + GitHub Actions | `infra/`, `.github/workflows/` | README badge, CI guard |
-| GitHub CLI | release workflow publishing the dataset | release assets |
-| Fabric RTI (stretch) | Eventstream → Eventhouse → Real-Time Dashboard | screenshot in README |
+| Azure MCP Server | `docs/azure-mcp.md` transcripts | transcripts |
+| Container Apps, Container Registry, App Insights | `surfaces/api/`, `infra/` | the live Ask on the public link, its traces |
+| Event Hubs, Cosmos DB, Static Web Apps | `infra/`, `ledger/`, `surfaces/web/` | `make stream-m01`, the ledger, the public link |
+| azd + Bicep + GitHub Actions | `infra/`, `azure.yaml`, `.github/workflows/` | README badge, CI guard |
+
+Provisioned but unused: Web PubSub and Key Vault (no secret needs it). Not built: the Ops panel, a dataset release, Fabric RTI.
 
 The README does not name the build tool. Do not claim GitHub Copilot unless it did real work.
 

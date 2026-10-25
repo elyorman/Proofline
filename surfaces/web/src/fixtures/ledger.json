@@ -54948,9 +54948,13 @@
       "sprint_kmh": 32.0,
       "shot_kmh": 110.0,
       "badge_difficulty": 80,
+      "shot_threat": 3.0,
+      "entry_threat": 1.0,
       "momentum_half_life_min": 2.0,
       "control_window_min": 5,
-      "control_min_actions": 10
+      "control_min_actions": 10,
+      "control_spell": 10.0,
+      "chaos_spell": 3.0
     },
     "speed_tags": [
       {

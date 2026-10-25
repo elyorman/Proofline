@@ -20,6 +20,18 @@
           "title": "Badge Difficulty",
           "type": "integer"
         },
+        "shot_threat": {
+          "description": "momentum points for a shot",
+          "exclusiveMinimum": 0,
+          "title": "Shot Threat",
+          "type": "number"
+        },
+        "entry_threat": {
+          "description": "momentum points for a final-third entry",
+          "exclusiveMinimum": 0,
+          "title": "Entry Threat",
+          "type": "number"
+        },
         "momentum_half_life_min": {
           "exclusiveMinimum": 0,
           "title": "Momentum Half Life Min",
@@ -34,15 +46,31 @@
           "exclusiveMinimum": 0,
           "title": "Control Min Actions",
           "type": "integer"
+        },
+        "control_spell": {
+          "description": "actions per possession that read as control",
+          "exclusiveMinimum": 0,
+          "title": "Control Spell",
+          "type": "number"
+        },
+        "chaos_spell": {
+          "description": "actions per possession that read as chaos",
+          "exclusiveMinimum": 0,
+          "title": "Chaos Spell",
+          "type": "number"
         }
       },
       "required": [
         "sprint_kmh",
         "shot_kmh",
         "badge_difficulty",
+        "shot_threat",
+        "entry_threat",
         "momentum_half_life_min",
         "control_window_min",
-        "control_min_actions"
+        "control_min_actions",
+        "control_spell",
+        "chaos_spell"
       ],
       "title": "AmbientRules",
       "type": "object"

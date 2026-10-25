@@ -287,6 +287,8 @@ def test_the_feed_is_valid_deterministic_and_states_its_rules():
     assert feed.model_dump() == build_feed(events, META).model_dump()
     assert (feed.home, feed.away, feed.rules) == (HOME, AWAY, RULES)
     assert (RULES.sprint_kmh, RULES.shot_kmh, RULES.badge_difficulty) == (32.0, 110.0, 80)
+    assert (RULES.shot_threat, RULES.entry_threat, RULES.momentum_half_life_min) == (3, 1, 2)
+    assert (RULES.control_spell, RULES.chaos_spell, RULES.control_window_min) == (10, 3, 5)
     assert [t.kind for t in feed.speed_tags] == ["sprint", "shot"]
     assert [p.minute for p in feed.momentum] == [0, 1]
     assert feed.ticker[0].kind == "kick_off"

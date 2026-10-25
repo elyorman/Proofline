@@ -22,9 +22,13 @@ RULES = AmbientRules(
     sprint_kmh=tags.SPRINT_TAG_KMH,
     shot_kmh=tags.SHOT_TAG_KMH,
     badge_difficulty=tags.BADGE_DIFFICULTY,
+    shot_threat=strips.SHOT_THREAT,
+    entry_threat=strips.ENTRY_THREAT,
     momentum_half_life_min=strips.HALF_LIFE_MIN,
     control_window_min=strips.CONTROL_WINDOW_MIN,
     control_min_actions=strips.CONTROL_MIN_ACTIONS,
+    control_spell=strips.CONTROL_SPELL,
+    chaos_spell=strips.CHAOS_SPELL,
 )
 
 

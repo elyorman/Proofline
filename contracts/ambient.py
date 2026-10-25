@@ -110,9 +110,19 @@ class AmbientRules(_Strict):
     sprint_kmh: float = Field(gt=0)
     shot_kmh: float = Field(gt=0)
     badge_difficulty: int = Field(ge=0, le=100)
+    shot_threat: float = Field(gt=0, description="momentum points for a shot")
+    entry_threat: float = Field(gt=0, description="momentum points for a final-third entry")
     momentum_half_life_min: float = Field(gt=0)
     control_window_min: int = Field(gt=0)
     control_min_actions: int = Field(gt=0)
+    control_spell: float = Field(gt=0, description="actions per possession that read as control")
+    chaos_spell: float = Field(gt=0, description="actions per possession that read as chaos")
+
+    @model_validator(mode="after")
+    def _gauge_runs_from_control_to_chaos(self) -> "AmbientRules":
+        if not self.chaos_spell < self.control_spell:
+            raise ValueError("chaos is a shorter possession spell than control")
+        return self
 
 
 class AmbientFeed(_Strict):

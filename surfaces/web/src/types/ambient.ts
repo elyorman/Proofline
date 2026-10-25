@@ -6,9 +6,25 @@ export type Away = string;
 export type SprintKmh = number;
 export type ShotKmh = number;
 export type BadgeDifficulty = number;
+/**
+ * momentum points for a shot
+ */
+export type ShotThreat = number;
+/**
+ * momentum points for a final-third entry
+ */
+export type EntryThreat = number;
 export type MomentumHalfLifeMin = number;
 export type ControlWindowMin = number;
 export type ControlMinActions = number;
+/**
+ * actions per possession that read as control
+ */
+export type ControlSpell = number;
+/**
+ * actions per possession that read as chaos
+ */
+export type ChaosSpell = number;
 export type Kind = "sprint" | "shot";
 export type EventId = string;
 export type Period = 1 | 2;
@@ -88,9 +104,13 @@ export interface AmbientRules {
   sprint_kmh: SprintKmh;
   shot_kmh: ShotKmh;
   badge_difficulty: BadgeDifficulty;
+  shot_threat: ShotThreat;
+  entry_threat: EntryThreat;
   momentum_half_life_min: MomentumHalfLifeMin;
   control_window_min: ControlWindowMin;
   control_min_actions: ControlMinActions;
+  control_spell: ControlSpell;
+  chaos_spell: ChaosSpell;
 }
 /**
  * A sprint or a shot whose speed clears its threshold in `AmbientRules`.

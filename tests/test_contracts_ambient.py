@@ -7,9 +7,13 @@ RULES = dict(
     sprint_kmh=32,
     shot_kmh=110,
     badge_difficulty=80,
+    shot_threat=3,
+    entry_threat=1,
     momentum_half_life_min=2,
     control_window_min=5,
     control_min_actions=10,
+    control_spell=10,
+    chaos_spell=3,
 )
 
 
@@ -50,6 +54,11 @@ def test_a_feed_round_trips_with_clocks_as_text_or_objects():
     again = AmbientFeed.model_validate_json(feed.model_dump_json())
     assert again == feed
     assert again.speed_tags[0].at.minute == 12
+
+
+def test_the_gauge_runs_from_long_spells_to_short_ones():
+    with pytest.raises(ValidationError, match="shorter"):
+        AmbientFeed.model_validate(_feed(rules=RULES | dict(control_spell=3, chaos_spell=10)))
 
 
 def test_every_ambient_item_names_a_team_in_the_match():

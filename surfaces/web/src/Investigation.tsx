@@ -6,10 +6,10 @@ function WindowText({ window }: { window: Prediction['window'] }) {
   return <>{formatClock(window.start)}–{formatClock(window.end)}</>;
 }
 
-export function PersistenceView({ item }: { item: Persistence }) {
+export function PersistenceView({ item, label }: { item: Persistence; label?: string }) {
   const { text, metric, num } = useText();
   return <article className={`persistence ${item.holds ? 'held' : 'faded'}`}>
-    <strong>{item.subject} · {text(`metric.${item.metric}`)}</strong>
+    <strong>{label ?? item.subject} · {text(`metric.${item.metric}`)}</strong>
     <p><WindowText window={item.window} /> · <b>{item.sigmas == null ? text('value.unset') : text('inv.sd', { value: num(item.sigmas) })}</b> · {text(item.holds ? 'inv.held' : 'inv.faded')}</p>
     <p>{item.value == null ? text('value.unset') : metric(item.metric, item.value)} · {text('case.baseline')}: {item.baseline == null ? text('value.unset') : metric(item.metric, item.baseline)}</p>
     <p className="recorded-reason">{item.reason}</p>

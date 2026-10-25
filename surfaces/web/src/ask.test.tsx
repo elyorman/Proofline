@@ -88,6 +88,13 @@ describe('live questions', () => {
     expect(html).toContain('Trace abc');
     expect(render(<LiveProgress job={job} />, 'es')).toContain('El código ejecuta cada prueba');
   });
+  it('says a live answer was asked live, and names the player its premise is about', () => {
+    const ambrel = answers.find(a => a.premise?.subject === 'NV-10')!;
+    const html = render(<AnswerView answer={ambrel} data={data} elapsed={6000} live />);
+    expect(html).toContain('Asked live at');
+    expect(html).toContain('<strong>Ambrel · ');
+    expect(render(<AnswerView answer={ambrel} data={data} elapsed={6000} />)).toContain('Recorded at');
+  });
   it('stops at the premise when it is turned away', () => {
     const job: LiveJob = { job_id: 'live-1', question, status: 'done', created_ms: 0, answer: { ...turnedAway, question },
       stages: [{ stage: 'framed', at_ms: 1 }, { stage: 'premise', at_ms: 2 }] };

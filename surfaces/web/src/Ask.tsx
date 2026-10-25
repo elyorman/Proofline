@@ -30,7 +30,7 @@ export function answerCard(answer: Answer, elapsed: number, firstHalf: number) {
   return card;
 }
 
-export function AnswerView({ answer, data, elapsed }: { answer: Answer; data: ReplayData; elapsed: number }) {
+export function AnswerView({ answer, data, elapsed, live = false }: { answer: Answer; data: ReplayData; elapsed: number; live?: boolean }) {
   const { text, locale } = useText();
   const premise = answer.premise;
   const subject = premise ? data.teams.flatMap(team => team.players).find(p => p.id === premise.subject)?.name
@@ -40,12 +40,12 @@ export function AnswerView({ answer, data, elapsed }: { answer: Answer; data: Re
     })() : '';
   const card = answerCard(answer, elapsed, data.timeline.firstHalfSeconds);
   return <section className="recorded-answer" aria-live="polite">
-    <span className="eyebrow">{text('ask.recordedAt', { clock: formatClock(answer.question.asked_at) })}</span>
+    <span className="eyebrow">{text(live ? 'ask.live.answeredAt' : 'ask.recordedAt', { clock: formatClock(answer.question.asked_at) })}</span>
     <span className="status">{text(`answer.${answer.outcome}`)}</span>
     <h3>{answer.text[locale] ?? answer.text.en}</h3>
     <h4>{text('ask.premise')}</h4>
     {premise ? <p>{text(`ask.premise.${premise.direction}`, { subject, metric: text(`metric.${premise.metric}`), clock: formatClock(premise.since) })}</p> : <p>{text('ask.noPremise')}</p>}
-    {answer.premise_test && <PersistenceView item={answer.premise_test} />}
+    {answer.premise_test && <PersistenceView item={answer.premise_test} label={premise && answer.premise_test.subject === premise.subject ? subject : undefined} />}
     {card && <Insight card={card} />}
     {answer.outcome === 'explained' && answer.card && !card && <p className="muted ask-time-note">{text('ask.cardUnavailable')}</p>}
   </section>;
@@ -120,7 +120,7 @@ export function Ask({ answers, data, elapsed, onSeek }: {
     {unknown && <div className="unknown-question" role="status"><p>{text('ask.liveRequired')}</p><button className="button" disabled>{text('live')}</button></div>}
     {problem && <div className="unknown-question" role="status"><p>{text(`ask.live.error.${problem.reason}`, problem.values)}</p></div>}
     {live && <LiveProgress job={live} />}
-    {live?.status === 'done' && live.answer && <AnswerView answer={live.answer as Answer} data={data} elapsed={Math.max(elapsed, elapsedAt(live.question.asked_at, data.timeline.firstHalfSeconds))} />}
+    {live?.status === 'done' && live.answer && <AnswerView answer={live.answer as Answer} data={data} live elapsed={Math.max(elapsed, elapsedAt(live.question.asked_at, data.timeline.firstHalfSeconds))} />}
     {answer && available && <AnswerView answer={answer} data={data} elapsed={elapsed} />}
     {answer && !available && <p className="muted ask-time-note">{text('ask.future', { clock: formatClock(answer.question.asked_at) })}</p>}
   </section>;

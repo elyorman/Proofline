@@ -109,7 +109,25 @@ function statusLabel(card: InsightCard, text: Text) {
   return text('insights.support', { level: level ? text(`support.${level}`) : text('value.unset') });
 }
 
-export function NowCard({ card, onOpen, mode = 'casual', full = false }: { card: InsightCard; onOpen?: (id: string) => void; mode?: string; full?: boolean }) {
+/** Whose story a card is, for this viewer: their club or the opposition, and their player if
+ * the card's evidence is about them. Presentation only: the card's facts are the same for all. */
+export interface Viewer { club?: string; player?: string; playerName?: string }
+
+export function relevance(card: InsightCard, viewer: Viewer, text: Text): string[] {
+  const out: string[] = [];
+  if (viewer.club) out.push(text(card.subject.team === viewer.club ? 'relevance.club' : 'relevance.opponent'));
+  const about = [...(card.subject.players ?? []), ...(card.evidence ?? []).map(e => e.subject)];
+  if (viewer.player && about.includes(viewer.player)) out.push(text('relevance.player', { name: viewer.playerName ?? viewer.player }));
+  return out;
+}
+
+function Relevance({ card, viewer }: { card: InsightCard; viewer?: Viewer }) {
+  const { text } = useText();
+  if (!viewer) return null;
+  return <>{relevance(card, viewer, text).map(label => <span className="relevance" key={label}>{label}</span>)}</>;
+}
+
+export function NowCard({ card, onOpen, mode = 'casual', full = false, viewer }: { card: InsightCard; onOpen?: (id: string) => void; mode?: string; full?: boolean; viewer?: Viewer }) {
   const { text } = useText();
   const cardText = useCardText();
   const labelId = useId();
@@ -120,7 +138,7 @@ export function NowCard({ card, onOpen, mode = 'casual', full = false }: { card:
     <div className="now-top"><span className="now-label"><i />{text(full ? 'recap' : (card.revision ?? 1) > 1 ? 'now.revised' : 'now')}</span>
       <span className="card-kind"><Icon name={withdrawn ? 'reset' : 'evidence'} size={14} />{text(isStandInCard(card) ? 'fixture.short' : 'record.backend')}</span>
       <time>{formatClock(at)}</time></div>
-    <p className="insight-team">{card.subject.team}<span> · {text('insights.revision', { number: card.revision ?? 1 })}</span></p>
+    <p className="insight-team">{card.subject.team}<span> · {text('insights.revision', { number: card.revision ?? 1 })}</span><Relevance card={card} viewer={viewer} /></p>
     <h3 id={labelId}>{cardText(card, mode === 'data' ? 'analyst' : 'casual') ?? text('insights.noVariant')}</h3>
     <p className={`support ${withdrawn ? 'orange' : ''}`}><i />{statusLabel(card, text)}</p>
     <section className="how"><h4>{text('insights.evidence')}</h4><HowWeKnow card={card} /></section>
@@ -132,7 +150,7 @@ export function NowCard({ card, onOpen, mode = 'casual', full = false }: { card:
   </article>;
 }
 
-export function InsightRow({ card, onOpen, mode = 'casual', fresh = false }: { card: InsightCard; onOpen?: (id: string) => void; mode?: string; fresh?: boolean }) {
+export function InsightRow({ card, onOpen, mode = 'casual', fresh = false, viewer }: { card: InsightCard; onOpen?: (id: string) => void; mode?: string; fresh?: boolean; viewer?: Viewer }) {
   const { text } = useText();
   const cardText = useCardText();
   const at = displayTime(card);
@@ -140,7 +158,7 @@ export function InsightRow({ card, onOpen, mode = 'casual', fresh = false }: { c
   const withdrawn = card.status === 'withdrawn';
   return <details className={`insight-row ${withdrawn ? 'withdrawn' : ''} ${fresh ? 'fresh' : ''}`}>
     <summary><time>{formatClock(at)}</time>
-      <div><p className="insight-team">{card.subject.team}{(card.revision ?? 1) > 1 && <span> · {text('now.updated', { clock: formatClock(at) })}</span>}</p>
+      <div><p className="insight-team">{card.subject.team}{(card.revision ?? 1) > 1 && <span> · {text('now.updated', { clock: formatClock(at) })}</span>}<Relevance card={card} viewer={viewer} /></p>
         <strong>{cardText(card, mode === 'data' ? 'analyst' : 'casual') ?? text('insights.noVariant')}</strong></div>
       <span className={`status ${withdrawn ? 'warn' : ''}`}>{statusLabel(card, text)}</span></summary>
     <div className="row-body"><HowWeKnow card={card} />
@@ -152,18 +170,18 @@ export function InsightRow({ card, onOpen, mode = 'casual', fresh = false }: { c
 
 const FRESH_SECONDS = 180;
 
-export function Insights({ cards, onOpen, mode, full, elapsed = Infinity, firstHalf = 0 }: {
-  cards: InsightCard[]; onOpen: (id: string) => void; mode: string; full: boolean; elapsed?: number; firstHalf?: number;
+export function Insights({ cards, onOpen, mode, full, elapsed = Infinity, firstHalf = 0, viewer }: {
+  cards: InsightCard[]; onOpen: (id: string) => void; mode: string; full: boolean; elapsed?: number; firstHalf?: number; viewer?: Viewer;
 }) {
   const { text } = useText();
   // The latest update leads, so a correction is seen; the rest keep visibleCards order.
   const now = latestCard(cards, firstHalf);
   const earlier = cards.filter(card => card !== now);
   return <aside className="insights-column">
-    {now ? <NowCard card={now} onOpen={onOpen} mode={mode} full={full} />
+    {now ? <NowCard card={now} onOpen={onOpen} mode={mode} full={full} viewer={viewer} />
       : <div className="panel now-empty"><Empty title={text('insights.empty')} body={text('insights.empty.sub')} /></div>}
     {earlier.length > 0 && <section className="earlier" aria-label={text('now.earlier')}><h3>{text('now.earlier')}</h3>
-      {earlier.map(card => <InsightRow key={card.id} card={card} onOpen={onOpen} mode={mode}
+      {earlier.map(card => <InsightRow key={card.id} card={card} onOpen={onOpen} mode={mode} viewer={viewer}
         fresh={elapsed - displayElapsed(card, firstHalf) < FRESH_SECONDS} />)}
     </section>}
   </aside>;

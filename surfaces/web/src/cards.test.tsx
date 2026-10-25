@@ -4,7 +4,7 @@ import type { ReactNode } from 'react';
 import type { Metric } from './types/insight-card';
 import { cards } from './fixtures';
 import { CaseOverview, RevisionHistory, VerificationPanel } from './Analyst';
-import { Evidence, Insight } from './Insights';
+import { Evidence, Insight, relevance } from './Insights';
 import { RevisionDiff } from './RevisionDiff';
 import { amendments } from './fixtures';
 import { ShotMarker } from './Pitch';
@@ -110,5 +110,21 @@ describe('Studio correction gate', () => {
     expect(html).toContain(amendments[0].reason);
     expect(html).toContain('Withdrawn');
     expect(html).toContain('Published');
+  });
+});
+
+describe('whose story a card is', () => {
+  const press = cards.find(c => c.id === 'ins-m01-063-pressure_shift')!;
+  const say = (locale: Locale) => (key: string, values?: Record<string, string | number>) => t(locale, key, values);
+  it('tells a fan of either club whether the card is about their side, the same card for both', () => {
+    expect(relevance(press, { club: 'Harbour City' }, say('en'))).toEqual(['Your club']);
+    expect(relevance(press, { club: 'Northvale' }, say('es'))).toEqual(['El rival']);
+    expect(relevance(press, {}, say('en'))).toEqual([]);
+  });
+  it('names the followed player only when the evidence is about them', () => {
+    const about = structuredClone(press);
+    about.evidence![0].subject = 'NV-10';
+    expect(relevance(about, { club: 'Northvale', player: 'NV-10', playerName: 'Ambrel' }, say('en'))).toEqual(['The opposition', 'About Ambrel']);
+    expect(relevance(press, { club: 'Northvale', player: 'NV-10', playerName: 'Ambrel' }, say('en'))).toEqual(['The opposition']);
   });
 });

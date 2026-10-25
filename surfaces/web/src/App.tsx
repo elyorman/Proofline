@@ -137,7 +137,8 @@ function Workspace({ setLocale }: { setLocale: (locale: Locale) => void }) {
         {route !== 'fan' && <div className="page-title"><h1>{text(`nav.${route}`)}</h1><p>{text(`page.${route}.sub`)}</p></div>}
         {route === 'fan' && <ViewBoundary key="fan"><h1 className="sr-only">{text('nav.fan')}</h1><div className="fan-grid">
           <div className="fan-pitch"><Pitch data={data} elapsed={elapsed} player={mode === 'player' ? player : undefined} ambient={ambient} footer={focusBar}>{modes}</Pitch></div>
-          <div className="fan-now"><Insights cards={currentCards} onOpen={openCase} mode={mode} full={full} elapsed={elapsed} firstHalf={firstHalf} /></div>
+          <div className="fan-now"><Insights cards={currentCards} onOpen={openCase} mode={mode} full={full} elapsed={elapsed} firstHalf={firstHalf}
+            viewer={{ club: favorite, player: mode === 'player' ? player : undefined, playerName: roster.find(p => p.id === player)?.name }} /></div>
           <div className="fan-ambient"><AmbientStrip feed={ambient} data={data} elapsed={elapsed} /></div>
           <div className="fan-more">
             {ask}

@@ -409,3 +409,4 @@ pre { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 10px; line-heig
 .comparison-take .specialist-columns, .comparison-take .both-teams { grid-template-columns: 1fr; }
 .comparison-take .card-facts { grid-template-columns: 1fr; }
 @media (max-width: 1000px) { .investigation-comparison { grid-template-columns: 1fr; } }
+.insight-team .relevance { margin-left: 8px; padding: 1px 7px; border-radius: 999px; background: #edf3e4; color: #3f6b4f; font-size: 10px; font-weight: 600; letter-spacing: .2px; }

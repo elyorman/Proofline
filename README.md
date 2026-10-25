@@ -6,7 +6,7 @@
 
 Built for the Microsoft × Premier League "Inside the Game" Developer Hackathon, category **Best Multi-Agent System**. Every club, player and competition is fictional, and all match data is synthetic.
 
-**Public link (replay, no sign-in):** https://nice-coast-044d8740f.5.azurestaticapps.net
+**Public link (no sign-in):** https://nice-coast-044d8740f.5.azurestaticapps.net. It replays a recorded match, and answers any typed question about it live, in Azure.
 
 ## The problem
 
@@ -15,7 +15,7 @@ A live stats feed can tell you that Harbour City's pressing has jumped since 58'
 Proofline splits the job: **statistics decides what is real; agents decide why.**
 
 - **Code decides whether a change is real** before any model sees it. Every change is measured against the normal variation of a season of simulated matches. A viewer's question is checked the same way. Asked "Why is Harbour City's defence tiring?", Proofline answers "it isn't, beyond ordinary play" when the numbers say so.
-- **Three specialist agents** (tactics, physical, game state) propose causes. Each one pre-registers, as numbers, what its cause would predict. Code runs the tests through an MCP server, and agents never compute a statistic.
+- **Three specialist agents** (tactics, physical, game state) propose causes. Each one pre-registers, as numbers, what its cause would predict. Code runs the tests with the State Builder's tools, which our MCP server serves, and agents never compute a statistic.
 - **They cross-examine each other.** Each surviving cause is challenged by the other agents with counter-tests they design. Code refuses unfair tests and scores the rest.
 - **It keeps watching when the evidence can't decide.** If two causes still fit, the card says so. Each side then pre-registers a decisive test for the next 15 minutes. Code settles it then and publishes the result as a new revision.
 - **An independent Verifier checks everything first.** It recomputes every number from the exact events it came from. It also checks every sentence against the facts, at the wording the evidence allows. Nothing reaches a fan, analyst or overlay without it.
@@ -54,19 +54,20 @@ Three variants ran on the same model (gpt-5-mini) with the same tools and tool b
 
 ### Viewer questions
 
-The held-out set has 80 questions. 78 were scored: 28 whose premise is true and 50 whose premise is false. The other two ask about a planted change that never became observable.
+The held-out set has 80 questions. 78 were scored: 28 whose premise is true and 50 whose premise is false. The other two ask about a planted change that never became observable. Each cell is the rate with its 95% Wilson interval.
 
 | | A | B | P |
 |---|---|---|---|
-| False premises turned away | 98.0% | 96.0% | 70.0% |
-| Questions answered with a false cause, first answer | 15.4% | 15.4% | 34.6% |
-| Questions answered with a false cause, after the follow-up | 3.8% | 9.0% | 34.6% |
-| Causes named that were right, after the follow-up | 75.0% | 50.0% | 37.2% |
-| True premises answered with the planted cause, first answer | 32.1% | 32.1% | 57.1% |
+| False premises turned away | 98.0% [89.5, 99.6] | 96.0% [86.5, 98.9] | 70.0% [56.2, 80.9] |
+| Questions answered with a false cause, first answer | 15.4% [9.0, 25.0] | 15.4% [9.0, 25.0] | 34.6% [25.0, 45.7] |
+| Questions answered with a false cause, after the follow-up | 3.8% [1.3, 10.7] | 9.0% [4.4, 17.4] | 34.6% [25.0, 45.7] |
+| Causes named that were right, after the follow-up | 75.0% [46.8, 91.1] | 50.0% [26.8, 73.2] | 37.2% [24.4, 52.1] |
+| True premises answered with the planted cause, first answer | 32.1% [17.9, 50.7] | 32.1% [17.9, 50.7] | 57.1% [39.1, 73.5] |
 
 P has no follow-up, so both of its false-cause rows are the same.
 
-- **Proofline makes far fewer false claims than the plain agent.** After the follow-up, A − P is -30.8 pp for false causes [-42.9, -19.2]. It is +28.0 pp for false premises turned away [15.9, 40.4] and +37.8 pp for precision [3.8, 68.4]. Each is a paired bootstrap 95% interval over matches.
+- **Proofline makes far fewer false claims than the plain agent.** After the follow-up, A − P is -30.8 pp for false causes [-42.9, -19.2] and +28.0 pp for false premises turned away [15.9, 40.4]. Each is a paired bootstrap 95% interval over matches.
+- **Much of that is restraint, and what it does claim is more often right.** Proofline names a cause less often than the plain agent. When it does, after the follow-up it is right more often: +37.8 pp [3.8, 68.4].
 - **The price is coverage.** The plain agent names the right cause for more true premises: A − P is -25.0 pp [-50.0, 0.0]. When the evidence is unclear, Proofline says so instead of guessing.
 - **Three specialists did not measurably beat one.** Every A − B interval reaches zero. The closest is false causes after the follow-up, at -5.2 pp [-11.7, 0.0]. The gain over the plain agent comes from the design (statistics first, pre-registration, independent verification), not from splitting the specialists. We report it as measured.
 
@@ -76,9 +77,9 @@ The held-out split has 30 planted matches (28 scored, 2 not observable) and 10 d
 
 | | A | B |
 |---|---|---|
-| Planted causes recovered | 35.7% | 32.1% |
-| Published causes that were right | 32.6% | 40.0% |
-| Decoys left alone | 70.0% | 70.0% |
+| Planted causes recovered | 35.7% [20.7, 54.2] | 32.1% [17.9, 50.7] |
+| Published causes that were right | 32.6% [20.5, 47.5] | 40.0% [27.0, 54.5] |
+| Decoys left alone | 70.0% [39.7, 89.2] | 70.0% [39.7, 89.2] |
 
 A − B is +3.6 pp for recall [-14.3, 21.4] and -7.4 pp for precision [-20.9, 7.0]. After the follow-up, both variants claim less without becoming more precise: A recovers 17.9% and is right 29.6% of the time. On these moments the follow-up did not carry over from the dev split to the held-out split. Here Proofline names the planted cause about a third of the time.
 
@@ -101,9 +102,13 @@ We also check whether the Verifier rejects the same cards left untouched. There 
 
 Code's own checks catch the wrong numbers. Only the semantic check catches a wrong direction, the wrong team or overcertainty. With only 10 untouched cards, the false-rejection interval is wide. The two models tie here, so the choice rests on what else we saw. We re-verified the demo match's recorded investigations with Phi-4 (`--reverify`). It rejected a sound card that stated a strongly supported cause as fact beside a pending follow-up, and gpt-5-mini passes that card. The Verifier stays on gpt-5-mini, the model the held-out runs used.
 
+### An outside judge
+
+Microsoft Foundry's built-in evaluators read every card revision the demo take published, in both languages, and the answers that turned a premise away. Each text is judged against the same facts our Verifier saw ([`eval/foundry/demo-take.json`](eval/foundry/demo-take.json), from [`eval/foundry_evals.py`](eval/foundry_evals.py)). All 28 texts pass relevance, coherence and fluency, and 23 pass groundedness. Of the five it marks weakly grounded, four are Spanish, which our own semantic check does not read. Three are the settled follow-up's "the numbers still fit all three" wording. The judge is itself a model, so its verdicts vary a little between runs.
+
 ## See it
 
-The [public link](https://nice-coast-044d8740f.5.azurestaticapps.net) replays one recorded match, m01 (Harbour City v Northvale), on a shared clock. It starts at 68:00, viewed as a Northvale fan reading Spanish; the language switch is in the top bar. No model is called from the public link.
+The [public link](https://nice-coast-044d8740f.5.azurestaticapps.net) replays one recorded match, m01 (Harbour City v Northvale), on a shared clock. It starts at 68:00, viewed as a Northvale fan reading Spanish; the language switch is in the top bar. The replay calls no model. A typed question no recording holds goes to the live API in Azure.
 
 - **Fan (`#/fan`).**
   - **The cards:**
@@ -113,6 +118,7 @@ The [public link](https://nice-coast-044d8740f.5.azurestaticapps.net) replays on
     - **77' and 83':** the follow-ups settle, saying honestly that the numbers still fit more than one cause.
   - **How we know** on any card shows its evidence, the causes it ruled out and its revisions.
   - **Ask Proofline** plays five recorded questions. Two have false premises and are turned away; one ("Who will win?") is declined.
+  - **Type any other question** about the match so far, in English or Spanish, and it is answered live. The Lead's premise, code's test, the three agents and the Verifier run in Azure, and each stage appears as it is reached. A false premise is answered in seconds; a real investigation takes one to three minutes. Each viewer may ask one a minute, and there is a daily cap.
 - **Analyst (`#/analyst`).** The full case file for every case:
   - **Investigation:** each agent's pre-registered predictions, tool calls, counter-tests, refusals, synthesis and checkpoints.
   - **Verification and revision history:** the Verifier's results and the amendment's diff.
@@ -147,13 +153,15 @@ corepack pnpm dev
 **Live, on your own Azure subscription:**
 
 ```bash
-azd up                                                     # every resource, keyless (Entra ID and roles)
+azd up                                                     # every resource, keyless (Entra ID and roles), and the live API
+make deploy-web                                            # the replay on Static Web Apps, pointed at that API
 set -a && eval "$(azd env get-values)" && set +a
 uv run proofline-engine generate --script engine/scripts/planted/m01.yaml --out data/m01/
 uv run proofline case --match m01 --minute 63 --variant A                        # one case, end to end
 uv run proofline ask --match m01 --at 68:00 --question "Why are Northvale going long so much?" --variant A
 uv run proofline run --mode studio --match m01 --record runs/take                # the whole match through the product
 make stream-m01                                            # the match through Event Hubs into Cosmos DB, detector cases printed
+uv run uvicorn surfaces.api.app:create --factory --port 8000  # the live API locally, against the same Azure resources
 ```
 
 **Reproduce the evaluation** (live model calls; the held-out split is meant to be run once):
@@ -176,23 +184,25 @@ uv run python -m eval scoreboard --records eval/records --check README.md
 |---|---|
 | Specialized agents with distinct roles | Tactics, Physical and Game-State each register causes only in their own domain ([`agents/prompts.py`](agents/prompts.py)). The Lead turns a viewer's question into a measurable premise. The Verifier judges the card's text with none of their context. The Investigation view gives each agent its own column. |
 | Coordination through shared state | Each stage's output is a typed record ([`contracts/`](contracts/)), checkpointed before the next stage starts and written to the case file. Challengers read only the hypotheses and their results, never another agent's reasoning. The Correction Watcher works from the ledger's dependency index ([`corrections/`](corrections/)). |
-| Effective handoffs | Pre-register → test → cross-examine → synthesise → keep watching → verify, as a Microsoft Agent Framework workflow ([`orchestration/workflow.py`](orchestration/workflow.py)). Code validates every handoff. A one-sided registration or an unfair test is put back once, with the reason, and the refusal is shown in the case file. |
-| Recovery from failures | `--kill-agent physical` stops an agent mid-case. It is retried from its stage's checkpoint, and the card carries `recovered_from_checkpoint` ([`tests/test_why_engine_workflow.py`](tests/test_why_engine_workflow.py)). It replays from the demo take's own recordings and reaches the same card. |
+| Effective handoffs | Pre-register → test → cross-examine → synthesise → keep watching → verify, as a Microsoft Agent Framework workflow ([`orchestration/workflow.py`](orchestration/workflow.py)). Code validates every handoff. A one-sided registration or an unfair test is put back once, with the reason, and the refusal is shown in the case file. Every live question's run is traced to Application Insights: the workflow, each agent's invocation and every model call. |
+| Recovery from failures | `--kill-agent physical` stops an agent mid-case. It is retried once inside its stage, finished stages are not run again, and the card carries `recovered_from_checkpoint` ([`tests/test_why_engine_workflow.py`](tests/test_why_engine_workflow.py)). It replays from the demo take's own recordings and reaches the same card. Checkpoints are kept in memory and written to the case file, so a process that dies starts its open cases over. |
 | An outcome a single agent could not reach as well | Against a plain tool-using agent, measured above: far fewer false claims and false premises accepted. Against our own single-agent variant of the same design, no measurable difference. |
 
 ## Microsoft technology
 
 | Technology | What it does here | Evidence |
 |---|---|---|
-| Microsoft Foundry | Hosts the gpt-5-mini deployment that every role runs on: specialists, Lead, plain agent and the Verifier's semantic check. It also hosts Phi-4, measured as the Verifier in the comparison above. | [`infra/resources.bicep`](infra/resources.bicep), [`agents/llm.py`](agents/llm.py), [`agents/verifier/semantic.py`](agents/verifier/semantic.py); deployments read back in [`docs/azure-mcp.md`](docs/azure-mcp.md) |
-| Microsoft Agent Framework | The Why Engine workflow (parallel specialists → code tests → cross-examination → synthesis), checkpointed after every stage. Every model call goes through an Agent Framework agent on the Foundry chat client, with Entra ID. | [`orchestration/workflow.py`](orchestration/workflow.py), [`tests/test_why_engine_workflow.py`](tests/test_why_engine_workflow.py) |
-| Custom MCP server | The State Builder's tools (`metric`, `baseline`, `game_state`), refusing minutes that have not been played yet. Both the agents and the plain agent use it. | [`tools_server/server.py`](tools_server/server.py), [`tests/test_tools_server.py`](tests/test_tools_server.py) |
+| Microsoft Foundry | Hosts the gpt-5-mini deployment that every role runs on: specialists, Lead, plain agent and the Verifier's semantic check. It also hosts Phi-4, measured as the Verifier in the comparison above, and its built-in evaluators judge the demo take's text. | [`infra/resources.bicep`](infra/resources.bicep), [`agents/llm.py`](agents/llm.py), [`agents/verifier/semantic.py`](agents/verifier/semantic.py), [`eval/foundry_evals.py`](eval/foundry_evals.py); deployments read back in [`docs/azure-mcp.md`](docs/azure-mcp.md) |
+| Microsoft Agent Framework | The Why Engine workflow (parallel specialists → code tests → cross-examination → synthesis), checkpointed after every stage. Every model call goes through an Agent Framework agent on the Foundry chat client, with Entra ID. Its OpenTelemetry instrumentation traces every live run. | [`orchestration/workflow.py`](orchestration/workflow.py), [`tests/test_why_engine_workflow.py`](tests/test_why_engine_workflow.py) |
+| Custom MCP server | The State Builder's tools (`metric`, `baseline`, `game_state`), refusing minutes that have not been played yet. Any MCP client can reach it over stdio (`python -m tools_server.server`); the agents and the plain agent call the same server's tools in-process. | [`tools_server/server.py`](tools_server/server.py), [`tests/test_tools_server.py`](tests/test_tools_server.py) |
 | Azure MCP Server | Read-only checks of the deployments, roles and stored records during the build | [`docs/azure-mcp.md`](docs/azure-mcp.md) |
-| Event Hubs, Cosmos DB | The Match Clock replays a match onto Event Hubs. `proofline ingest` stores the events in Cosmos DB and opens detector cases there. | [`engine/clock.py`](engine/clock.py), [`ledger/`](ledger/), `make stream-m01`; the demo match's events and 63' case read back in [`docs/azure-mcp.md`](docs/azure-mcp.md) |
-| Static Web Apps | Serves the public replay | The public link |
+| Container Apps, Container Registry | The live API ([`surfaces/api/`](surfaces/api/)) runs the product's question path in Azure: one always-on replica, reaching Foundry and Cosmos DB with its managed identity. azd builds the image and the app pulls it with the same identity. | [`surfaces/api/app.py`](surfaces/api/app.py), [`surfaces/api/Dockerfile`](surfaces/api/Dockerfile), [`tests/test_live_api.py`](tests/test_live_api.py) |
+| Application Insights | Receives the OpenTelemetry trace of every live question, through Agent Framework's instrumentation; each job reports its trace id | [`surfaces/api/app.py`](surfaces/api/app.py) |
+| Event Hubs, Cosmos DB | The Match Clock replays a match onto Event Hubs. `proofline ingest` stores the events in Cosmos DB and opens detector cases there. The live API writes each answer's cards and an audit record to the same ledger. | [`engine/clock.py`](engine/clock.py), [`ledger/`](ledger/), `make stream-m01`; the demo match's events and 63' case read back in [`docs/azure-mcp.md`](docs/azure-mcp.md) |
+| Static Web Apps | Serves the public replay and its Ask box | The public link |
 | azd, Bicep, GitHub Actions | One-command provisioning, keyless throughout: local auth disabled, access by managed identity and role. CI runs lint, the isolation guard, tests, the schema and scoreboard checks, and the web tests and build. | [`azure.yaml`](azure.yaml), [`infra/`](infra/), [`.github/workflows/ci.yml`](.github/workflows/ci.yml) |
 
-Provisioned but not yet used by the product: Container Apps (a placeholder image) with its registry, Web PubSub, Application Insights and Key Vault. No secret needs Key Vault, since every service is reached with Entra ID. Neither Foundry evaluations nor tracing is wired in.
+Provisioned but not yet used by the product: Web PubSub and Key Vault. No secret needs Key Vault, since every service is reached with Entra ID.
 
 ## The synthetic data
 
@@ -204,13 +214,15 @@ Matches come from a possession-chain simulator ([`engine/`](engine/)) driven by 
 
 ## Limitations
 
-- **Synthetic matches only.** The scores measure how reliably Proofline recovers interventions planted in a simulator, and abstains when there are none. They say nothing yet about real football.
+- **What the scores measure.** The hackathon requires synthetic data, and it is what makes sealed ground truth possible: every planted cause is known. The scores measure how reliably Proofline recovers causes planted in a simulator, and abstains when there are none, not accuracy on real football. They are only as meaningful as the simulator is realistic. We found and fixed one realism gap before the held-out run (sprints ignored pressing; see [`DATASET.md`](DATASET.md)).
+- **The question set's languages follow its order.** The generator alternates English and Spanish, and writes each planted match's true and false premise as a pair. So all 28 true-premise questions are in English, and 40 of the 50 false-premise ones are in Spanish. The plain agent turned away Spanish false premises no less often than English ones, so the split does not explain the gap. We did not regenerate the held-out questions, which would break the freeze.
 - **Detected moments are hard.** On moments the detector finds by itself, Proofline names the planted cause about a third of the time, and the follow-up did not help there on held-out.
 - **The multi-agent split is not where the gain comes from.** Three specialists measured the same as one agent running the same design.
 - **Runs vary.** The same moment can get different explanations on different runs (see [Which take is shown](#see-it)).
+- **A cause can survive on evidence unrelated to the change it explains.** The 62' flank card explains a shift the feed error invented with "Harbour City chasing the result". That cause survived only because Harbour City's pressing really did rise. The correction withdraws the card at 70'.
 - **The Verifier's semantic check uses the agents' model.** It is gpt-5-mini with its own prompt and none of their context. Phi-4, the other model family we could deploy, tied on the seeded suite but rejected a sound demo card. The check judges the English sentences. Spanish sentences get the deterministic number check, not the semantic one.
 - **Some things changed after the freeze.** Viewer wording for follow-ups, and the Verifier's instructions about that wording, changed after the held-out runs. So did the surfaces and the evaluation's reporting: intervals, paired comparisons, and applying the frozen not-observable flags to questions. No agent prompt, test rule or workflow changed. The held-out cards were narrated and verified with the earlier wording.
-- **The public link is replay only.** There is no "Run live" button; live runs use the commands above.
+- **Live questions are slow and capped.** A real investigation takes one to three minutes; each viewer may ask one a minute, and there is a daily cap. Recorded questions answer instantly.
 
 ## Full scoreboard
 

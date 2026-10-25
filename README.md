@@ -117,7 +117,7 @@ The [public link](https://nice-coast-044d8740f.5.azurestaticapps.net) replays on
     - **62':** cards on Northvale going long more often and playing down the right.
     - **68':** a card on Harbour City's press, with a pending check against two rival causes.
     - **70':** after the feed corrects Northvale's coordinates, the right-flank card is withdrawn in place.
-    - **77' and 83':** the follow-ups settle, saying honestly that the numbers still fit more than one cause.
+    - **77' and 83':** the follow-ups settle, saying honestly that no check told the causes apart.
   - **How we know** on any card shows its evidence, the causes it ruled out and its revisions.
   - **Ask Proofline** plays five recorded questions. Two have false premises and are turned away; one ("Who will win?") is declined.
   - **Type any other question** about the match so far, in English or Spanish, and it is answered live. The Lead's premise, code's test, the three agents and the Verifier run in Azure, and each stage appears as it is reached. A false premise is answered in seconds; a real investigation takes one to three minutes. Each viewer may ask one a minute, and there is a daily cap.
@@ -130,7 +130,7 @@ The [public link](https://nice-coast-044d8740f.5.azurestaticapps.net) replays on
 
 | A typed question, investigated live | ...and answered, with its verified card |
 |---|---|
-| ![Live stages: the Lead's premise and code's test reached, the specialists next](docs/images/live-stages.png) | ![The live answer: every stage reached, the premise test and the verified card](docs/images/live-answer.png) |
+| ![Live stages: the Lead's premise and code's test reached, the specialists next](docs/images/live-stages.png) | ![The live answer: every stage reached, the premise test and the verified card; this run named Harbour City chasing the result, not the planted press](docs/images/live-answer.png) |
 | **Each specialist's pre-registered causes, tested by code** | **The 70' feed correction withdraws a card in place** |
 | ![The Analyst Console: Tactics, Physical and Game state columns with code's verdicts](docs/images/investigation.png) | ![The fan view at 70:00 with the withdrawn card and its evidence](docs/images/correction.png) |
 

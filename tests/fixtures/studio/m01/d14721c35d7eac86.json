@@ -1,0 +1,30 @@
+{
+  "role": "verifier",
+  "prompt": "{\n \"facts\": {\n  \"change\": {\n   \"metric\": \"long_ball_share\",\n   \"subject\": \"Northvale\",\n   \"direction\": \"up\",\n   \"window\": \"52:00-62:00\",\n   \"compared_with\": \"first_half\"\n  },\n  \"causes\": [\n   {\n    \"cause\": \"tactical.press_intensity_up\",\n    \"role\": \"primary\",\n    \"plain\": \"a deliberate step up in Harbour City's press\"\n   },\n   {\n    \"cause\": \"game_state.chasing_result\",\n    \"role\": \"secondary\",\n    \"plain\": \"Harbour City chasing the result\"\n   }\n  ],\n  \"evidence\": [\n   {\n    \"metric\": \"long_ball_share\",\n    \"subject\": \"Northvale\",\n    \"first_half\": \"11%\",\n    \"window\": \"47%\",\n    \"minutes\": \"52:00-62:00\"\n   },\n   {\n    \"metric\": \"pressure_rate\",\n    \"subject\": \"Harbour City\",\n    \"first_half\": \"0.32\",\n    \"window\": \"0.53\",\n    \"minutes\": \"52:00-62:00\"\n   },\n   {\n    \"metric\": \"sprint_count\",\n    \"subject\": \"Harbour City.defence\",\n    \"first_half\": \"1.28\",\n    \"window\": \"1.33\",\n    \"minutes\": \"62:00-77:00\"\n   },\n   {\n    \"metric\": \"long_ball_share\",\n    \"subject\": \"Harbour City\",\n    \"first_half\": \"12%\",\n    \"window\": \"12%\",\n    \"minutes\": \"62:00-77:00\"\n   }\n  ],\n  \"ruled_out\": [\n   \"Northvale sitting in a deeper block\",\n   \"tiring legs in Northvale's side\",\n   \"tiring legs in Harbour City's side\",\n   \"Northvale protecting their lead\"\n  ],\n  \"names\": {\n   \"Northvale\": \"Northvale\",\n   \"Harbour City\": \"Harbour City\",\n   \"Harbour City.defence\": \"Harbour City's defence\"\n  },\n  \"team_the_cause_is_about\": \"Harbour City\",\n  \"support_level\": \"moderate\",\n  \"language_level\": \"measured\",\n  \"published_at\": \"77:00\",\n  \"follow_up\": {\n   \"status\": \"unresolved\",\n   \"against\": [\n    \"Harbour City chasing the result\"\n   ],\n   \"minutes\": \"62:00-77:00\"\n  }\n },\n \"sentences\": [\n  \"Northvale are going long more often since 52'.\",\n  \"Northvale are going long more often since 52'. It could be a deliberate step up in Harbour City's press or Harbour City chasing the result: by 77' no check had told them apart.\",\n  \"Long-ball share (Northvale): 11% \\u2192 47%; Pressure rate (Harbour City): 0.32 \\u2192 0.53, 52'-62' against the first half. 62'-77': Sprints a minute (Harbour City's defence): 1.28 \\u2192 1.33; Long-ball share (Harbour City): 12% \\u2192 12%. It could be a deliberate step up in Harbour City's press or Harbour City chasing the result: by 77' no check had told them apart. Ruled out: Northvale sitting in a deeper block, tiring legs in Northvale's side, tiring legs in Harbour City's side, Northvale protecting their lead. Support: moderate.\"\n ]\n}",
+  "answer": {
+    "sentences": [
+      {
+        "sentence": "Northvale are going long more often since 52'.",
+        "entailed": true,
+        "overstated": false,
+        "reason": "Evidence shows Northvale long-ball share rose 11%\u219247% in 52:00\u201362:00; 'since 52'' matches window start."
+      },
+      {
+        "sentence": "Northvale are going long more often since 52'. It could be a deliberate step up in Harbour City's press or Harbour City chasing the result: by 77' no check had told them apart.",
+        "entailed": true,
+        "overstated": false,
+        "reason": "Causes listed match facts; follow_up unresolved at 62\u201377' so by 77' they weren't distinguished."
+      },
+      {
+        "sentence": "Long-ball share (Northvale): 11% \u2192 47%; Pressure rate (Harbour City): 0.32 \u2192 0.53, 52'-62' against the first half. 62'-77': Sprints a minute (Harbour City's defence): 1.28 \u2192 1.33; Long-ball share (Harbour City): 12% \u2192 12%. It could be a deliberate step up in Harbour City's press or Harbour City chasing the result: by 77' no check had told them apart. Ruled out: Northvale sitting in a deeper block, tiring legs in Northvale's side, tiring legs in Harbour City's side, Northvale protecting their lead. Support: moderate.",
+        "entailed": true,
+        "overstated": false,
+        "reason": "All metric values, ruled_out list, support and unresolved follow_up match facts and minutes."
+      }
+    ]
+  },
+  "usage": {
+    "input_tokens": 1305,
+    "output_tokens": 1771
+  }
+}

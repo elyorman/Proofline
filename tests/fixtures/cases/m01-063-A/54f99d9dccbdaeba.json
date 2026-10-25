@@ -7,24 +7,24 @@
         "sentence": "Harbour City are pressing harder since 58'.",
         "entailed": true,
         "overstated": false,
-        "reason": "Pressure rate for Harbour City rose in 58-68 vs first half (0.32\u21920.77); 'since 58'' is entailed."
+        "reason": "Pressure rate rose 0.32\u21920.77 in 58-68 versus first half; 'pressing harder since 58'' matches."
       },
       {
         "sentence": "Harbour City are pressing harder since 58'. It looks like Northvale sitting in a deeper block. Harbour City chasing the result may also be part of it; we'll know more by 83'.",
         "entailed": true,
         "overstated": false,
-        "reason": "Pressure rise entailed; 'looks like' matches measured primary cause; follow-up checking Harbour City chasing by 83' is pending."
+        "reason": "Pressure rise matches; primary cause is Northvale deeper block (measured); Harbour City-chasing is a pending check to 83'."
       },
       {
         "sentence": "Pressure rate (Harbour City): 0.32 \u2192 0.77; Long-ball share (Northvale): 11% \u2192 61%, 58'-68' against the first half. It looks like Northvale sitting in a deeper block. We'll check it against Harbour City chasing the result by 83'. Ruled out: a deliberate step up in Harbour City's press, tiring legs in Harbour City's side, a tiring Harbour City player, Northvale protecting their lead. Support: moderate.",
         "entailed": true,
         "overstated": false,
-        "reason": "Numbers, window, cause (measured), follow-up check, ruled-out items and moderate support all match the facts."
+        "reason": "All metrics, minutes, primary cause, pending check to 83', listed ruled-out items, and moderate support match facts."
       }
     ]
   },
   "usage": {
-    "input_tokens": 1112,
-    "output_tokens": 1525
+    "input_tokens": 1126,
+    "output_tokens": 2067
   }
 }

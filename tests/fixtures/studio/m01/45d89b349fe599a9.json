@@ -7,24 +7,24 @@
         "sentence": "Northvale are going long more often since 73'.",
         "entailed": true,
         "overstated": false,
-        "reason": "Long-ball share rose from 11% to 50% in 73'-83'; published, so 'since 73'' is entailed."
+        "reason": "Long-ball share rose 11%\u219250% in 73'-83' vs first half; no cause named."
       },
       {
         "sentence": "Northvale are going long more often since 73'. That is Harbour City chasing the result.",
         "entailed": true,
         "overstated": false,
-        "reason": "Cause listed primary ('Harbour City chasing the result'); strong support and assertive language allowed."
+        "reason": "Metric change matches evidence; facts list Harbour City chasing result as primary; support strong; assertive language allows claim."
       },
       {
         "sentence": "Long-ball share (Northvale): 11% \u2192 50%; Pressure rate (Harbour City): 0.32 \u2192 0.57, 73'-83' against the first half. That is Harbour City chasing the result. Ruled out: Northvale sitting in a deeper block, tiring legs in Northvale's side, tiring legs in Harbour City's side. Support: strong.",
         "entailed": true,
         "overstated": false,
-        "reason": "Metrics, ruled-outs, and strong support match facts; published window ended at 83:00."
+        "reason": "Metrics and timings match evidence; primary cause stated; ruled-out list matches facts; support strong."
       }
     ]
   },
   "usage": {
-    "input_tokens": 1059,
-    "output_tokens": 1350
+    "input_tokens": 1073,
+    "output_tokens": 1529
   }
 }

@@ -161,7 +161,7 @@ def test_minutes_that_fit_both_leave_the_card_open_and_claim_no_cause(m01):
     assert later.follow_up.status == "unresolved"
     assert later.variants["casual"]["en"].endswith(
         "It could be a deliberate step up in Harbour City's press or Harbour City chasing the "
-        "result: by 83' the numbers still fit both."
+        "result: by 83' no check had told them apart."
     )
     assert claim(SimpleNamespace(card=outcome.verdict.card, final=later), True) == (
         False,

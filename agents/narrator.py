@@ -220,11 +220,10 @@ PENDING_FAN = (
     "{rivals} también puede influir; lo sabremos mejor en el minuto {end}.",
 )
 CHECKED = ("Ruled out by {end}': {loser}.", "Descartado en el minuto {end}: {loser}.")
-STILL_OPEN = (
-    "It could be {causes}: by {end}' the numbers still fit {every}.",
-    "Puede ser {causes}: en el minuto {end} los números aún encajan con {every}.",
+STILL_OPEN = (  # every side's decisive test came in short: none of them was confirmed
+    "It could be {causes}: by {end}' no check had told them apart.",
+    "Puede ser {causes}: en el minuto {end}, ninguna comprobación las había distinguido.",
 )
-EVERY = {2: ("both", "ambas"), 3: ("all three", "las tres")}
 AND, OR = ("and", "y"), ("or", "o")
 
 
@@ -243,8 +242,7 @@ def _follow_up(card: InsightCard, locale: int, fan: bool = False) -> str:
         return PENDING[locale].format(rivals=_listed(rivals, AND[locale]), end=end)
     if f.status == "unresolved":
         causes = [cause_phrase(primary.cause, card.subject.team, locale), *rivals]
-        every = EVERY[len(causes)][locale]
-        return STILL_OPEN[locale].format(causes=_listed(causes, OR[locale]), end=end, every=every)
+        return STILL_OPEN[locale].format(causes=_listed(causes, OR[locale]), end=end)
     if f.status == "confirmed":
         return CHECKED[locale].format(end=end, loser=_listed(rivals, AND[locale]))
     was = next(r for r in card.rejected_alternatives if r.rejected_by == "follow_up")

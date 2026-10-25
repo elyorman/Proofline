@@ -30,8 +30,8 @@ investigation ruled out; naming it as ruled out is entailed. A 'follow_up' is a 
 the minutes after the card: while it is pending, saying its 'against' causes may also be \
 part of it, and that it will be checked or known better by the end of its minutes, is \
 entailed; once settled, naming each cause it ruled out as ruled out is entailed, and when \
-it is unresolved, saying it could be any of the causes is entailed. Keep each reason under \
-20 words."""
+it is unresolved, saying it could be any of the causes and that no check had told them apart \
+by the end of its minutes is entailed. Keep each reason under 20 words."""
 
 
 class SentenceCheck(BaseModel):

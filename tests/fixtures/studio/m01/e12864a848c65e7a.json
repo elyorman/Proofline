@@ -7,24 +7,24 @@
         "sentence": "Northvale are going long more often since 52'.",
         "entailed": true,
         "overstated": false,
-        "reason": "Matches long_ball_share rising from 11% to 47% in 52:00-62:00; 'since 52'' is allowed."
+        "reason": "Evidence shows Northvale long-ball share increased from 11% to 47% in 52:00-62:00 compared to first half."
       },
       {
         "sentence": "Northvale are going long more often since 52'. It looks like a deliberate step up in Harbour City's press. Harbour City chasing the result may also be part of it; we'll know more by 77'.",
         "entailed": true,
         "overstated": false,
-        "reason": "Metrics show long-ball rise; 'looks like' matches measured primary cause; secondary cause and follow-up to 77' are pending."
+        "reason": "Metrics support the increase; 'looks like' matches measured language; chasing result is secondary and follow-up until 77' pending."
       },
       {
         "sentence": "Long-ball share (Northvale): 11% \u2192 47%; Pressure rate (Harbour City): 0.32 \u2192 0.53, 52'-62' against the first half. It looks like a deliberate step up in Harbour City's press. We'll check it against Harbour City chasing the result by 77'. Ruled out: Northvale sitting in a deeper block, tiring legs in Northvale's side, tiring legs in Harbour City's side, Northvale protecting their lead. Support: moderate.",
         "entailed": true,
         "overstated": false,
-        "reason": "Numbers and window match evidence; measured primary cause, pending follow-up, listed ruled-outs, and moderate support are all in facts."
+        "reason": "Stats, measured primary cause, pending follow-up against chasing-result until 77', listed ruled-outs, support moderate \u2014 all match facts."
       }
     ]
   },
   "usage": {
-    "input_tokens": 1123,
-    "output_tokens": 1629
+    "input_tokens": 1137,
+    "output_tokens": 1597
   }
 }

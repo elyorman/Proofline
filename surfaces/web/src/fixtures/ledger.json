@@ -54939,5 +54939,7752 @@
       "input_tokens": 9884,
       "output_tokens": 9264
     }
-  ]
+  ],
+  "ambient": {
+    "match_id": "m01",
+    "home": "Harbour City",
+    "away": "Northvale",
+    "rules": {
+      "sprint_kmh": 32.0,
+      "shot_kmh": 110.0,
+      "badge_difficulty": 80,
+      "momentum_half_life_min": 2.0,
+      "control_window_min": 5,
+      "control_min_actions": 10
+    },
+    "speed_tags": [
+      {
+        "kind": "sprint",
+        "event_id": "m01-00009",
+        "at": {
+          "period": 1,
+          "minute": 0,
+          "second": 8
+        },
+        "team": "Harbour City",
+        "player_id": "HC-10",
+        "speed_kmh": 33.4
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00012",
+        "at": {
+          "period": 1,
+          "minute": 0,
+          "second": 12
+        },
+        "team": "Harbour City",
+        "player_id": "HC-11",
+        "speed_kmh": 33.6
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00018",
+        "at": {
+          "period": 1,
+          "minute": 0,
+          "second": 21
+        },
+        "team": "Harbour City",
+        "player_id": "HC-08",
+        "speed_kmh": 34.3
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00024",
+        "at": {
+          "period": 1,
+          "minute": 0,
+          "second": 28
+        },
+        "team": "Harbour City",
+        "player_id": "HC-09",
+        "speed_kmh": 34.1
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00026",
+        "at": {
+          "period": 1,
+          "minute": 0,
+          "second": 30
+        },
+        "team": "Harbour City",
+        "player_id": "HC-05",
+        "speed_kmh": 32.3
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00032",
+        "at": {
+          "period": 1,
+          "minute": 0,
+          "second": 41
+        },
+        "team": "Northvale",
+        "player_id": "NV-09",
+        "speed_kmh": 34.0
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00036",
+        "at": {
+          "period": 1,
+          "minute": 0,
+          "second": 46
+        },
+        "team": "Northvale",
+        "player_id": "NV-08",
+        "speed_kmh": 34.0
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00038",
+        "at": {
+          "period": 1,
+          "minute": 0,
+          "second": 49
+        },
+        "team": "Northvale",
+        "player_id": "NV-03",
+        "speed_kmh": 32.8
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00043",
+        "at": {
+          "period": 1,
+          "minute": 0,
+          "second": 51
+        },
+        "team": "Harbour City",
+        "player_id": "HC-02",
+        "speed_kmh": 33.0
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00046",
+        "at": {
+          "period": 1,
+          "minute": 1,
+          "second": 2
+        },
+        "team": "Northvale",
+        "player_id": "NV-09",
+        "speed_kmh": 36.0
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00047",
+        "at": {
+          "period": 1,
+          "minute": 1,
+          "second": 22
+        },
+        "team": "Northvale",
+        "player_id": "NV-02",
+        "speed_kmh": 33.4
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00048",
+        "at": {
+          "period": 1,
+          "minute": 1,
+          "second": 40
+        },
+        "team": "Harbour City",
+        "player_id": "HC-03",
+        "speed_kmh": 35.5
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00051",
+        "at": {
+          "period": 1,
+          "minute": 1,
+          "second": 41
+        },
+        "team": "Northvale",
+        "player_id": "NV-10",
+        "speed_kmh": 34.9
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00054",
+        "at": {
+          "period": 1,
+          "minute": 1,
+          "second": 43
+        },
+        "team": "Northvale",
+        "player_id": "NV-07",
+        "speed_kmh": 33.4
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00057",
+        "at": {
+          "period": 1,
+          "minute": 1,
+          "second": 45
+        },
+        "team": "Northvale",
+        "player_id": "NV-11",
+        "speed_kmh": 35.0
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00060",
+        "at": {
+          "period": 1,
+          "minute": 1,
+          "second": 49
+        },
+        "team": "Northvale",
+        "player_id": "NV-08",
+        "speed_kmh": 33.6
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00063",
+        "at": {
+          "period": 1,
+          "minute": 1,
+          "second": 56
+        },
+        "team": "Harbour City",
+        "player_id": "HC-09",
+        "speed_kmh": 33.5
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00069",
+        "at": {
+          "period": 1,
+          "minute": 2,
+          "second": 3
+        },
+        "team": "Northvale",
+        "player_id": "NV-11",
+        "speed_kmh": 32.9
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00076",
+        "at": {
+          "period": 1,
+          "minute": 2,
+          "second": 10
+        },
+        "team": "Harbour City",
+        "player_id": "HC-03",
+        "speed_kmh": 34.1
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00078",
+        "at": {
+          "period": 1,
+          "minute": 2,
+          "second": 13
+        },
+        "team": "Northvale",
+        "player_id": "NV-06",
+        "speed_kmh": 33.5
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00084",
+        "at": {
+          "period": 1,
+          "minute": 2,
+          "second": 23
+        },
+        "team": "Northvale",
+        "player_id": "NV-04",
+        "speed_kmh": 33.3
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00085",
+        "at": {
+          "period": 1,
+          "minute": 2,
+          "second": 24
+        },
+        "team": "Northvale",
+        "player_id": "NV-02",
+        "speed_kmh": 33.4
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00089",
+        "at": {
+          "period": 1,
+          "minute": 2,
+          "second": 29
+        },
+        "team": "Harbour City",
+        "player_id": "HC-06",
+        "speed_kmh": 36.0
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00090",
+        "at": {
+          "period": 1,
+          "minute": 2,
+          "second": 37
+        },
+        "team": "Harbour City",
+        "player_id": "HC-05",
+        "speed_kmh": 33.6
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00091",
+        "at": {
+          "period": 1,
+          "minute": 2,
+          "second": 41
+        },
+        "team": "Northvale",
+        "player_id": "NV-03",
+        "speed_kmh": 34.5
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00092",
+        "at": {
+          "period": 1,
+          "minute": 2,
+          "second": 46
+        },
+        "team": "Harbour City",
+        "player_id": "HC-08",
+        "speed_kmh": 32.4
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00097",
+        "at": {
+          "period": 1,
+          "minute": 2,
+          "second": 54
+        },
+        "team": "Harbour City",
+        "player_id": "HC-09",
+        "speed_kmh": 33.4
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00106",
+        "at": {
+          "period": 1,
+          "minute": 3,
+          "second": 10
+        },
+        "team": "Harbour City",
+        "player_id": "HC-10",
+        "speed_kmh": 32.9
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00112",
+        "at": {
+          "period": 1,
+          "minute": 3,
+          "second": 22
+        },
+        "team": "Harbour City",
+        "player_id": "HC-02",
+        "speed_kmh": 32.5
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00118",
+        "at": {
+          "period": 1,
+          "minute": 3,
+          "second": 54
+        },
+        "team": "Harbour City",
+        "player_id": "HC-03",
+        "speed_kmh": 32.6
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00119",
+        "at": {
+          "period": 1,
+          "minute": 3,
+          "second": 55
+        },
+        "team": "Northvale",
+        "player_id": "NV-06",
+        "speed_kmh": 33.2
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00122",
+        "at": {
+          "period": 1,
+          "minute": 4,
+          "second": 0
+        },
+        "team": "Harbour City",
+        "player_id": "HC-02",
+        "speed_kmh": 33.6
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00125",
+        "at": {
+          "period": 1,
+          "minute": 4,
+          "second": 3
+        },
+        "team": "Northvale",
+        "player_id": "NV-04",
+        "speed_kmh": 32.5
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00132",
+        "at": {
+          "period": 1,
+          "minute": 4,
+          "second": 10
+        },
+        "team": "Northvale",
+        "player_id": "NV-08",
+        "speed_kmh": 33.0
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00137",
+        "at": {
+          "period": 1,
+          "minute": 4,
+          "second": 20
+        },
+        "team": "Harbour City",
+        "player_id": "HC-04",
+        "speed_kmh": 32.6
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00143",
+        "at": {
+          "period": 1,
+          "minute": 4,
+          "second": 31
+        },
+        "team": "Harbour City",
+        "player_id": "HC-03",
+        "speed_kmh": 33.0
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00144",
+        "at": {
+          "period": 1,
+          "minute": 4,
+          "second": 35
+        },
+        "team": "Harbour City",
+        "player_id": "HC-05",
+        "speed_kmh": 36.0
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00145",
+        "at": {
+          "period": 1,
+          "minute": 4,
+          "second": 49
+        },
+        "team": "Northvale",
+        "player_id": "NV-11",
+        "speed_kmh": 34.9
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00158",
+        "at": {
+          "period": 1,
+          "minute": 5,
+          "second": 11
+        },
+        "team": "Harbour City",
+        "player_id": "HC-06",
+        "speed_kmh": 36.0
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00167",
+        "at": {
+          "period": 1,
+          "minute": 5,
+          "second": 24
+        },
+        "team": "Harbour City",
+        "player_id": "HC-09",
+        "speed_kmh": 34.5
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00174",
+        "at": {
+          "period": 1,
+          "minute": 5,
+          "second": 34
+        },
+        "team": "Harbour City",
+        "player_id": "HC-08",
+        "speed_kmh": 33.4
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00182",
+        "at": {
+          "period": 1,
+          "minute": 5,
+          "second": 44
+        },
+        "team": "Harbour City",
+        "player_id": "HC-11",
+        "speed_kmh": 33.5
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00184",
+        "at": {
+          "period": 1,
+          "minute": 5,
+          "second": 47
+        },
+        "team": "Harbour City",
+        "player_id": "HC-05",
+        "speed_kmh": 33.6
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00185",
+        "at": {
+          "period": 1,
+          "minute": 5,
+          "second": 48
+        },
+        "team": "Northvale",
+        "player_id": "NV-05",
+        "speed_kmh": 32.4
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00188",
+        "at": {
+          "period": 1,
+          "minute": 6,
+          "second": 1
+        },
+        "team": "Northvale",
+        "player_id": "NV-10",
+        "speed_kmh": 33.0
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00189",
+        "at": {
+          "period": 1,
+          "minute": 6,
+          "second": 6
+        },
+        "team": "Harbour City",
+        "player_id": "HC-10",
+        "speed_kmh": 32.1
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00194",
+        "at": {
+          "period": 1,
+          "minute": 6,
+          "second": 14
+        },
+        "team": "Harbour City",
+        "player_id": "HC-02",
+        "speed_kmh": 33.1
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00195",
+        "at": {
+          "period": 1,
+          "minute": 6,
+          "second": 20
+        },
+        "team": "Harbour City",
+        "player_id": "HC-08",
+        "speed_kmh": 32.2
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00209",
+        "at": {
+          "period": 1,
+          "minute": 6,
+          "second": 46
+        },
+        "team": "Northvale",
+        "player_id": "NV-04",
+        "speed_kmh": 32.1
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00212",
+        "at": {
+          "period": 1,
+          "minute": 6,
+          "second": 52
+        },
+        "team": "Northvale",
+        "player_id": "NV-02",
+        "speed_kmh": 35.7
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00223",
+        "at": {
+          "period": 1,
+          "minute": 7,
+          "second": 11
+        },
+        "team": "Harbour City",
+        "player_id": "HC-09",
+        "speed_kmh": 33.8
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00233",
+        "at": {
+          "period": 1,
+          "minute": 7,
+          "second": 26
+        },
+        "team": "Harbour City",
+        "player_id": "HC-05",
+        "speed_kmh": 35.5
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00240",
+        "at": {
+          "period": 1,
+          "minute": 7,
+          "second": 35
+        },
+        "team": "Northvale",
+        "player_id": "NV-11",
+        "speed_kmh": 33.4
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00244",
+        "at": {
+          "period": 1,
+          "minute": 7,
+          "second": 40
+        },
+        "team": "Harbour City",
+        "player_id": "HC-04",
+        "speed_kmh": 34.2
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00245",
+        "at": {
+          "period": 1,
+          "minute": 7,
+          "second": 41
+        },
+        "team": "Harbour City",
+        "player_id": "HC-07",
+        "speed_kmh": 33.3
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00251",
+        "at": {
+          "period": 1,
+          "minute": 7,
+          "second": 49
+        },
+        "team": "Harbour City",
+        "player_id": "HC-08",
+        "speed_kmh": 35.6
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00252",
+        "at": {
+          "period": 1,
+          "minute": 7,
+          "second": 50
+        },
+        "team": "Northvale",
+        "player_id": "NV-09",
+        "speed_kmh": 32.8
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00258",
+        "at": {
+          "period": 1,
+          "minute": 8,
+          "second": 11
+        },
+        "team": "Northvale",
+        "player_id": "NV-02",
+        "speed_kmh": 36.0
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00264",
+        "at": {
+          "period": 1,
+          "minute": 8,
+          "second": 20
+        },
+        "team": "Harbour City",
+        "player_id": "HC-10",
+        "speed_kmh": 33.7
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00271",
+        "at": {
+          "period": 1,
+          "minute": 8,
+          "second": 31
+        },
+        "team": "Harbour City",
+        "player_id": "HC-11",
+        "speed_kmh": 33.1
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00282",
+        "at": {
+          "period": 1,
+          "minute": 8,
+          "second": 47
+        },
+        "team": "Northvale",
+        "player_id": "NV-08",
+        "speed_kmh": 32.1
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00287",
+        "at": {
+          "period": 1,
+          "minute": 8,
+          "second": 55
+        },
+        "team": "Harbour City",
+        "player_id": "HC-08",
+        "speed_kmh": 34.7
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00298",
+        "at": {
+          "period": 1,
+          "minute": 9,
+          "second": 11
+        },
+        "team": "Northvale",
+        "player_id": "NV-03",
+        "speed_kmh": 32.1
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00301",
+        "at": {
+          "period": 1,
+          "minute": 9,
+          "second": 17
+        },
+        "team": "Northvale",
+        "player_id": "NV-11",
+        "speed_kmh": 32.1
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00304",
+        "at": {
+          "period": 1,
+          "minute": 9,
+          "second": 22
+        },
+        "team": "Northvale",
+        "player_id": "NV-04",
+        "speed_kmh": 32.8
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00306",
+        "at": {
+          "period": 1,
+          "minute": 9,
+          "second": 25
+        },
+        "team": "Northvale",
+        "player_id": "NV-07",
+        "speed_kmh": 32.7
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00315",
+        "at": {
+          "period": 1,
+          "minute": 9,
+          "second": 39
+        },
+        "team": "Northvale",
+        "player_id": "NV-05",
+        "speed_kmh": 33.3
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00318",
+        "at": {
+          "period": 1,
+          "minute": 9,
+          "second": 43
+        },
+        "team": "Harbour City",
+        "player_id": "HC-11",
+        "speed_kmh": 32.4
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00326",
+        "at": {
+          "period": 1,
+          "minute": 9,
+          "second": 57
+        },
+        "team": "Harbour City",
+        "player_id": "HC-10",
+        "speed_kmh": 32.6
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00340",
+        "at": {
+          "period": 1,
+          "minute": 10,
+          "second": 21
+        },
+        "team": "Northvale",
+        "player_id": "NV-10",
+        "speed_kmh": 33.3
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00343",
+        "at": {
+          "period": 1,
+          "minute": 10,
+          "second": 26
+        },
+        "team": "Northvale",
+        "player_id": "NV-06",
+        "speed_kmh": 33.9
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00344",
+        "at": {
+          "period": 1,
+          "minute": 10,
+          "second": 27
+        },
+        "team": "Harbour City",
+        "player_id": "HC-07",
+        "speed_kmh": 32.1
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00345",
+        "at": {
+          "period": 1,
+          "minute": 10,
+          "second": 28
+        },
+        "team": "Harbour City",
+        "player_id": "HC-09",
+        "speed_kmh": 34.2
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00346",
+        "at": {
+          "period": 1,
+          "minute": 10,
+          "second": 39
+        },
+        "team": "Harbour City",
+        "player_id": "HC-10",
+        "speed_kmh": 33.1
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00347",
+        "at": {
+          "period": 1,
+          "minute": 10,
+          "second": 39
+        },
+        "team": "Harbour City",
+        "player_id": "HC-11",
+        "speed_kmh": 34.1
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00350",
+        "at": {
+          "period": 1,
+          "minute": 10,
+          "second": 48
+        },
+        "team": "Northvale",
+        "player_id": "NV-02",
+        "speed_kmh": 33.0
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00355",
+        "at": {
+          "period": 1,
+          "minute": 10,
+          "second": 55
+        },
+        "team": "Northvale",
+        "player_id": "NV-09",
+        "speed_kmh": 34.5
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00366",
+        "at": {
+          "period": 1,
+          "minute": 11,
+          "second": 10
+        },
+        "team": "Harbour City",
+        "player_id": "HC-03",
+        "speed_kmh": 33.0
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00368",
+        "at": {
+          "period": 1,
+          "minute": 11,
+          "second": 14
+        },
+        "team": "Northvale",
+        "player_id": "NV-04",
+        "speed_kmh": 33.9
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00373",
+        "at": {
+          "period": 1,
+          "minute": 11,
+          "second": 22
+        },
+        "team": "Northvale",
+        "player_id": "NV-09",
+        "speed_kmh": 34.0
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00377",
+        "at": {
+          "period": 1,
+          "minute": 11,
+          "second": 28
+        },
+        "team": "Harbour City",
+        "player_id": "HC-07",
+        "speed_kmh": 35.5
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00378",
+        "at": {
+          "period": 1,
+          "minute": 11,
+          "second": 28
+        },
+        "team": "Harbour City",
+        "player_id": "HC-09",
+        "speed_kmh": 32.4
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00380",
+        "at": {
+          "period": 1,
+          "minute": 11,
+          "second": 38
+        },
+        "team": "Northvale",
+        "player_id": "NV-07",
+        "speed_kmh": 32.2
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00383",
+        "at": {
+          "period": 1,
+          "minute": 11,
+          "second": 42
+        },
+        "team": "Northvale",
+        "player_id": "NV-08",
+        "speed_kmh": 32.5
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00384",
+        "at": {
+          "period": 1,
+          "minute": 11,
+          "second": 42
+        },
+        "team": "Harbour City",
+        "player_id": "HC-10",
+        "speed_kmh": 32.4
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00390",
+        "at": {
+          "period": 1,
+          "minute": 11,
+          "second": 52
+        },
+        "team": "Northvale",
+        "player_id": "NV-10",
+        "speed_kmh": 32.7
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00394",
+        "at": {
+          "period": 1,
+          "minute": 11,
+          "second": 55
+        },
+        "team": "Northvale",
+        "player_id": "NV-11",
+        "speed_kmh": 36.0
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00397",
+        "at": {
+          "period": 1,
+          "minute": 12,
+          "second": 0
+        },
+        "team": "Northvale",
+        "player_id": "NV-06",
+        "speed_kmh": 32.4
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00401",
+        "at": {
+          "period": 1,
+          "minute": 12,
+          "second": 6
+        },
+        "team": "Northvale",
+        "player_id": "NV-09",
+        "speed_kmh": 33.6
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00404",
+        "at": {
+          "period": 1,
+          "minute": 12,
+          "second": 9
+        },
+        "team": "Northvale",
+        "player_id": "NV-10",
+        "speed_kmh": 32.9
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00408",
+        "at": {
+          "period": 1,
+          "minute": 12,
+          "second": 18
+        },
+        "team": "Harbour City",
+        "player_id": "HC-09",
+        "speed_kmh": 32.6
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00416",
+        "at": {
+          "period": 1,
+          "minute": 12,
+          "second": 43
+        },
+        "team": "Northvale",
+        "player_id": "NV-05",
+        "speed_kmh": 32.5
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00418",
+        "at": {
+          "period": 1,
+          "minute": 12,
+          "second": 55
+        },
+        "team": "Harbour City",
+        "player_id": "HC-10",
+        "speed_kmh": 33.9
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00420",
+        "at": {
+          "period": 1,
+          "minute": 13,
+          "second": 1
+        },
+        "team": "Northvale",
+        "player_id": "NV-11",
+        "speed_kmh": 35.4
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00439",
+        "at": {
+          "period": 1,
+          "minute": 13,
+          "second": 42
+        },
+        "team": "Northvale",
+        "player_id": "NV-07",
+        "speed_kmh": 33.3
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00443",
+        "at": {
+          "period": 1,
+          "minute": 13,
+          "second": 47
+        },
+        "team": "Northvale",
+        "player_id": "NV-02",
+        "speed_kmh": 33.4
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00453",
+        "at": {
+          "period": 1,
+          "minute": 13,
+          "second": 56
+        },
+        "team": "Harbour City",
+        "player_id": "HC-11",
+        "speed_kmh": 34.8
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00457",
+        "at": {
+          "period": 1,
+          "minute": 14,
+          "second": 2
+        },
+        "team": "Harbour City",
+        "player_id": "HC-04",
+        "speed_kmh": 32.7
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00476",
+        "at": {
+          "period": 1,
+          "minute": 14,
+          "second": 35
+        },
+        "team": "Northvale",
+        "player_id": "NV-11",
+        "speed_kmh": 33.2
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00477",
+        "at": {
+          "period": 1,
+          "minute": 14,
+          "second": 40
+        },
+        "team": "Northvale",
+        "player_id": "NV-04",
+        "speed_kmh": 32.9
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00478",
+        "at": {
+          "period": 1,
+          "minute": 14,
+          "second": 46
+        },
+        "team": "Harbour City",
+        "player_id": "HC-05",
+        "speed_kmh": 33.9
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00479",
+        "at": {
+          "period": 1,
+          "minute": 14,
+          "second": 56
+        },
+        "team": "Northvale",
+        "player_id": "NV-09",
+        "speed_kmh": 34.0
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00487",
+        "at": {
+          "period": 1,
+          "minute": 15,
+          "second": 4
+        },
+        "team": "Harbour City",
+        "player_id": "HC-04",
+        "speed_kmh": 32.1
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00495",
+        "at": {
+          "period": 1,
+          "minute": 15,
+          "second": 14
+        },
+        "team": "Harbour City",
+        "player_id": "HC-03",
+        "speed_kmh": 33.6
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00512",
+        "at": {
+          "period": 1,
+          "minute": 15,
+          "second": 43
+        },
+        "team": "Northvale",
+        "player_id": "NV-07",
+        "speed_kmh": 32.9
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00516",
+        "at": {
+          "period": 1,
+          "minute": 15,
+          "second": 48
+        },
+        "team": "Harbour City",
+        "player_id": "HC-11",
+        "speed_kmh": 33.6
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00525",
+        "at": {
+          "period": 1,
+          "minute": 15,
+          "second": 58
+        },
+        "team": "Northvale",
+        "player_id": "NV-11",
+        "speed_kmh": 33.3
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00535",
+        "at": {
+          "period": 1,
+          "minute": 16,
+          "second": 17
+        },
+        "team": "Northvale",
+        "player_id": "NV-08",
+        "speed_kmh": 33.4
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00542",
+        "at": {
+          "period": 1,
+          "minute": 16,
+          "second": 28
+        },
+        "team": "Harbour City",
+        "player_id": "HC-10",
+        "speed_kmh": 32.9
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00545",
+        "at": {
+          "period": 1,
+          "minute": 16,
+          "second": 34
+        },
+        "team": "Harbour City",
+        "player_id": "HC-07",
+        "speed_kmh": 33.0
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00563",
+        "at": {
+          "period": 1,
+          "minute": 17,
+          "second": 3
+        },
+        "team": "Harbour City",
+        "player_id": "HC-10",
+        "speed_kmh": 32.6
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00568",
+        "at": {
+          "period": 1,
+          "minute": 17,
+          "second": 10
+        },
+        "team": "Northvale",
+        "player_id": "NV-05",
+        "speed_kmh": 32.8
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00573",
+        "at": {
+          "period": 1,
+          "minute": 17,
+          "second": 19
+        },
+        "team": "Harbour City",
+        "player_id": "HC-11",
+        "speed_kmh": 33.1
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00579",
+        "at": {
+          "period": 1,
+          "minute": 17,
+          "second": 28
+        },
+        "team": "Northvale",
+        "player_id": "NV-07",
+        "speed_kmh": 35.3
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00584",
+        "at": {
+          "period": 1,
+          "minute": 17,
+          "second": 37
+        },
+        "team": "Harbour City",
+        "player_id": "HC-07",
+        "speed_kmh": 34.3
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00587",
+        "at": {
+          "period": 1,
+          "minute": 17,
+          "second": 41
+        },
+        "team": "Harbour City",
+        "player_id": "HC-04",
+        "speed_kmh": 32.5
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00591",
+        "at": {
+          "period": 1,
+          "minute": 17,
+          "second": 46
+        },
+        "team": "Harbour City",
+        "player_id": "HC-03",
+        "speed_kmh": 33.4
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00592",
+        "at": {
+          "period": 1,
+          "minute": 17,
+          "second": 47
+        },
+        "team": "Northvale",
+        "player_id": "NV-09",
+        "speed_kmh": 36.0
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00604",
+        "at": {
+          "period": 1,
+          "minute": 18,
+          "second": 1
+        },
+        "team": "Northvale",
+        "player_id": "NV-02",
+        "speed_kmh": 32.9
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00612",
+        "at": {
+          "period": 1,
+          "minute": 18,
+          "second": 13
+        },
+        "team": "Northvale",
+        "player_id": "NV-07",
+        "speed_kmh": 33.1
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00636",
+        "at": {
+          "period": 1,
+          "minute": 18,
+          "second": 45
+        },
+        "team": "Northvale",
+        "player_id": "NV-11",
+        "speed_kmh": 33.5
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00642",
+        "at": {
+          "period": 1,
+          "minute": 18,
+          "second": 52
+        },
+        "team": "Harbour City",
+        "player_id": "HC-06",
+        "speed_kmh": 33.3
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00651",
+        "at": {
+          "period": 1,
+          "minute": 19,
+          "second": 5
+        },
+        "team": "Harbour City",
+        "player_id": "HC-05",
+        "speed_kmh": 33.9
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00655",
+        "at": {
+          "period": 1,
+          "minute": 19,
+          "second": 11
+        },
+        "team": "Northvale",
+        "player_id": "NV-04",
+        "speed_kmh": 32.8
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00660",
+        "at": {
+          "period": 1,
+          "minute": 19,
+          "second": 34
+        },
+        "team": "Northvale",
+        "player_id": "NV-06",
+        "speed_kmh": 34.0
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00661",
+        "at": {
+          "period": 1,
+          "minute": 19,
+          "second": 36
+        },
+        "team": "Northvale",
+        "player_id": "NV-07",
+        "speed_kmh": 32.6
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00669",
+        "at": {
+          "period": 1,
+          "minute": 19,
+          "second": 50
+        },
+        "team": "Northvale",
+        "player_id": "NV-10",
+        "speed_kmh": 34.0
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00670",
+        "at": {
+          "period": 1,
+          "minute": 19,
+          "second": 57
+        },
+        "team": "Northvale",
+        "player_id": "NV-08",
+        "speed_kmh": 33.1
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00671",
+        "at": {
+          "period": 1,
+          "minute": 20,
+          "second": 8
+        },
+        "team": "Northvale",
+        "player_id": "NV-08",
+        "speed_kmh": 33.7
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00678",
+        "at": {
+          "period": 1,
+          "minute": 20,
+          "second": 16
+        },
+        "team": "Northvale",
+        "player_id": "NV-06",
+        "speed_kmh": 33.1
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00682",
+        "at": {
+          "period": 1,
+          "minute": 20,
+          "second": 28
+        },
+        "team": "Northvale",
+        "player_id": "NV-05",
+        "speed_kmh": 34.3
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00683",
+        "at": {
+          "period": 1,
+          "minute": 20,
+          "second": 36
+        },
+        "team": "Northvale",
+        "player_id": "NV-11",
+        "speed_kmh": 32.2
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00718",
+        "at": {
+          "period": 1,
+          "minute": 21,
+          "second": 33
+        },
+        "team": "Northvale",
+        "player_id": "NV-05",
+        "speed_kmh": 32.9
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00723",
+        "at": {
+          "period": 1,
+          "minute": 21,
+          "second": 45
+        },
+        "team": "Northvale",
+        "player_id": "NV-03",
+        "speed_kmh": 32.2
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00724",
+        "at": {
+          "period": 1,
+          "minute": 21,
+          "second": 45
+        },
+        "team": "Northvale",
+        "player_id": "NV-08",
+        "speed_kmh": 32.3
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00729",
+        "at": {
+          "period": 1,
+          "minute": 21,
+          "second": 58
+        },
+        "team": "Northvale",
+        "player_id": "NV-02",
+        "speed_kmh": 33.2
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00740",
+        "at": {
+          "period": 1,
+          "minute": 22,
+          "second": 9
+        },
+        "team": "Harbour City",
+        "player_id": "HC-05",
+        "speed_kmh": 33.7
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00745",
+        "at": {
+          "period": 1,
+          "minute": 22,
+          "second": 14
+        },
+        "team": "Harbour City",
+        "player_id": "HC-09",
+        "speed_kmh": 33.0
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00753",
+        "at": {
+          "period": 1,
+          "minute": 22,
+          "second": 26
+        },
+        "team": "Northvale",
+        "player_id": "NV-04",
+        "speed_kmh": 33.4
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00760",
+        "at": {
+          "period": 1,
+          "minute": 22,
+          "second": 42
+        },
+        "team": "Harbour City",
+        "player_id": "HC-06",
+        "speed_kmh": 32.4
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00782",
+        "at": {
+          "period": 1,
+          "minute": 23,
+          "second": 19
+        },
+        "team": "Harbour City",
+        "player_id": "HC-10",
+        "speed_kmh": 32.3
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00784",
+        "at": {
+          "period": 1,
+          "minute": 23,
+          "second": 21
+        },
+        "team": "Northvale",
+        "player_id": "NV-09",
+        "speed_kmh": 34.6
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00790",
+        "at": {
+          "period": 1,
+          "minute": 23,
+          "second": 27
+        },
+        "team": "Northvale",
+        "player_id": "NV-06",
+        "speed_kmh": 33.4
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00798",
+        "at": {
+          "period": 1,
+          "minute": 23,
+          "second": 39
+        },
+        "team": "Harbour City",
+        "player_id": "HC-06",
+        "speed_kmh": 33.6
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00806",
+        "at": {
+          "period": 1,
+          "minute": 23,
+          "second": 49
+        },
+        "team": "Northvale",
+        "player_id": "NV-11",
+        "speed_kmh": 32.8
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00820",
+        "at": {
+          "period": 1,
+          "minute": 24,
+          "second": 18
+        },
+        "team": "Northvale",
+        "player_id": "NV-07",
+        "speed_kmh": 32.8
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00824",
+        "at": {
+          "period": 1,
+          "minute": 24,
+          "second": 30
+        },
+        "team": "Harbour City",
+        "player_id": "HC-03",
+        "speed_kmh": 33.0
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00833",
+        "at": {
+          "period": 1,
+          "minute": 24,
+          "second": 42
+        },
+        "team": "Harbour City",
+        "player_id": "HC-01",
+        "speed_kmh": 32.6
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00835",
+        "at": {
+          "period": 1,
+          "minute": 24,
+          "second": 45
+        },
+        "team": "Harbour City",
+        "player_id": "HC-11",
+        "speed_kmh": 33.7
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00840",
+        "at": {
+          "period": 1,
+          "minute": 24,
+          "second": 51
+        },
+        "team": "Harbour City",
+        "player_id": "HC-08",
+        "speed_kmh": 35.6
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00841",
+        "at": {
+          "period": 1,
+          "minute": 24,
+          "second": 51
+        },
+        "team": "Harbour City",
+        "player_id": "HC-05",
+        "speed_kmh": 33.6
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00862",
+        "at": {
+          "period": 1,
+          "minute": 25,
+          "second": 26
+        },
+        "team": "Harbour City",
+        "player_id": "HC-02",
+        "speed_kmh": 32.2
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00864",
+        "at": {
+          "period": 1,
+          "minute": 25,
+          "second": 28
+        },
+        "team": "Northvale",
+        "player_id": "NV-04",
+        "speed_kmh": 34.2
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00870",
+        "at": {
+          "period": 1,
+          "minute": 25,
+          "second": 35
+        },
+        "team": "Northvale",
+        "player_id": "NV-09",
+        "speed_kmh": 32.3
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00871",
+        "at": {
+          "period": 1,
+          "minute": 25,
+          "second": 40
+        },
+        "team": "Northvale",
+        "player_id": "NV-10",
+        "speed_kmh": 34.1
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00873",
+        "at": {
+          "period": 1,
+          "minute": 25,
+          "second": 47
+        },
+        "team": "Harbour City",
+        "player_id": "HC-06",
+        "speed_kmh": 32.6
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00874",
+        "at": {
+          "period": 1,
+          "minute": 25,
+          "second": 48
+        },
+        "team": "Harbour City",
+        "player_id": "HC-10",
+        "speed_kmh": 34.5
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00883",
+        "at": {
+          "period": 1,
+          "minute": 26,
+          "second": 5
+        },
+        "team": "Northvale",
+        "player_id": "NV-05",
+        "speed_kmh": 32.9
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00884",
+        "at": {
+          "period": 1,
+          "minute": 26,
+          "second": 9
+        },
+        "team": "Northvale",
+        "player_id": "NV-04",
+        "speed_kmh": 33.3
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00885",
+        "at": {
+          "period": 1,
+          "minute": 26,
+          "second": 10
+        },
+        "team": "Northvale",
+        "player_id": "NV-07",
+        "speed_kmh": 34.2
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00894",
+        "at": {
+          "period": 1,
+          "minute": 26,
+          "second": 35
+        },
+        "team": "Northvale",
+        "player_id": "NV-11",
+        "speed_kmh": 33.3
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00895",
+        "at": {
+          "period": 1,
+          "minute": 26,
+          "second": 35
+        },
+        "team": "Northvale",
+        "player_id": "NV-06",
+        "speed_kmh": 33.4
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00897",
+        "at": {
+          "period": 1,
+          "minute": 26,
+          "second": 37
+        },
+        "team": "Harbour City",
+        "player_id": "HC-02",
+        "speed_kmh": 34.1
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00906",
+        "at": {
+          "period": 1,
+          "minute": 26,
+          "second": 58
+        },
+        "team": "Harbour City",
+        "player_id": "HC-10",
+        "speed_kmh": 32.9
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00907",
+        "at": {
+          "period": 1,
+          "minute": 27,
+          "second": 9
+        },
+        "team": "Harbour City",
+        "player_id": "HC-11",
+        "speed_kmh": 35.1
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00908",
+        "at": {
+          "period": 1,
+          "minute": 27,
+          "second": 11
+        },
+        "team": "Northvale",
+        "player_id": "NV-03",
+        "speed_kmh": 33.9
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00909",
+        "at": {
+          "period": 1,
+          "minute": 27,
+          "second": 16
+        },
+        "team": "Northvale",
+        "player_id": "NV-10",
+        "speed_kmh": 32.3
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00910",
+        "at": {
+          "period": 1,
+          "minute": 27,
+          "second": 24
+        },
+        "team": "Harbour City",
+        "player_id": "HC-04",
+        "speed_kmh": 33.1
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00918",
+        "at": {
+          "period": 1,
+          "minute": 27,
+          "second": 40
+        },
+        "team": "Harbour City",
+        "player_id": "HC-08",
+        "speed_kmh": 33.8
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00919",
+        "at": {
+          "period": 1,
+          "minute": 27,
+          "second": 40
+        },
+        "team": "Northvale",
+        "player_id": "NV-05",
+        "speed_kmh": 32.1
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00924",
+        "at": {
+          "period": 1,
+          "minute": 27,
+          "second": 49
+        },
+        "team": "Northvale",
+        "player_id": "NV-09",
+        "speed_kmh": 33.3
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00934",
+        "at": {
+          "period": 1,
+          "minute": 28,
+          "second": 4
+        },
+        "team": "Northvale",
+        "player_id": "NV-05",
+        "speed_kmh": 35.1
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00941",
+        "at": {
+          "period": 1,
+          "minute": 28,
+          "second": 36
+        },
+        "team": "Northvale",
+        "player_id": "NV-09",
+        "speed_kmh": 33.3
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00950",
+        "at": {
+          "period": 1,
+          "minute": 28,
+          "second": 49
+        },
+        "team": "Northvale",
+        "player_id": "NV-02",
+        "speed_kmh": 32.5
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00951",
+        "at": {
+          "period": 1,
+          "minute": 28,
+          "second": 49
+        },
+        "team": "Harbour City",
+        "player_id": "HC-09",
+        "speed_kmh": 32.6
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00955",
+        "at": {
+          "period": 1,
+          "minute": 28,
+          "second": 54
+        },
+        "team": "Harbour City",
+        "player_id": "HC-11",
+        "speed_kmh": 32.2
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-00994",
+        "at": {
+          "period": 1,
+          "minute": 29,
+          "second": 55
+        },
+        "team": "Harbour City",
+        "player_id": "HC-05",
+        "speed_kmh": 34.6
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-01001",
+        "at": {
+          "period": 1,
+          "minute": 30,
+          "second": 11
+        },
+        "team": "Northvale",
+        "player_id": "NV-03",
+        "speed_kmh": 32.6
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-01014",
+        "at": {
+          "period": 1,
+          "minute": 30,
+          "second": 28
+        },
+        "team": "Harbour City",
+        "player_id": "HC-09",
+        "speed_kmh": 33.5
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-01015",
+        "at": {
+          "period": 1,
+          "minute": 30,
+          "second": 28
+        },
+        "team": "Harbour City",
+        "player_id": "HC-10",
+        "speed_kmh": 33.9
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-01023",
+        "at": {
+          "period": 1,
+          "minute": 30,
+          "second": 37
+        },
+        "team": "Harbour City",
+        "player_id": "HC-02",
+        "speed_kmh": 34.4
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-01026",
+        "at": {
+          "period": 1,
+          "minute": 30,
+          "second": 42
+        },
+        "team": "Northvale",
+        "player_id": "NV-10",
+        "speed_kmh": 32.3
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-01031",
+        "at": {
+          "period": 1,
+          "minute": 30,
+          "second": 47
+        },
+        "team": "Harbour City",
+        "player_id": "HC-07",
+        "speed_kmh": 34.8
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-01042",
+        "at": {
+          "period": 1,
+          "minute": 31,
+          "second": 4
+        },
+        "team": "Harbour City",
+        "player_id": "HC-04",
+        "speed_kmh": 32.8
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-01045",
+        "at": {
+          "period": 1,
+          "minute": 31,
+          "second": 11
+        },
+        "team": "Harbour City",
+        "player_id": "HC-02",
+        "speed_kmh": 32.6
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-01050",
+        "at": {
+          "period": 1,
+          "minute": 31,
+          "second": 22
+        },
+        "team": "Harbour City",
+        "player_id": "HC-03",
+        "speed_kmh": 33.8
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-01055",
+        "at": {
+          "period": 1,
+          "minute": 31,
+          "second": 41
+        },
+        "team": "Northvale",
+        "player_id": "NV-02",
+        "speed_kmh": 32.5
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-01067",
+        "at": {
+          "period": 1,
+          "minute": 32,
+          "second": 3
+        },
+        "team": "Northvale",
+        "player_id": "NV-03",
+        "speed_kmh": 33.9
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-01084",
+        "at": {
+          "period": 1,
+          "minute": 32,
+          "second": 37
+        },
+        "team": "Harbour City",
+        "player_id": "HC-06",
+        "speed_kmh": 35.2
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-01095",
+        "at": {
+          "period": 1,
+          "minute": 32,
+          "second": 54
+        },
+        "team": "Northvale",
+        "player_id": "NV-10",
+        "speed_kmh": 32.6
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-01097",
+        "at": {
+          "period": 1,
+          "minute": 32,
+          "second": 57
+        },
+        "team": "Harbour City",
+        "player_id": "HC-04",
+        "speed_kmh": 32.1
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-01101",
+        "at": {
+          "period": 1,
+          "minute": 33,
+          "second": 5
+        },
+        "team": "Harbour City",
+        "player_id": "HC-10",
+        "speed_kmh": 32.9
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-01104",
+        "at": {
+          "period": 1,
+          "minute": 33,
+          "second": 10
+        },
+        "team": "Harbour City",
+        "player_id": "HC-05",
+        "speed_kmh": 32.5
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-01162",
+        "at": {
+          "period": 1,
+          "minute": 34,
+          "second": 55
+        },
+        "team": "Harbour City",
+        "player_id": "HC-11",
+        "speed_kmh": 32.9
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-01174",
+        "at": {
+          "period": 1,
+          "minute": 35,
+          "second": 10
+        },
+        "team": "Harbour City",
+        "player_id": "HC-03",
+        "speed_kmh": 33.9
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-01188",
+        "at": {
+          "period": 1,
+          "minute": 35,
+          "second": 32
+        },
+        "team": "Northvale",
+        "player_id": "NV-09",
+        "speed_kmh": 33.1
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-01190",
+        "at": {
+          "period": 1,
+          "minute": 35,
+          "second": 34
+        },
+        "team": "Harbour City",
+        "player_id": "HC-02",
+        "speed_kmh": 33.3
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-01194",
+        "at": {
+          "period": 1,
+          "minute": 35,
+          "second": 40
+        },
+        "team": "Harbour City",
+        "player_id": "HC-08",
+        "speed_kmh": 33.4
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-01250",
+        "at": {
+          "period": 1,
+          "minute": 37,
+          "second": 21
+        },
+        "team": "Northvale",
+        "player_id": "NV-03",
+        "speed_kmh": 32.7
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-01254",
+        "at": {
+          "period": 1,
+          "minute": 37,
+          "second": 28
+        },
+        "team": "Harbour City",
+        "player_id": "HC-03",
+        "speed_kmh": 33.2
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-01258",
+        "at": {
+          "period": 1,
+          "minute": 37,
+          "second": 35
+        },
+        "team": "Northvale",
+        "player_id": "NV-11",
+        "speed_kmh": 33.2
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-01278",
+        "at": {
+          "period": 1,
+          "minute": 38,
+          "second": 3
+        },
+        "team": "Northvale",
+        "player_id": "NV-08",
+        "speed_kmh": 33.4
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-01279",
+        "at": {
+          "period": 1,
+          "minute": 38,
+          "second": 13
+        },
+        "team": "Northvale",
+        "player_id": "NV-02",
+        "speed_kmh": 34.0
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-01285",
+        "at": {
+          "period": 1,
+          "minute": 38,
+          "second": 26
+        },
+        "team": "Harbour City",
+        "player_id": "HC-04",
+        "speed_kmh": 33.1
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-01291",
+        "at": {
+          "period": 1,
+          "minute": 38,
+          "second": 33
+        },
+        "team": "Northvale",
+        "player_id": "NV-06",
+        "speed_kmh": 32.6
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-01294",
+        "at": {
+          "period": 1,
+          "minute": 38,
+          "second": 35
+        },
+        "team": "Northvale",
+        "player_id": "NV-11",
+        "speed_kmh": 33.5
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-01303",
+        "at": {
+          "period": 1,
+          "minute": 38,
+          "second": 48
+        },
+        "team": "Northvale",
+        "player_id": "NV-10",
+        "speed_kmh": 32.7
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-01306",
+        "at": {
+          "period": 1,
+          "minute": 38,
+          "second": 50
+        },
+        "team": "Harbour City",
+        "player_id": "HC-03",
+        "speed_kmh": 34.3
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-01312",
+        "at": {
+          "period": 1,
+          "minute": 39,
+          "second": 0
+        },
+        "team": "Harbour City",
+        "player_id": "HC-08",
+        "speed_kmh": 35.6
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-01323",
+        "at": {
+          "period": 1,
+          "minute": 39,
+          "second": 13
+        },
+        "team": "Northvale",
+        "player_id": "NV-02",
+        "speed_kmh": 32.4
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-01327",
+        "at": {
+          "period": 1,
+          "minute": 39,
+          "second": 17
+        },
+        "team": "Harbour City",
+        "player_id": "HC-02",
+        "speed_kmh": 34.0
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-01335",
+        "at": {
+          "period": 1,
+          "minute": 39,
+          "second": 29
+        },
+        "team": "Northvale",
+        "player_id": "NV-10",
+        "speed_kmh": 32.5
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-01356",
+        "at": {
+          "period": 1,
+          "minute": 40,
+          "second": 18
+        },
+        "team": "Northvale",
+        "player_id": "NV-03",
+        "speed_kmh": 32.7
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-01357",
+        "at": {
+          "period": 1,
+          "minute": 40,
+          "second": 28
+        },
+        "team": "Northvale",
+        "player_id": "NV-05",
+        "speed_kmh": 32.8
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-01393",
+        "at": {
+          "period": 1,
+          "minute": 41,
+          "second": 33
+        },
+        "team": "Harbour City",
+        "player_id": "HC-05",
+        "speed_kmh": 33.5
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-01399",
+        "at": {
+          "period": 1,
+          "minute": 41,
+          "second": 42
+        },
+        "team": "Northvale",
+        "player_id": "NV-06",
+        "speed_kmh": 33.4
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-01414",
+        "at": {
+          "period": 1,
+          "minute": 42,
+          "second": 23
+        },
+        "team": "Harbour City",
+        "player_id": "HC-07",
+        "speed_kmh": 34.3
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-01468",
+        "at": {
+          "period": 1,
+          "minute": 43,
+          "second": 58
+        },
+        "team": "Harbour City",
+        "player_id": "HC-05",
+        "speed_kmh": 34.3
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-01486",
+        "at": {
+          "period": 1,
+          "minute": 45,
+          "second": 2
+        },
+        "team": "Harbour City",
+        "player_id": "HC-07",
+        "speed_kmh": 33.0
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-01487",
+        "at": {
+          "period": 1,
+          "minute": 45,
+          "second": 8
+        },
+        "team": "Northvale",
+        "player_id": "NV-06",
+        "speed_kmh": 32.6
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-01490",
+        "at": {
+          "period": 1,
+          "minute": 45,
+          "second": 16
+        },
+        "team": "Harbour City",
+        "player_id": "HC-09",
+        "speed_kmh": 33.9
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-01495",
+        "at": {
+          "period": 1,
+          "minute": 45,
+          "second": 27
+        },
+        "team": "Harbour City",
+        "player_id": "HC-05",
+        "speed_kmh": 33.9
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-01499",
+        "at": {
+          "period": 1,
+          "minute": 45,
+          "second": 44
+        },
+        "team": "Harbour City",
+        "player_id": "HC-03",
+        "speed_kmh": 32.5
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-01511",
+        "at": {
+          "period": 1,
+          "minute": 46,
+          "second": 3
+        },
+        "team": "Northvale",
+        "player_id": "NV-10",
+        "speed_kmh": 32.4
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-01518",
+        "at": {
+          "period": 1,
+          "minute": 46,
+          "second": 17
+        },
+        "team": "Harbour City",
+        "player_id": "HC-06",
+        "speed_kmh": 32.2
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-01529",
+        "at": {
+          "period": 1,
+          "minute": 46,
+          "second": 33
+        },
+        "team": "Harbour City",
+        "player_id": "HC-07",
+        "speed_kmh": 32.5
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-01530",
+        "at": {
+          "period": 1,
+          "minute": 46,
+          "second": 34
+        },
+        "team": "Northvale",
+        "player_id": "NV-11",
+        "speed_kmh": 33.2
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-01594",
+        "at": {
+          "period": 2,
+          "minute": 46,
+          "second": 15
+        },
+        "team": "Northvale",
+        "player_id": "NV-10",
+        "speed_kmh": 34.4
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-01597",
+        "at": {
+          "period": 2,
+          "minute": 46,
+          "second": 29
+        },
+        "team": "Harbour City",
+        "player_id": "HC-02",
+        "speed_kmh": 33.5
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-01598",
+        "at": {
+          "period": 2,
+          "minute": 46,
+          "second": 30
+        },
+        "team": "Harbour City",
+        "player_id": "HC-09",
+        "speed_kmh": 32.7
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-01611",
+        "at": {
+          "period": 2,
+          "minute": 46,
+          "second": 54
+        },
+        "team": "Harbour City",
+        "player_id": "HC-10",
+        "speed_kmh": 33.9
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-01613",
+        "at": {
+          "period": 2,
+          "minute": 46,
+          "second": 58
+        },
+        "team": "Northvale",
+        "player_id": "NV-11",
+        "speed_kmh": 32.7
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-01634",
+        "at": {
+          "period": 2,
+          "minute": 47,
+          "second": 42
+        },
+        "team": "Northvale",
+        "player_id": "NV-03",
+        "speed_kmh": 34.4
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-01654",
+        "at": {
+          "period": 2,
+          "minute": 48,
+          "second": 13
+        },
+        "team": "Northvale",
+        "player_id": "NV-11",
+        "speed_kmh": 32.1
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-01656",
+        "at": {
+          "period": 2,
+          "minute": 48,
+          "second": 17
+        },
+        "team": "Harbour City",
+        "player_id": "HC-10",
+        "speed_kmh": 33.8
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-01659",
+        "at": {
+          "period": 2,
+          "minute": 48,
+          "second": 39
+        },
+        "team": "Northvale",
+        "player_id": "NV-08",
+        "speed_kmh": 32.1
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-01697",
+        "at": {
+          "period": 2,
+          "minute": 49,
+          "second": 50
+        },
+        "team": "Harbour City",
+        "player_id": "HC-07",
+        "speed_kmh": 32.2
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-01717",
+        "at": {
+          "period": 2,
+          "minute": 50,
+          "second": 21
+        },
+        "team": "Northvale",
+        "player_id": "NV-06",
+        "speed_kmh": 32.5
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-01718",
+        "at": {
+          "period": 2,
+          "minute": 50,
+          "second": 25
+        },
+        "team": "Harbour City",
+        "player_id": "HC-09",
+        "speed_kmh": 33.2
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-01720",
+        "at": {
+          "period": 2,
+          "minute": 50,
+          "second": 31
+        },
+        "team": "Northvale",
+        "player_id": "NV-09",
+        "speed_kmh": 32.2
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-01724",
+        "at": {
+          "period": 2,
+          "minute": 50,
+          "second": 37
+        },
+        "team": "Harbour City",
+        "player_id": "HC-06",
+        "speed_kmh": 33.3
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-01734",
+        "at": {
+          "period": 2,
+          "minute": 50,
+          "second": 54
+        },
+        "team": "Northvale",
+        "player_id": "NV-08",
+        "speed_kmh": 32.1
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-01739",
+        "at": {
+          "period": 2,
+          "minute": 51,
+          "second": 4
+        },
+        "team": "Northvale",
+        "player_id": "NV-11",
+        "speed_kmh": 32.8
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-01750",
+        "at": {
+          "period": 2,
+          "minute": 51,
+          "second": 25
+        },
+        "team": "Harbour City",
+        "player_id": "HC-07",
+        "speed_kmh": 34.8
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-01760",
+        "at": {
+          "period": 2,
+          "minute": 51,
+          "second": 41
+        },
+        "team": "Northvale",
+        "player_id": "NV-04",
+        "speed_kmh": 32.4
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-01764",
+        "at": {
+          "period": 2,
+          "minute": 51,
+          "second": 47
+        },
+        "team": "Northvale",
+        "player_id": "NV-07",
+        "speed_kmh": 33.6
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-01803",
+        "at": {
+          "period": 2,
+          "minute": 53,
+          "second": 7
+        },
+        "team": "Harbour City",
+        "player_id": "HC-07",
+        "speed_kmh": 32.1
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-01804",
+        "at": {
+          "period": 2,
+          "minute": 53,
+          "second": 14
+        },
+        "team": "Northvale",
+        "player_id": "NV-11",
+        "speed_kmh": 33.1
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-01805",
+        "at": {
+          "period": 2,
+          "minute": 53,
+          "second": 35
+        },
+        "team": "Northvale",
+        "player_id": "NV-06",
+        "speed_kmh": 33.1
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-01807",
+        "at": {
+          "period": 2,
+          "minute": 53,
+          "second": 39
+        },
+        "team": "Northvale",
+        "player_id": "NV-07",
+        "speed_kmh": 32.4
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-01819",
+        "at": {
+          "period": 2,
+          "minute": 53,
+          "second": 56
+        },
+        "team": "Harbour City",
+        "player_id": "HC-06",
+        "speed_kmh": 34.4
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-01900",
+        "at": {
+          "period": 2,
+          "minute": 56,
+          "second": 45
+        },
+        "team": "Harbour City",
+        "player_id": "HC-02",
+        "speed_kmh": 33.0
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-01904",
+        "at": {
+          "period": 2,
+          "minute": 56,
+          "second": 48
+        },
+        "team": "Northvale",
+        "player_id": "NV-04",
+        "speed_kmh": 35.8
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-01913",
+        "at": {
+          "period": 2,
+          "minute": 57,
+          "second": 20
+        },
+        "team": "Harbour City",
+        "player_id": "HC-05",
+        "speed_kmh": 36.0
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-01914",
+        "at": {
+          "period": 2,
+          "minute": 57,
+          "second": 20
+        },
+        "team": "Northvale",
+        "player_id": "NV-11",
+        "speed_kmh": 32.8
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-01920",
+        "at": {
+          "period": 2,
+          "minute": 57,
+          "second": 30
+        },
+        "team": "Northvale",
+        "player_id": "NV-08",
+        "speed_kmh": 33.7
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-01934",
+        "at": {
+          "period": 2,
+          "minute": 58,
+          "second": 7
+        },
+        "team": "Northvale",
+        "player_id": "NV-06",
+        "speed_kmh": 33.8
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-01935",
+        "at": {
+          "period": 2,
+          "minute": 58,
+          "second": 11
+        },
+        "team": "Harbour City",
+        "player_id": "HC-03",
+        "speed_kmh": 33.4
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-01952",
+        "at": {
+          "period": 2,
+          "minute": 58,
+          "second": 43
+        },
+        "team": "Northvale",
+        "player_id": "NV-09",
+        "speed_kmh": 33.4
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-01957",
+        "at": {
+          "period": 2,
+          "minute": 58,
+          "second": 49
+        },
+        "team": "Harbour City",
+        "player_id": "HC-06",
+        "speed_kmh": 33.7
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-01962",
+        "at": {
+          "period": 2,
+          "minute": 58,
+          "second": 56
+        },
+        "team": "Northvale",
+        "player_id": "NV-04",
+        "speed_kmh": 32.5
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-01965",
+        "at": {
+          "period": 2,
+          "minute": 58,
+          "second": 58
+        },
+        "team": "Harbour City",
+        "player_id": "HC-05",
+        "speed_kmh": 32.9
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-01969",
+        "at": {
+          "period": 2,
+          "minute": 59,
+          "second": 2
+        },
+        "team": "Harbour City",
+        "player_id": "HC-10",
+        "speed_kmh": 32.5
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-01989",
+        "at": {
+          "period": 2,
+          "minute": 59,
+          "second": 31
+        },
+        "team": "Harbour City",
+        "player_id": "HC-09",
+        "speed_kmh": 32.5
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-02000",
+        "at": {
+          "period": 2,
+          "minute": 60,
+          "second": 6
+        },
+        "team": "Northvale",
+        "player_id": "NV-07",
+        "speed_kmh": 32.4
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-02013",
+        "at": {
+          "period": 2,
+          "minute": 60,
+          "second": 23
+        },
+        "team": "Harbour City",
+        "player_id": "HC-08",
+        "speed_kmh": 32.7
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-02015",
+        "at": {
+          "period": 2,
+          "minute": 60,
+          "second": 28
+        },
+        "team": "Northvale",
+        "player_id": "NV-06",
+        "speed_kmh": 33.8
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-02031",
+        "at": {
+          "period": 2,
+          "minute": 60,
+          "second": 51
+        },
+        "team": "Harbour City",
+        "player_id": "HC-11",
+        "speed_kmh": 33.8
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-02039",
+        "at": {
+          "period": 2,
+          "minute": 61,
+          "second": 3
+        },
+        "team": "Northvale",
+        "player_id": "NV-02",
+        "speed_kmh": 32.2
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-02061",
+        "at": {
+          "period": 2,
+          "minute": 61,
+          "second": 52
+        },
+        "team": "Harbour City",
+        "player_id": "HC-02",
+        "speed_kmh": 32.9
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-02086",
+        "at": {
+          "period": 2,
+          "minute": 62,
+          "second": 33
+        },
+        "team": "Harbour City",
+        "player_id": "HC-10",
+        "speed_kmh": 32.4
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-02102",
+        "at": {
+          "period": 2,
+          "minute": 62,
+          "second": 55
+        },
+        "team": "Harbour City",
+        "player_id": "HC-08",
+        "speed_kmh": 32.2
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-02139",
+        "at": {
+          "period": 2,
+          "minute": 63,
+          "second": 57
+        },
+        "team": "Harbour City",
+        "player_id": "HC-08",
+        "speed_kmh": 34.8
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-02148",
+        "at": {
+          "period": 2,
+          "minute": 64,
+          "second": 9
+        },
+        "team": "Northvale",
+        "player_id": "NV-07",
+        "speed_kmh": 33.1
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-02165",
+        "at": {
+          "period": 2,
+          "minute": 64,
+          "second": 45
+        },
+        "team": "Harbour City",
+        "player_id": "HC-10",
+        "speed_kmh": 33.5
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-02174",
+        "at": {
+          "period": 2,
+          "minute": 65,
+          "second": 5
+        },
+        "team": "Harbour City",
+        "player_id": "HC-02",
+        "speed_kmh": 32.8
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-02177",
+        "at": {
+          "period": 2,
+          "minute": 65,
+          "second": 17
+        },
+        "team": "Northvale",
+        "player_id": "NV-06",
+        "speed_kmh": 32.9
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-02183",
+        "at": {
+          "period": 2,
+          "minute": 65,
+          "second": 22
+        },
+        "team": "Harbour City",
+        "player_id": "HC-03",
+        "speed_kmh": 33.0
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-02188",
+        "at": {
+          "period": 2,
+          "minute": 65,
+          "second": 31
+        },
+        "team": "Harbour City",
+        "player_id": "HC-05",
+        "speed_kmh": 32.4
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-02197",
+        "at": {
+          "period": 2,
+          "minute": 65,
+          "second": 50
+        },
+        "team": "Northvale",
+        "player_id": "NV-10",
+        "speed_kmh": 32.5
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-02249",
+        "at": {
+          "period": 2,
+          "minute": 67,
+          "second": 13
+        },
+        "team": "Northvale",
+        "player_id": "NV-05",
+        "speed_kmh": 33.1
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-02296",
+        "at": {
+          "period": 2,
+          "minute": 68,
+          "second": 24
+        },
+        "team": "Northvale",
+        "player_id": "NV-03",
+        "speed_kmh": 33.3
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-02301",
+        "at": {
+          "period": 2,
+          "minute": 68,
+          "second": 31
+        },
+        "team": "Northvale",
+        "player_id": "NV-09",
+        "speed_kmh": 33.5
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-02302",
+        "at": {
+          "period": 2,
+          "minute": 68,
+          "second": 43
+        },
+        "team": "Harbour City",
+        "player_id": "HC-06",
+        "speed_kmh": 33.1
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-02315",
+        "at": {
+          "period": 2,
+          "minute": 69,
+          "second": 5
+        },
+        "team": "Northvale",
+        "player_id": "NV-07",
+        "speed_kmh": 33.2
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-02323",
+        "at": {
+          "period": 2,
+          "minute": 69,
+          "second": 41
+        },
+        "team": "Harbour City",
+        "player_id": "HC-08",
+        "speed_kmh": 34.5
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-02341",
+        "at": {
+          "period": 2,
+          "minute": 70,
+          "second": 13
+        },
+        "team": "Harbour City",
+        "player_id": "HC-05",
+        "speed_kmh": 32.6
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-02360",
+        "at": {
+          "period": 2,
+          "minute": 71,
+          "second": 11
+        },
+        "team": "Harbour City",
+        "player_id": "HC-06",
+        "speed_kmh": 32.5
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-02370",
+        "at": {
+          "period": 2,
+          "minute": 71,
+          "second": 32
+        },
+        "team": "Harbour City",
+        "player_id": "HC-05",
+        "speed_kmh": 33.3
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-02379",
+        "at": {
+          "period": 2,
+          "minute": 71,
+          "second": 53
+        },
+        "team": "Harbour City",
+        "player_id": "HC-02",
+        "speed_kmh": 32.3
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-02423",
+        "at": {
+          "period": 2,
+          "minute": 73,
+          "second": 18
+        },
+        "team": "Northvale",
+        "player_id": "NV-09",
+        "speed_kmh": 32.4
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-02455",
+        "at": {
+          "period": 2,
+          "minute": 74,
+          "second": 15
+        },
+        "team": "Northvale",
+        "player_id": "NV-07",
+        "speed_kmh": 33.0
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-02459",
+        "at": {
+          "period": 2,
+          "minute": 74,
+          "second": 22
+        },
+        "team": "Harbour City",
+        "player_id": "HC-04",
+        "speed_kmh": 33.6
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-02468",
+        "at": {
+          "period": 2,
+          "minute": 74,
+          "second": 36
+        },
+        "team": "Harbour City",
+        "player_id": "HC-11",
+        "speed_kmh": 33.2
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-02488",
+        "at": {
+          "period": 2,
+          "minute": 75,
+          "second": 3
+        },
+        "team": "Harbour City",
+        "player_id": "HC-03",
+        "speed_kmh": 33.1
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-02519",
+        "at": {
+          "period": 2,
+          "minute": 76,
+          "second": 4
+        },
+        "team": "Northvale",
+        "player_id": "NV-10",
+        "speed_kmh": 33.2
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-02526",
+        "at": {
+          "period": 2,
+          "minute": 76,
+          "second": 23
+        },
+        "team": "Harbour City",
+        "player_id": "HC-08",
+        "speed_kmh": 32.3
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-02536",
+        "at": {
+          "period": 2,
+          "minute": 76,
+          "second": 47
+        },
+        "team": "Northvale",
+        "player_id": "NV-03",
+        "speed_kmh": 33.0
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-02547",
+        "at": {
+          "period": 2,
+          "minute": 77,
+          "second": 4
+        },
+        "team": "Harbour City",
+        "player_id": "HC-11",
+        "speed_kmh": 32.1
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-02549",
+        "at": {
+          "period": 2,
+          "minute": 77,
+          "second": 6
+        },
+        "team": "Northvale",
+        "player_id": "NV-08",
+        "speed_kmh": 32.3
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-02552",
+        "at": {
+          "period": 2,
+          "minute": 77,
+          "second": 13
+        },
+        "team": "Northvale",
+        "player_id": "NV-02",
+        "speed_kmh": 32.9
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-02555",
+        "at": {
+          "period": 2,
+          "minute": 77,
+          "second": 41
+        },
+        "team": "Harbour City",
+        "player_id": "HC-09",
+        "speed_kmh": 32.1
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-02563",
+        "at": {
+          "period": 2,
+          "minute": 78,
+          "second": 7
+        },
+        "team": "Harbour City",
+        "player_id": "HC-07",
+        "speed_kmh": 32.6
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-02568",
+        "at": {
+          "period": 2,
+          "minute": 78,
+          "second": 26
+        },
+        "team": "Northvale",
+        "player_id": "NV-11",
+        "speed_kmh": 34.3
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-02577",
+        "at": {
+          "period": 2,
+          "minute": 78,
+          "second": 38
+        },
+        "team": "Northvale",
+        "player_id": "NV-08",
+        "speed_kmh": 33.6
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-02606",
+        "at": {
+          "period": 2,
+          "minute": 79,
+          "second": 35
+        },
+        "team": "Harbour City",
+        "player_id": "HC-06",
+        "speed_kmh": 32.2
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-02636",
+        "at": {
+          "period": 2,
+          "minute": 80,
+          "second": 33
+        },
+        "team": "Northvale",
+        "player_id": "NV-03",
+        "speed_kmh": 33.1
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-02652",
+        "at": {
+          "period": 2,
+          "minute": 80,
+          "second": 56
+        },
+        "team": "Harbour City",
+        "player_id": "HC-09",
+        "speed_kmh": 35.1
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-02686",
+        "at": {
+          "period": 2,
+          "minute": 82,
+          "second": 21
+        },
+        "team": "Northvale",
+        "player_id": "NV-05",
+        "speed_kmh": 33.9
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-02708",
+        "at": {
+          "period": 2,
+          "minute": 82,
+          "second": 56
+        },
+        "team": "Northvale",
+        "player_id": "NV-07",
+        "speed_kmh": 32.4
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-02728",
+        "at": {
+          "period": 2,
+          "minute": 83,
+          "second": 25
+        },
+        "team": "Northvale",
+        "player_id": "NV-10",
+        "speed_kmh": 32.4
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-02738",
+        "at": {
+          "period": 2,
+          "minute": 83,
+          "second": 38
+        },
+        "team": "Harbour City",
+        "player_id": "HC-10",
+        "speed_kmh": 32.3
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-02758",
+        "at": {
+          "period": 2,
+          "minute": 84,
+          "second": 13
+        },
+        "team": "Northvale",
+        "player_id": "NV-09",
+        "speed_kmh": 33.2
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-02761",
+        "at": {
+          "period": 2,
+          "minute": 84,
+          "second": 19
+        },
+        "team": "Harbour City",
+        "player_id": "HC-06",
+        "speed_kmh": 33.5
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-02766",
+        "at": {
+          "period": 2,
+          "minute": 84,
+          "second": 35
+        },
+        "team": "Northvale",
+        "player_id": "NV-05",
+        "speed_kmh": 33.4
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-02808",
+        "at": {
+          "period": 2,
+          "minute": 85,
+          "second": 41
+        },
+        "team": "Harbour City",
+        "player_id": "HC-10",
+        "speed_kmh": 32.3
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-02812",
+        "at": {
+          "period": 2,
+          "minute": 85,
+          "second": 54
+        },
+        "team": "Northvale",
+        "player_id": "NV-04",
+        "speed_kmh": 33.0
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-02860",
+        "at": {
+          "period": 2,
+          "minute": 87,
+          "second": 39
+        },
+        "team": "Harbour City",
+        "player_id": "HC-09",
+        "speed_kmh": 32.3
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-02877",
+        "at": {
+          "period": 2,
+          "minute": 88,
+          "second": 11
+        },
+        "team": "Northvale",
+        "player_id": "NV-07",
+        "speed_kmh": 33.2
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-02890",
+        "at": {
+          "period": 2,
+          "minute": 88,
+          "second": 40
+        },
+        "team": "Harbour City",
+        "player_id": "HC-05",
+        "speed_kmh": 32.7
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-02892",
+        "at": {
+          "period": 2,
+          "minute": 88,
+          "second": 52
+        },
+        "team": "Harbour City",
+        "player_id": "HC-04",
+        "speed_kmh": 32.4
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-02907",
+        "at": {
+          "period": 2,
+          "minute": 89,
+          "second": 23
+        },
+        "team": "Harbour City",
+        "player_id": "HC-05",
+        "speed_kmh": 32.7
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-02915",
+        "at": {
+          "period": 2,
+          "minute": 89,
+          "second": 32
+        },
+        "team": "Northvale",
+        "player_id": "NV-04",
+        "speed_kmh": 32.2
+      },
+      {
+        "kind": "sprint",
+        "event_id": "m01-02953",
+        "at": {
+          "period": 2,
+          "minute": 90,
+          "second": 26
+        },
+        "team": "Northvale",
+        "player_id": "NV-05",
+        "speed_kmh": 32.5
+      }
+    ],
+    "pass_badges": [
+      {
+        "event_id": "m01-00028",
+        "at": {
+          "period": 1,
+          "minute": 0,
+          "second": 32
+        },
+        "team": "Harbour City",
+        "player_id": "HC-04",
+        "receiver_id": "HC-07",
+        "difficulty": 82,
+        "distance_m": 45.2,
+        "pressure_on_passer": 0.64
+      },
+      {
+        "event_id": "m01-01444",
+        "at": {
+          "period": 1,
+          "minute": 43,
+          "second": 12
+        },
+        "team": "Harbour City",
+        "player_id": "HC-02",
+        "receiver_id": "HC-09",
+        "difficulty": 80,
+        "distance_m": 47.7,
+        "pressure_on_passer": 0.59
+      },
+      {
+        "event_id": "m01-01524",
+        "at": {
+          "period": 1,
+          "minute": 46,
+          "second": 23
+        },
+        "team": "Harbour City",
+        "player_id": "HC-01",
+        "receiver_id": "HC-06",
+        "difficulty": 80,
+        "distance_m": 46.8,
+        "pressure_on_passer": 0.6
+      },
+      {
+        "event_id": "m01-01726",
+        "at": {
+          "period": 2,
+          "minute": 50,
+          "second": 38
+        },
+        "team": "Harbour City",
+        "player_id": "HC-02",
+        "receiver_id": "HC-10",
+        "difficulty": 80,
+        "distance_m": 53.6,
+        "pressure_on_passer": 0.6
+      },
+      {
+        "event_id": "m01-01943",
+        "at": {
+          "period": 2,
+          "minute": 58,
+          "second": 29
+        },
+        "team": "Northvale",
+        "player_id": "NV-03",
+        "receiver_id": "NV-09",
+        "difficulty": 84,
+        "distance_m": 51.2,
+        "pressure_on_passer": 0.68
+      },
+      {
+        "event_id": "m01-02014",
+        "at": {
+          "period": 2,
+          "minute": 60,
+          "second": 24
+        },
+        "team": "Northvale",
+        "player_id": "NV-01",
+        "receiver_id": "NV-06",
+        "difficulty": 88,
+        "distance_m": 51.0,
+        "pressure_on_passer": 0.76
+      },
+      {
+        "event_id": "m01-02042",
+        "at": {
+          "period": 2,
+          "minute": 61,
+          "second": 5
+        },
+        "team": "Harbour City",
+        "player_id": "HC-04",
+        "receiver_id": "HC-10",
+        "difficulty": 80,
+        "distance_m": 49.8,
+        "pressure_on_passer": 0.61
+      },
+      {
+        "event_id": "m01-02076",
+        "at": {
+          "period": 2,
+          "minute": 62,
+          "second": 14
+        },
+        "team": "Northvale",
+        "player_id": "NV-01",
+        "receiver_id": "NV-07",
+        "difficulty": 92,
+        "distance_m": 42.1,
+        "pressure_on_passer": 0.85
+      },
+      {
+        "event_id": "m01-02182",
+        "at": {
+          "period": 2,
+          "minute": 65,
+          "second": 22
+        },
+        "team": "Northvale",
+        "player_id": "NV-04",
+        "receiver_id": "NV-09",
+        "difficulty": 84,
+        "distance_m": 38.4,
+        "pressure_on_passer": 0.73
+      },
+      {
+        "event_id": "m01-02295",
+        "at": {
+          "period": 2,
+          "minute": 68,
+          "second": 20
+        },
+        "team": "Northvale",
+        "player_id": "NV-04",
+        "receiver_id": "NV-10",
+        "difficulty": 84,
+        "distance_m": 40.7,
+        "pressure_on_passer": 0.67
+      },
+      {
+        "event_id": "m01-02397",
+        "at": {
+          "period": 2,
+          "minute": 72,
+          "second": 22
+        },
+        "team": "Harbour City",
+        "player_id": "HC-04",
+        "receiver_id": "HC-11",
+        "difficulty": 80,
+        "distance_m": 50.4,
+        "pressure_on_passer": 0.59
+      },
+      {
+        "event_id": "m01-02466",
+        "at": {
+          "period": 2,
+          "minute": 74,
+          "second": 30
+        },
+        "team": "Northvale",
+        "player_id": "NV-05",
+        "receiver_id": "NV-10",
+        "difficulty": 88,
+        "distance_m": 49.4,
+        "pressure_on_passer": 0.77
+      },
+      {
+        "event_id": "m01-02507",
+        "at": {
+          "period": 2,
+          "minute": 75,
+          "second": 42
+        },
+        "team": "Northvale",
+        "player_id": "NV-04",
+        "receiver_id": "NV-07",
+        "difficulty": 90,
+        "distance_m": 45.4,
+        "pressure_on_passer": 0.79
+      },
+      {
+        "event_id": "m01-02605",
+        "at": {
+          "period": 2,
+          "minute": 79,
+          "second": 34
+        },
+        "team": "Northvale",
+        "player_id": "NV-04",
+        "receiver_id": "NV-07",
+        "difficulty": 94,
+        "distance_m": 41.9,
+        "pressure_on_passer": 0.87
+      },
+      {
+        "event_id": "m01-02704",
+        "at": {
+          "period": 2,
+          "minute": 82,
+          "second": 48
+        },
+        "team": "Northvale",
+        "player_id": "NV-04",
+        "receiver_id": "NV-05",
+        "difficulty": 82,
+        "distance_m": 30.6,
+        "pressure_on_passer": 0.87
+      },
+      {
+        "event_id": "m01-02736",
+        "at": {
+          "period": 2,
+          "minute": 83,
+          "second": 33
+        },
+        "team": "Northvale",
+        "player_id": "NV-04",
+        "receiver_id": "NV-10",
+        "difficulty": 90,
+        "distance_m": 40.9,
+        "pressure_on_passer": 0.79
+      },
+      {
+        "event_id": "m01-02744",
+        "at": {
+          "period": 2,
+          "minute": 83,
+          "second": 42
+        },
+        "team": "Harbour City",
+        "player_id": "HC-03",
+        "receiver_id": "HC-10",
+        "difficulty": 84,
+        "distance_m": 50.5,
+        "pressure_on_passer": 0.67
+      },
+      {
+        "event_id": "m01-02750",
+        "at": {
+          "period": 2,
+          "minute": 83,
+          "second": 54
+        },
+        "team": "Northvale",
+        "player_id": "NV-04",
+        "receiver_id": "NV-08",
+        "difficulty": 96,
+        "distance_m": 43.9,
+        "pressure_on_passer": 0.93
+      },
+      {
+        "event_id": "m01-02784",
+        "at": {
+          "period": 2,
+          "minute": 84,
+          "second": 58
+        },
+        "team": "Harbour City",
+        "player_id": "HC-04",
+        "receiver_id": "HC-07",
+        "difficulty": 83,
+        "distance_m": 48.9,
+        "pressure_on_passer": 0.66
+      },
+      {
+        "event_id": "m01-02952",
+        "at": {
+          "period": 2,
+          "minute": 90,
+          "second": 23
+        },
+        "team": "Northvale",
+        "player_id": "NV-06",
+        "receiver_id": "NV-08",
+        "difficulty": 87,
+        "distance_m": 34.5,
+        "pressure_on_passer": 0.87
+      }
+    ],
+    "momentum": [
+      {
+        "period": 1,
+        "minute": 0,
+        "at": {
+          "period": 1,
+          "minute": 1,
+          "second": 0
+        },
+        "home_threat": 4.0,
+        "away_threat": 1.0,
+        "value": 0.6
+      },
+      {
+        "period": 1,
+        "minute": 1,
+        "at": {
+          "period": 1,
+          "minute": 2,
+          "second": 0
+        },
+        "home_threat": 3.83,
+        "away_threat": 0.71,
+        "value": 0.688
+      },
+      {
+        "period": 1,
+        "minute": 2,
+        "at": {
+          "period": 1,
+          "minute": 3,
+          "second": 0
+        },
+        "home_threat": 3.71,
+        "away_threat": 0.5,
+        "value": 0.762
+      },
+      {
+        "period": 1,
+        "minute": 3,
+        "at": {
+          "period": 1,
+          "minute": 4,
+          "second": 0
+        },
+        "home_threat": 3.62,
+        "away_threat": 0.35,
+        "value": 0.822
+      },
+      {
+        "period": 1,
+        "minute": 4,
+        "at": {
+          "period": 1,
+          "minute": 5,
+          "second": 0
+        },
+        "home_threat": 2.56,
+        "away_threat": 1.25,
+        "value": 0.344
+      },
+      {
+        "period": 1,
+        "minute": 5,
+        "at": {
+          "period": 1,
+          "minute": 6,
+          "second": 0
+        },
+        "home_threat": 2.81,
+        "away_threat": 0.88,
+        "value": 0.522
+      },
+      {
+        "period": 1,
+        "minute": 6,
+        "at": {
+          "period": 1,
+          "minute": 7,
+          "second": 0
+        },
+        "home_threat": 2.99,
+        "away_threat": 0.63,
+        "value": 0.654
+      },
+      {
+        "period": 1,
+        "minute": 7,
+        "at": {
+          "period": 1,
+          "minute": 8,
+          "second": 0
+        },
+        "home_threat": 3.11,
+        "away_threat": 0.44,
+        "value": 0.751
+      },
+      {
+        "period": 1,
+        "minute": 8,
+        "at": {
+          "period": 1,
+          "minute": 9,
+          "second": 0
+        },
+        "home_threat": 3.2,
+        "away_threat": 1.31,
+        "value": 0.418
+      },
+      {
+        "period": 1,
+        "minute": 9,
+        "at": {
+          "period": 1,
+          "minute": 10,
+          "second": 0
+        },
+        "home_threat": 3.26,
+        "away_threat": 0.93,
+        "value": 0.557
+      },
+      {
+        "period": 1,
+        "minute": 10,
+        "at": {
+          "period": 1,
+          "minute": 11,
+          "second": 0
+        },
+        "home_threat": 2.31,
+        "away_threat": 0.66,
+        "value": 0.55
+      },
+      {
+        "period": 1,
+        "minute": 11,
+        "at": {
+          "period": 1,
+          "minute": 12,
+          "second": 0
+        },
+        "home_threat": 1.63,
+        "away_threat": 4.46,
+        "value": -0.465
+      },
+      {
+        "period": 1,
+        "minute": 12,
+        "at": {
+          "period": 1,
+          "minute": 13,
+          "second": 0
+        },
+        "home_threat": 1.15,
+        "away_threat": 7.16,
+        "value": -0.722
+      },
+      {
+        "period": 1,
+        "minute": 13,
+        "at": {
+          "period": 1,
+          "minute": 14,
+          "second": 0
+        },
+        "home_threat": 1.82,
+        "away_threat": 5.06,
+        "value": -0.472
+      },
+      {
+        "period": 1,
+        "minute": 14,
+        "at": {
+          "period": 1,
+          "minute": 15,
+          "second": 0
+        },
+        "home_threat": 2.28,
+        "away_threat": 4.58,
+        "value": -0.334
+      },
+      {
+        "period": 1,
+        "minute": 15,
+        "at": {
+          "period": 1,
+          "minute": 16,
+          "second": 0
+        },
+        "home_threat": 2.62,
+        "away_threat": 4.24,
+        "value": -0.237
+      },
+      {
+        "period": 1,
+        "minute": 16,
+        "at": {
+          "period": 1,
+          "minute": 17,
+          "second": 0
+        },
+        "home_threat": 5.85,
+        "away_threat": 4.0,
+        "value": 0.188
+      },
+      {
+        "period": 1,
+        "minute": 17,
+        "at": {
+          "period": 1,
+          "minute": 18,
+          "second": 0
+        },
+        "home_threat": 5.14,
+        "away_threat": 2.83,
+        "value": 0.29
+      },
+      {
+        "period": 1,
+        "minute": 18,
+        "at": {
+          "period": 1,
+          "minute": 19,
+          "second": 0
+        },
+        "home_threat": 3.63,
+        "away_threat": 2.0,
+        "value": 0.29
+      },
+      {
+        "period": 1,
+        "minute": 19,
+        "at": {
+          "period": 1,
+          "minute": 20,
+          "second": 0
+        },
+        "home_threat": 2.57,
+        "away_threat": 2.41,
+        "value": 0.031
+      },
+      {
+        "period": 1,
+        "minute": 20,
+        "at": {
+          "period": 1,
+          "minute": 21,
+          "second": 0
+        },
+        "home_threat": 1.82,
+        "away_threat": 2.71,
+        "value": -0.197
+      },
+      {
+        "period": 1,
+        "minute": 21,
+        "at": {
+          "period": 1,
+          "minute": 22,
+          "second": 0
+        },
+        "home_threat": 1.28,
+        "away_threat": 5.91,
+        "value": -0.643
+      },
+      {
+        "period": 1,
+        "minute": 22,
+        "at": {
+          "period": 1,
+          "minute": 23,
+          "second": 0
+        },
+        "home_threat": 0.91,
+        "away_threat": 7.18,
+        "value": -0.776
+      },
+      {
+        "period": 1,
+        "minute": 23,
+        "at": {
+          "period": 1,
+          "minute": 24,
+          "second": 0
+        },
+        "home_threat": 1.64,
+        "away_threat": 5.08,
+        "value": -0.511
+      },
+      {
+        "period": 1,
+        "minute": 24,
+        "at": {
+          "period": 1,
+          "minute": 25,
+          "second": 0
+        },
+        "home_threat": 2.16,
+        "away_threat": 3.59,
+        "value": -0.249
+      },
+      {
+        "period": 1,
+        "minute": 25,
+        "at": {
+          "period": 1,
+          "minute": 26,
+          "second": 0
+        },
+        "home_threat": 2.53,
+        "away_threat": 3.54,
+        "value": -0.167
+      },
+      {
+        "period": 1,
+        "minute": 26,
+        "at": {
+          "period": 1,
+          "minute": 27,
+          "second": 0
+        },
+        "home_threat": 1.79,
+        "away_threat": 7.5,
+        "value": -0.615
+      },
+      {
+        "period": 1,
+        "minute": 27,
+        "at": {
+          "period": 1,
+          "minute": 28,
+          "second": 0
+        },
+        "home_threat": 1.26,
+        "away_threat": 6.31,
+        "value": -0.666
+      },
+      {
+        "period": 1,
+        "minute": 28,
+        "at": {
+          "period": 1,
+          "minute": 29,
+          "second": 0
+        },
+        "home_threat": 0.89,
+        "away_threat": 5.46,
+        "value": -0.719
+      },
+      {
+        "period": 1,
+        "minute": 29,
+        "at": {
+          "period": 1,
+          "minute": 30,
+          "second": 0
+        },
+        "home_threat": 5.63,
+        "away_threat": 3.86,
+        "value": 0.187
+      },
+      {
+        "period": 1,
+        "minute": 30,
+        "at": {
+          "period": 1,
+          "minute": 31,
+          "second": 0
+        },
+        "home_threat": 4.98,
+        "away_threat": 3.73,
+        "value": 0.144
+      },
+      {
+        "period": 1,
+        "minute": 31,
+        "at": {
+          "period": 1,
+          "minute": 32,
+          "second": 0
+        },
+        "home_threat": 5.52,
+        "away_threat": 2.64,
+        "value": 0.354
+      },
+      {
+        "period": 1,
+        "minute": 32,
+        "at": {
+          "period": 1,
+          "minute": 33,
+          "second": 0
+        },
+        "home_threat": 4.91,
+        "away_threat": 2.86,
+        "value": 0.263
+      },
+      {
+        "period": 1,
+        "minute": 33,
+        "at": {
+          "period": 1,
+          "minute": 34,
+          "second": 0
+        },
+        "home_threat": 4.47,
+        "away_threat": 2.03,
+        "value": 0.376
+      },
+      {
+        "period": 1,
+        "minute": 34,
+        "at": {
+          "period": 1,
+          "minute": 35,
+          "second": 0
+        },
+        "home_threat": 6.16,
+        "away_threat": 3.43,
+        "value": 0.284
+      },
+      {
+        "period": 1,
+        "minute": 35,
+        "at": {
+          "period": 1,
+          "minute": 36,
+          "second": 0
+        },
+        "home_threat": 5.36,
+        "away_threat": 3.43,
+        "value": 0.22
+      },
+      {
+        "period": 1,
+        "minute": 36,
+        "at": {
+          "period": 1,
+          "minute": 37,
+          "second": 0
+        },
+        "home_threat": 3.79,
+        "away_threat": 3.42,
+        "value": 0.05
+      },
+      {
+        "period": 1,
+        "minute": 37,
+        "at": {
+          "period": 1,
+          "minute": 38,
+          "second": 0
+        },
+        "home_threat": 3.68,
+        "away_threat": 3.42,
+        "value": 0.036
+      },
+      {
+        "period": 1,
+        "minute": 38,
+        "at": {
+          "period": 1,
+          "minute": 39,
+          "second": 0
+        },
+        "home_threat": 2.6,
+        "away_threat": 2.42,
+        "value": 0.036
+      },
+      {
+        "period": 1,
+        "minute": 39,
+        "at": {
+          "period": 1,
+          "minute": 40,
+          "second": 0
+        },
+        "home_threat": 1.84,
+        "away_threat": 2.71,
+        "value": -0.192
+      },
+      {
+        "period": 1,
+        "minute": 40,
+        "at": {
+          "period": 1,
+          "minute": 41,
+          "second": 0
+        },
+        "home_threat": 3.3,
+        "away_threat": 1.92,
+        "value": 0.265
+      },
+      {
+        "period": 1,
+        "minute": 41,
+        "at": {
+          "period": 1,
+          "minute": 42,
+          "second": 0
+        },
+        "home_threat": 2.33,
+        "away_threat": 3.36,
+        "value": -0.18
+      },
+      {
+        "period": 1,
+        "minute": 42,
+        "at": {
+          "period": 1,
+          "minute": 43,
+          "second": 0
+        },
+        "home_threat": 1.65,
+        "away_threat": 3.37,
+        "value": -0.343
+      },
+      {
+        "period": 1,
+        "minute": 43,
+        "at": {
+          "period": 1,
+          "minute": 44,
+          "second": 0
+        },
+        "home_threat": 3.17,
+        "away_threat": 2.38,
+        "value": 0.141
+      },
+      {
+        "period": 1,
+        "minute": 44,
+        "at": {
+          "period": 1,
+          "minute": 45,
+          "second": 0
+        },
+        "home_threat": 3.24,
+        "away_threat": 1.69,
+        "value": 0.315
+      },
+      {
+        "period": 1,
+        "minute": 45,
+        "at": {
+          "period": 1,
+          "minute": 46,
+          "second": 0
+        },
+        "home_threat": 2.29,
+        "away_threat": 1.19,
+        "value": 0.315
+      },
+      {
+        "period": 1,
+        "minute": 46,
+        "at": {
+          "period": 1,
+          "minute": 47,
+          "second": 0
+        },
+        "home_threat": 5.62,
+        "away_threat": 1.84,
+        "value": 0.506
+      },
+      {
+        "period": 1,
+        "minute": 47,
+        "at": {
+          "period": 1,
+          "minute": 47,
+          "second": 3
+        },
+        "home_threat": 3.97,
+        "away_threat": 1.3,
+        "value": 0.506
+      },
+      {
+        "period": 2,
+        "minute": 45,
+        "at": {
+          "period": 2,
+          "minute": 46,
+          "second": 0
+        },
+        "home_threat": 0.0,
+        "away_threat": 2.0,
+        "value": -0.667
+      },
+      {
+        "period": 2,
+        "minute": 46,
+        "at": {
+          "period": 2,
+          "minute": 47,
+          "second": 0
+        },
+        "home_threat": 4.0,
+        "away_threat": 2.41,
+        "value": 0.247
+      },
+      {
+        "period": 2,
+        "minute": 47,
+        "at": {
+          "period": 2,
+          "minute": 48,
+          "second": 0
+        },
+        "home_threat": 2.83,
+        "away_threat": 5.71,
+        "value": -0.337
+      },
+      {
+        "period": 2,
+        "minute": 48,
+        "at": {
+          "period": 2,
+          "minute": 49,
+          "second": 0
+        },
+        "home_threat": 2.0,
+        "away_threat": 6.04,
+        "value": -0.502
+      },
+      {
+        "period": 2,
+        "minute": 49,
+        "at": {
+          "period": 2,
+          "minute": 50,
+          "second": 0
+        },
+        "home_threat": 1.41,
+        "away_threat": 8.27,
+        "value": -0.708
+      },
+      {
+        "period": 2,
+        "minute": 50,
+        "at": {
+          "period": 2,
+          "minute": 51,
+          "second": 0
+        },
+        "home_threat": 2.0,
+        "away_threat": 6.85,
+        "value": -0.548
+      },
+      {
+        "period": 2,
+        "minute": 51,
+        "at": {
+          "period": 2,
+          "minute": 52,
+          "second": 0
+        },
+        "home_threat": 2.41,
+        "away_threat": 5.84,
+        "value": -0.415
+      },
+      {
+        "period": 2,
+        "minute": 52,
+        "at": {
+          "period": 2,
+          "minute": 53,
+          "second": 0
+        },
+        "home_threat": 1.71,
+        "away_threat": 8.13,
+        "value": -0.653
+      },
+      {
+        "period": 2,
+        "minute": 53,
+        "at": {
+          "period": 2,
+          "minute": 54,
+          "second": 0
+        },
+        "home_threat": 5.21,
+        "away_threat": 5.75,
+        "value": -0.049
+      },
+      {
+        "period": 2,
+        "minute": 54,
+        "at": {
+          "period": 2,
+          "minute": 55,
+          "second": 0
+        },
+        "home_threat": 3.68,
+        "away_threat": 4.07,
+        "value": -0.049
+      },
+      {
+        "period": 2,
+        "minute": 55,
+        "at": {
+          "period": 2,
+          "minute": 56,
+          "second": 0
+        },
+        "home_threat": 3.6,
+        "away_threat": 3.87,
+        "value": -0.036
+      },
+      {
+        "period": 2,
+        "minute": 56,
+        "at": {
+          "period": 2,
+          "minute": 57,
+          "second": 0
+        },
+        "home_threat": 3.55,
+        "away_threat": 2.74,
+        "value": 0.129
+      },
+      {
+        "period": 2,
+        "minute": 57,
+        "at": {
+          "period": 2,
+          "minute": 58,
+          "second": 0
+        },
+        "home_threat": 2.51,
+        "away_threat": 2.94,
+        "value": -0.079
+      },
+      {
+        "period": 2,
+        "minute": 58,
+        "at": {
+          "period": 2,
+          "minute": 59,
+          "second": 0
+        },
+        "home_threat": 1.77,
+        "away_threat": 3.08,
+        "value": -0.269
+      },
+      {
+        "period": 2,
+        "minute": 59,
+        "at": {
+          "period": 2,
+          "minute": 60,
+          "second": 0
+        },
+        "home_threat": 6.25,
+        "away_threat": 2.18,
+        "value": 0.484
+      },
+      {
+        "period": 2,
+        "minute": 60,
+        "at": {
+          "period": 2,
+          "minute": 61,
+          "second": 0
+        },
+        "home_threat": 4.42,
+        "away_threat": 1.54,
+        "value": 0.484
+      },
+      {
+        "period": 2,
+        "minute": 61,
+        "at": {
+          "period": 2,
+          "minute": 62,
+          "second": 0
+        },
+        "home_threat": 7.13,
+        "away_threat": 2.09,
+        "value": 0.547
+      },
+      {
+        "period": 2,
+        "minute": 62,
+        "at": {
+          "period": 2,
+          "minute": 63,
+          "second": 0
+        },
+        "home_threat": 7.04,
+        "away_threat": 1.48,
+        "value": 0.653
+      },
+      {
+        "period": 2,
+        "minute": 63,
+        "at": {
+          "period": 2,
+          "minute": 64,
+          "second": 0
+        },
+        "home_threat": 8.98,
+        "away_threat": 1.04,
+        "value": 0.792
+      },
+      {
+        "period": 2,
+        "minute": 64,
+        "at": {
+          "period": 2,
+          "minute": 65,
+          "second": 0
+        },
+        "home_threat": 10.35,
+        "away_threat": 0.74,
+        "value": 0.867
+      },
+      {
+        "period": 2,
+        "minute": 65,
+        "at": {
+          "period": 2,
+          "minute": 66,
+          "second": 0
+        },
+        "home_threat": 7.32,
+        "away_threat": 1.52,
+        "value": 0.656
+      },
+      {
+        "period": 2,
+        "minute": 66,
+        "at": {
+          "period": 2,
+          "minute": 67,
+          "second": 0
+        },
+        "home_threat": 6.17,
+        "away_threat": 2.08,
+        "value": 0.497
+      },
+      {
+        "period": 2,
+        "minute": 67,
+        "at": {
+          "period": 2,
+          "minute": 68,
+          "second": 0
+        },
+        "home_threat": 4.37,
+        "away_threat": 1.47,
+        "value": 0.497
+      },
+      {
+        "period": 2,
+        "minute": 68,
+        "at": {
+          "period": 2,
+          "minute": 69,
+          "second": 0
+        },
+        "home_threat": 4.09,
+        "away_threat": 3.04,
+        "value": 0.147
+      },
+      {
+        "period": 2,
+        "minute": 69,
+        "at": {
+          "period": 2,
+          "minute": 70,
+          "second": 0
+        },
+        "home_threat": 2.89,
+        "away_threat": 2.15,
+        "value": 0.147
+      },
+      {
+        "period": 2,
+        "minute": 70,
+        "at": {
+          "period": 2,
+          "minute": 71,
+          "second": 0
+        },
+        "home_threat": 2.04,
+        "away_threat": 6.52,
+        "value": -0.523
+      },
+      {
+        "period": 2,
+        "minute": 71,
+        "at": {
+          "period": 2,
+          "minute": 72,
+          "second": 0
+        },
+        "home_threat": 1.44,
+        "away_threat": 7.61,
+        "value": -0.681
+      },
+      {
+        "period": 2,
+        "minute": 72,
+        "at": {
+          "period": 2,
+          "minute": 73,
+          "second": 0
+        },
+        "home_threat": 3.02,
+        "away_threat": 5.38,
+        "value": -0.281
+      },
+      {
+        "period": 2,
+        "minute": 73,
+        "at": {
+          "period": 2,
+          "minute": 74,
+          "second": 0
+        },
+        "home_threat": 2.14,
+        "away_threat": 3.8,
+        "value": -0.281
+      },
+      {
+        "period": 2,
+        "minute": 74,
+        "at": {
+          "period": 2,
+          "minute": 75,
+          "second": 0
+        },
+        "home_threat": 2.51,
+        "away_threat": 3.69,
+        "value": -0.19
+      },
+      {
+        "period": 2,
+        "minute": 75,
+        "at": {
+          "period": 2,
+          "minute": 76,
+          "second": 0
+        },
+        "home_threat": 2.78,
+        "away_threat": 2.61,
+        "value": 0.031
+      },
+      {
+        "period": 2,
+        "minute": 76,
+        "at": {
+          "period": 2,
+          "minute": 77,
+          "second": 0
+        },
+        "home_threat": 2.96,
+        "away_threat": 1.85,
+        "value": 0.232
+      },
+      {
+        "period": 2,
+        "minute": 77,
+        "at": {
+          "period": 2,
+          "minute": 78,
+          "second": 0
+        },
+        "home_threat": 5.09,
+        "away_threat": 2.3,
+        "value": 0.377
+      },
+      {
+        "period": 2,
+        "minute": 78,
+        "at": {
+          "period": 2,
+          "minute": 79,
+          "second": 0
+        },
+        "home_threat": 5.6,
+        "away_threat": 4.63,
+        "value": 0.095
+      },
+      {
+        "period": 2,
+        "minute": 79,
+        "at": {
+          "period": 2,
+          "minute": 80,
+          "second": 0
+        },
+        "home_threat": 3.96,
+        "away_threat": 4.27,
+        "value": -0.038
+      },
+      {
+        "period": 2,
+        "minute": 80,
+        "at": {
+          "period": 2,
+          "minute": 81,
+          "second": 0
+        },
+        "home_threat": 4.8,
+        "away_threat": 4.02,
+        "value": 0.088
+      },
+      {
+        "period": 2,
+        "minute": 81,
+        "at": {
+          "period": 2,
+          "minute": 82,
+          "second": 0
+        },
+        "home_threat": 6.4,
+        "away_threat": 2.84,
+        "value": 0.384
+      },
+      {
+        "period": 2,
+        "minute": 82,
+        "at": {
+          "period": 2,
+          "minute": 83,
+          "second": 0
+        },
+        "home_threat": 6.52,
+        "away_threat": 5.01,
+        "value": 0.131
+      },
+      {
+        "period": 2,
+        "minute": 83,
+        "at": {
+          "period": 2,
+          "minute": 84,
+          "second": 0
+        },
+        "home_threat": 5.61,
+        "away_threat": 5.54,
+        "value": 0.006
+      },
+      {
+        "period": 2,
+        "minute": 84,
+        "at": {
+          "period": 2,
+          "minute": 85,
+          "second": 0
+        },
+        "home_threat": 3.97,
+        "away_threat": 7.92,
+        "value": -0.332
+      },
+      {
+        "period": 2,
+        "minute": 85,
+        "at": {
+          "period": 2,
+          "minute": 86,
+          "second": 0
+        },
+        "home_threat": 6.81,
+        "away_threat": 5.6,
+        "value": 0.097
+      },
+      {
+        "period": 2,
+        "minute": 86,
+        "at": {
+          "period": 2,
+          "minute": 87,
+          "second": 0
+        },
+        "home_threat": 5.81,
+        "away_threat": 3.96,
+        "value": 0.19
+      },
+      {
+        "period": 2,
+        "minute": 87,
+        "at": {
+          "period": 2,
+          "minute": 88,
+          "second": 0
+        },
+        "home_threat": 4.11,
+        "away_threat": 2.8,
+        "value": 0.19
+      },
+      {
+        "period": 2,
+        "minute": 88,
+        "at": {
+          "period": 2,
+          "minute": 89,
+          "second": 0
+        },
+        "home_threat": 3.91,
+        "away_threat": 2.98,
+        "value": 0.135
+      },
+      {
+        "period": 2,
+        "minute": 89,
+        "at": {
+          "period": 2,
+          "minute": 90,
+          "second": 0
+        },
+        "home_threat": 4.76,
+        "away_threat": 2.11,
+        "value": 0.387
+      },
+      {
+        "period": 2,
+        "minute": 90,
+        "at": {
+          "period": 2,
+          "minute": 91,
+          "second": 0
+        },
+        "home_threat": 3.37,
+        "away_threat": 3.49,
+        "value": -0.018
+      },
+      {
+        "period": 2,
+        "minute": 91,
+        "at": {
+          "period": 2,
+          "minute": 91,
+          "second": 1
+        },
+        "home_threat": 2.38,
+        "away_threat": 2.47,
+        "value": -0.018
+      }
+    ],
+    "control": [
+      {
+        "since": {
+          "period": 1,
+          "minute": 0,
+          "second": 0
+        },
+        "at": {
+          "period": 1,
+          "minute": 1,
+          "second": 0
+        },
+        "actions": 18,
+        "turnovers": 2,
+        "spell": 6.0,
+        "chaos": 0.57
+      },
+      {
+        "since": {
+          "period": 1,
+          "minute": 0,
+          "second": 0
+        },
+        "at": {
+          "period": 1,
+          "minute": 2,
+          "second": 0
+        },
+        "actions": 24,
+        "turnovers": 3,
+        "spell": 6.0,
+        "chaos": 0.57
+      },
+      {
+        "since": {
+          "period": 1,
+          "minute": 0,
+          "second": 0
+        },
+        "at": {
+          "period": 1,
+          "minute": 3,
+          "second": 0
+        },
+        "actions": 39,
+        "turnovers": 5,
+        "spell": 6.5,
+        "chaos": 0.5
+      },
+      {
+        "since": {
+          "period": 1,
+          "minute": 0,
+          "second": 0
+        },
+        "at": {
+          "period": 1,
+          "minute": 4,
+          "second": 0
+        },
+        "actions": 48,
+        "turnovers": 6,
+        "spell": 6.9,
+        "chaos": 0.45
+      },
+      {
+        "since": {
+          "period": 1,
+          "minute": 0,
+          "second": 0
+        },
+        "at": {
+          "period": 1,
+          "minute": 5,
+          "second": 0
+        },
+        "actions": 61,
+        "turnovers": 7,
+        "spell": 7.6,
+        "chaos": 0.34
+      },
+      {
+        "since": {
+          "period": 1,
+          "minute": 1,
+          "second": 0
+        },
+        "at": {
+          "period": 1,
+          "minute": 6,
+          "second": 0
+        },
+        "actions": 60,
+        "turnovers": 8,
+        "spell": 6.7,
+        "chaos": 0.48
+      },
+      {
+        "since": {
+          "period": 1,
+          "minute": 2,
+          "second": 0
+        },
+        "at": {
+          "period": 1,
+          "minute": 7,
+          "second": 0
+        },
+        "actions": 67,
+        "turnovers": 7,
+        "spell": 8.4,
+        "chaos": 0.23
+      },
+      {
+        "since": {
+          "period": 1,
+          "minute": 3,
+          "second": 0
+        },
+        "at": {
+          "period": 1,
+          "minute": 8,
+          "second": 0
+        },
+        "actions": 69,
+        "turnovers": 9,
+        "spell": 6.9,
+        "chaos": 0.44
+      },
+      {
+        "since": {
+          "period": 1,
+          "minute": 4,
+          "second": 0
+        },
+        "at": {
+          "period": 1,
+          "minute": 9,
+          "second": 0
+        },
+        "actions": 81,
+        "turnovers": 9,
+        "spell": 8.1,
+        "chaos": 0.27
+      },
+      {
+        "since": {
+          "period": 1,
+          "minute": 5,
+          "second": 0
+        },
+        "at": {
+          "period": 1,
+          "minute": 10,
+          "second": 0
+        },
+        "actions": 88,
+        "turnovers": 10,
+        "spell": 8.0,
+        "chaos": 0.29
+      },
+      {
+        "since": {
+          "period": 1,
+          "minute": 6,
+          "second": 0
+        },
+        "at": {
+          "period": 1,
+          "minute": 11,
+          "second": 0
+        },
+        "actions": 83,
+        "turnovers": 9,
+        "spell": 8.3,
+        "chaos": 0.24
+      },
+      {
+        "since": {
+          "period": 1,
+          "minute": 7,
+          "second": 0
+        },
+        "at": {
+          "period": 1,
+          "minute": 12,
+          "second": 0
+        },
+        "actions": 85,
+        "turnovers": 10,
+        "spell": 7.7,
+        "chaos": 0.32
+      },
+      {
+        "since": {
+          "period": 1,
+          "minute": 8,
+          "second": 0
+        },
+        "at": {
+          "period": 1,
+          "minute": 13,
+          "second": 0
+        },
+        "actions": 78,
+        "turnovers": 6,
+        "spell": 11.1,
+        "chaos": 0.0
+      },
+      {
+        "since": {
+          "period": 1,
+          "minute": 9,
+          "second": 0
+        },
+        "at": {
+          "period": 1,
+          "minute": 14,
+          "second": 0
+        },
+        "actions": 73,
+        "turnovers": 7,
+        "spell": 9.1,
+        "chaos": 0.12
+      },
+      {
+        "since": {
+          "period": 1,
+          "minute": 10,
+          "second": 0
+        },
+        "at": {
+          "period": 1,
+          "minute": 15,
+          "second": 0
+        },
+        "actions": 66,
+        "turnovers": 6,
+        "spell": 9.4,
+        "chaos": 0.08
+      },
+      {
+        "since": {
+          "period": 1,
+          "minute": 11,
+          "second": 0
+        },
+        "at": {
+          "period": 1,
+          "minute": 16,
+          "second": 0
+        },
+        "actions": 71,
+        "turnovers": 8,
+        "spell": 7.9,
+        "chaos": 0.3
+      },
+      {
+        "since": {
+          "period": 1,
+          "minute": 12,
+          "second": 0
+        },
+        "at": {
+          "period": 1,
+          "minute": 17,
+          "second": 0
+        },
+        "actions": 73,
+        "turnovers": 7,
+        "spell": 9.1,
+        "chaos": 0.12
+      },
+      {
+        "since": {
+          "period": 1,
+          "minute": 13,
+          "second": 0
+        },
+        "at": {
+          "period": 1,
+          "minute": 18,
+          "second": 0
+        },
+        "actions": 84,
+        "turnovers": 10,
+        "spell": 7.6,
+        "chaos": 0.34
+      },
+      {
+        "since": {
+          "period": 1,
+          "minute": 14,
+          "second": 0
+        },
+        "at": {
+          "period": 1,
+          "minute": 19,
+          "second": 0
+        },
+        "actions": 87,
+        "turnovers": 14,
+        "spell": 5.8,
+        "chaos": 0.6
+      },
+      {
+        "since": {
+          "period": 1,
+          "minute": 15,
+          "second": 0
+        },
+        "at": {
+          "period": 1,
+          "minute": 20,
+          "second": 0
+        },
+        "actions": 84,
+        "turnovers": 14,
+        "spell": 5.6,
+        "chaos": 0.63
+      },
+      {
+        "since": {
+          "period": 1,
+          "minute": 16,
+          "second": 0
+        },
+        "at": {
+          "period": 1,
+          "minute": 21,
+          "second": 0
+        },
+        "actions": 77,
+        "turnovers": 11,
+        "spell": 6.4,
+        "chaos": 0.51
+      },
+      {
+        "since": {
+          "period": 1,
+          "minute": 17,
+          "second": 0
+        },
+        "at": {
+          "period": 1,
+          "minute": 22,
+          "second": 0
+        },
+        "actions": 75,
+        "turnovers": 13,
+        "spell": 5.4,
+        "chaos": 0.66
+      },
+      {
+        "since": {
+          "period": 1,
+          "minute": 18,
+          "second": 0
+        },
+        "at": {
+          "period": 1,
+          "minute": 23,
+          "second": 0
+        },
+        "actions": 67,
+        "turnovers": 15,
+        "spell": 4.2,
+        "chaos": 0.83
+      },
+      {
+        "since": {
+          "period": 1,
+          "minute": 19,
+          "second": 0
+        },
+        "at": {
+          "period": 1,
+          "minute": 24,
+          "second": 0
+        },
+        "actions": 67,
+        "turnovers": 14,
+        "spell": 4.5,
+        "chaos": 0.79
+      },
+      {
+        "since": {
+          "period": 1,
+          "minute": 20,
+          "second": 0
+        },
+        "at": {
+          "period": 1,
+          "minute": 25,
+          "second": 0
+        },
+        "actions": 74,
+        "turnovers": 15,
+        "spell": 4.6,
+        "chaos": 0.77
+      },
+      {
+        "since": {
+          "period": 1,
+          "minute": 21,
+          "second": 0
+        },
+        "at": {
+          "period": 1,
+          "minute": 26,
+          "second": 0
+        },
+        "actions": 79,
+        "turnovers": 16,
+        "spell": 4.6,
+        "chaos": 0.76
+      },
+      {
+        "since": {
+          "period": 1,
+          "minute": 22,
+          "second": 0
+        },
+        "at": {
+          "period": 1,
+          "minute": 27,
+          "second": 0
+        },
+        "actions": 74,
+        "turnovers": 14,
+        "spell": 4.9,
+        "chaos": 0.72
+      },
+      {
+        "since": {
+          "period": 1,
+          "minute": 23,
+          "second": 0
+        },
+        "at": {
+          "period": 1,
+          "minute": 28,
+          "second": 0
+        },
+        "actions": 69,
+        "turnovers": 10,
+        "spell": 6.3,
+        "chaos": 0.53
+      },
+      {
+        "since": {
+          "period": 1,
+          "minute": 24,
+          "second": 0
+        },
+        "at": {
+          "period": 1,
+          "minute": 29,
+          "second": 0
+        },
+        "actions": 63,
+        "turnovers": 7,
+        "spell": 7.9,
+        "chaos": 0.3
+      },
+      {
+        "since": {
+          "period": 1,
+          "minute": 25,
+          "second": 0
+        },
+        "at": {
+          "period": 1,
+          "minute": 30,
+          "second": 0
+        },
+        "actions": 65,
+        "turnovers": 7,
+        "spell": 8.1,
+        "chaos": 0.27
+      },
+      {
+        "since": {
+          "period": 1,
+          "minute": 26,
+          "second": 0
+        },
+        "at": {
+          "period": 1,
+          "minute": 31,
+          "second": 0
+        },
+        "actions": 67,
+        "turnovers": 10,
+        "spell": 6.1,
+        "chaos": 0.56
+      },
+      {
+        "since": {
+          "period": 1,
+          "minute": 27,
+          "second": 0
+        },
+        "at": {
+          "period": 1,
+          "minute": 32,
+          "second": 0
+        },
+        "actions": 70,
+        "turnovers": 11,
+        "spell": 5.8,
+        "chaos": 0.6
+      },
+      {
+        "since": {
+          "period": 1,
+          "minute": 28,
+          "second": 0
+        },
+        "at": {
+          "period": 1,
+          "minute": 33,
+          "second": 0
+        },
+        "actions": 78,
+        "turnovers": 13,
+        "spell": 5.6,
+        "chaos": 0.63
+      },
+      {
+        "since": {
+          "period": 1,
+          "minute": 29,
+          "second": 0
+        },
+        "at": {
+          "period": 1,
+          "minute": 34,
+          "second": 0
+        },
+        "actions": 89,
+        "turnovers": 11,
+        "spell": 7.4,
+        "chaos": 0.37
+      },
+      {
+        "since": {
+          "period": 1,
+          "minute": 30,
+          "second": 0
+        },
+        "at": {
+          "period": 1,
+          "minute": 35,
+          "second": 0
+        },
+        "actions": 85,
+        "turnovers": 11,
+        "spell": 7.1,
+        "chaos": 0.42
+      },
+      {
+        "since": {
+          "period": 1,
+          "minute": 31,
+          "second": 0
+        },
+        "at": {
+          "period": 1,
+          "minute": 36,
+          "second": 0
+        },
+        "actions": 87,
+        "turnovers": 11,
+        "spell": 7.2,
+        "chaos": 0.39
+      },
+      {
+        "since": {
+          "period": 1,
+          "minute": 32,
+          "second": 0
+        },
+        "at": {
+          "period": 1,
+          "minute": 37,
+          "second": 0
+        },
+        "actions": 96,
+        "turnovers": 12,
+        "spell": 7.4,
+        "chaos": 0.37
+      },
+      {
+        "since": {
+          "period": 1,
+          "minute": 33,
+          "second": 0
+        },
+        "at": {
+          "period": 1,
+          "minute": 38,
+          "second": 0
+        },
+        "actions": 101,
+        "turnovers": 12,
+        "spell": 7.8,
+        "chaos": 0.32
+      },
+      {
+        "since": {
+          "period": 1,
+          "minute": 34,
+          "second": 0
+        },
+        "at": {
+          "period": 1,
+          "minute": 39,
+          "second": 0
+        },
+        "actions": 94,
+        "turnovers": 13,
+        "spell": 6.7,
+        "chaos": 0.47
+      },
+      {
+        "since": {
+          "period": 1,
+          "minute": 35,
+          "second": 0
+        },
+        "at": {
+          "period": 1,
+          "minute": 40,
+          "second": 0
+        },
+        "actions": 93,
+        "turnovers": 13,
+        "spell": 6.6,
+        "chaos": 0.48
+      },
+      {
+        "since": {
+          "period": 1,
+          "minute": 36,
+          "second": 0
+        },
+        "at": {
+          "period": 1,
+          "minute": 41,
+          "second": 0
+        },
+        "actions": 86,
+        "turnovers": 10,
+        "spell": 7.8,
+        "chaos": 0.31
+      },
+      {
+        "since": {
+          "period": 1,
+          "minute": 37,
+          "second": 0
+        },
+        "at": {
+          "period": 1,
+          "minute": 42,
+          "second": 0
+        },
+        "actions": 83,
+        "turnovers": 10,
+        "spell": 7.5,
+        "chaos": 0.35
+      },
+      {
+        "since": {
+          "period": 1,
+          "minute": 38,
+          "second": 0
+        },
+        "at": {
+          "period": 1,
+          "minute": 43,
+          "second": 0
+        },
+        "actions": 74,
+        "turnovers": 10,
+        "spell": 6.7,
+        "chaos": 0.47
+      },
+      {
+        "since": {
+          "period": 1,
+          "minute": 39,
+          "second": 0
+        },
+        "at": {
+          "period": 1,
+          "minute": 44,
+          "second": 0
+        },
+        "actions": 76,
+        "turnovers": 12,
+        "spell": 5.8,
+        "chaos": 0.59
+      },
+      {
+        "since": {
+          "period": 1,
+          "minute": 40,
+          "second": 0
+        },
+        "at": {
+          "period": 1,
+          "minute": 45,
+          "second": 0
+        },
+        "actions": 69,
+        "turnovers": 10,
+        "spell": 6.3,
+        "chaos": 0.53
+      },
+      {
+        "since": {
+          "period": 1,
+          "minute": 41,
+          "second": 0
+        },
+        "at": {
+          "period": 1,
+          "minute": 46,
+          "second": 0
+        },
+        "actions": 64,
+        "turnovers": 8,
+        "spell": 7.1,
+        "chaos": 0.41
+      },
+      {
+        "since": {
+          "period": 1,
+          "minute": 42,
+          "second": 0
+        },
+        "at": {
+          "period": 1,
+          "minute": 47,
+          "second": 0
+        },
+        "actions": 59,
+        "turnovers": 9,
+        "spell": 5.9,
+        "chaos": 0.59
+      },
+      {
+        "since": {
+          "period": 1,
+          "minute": 42,
+          "second": 3
+        },
+        "at": {
+          "period": 1,
+          "minute": 47,
+          "second": 3
+        },
+        "actions": 59,
+        "turnovers": 10,
+        "spell": 5.4,
+        "chaos": 0.66
+      },
+      {
+        "since": {
+          "period": 2,
+          "minute": 45,
+          "second": 0
+        },
+        "at": {
+          "period": 2,
+          "minute": 46,
+          "second": 0
+        },
+        "actions": 20,
+        "turnovers": 2,
+        "spell": 6.7,
+        "chaos": 0.48
+      },
+      {
+        "since": {
+          "period": 2,
+          "minute": 45,
+          "second": 0
+        },
+        "at": {
+          "period": 2,
+          "minute": 47,
+          "second": 0
+        },
+        "actions": 33,
+        "turnovers": 3,
+        "spell": 8.2,
+        "chaos": 0.25
+      },
+      {
+        "since": {
+          "period": 2,
+          "minute": 45,
+          "second": 0
+        },
+        "at": {
+          "period": 2,
+          "minute": 48,
+          "second": 0
+        },
+        "actions": 47,
+        "turnovers": 6,
+        "spell": 6.7,
+        "chaos": 0.47
+      },
+      {
+        "since": {
+          "period": 2,
+          "minute": 45,
+          "second": 0
+        },
+        "at": {
+          "period": 2,
+          "minute": 49,
+          "second": 0
+        },
+        "actions": 61,
+        "turnovers": 7,
+        "spell": 7.6,
+        "chaos": 0.34
+      },
+      {
+        "since": {
+          "period": 2,
+          "minute": 45,
+          "second": 0
+        },
+        "at": {
+          "period": 2,
+          "minute": 50,
+          "second": 0
+        },
+        "actions": 79,
+        "turnovers": 7,
+        "spell": 9.9,
+        "chaos": 0.02
+      },
+      {
+        "since": {
+          "period": 2,
+          "minute": 46,
+          "second": 0
+        },
+        "at": {
+          "period": 2,
+          "minute": 51,
+          "second": 0
+        },
+        "actions": 74,
+        "turnovers": 7,
+        "spell": 9.2,
+        "chaos": 0.11
+      },
+      {
+        "since": {
+          "period": 2,
+          "minute": 47,
+          "second": 0
+        },
+        "at": {
+          "period": 2,
+          "minute": 52,
+          "second": 0
+        },
+        "actions": 83,
+        "turnovers": 7,
+        "spell": 10.4,
+        "chaos": 0.0
+      },
+      {
+        "since": {
+          "period": 2,
+          "minute": 48,
+          "second": 0
+        },
+        "at": {
+          "period": 2,
+          "minute": 53,
+          "second": 0
+        },
+        "actions": 85,
+        "turnovers": 7,
+        "spell": 10.6,
+        "chaos": 0.0
+      },
+      {
+        "since": {
+          "period": 2,
+          "minute": 49,
+          "second": 0
+        },
+        "at": {
+          "period": 2,
+          "minute": 54,
+          "second": 0
+        },
+        "actions": 78,
+        "turnovers": 6,
+        "spell": 11.1,
+        "chaos": 0.0
+      },
+      {
+        "since": {
+          "period": 2,
+          "minute": 50,
+          "second": 0
+        },
+        "at": {
+          "period": 2,
+          "minute": 55,
+          "second": 0
+        },
+        "actions": 65,
+        "turnovers": 6,
+        "spell": 9.3,
+        "chaos": 0.1
+      },
+      {
+        "since": {
+          "period": 2,
+          "minute": 51,
+          "second": 0
+        },
+        "at": {
+          "period": 2,
+          "minute": 56,
+          "second": 0
+        },
+        "actions": 63,
+        "turnovers": 10,
+        "spell": 5.7,
+        "chaos": 0.61
+      },
+      {
+        "since": {
+          "period": 2,
+          "minute": 52,
+          "second": 0
+        },
+        "at": {
+          "period": 2,
+          "minute": 57,
+          "second": 0
+        },
+        "actions": 55,
+        "turnovers": 14,
+        "spell": 3.7,
+        "chaos": 0.9
+      },
+      {
+        "since": {
+          "period": 2,
+          "minute": 53,
+          "second": 0
+        },
+        "at": {
+          "period": 2,
+          "minute": 58,
+          "second": 0
+        },
+        "actions": 49,
+        "turnovers": 12,
+        "spell": 3.8,
+        "chaos": 0.89
+      },
+      {
+        "since": {
+          "period": 2,
+          "minute": 54,
+          "second": 0
+        },
+        "at": {
+          "period": 2,
+          "minute": 59,
+          "second": 0
+        },
+        "actions": 52,
+        "turnovers": 15,
+        "spell": 3.2,
+        "chaos": 0.96
+      },
+      {
+        "since": {
+          "period": 2,
+          "minute": 55,
+          "second": 0
+        },
+        "at": {
+          "period": 2,
+          "minute": 60,
+          "second": 0
+        },
+        "actions": 62,
+        "turnovers": 20,
+        "spell": 3.0,
+        "chaos": 1.0
+      },
+      {
+        "since": {
+          "period": 2,
+          "minute": 56,
+          "second": 0
+        },
+        "at": {
+          "period": 2,
+          "minute": 61,
+          "second": 0
+        },
+        "actions": 61,
+        "turnovers": 19,
+        "spell": 3.0,
+        "chaos": 0.99
+      },
+      {
+        "since": {
+          "period": 2,
+          "minute": 57,
+          "second": 0
+        },
+        "at": {
+          "period": 2,
+          "minute": 62,
+          "second": 0
+        },
+        "actions": 59,
+        "turnovers": 15,
+        "spell": 3.7,
+        "chaos": 0.9
+      },
+      {
+        "since": {
+          "period": 2,
+          "minute": 58,
+          "second": 0
+        },
+        "at": {
+          "period": 2,
+          "minute": 63,
+          "second": 0
+        },
+        "actions": 67,
+        "turnovers": 18,
+        "spell": 3.5,
+        "chaos": 0.92
+      },
+      {
+        "since": {
+          "period": 2,
+          "minute": 59,
+          "second": 0
+        },
+        "at": {
+          "period": 2,
+          "minute": 64,
+          "second": 0
+        },
+        "actions": 70,
+        "turnovers": 18,
+        "spell": 3.7,
+        "chaos": 0.9
+      },
+      {
+        "since": {
+          "period": 2,
+          "minute": 60,
+          "second": 0
+        },
+        "at": {
+          "period": 2,
+          "minute": 65,
+          "second": 0
+        },
+        "actions": 68,
+        "turnovers": 16,
+        "spell": 4.0,
+        "chaos": 0.86
+      },
+      {
+        "since": {
+          "period": 2,
+          "minute": 61,
+          "second": 0
+        },
+        "at": {
+          "period": 2,
+          "minute": 66,
+          "second": 0
+        },
+        "actions": 69,
+        "turnovers": 13,
+        "spell": 4.9,
+        "chaos": 0.72
+      },
+      {
+        "since": {
+          "period": 2,
+          "minute": 62,
+          "second": 0
+        },
+        "at": {
+          "period": 2,
+          "minute": 67,
+          "second": 0
+        },
+        "actions": 69,
+        "turnovers": 15,
+        "spell": 4.3,
+        "chaos": 0.81
+      },
+      {
+        "since": {
+          "period": 2,
+          "minute": 63,
+          "second": 0
+        },
+        "at": {
+          "period": 2,
+          "minute": 68,
+          "second": 0
+        },
+        "actions": 71,
+        "turnovers": 15,
+        "spell": 4.4,
+        "chaos": 0.79
+      },
+      {
+        "since": {
+          "period": 2,
+          "minute": 64,
+          "second": 0
+        },
+        "at": {
+          "period": 2,
+          "minute": 69,
+          "second": 0
+        },
+        "actions": 74,
+        "turnovers": 14,
+        "spell": 4.9,
+        "chaos": 0.72
+      },
+      {
+        "since": {
+          "period": 2,
+          "minute": 65,
+          "second": 0
+        },
+        "at": {
+          "period": 2,
+          "minute": 70,
+          "second": 0
+        },
+        "actions": 69,
+        "turnovers": 11,
+        "spell": 5.8,
+        "chaos": 0.61
+      },
+      {
+        "since": {
+          "period": 2,
+          "minute": 66,
+          "second": 0
+        },
+        "at": {
+          "period": 2,
+          "minute": 71,
+          "second": 0
+        },
+        "actions": 65,
+        "turnovers": 11,
+        "spell": 5.4,
+        "chaos": 0.65
+      },
+      {
+        "since": {
+          "period": 2,
+          "minute": 67,
+          "second": 0
+        },
+        "at": {
+          "period": 2,
+          "minute": 72,
+          "second": 0
+        },
+        "actions": 61,
+        "turnovers": 9,
+        "spell": 6.1,
+        "chaos": 0.56
+      },
+      {
+        "since": {
+          "period": 2,
+          "minute": 68,
+          "second": 0
+        },
+        "at": {
+          "period": 2,
+          "minute": 73,
+          "second": 0
+        },
+        "actions": 59,
+        "turnovers": 9,
+        "spell": 5.9,
+        "chaos": 0.59
+      },
+      {
+        "since": {
+          "period": 2,
+          "minute": 69,
+          "second": 0
+        },
+        "at": {
+          "period": 2,
+          "minute": 74,
+          "second": 0
+        },
+        "actions": 55,
+        "turnovers": 12,
+        "spell": 4.2,
+        "chaos": 0.82
+      },
+      {
+        "since": {
+          "period": 2,
+          "minute": 70,
+          "second": 0
+        },
+        "at": {
+          "period": 2,
+          "minute": 75,
+          "second": 0
+        },
+        "actions": 68,
+        "turnovers": 15,
+        "spell": 4.2,
+        "chaos": 0.82
+      },
+      {
+        "since": {
+          "period": 2,
+          "minute": 71,
+          "second": 0
+        },
+        "at": {
+          "period": 2,
+          "minute": 76,
+          "second": 0
+        },
+        "actions": 70,
+        "turnovers": 17,
+        "spell": 3.9,
+        "chaos": 0.87
+      },
+      {
+        "since": {
+          "period": 2,
+          "minute": 72,
+          "second": 0
+        },
+        "at": {
+          "period": 2,
+          "minute": 77,
+          "second": 0
+        },
+        "actions": 73,
+        "turnovers": 19,
+        "spell": 3.6,
+        "chaos": 0.91
+      },
+      {
+        "since": {
+          "period": 2,
+          "minute": 73,
+          "second": 0
+        },
+        "at": {
+          "period": 2,
+          "minute": 78,
+          "second": 0
+        },
+        "actions": 60,
+        "turnovers": 15,
+        "spell": 3.8,
+        "chaos": 0.89
+      },
+      {
+        "since": {
+          "period": 2,
+          "minute": 74,
+          "second": 0
+        },
+        "at": {
+          "period": 2,
+          "minute": 79,
+          "second": 0
+        },
+        "actions": 60,
+        "turnovers": 12,
+        "spell": 4.6,
+        "chaos": 0.77
+      },
+      {
+        "since": {
+          "period": 2,
+          "minute": 75,
+          "second": 0
+        },
+        "at": {
+          "period": 2,
+          "minute": 80,
+          "second": 0
+        },
+        "actions": 52,
+        "turnovers": 12,
+        "spell": 4.0,
+        "chaos": 0.86
+      },
+      {
+        "since": {
+          "period": 2,
+          "minute": 76,
+          "second": 0
+        },
+        "at": {
+          "period": 2,
+          "minute": 81,
+          "second": 0
+        },
+        "actions": 59,
+        "turnovers": 10,
+        "spell": 5.4,
+        "chaos": 0.66
+      },
+      {
+        "since": {
+          "period": 2,
+          "minute": 77,
+          "second": 0
+        },
+        "at": {
+          "period": 2,
+          "minute": 82,
+          "second": 0
+        },
+        "actions": 53,
+        "turnovers": 8,
+        "spell": 5.9,
+        "chaos": 0.59
+      },
+      {
+        "since": {
+          "period": 2,
+          "minute": 78,
+          "second": 0
+        },
+        "at": {
+          "period": 2,
+          "minute": 83,
+          "second": 0
+        },
+        "actions": 64,
+        "turnovers": 11,
+        "spell": 5.3,
+        "chaos": 0.67
+      },
+      {
+        "since": {
+          "period": 2,
+          "minute": 79,
+          "second": 0
+        },
+        "at": {
+          "period": 2,
+          "minute": 84,
+          "second": 0
+        },
+        "actions": 67,
+        "turnovers": 15,
+        "spell": 4.2,
+        "chaos": 0.83
+      },
+      {
+        "since": {
+          "period": 2,
+          "minute": 80,
+          "second": 0
+        },
+        "at": {
+          "period": 2,
+          "minute": 85,
+          "second": 0
+        },
+        "actions": 68,
+        "turnovers": 14,
+        "spell": 4.5,
+        "chaos": 0.78
+      },
+      {
+        "since": {
+          "period": 2,
+          "minute": 81,
+          "second": 0
+        },
+        "at": {
+          "period": 2,
+          "minute": 86,
+          "second": 0
+        },
+        "actions": 65,
+        "turnovers": 12,
+        "spell": 5.0,
+        "chaos": 0.71
+      },
+      {
+        "since": {
+          "period": 2,
+          "minute": 82,
+          "second": 0
+        },
+        "at": {
+          "period": 2,
+          "minute": 87,
+          "second": 0
+        },
+        "actions": 75,
+        "turnovers": 14,
+        "spell": 5.0,
+        "chaos": 0.71
+      },
+      {
+        "since": {
+          "period": 2,
+          "minute": 83,
+          "second": 0
+        },
+        "at": {
+          "period": 2,
+          "minute": 88,
+          "second": 0
+        },
+        "actions": 69,
+        "turnovers": 13,
+        "spell": 4.9,
+        "chaos": 0.72
+      },
+      {
+        "since": {
+          "period": 2,
+          "minute": 84,
+          "second": 0
+        },
+        "at": {
+          "period": 2,
+          "minute": 89,
+          "second": 0
+        },
+        "actions": 68,
+        "turnovers": 8,
+        "spell": 7.6,
+        "chaos": 0.35
+      },
+      {
+        "since": {
+          "period": 2,
+          "minute": 85,
+          "second": 0
+        },
+        "at": {
+          "period": 2,
+          "minute": 90,
+          "second": 0
+        },
+        "actions": 74,
+        "turnovers": 8,
+        "spell": 8.2,
+        "chaos": 0.25
+      },
+      {
+        "since": {
+          "period": 2,
+          "minute": 86,
+          "second": 0
+        },
+        "at": {
+          "period": 2,
+          "minute": 91,
+          "second": 0
+        },
+        "actions": 80,
+        "turnovers": 11,
+        "spell": 6.7,
+        "chaos": 0.48
+      },
+      {
+        "since": {
+          "period": 2,
+          "minute": 86,
+          "second": 1
+        },
+        "at": {
+          "period": 2,
+          "minute": 91,
+          "second": 1
+        },
+        "actions": 80,
+        "turnovers": 11,
+        "spell": 6.7,
+        "chaos": 0.48
+      }
+    ],
+    "ticker": [
+      {
+        "event_id": "m01-00001",
+        "at": {
+          "period": 1,
+          "minute": 0,
+          "second": 0
+        },
+        "kind": "kick_off",
+        "team": null,
+        "text": {
+          "en": "Kick-off: Harbour City v Northvale",
+          "es": "Comienza el partido: Harbour City - Northvale"
+        }
+      },
+      {
+        "event_id": "m01-00028",
+        "at": {
+          "period": 1,
+          "minute": 0,
+          "second": 32
+        },
+        "kind": "pass_badge",
+        "team": "Harbour City",
+        "text": {
+          "en": "Standout pass — Derrowe, 1' · difficulty 82",
+          "es": "Pase destacado — Derrowe, 1' · dificultad 82"
+        }
+      },
+      {
+        "event_id": "m01-00045",
+        "at": {
+          "period": 1,
+          "minute": 0,
+          "second": 55
+        },
+        "kind": "goal",
+        "team": "Harbour City",
+        "text": {
+          "en": "Goal — Jarrent (Harbour City), 1' · Harbour City 1–0 Northvale",
+          "es": "Gol — Jarrent (Harbour City), 1' · Harbour City 1–0 Northvale"
+        }
+      },
+      {
+        "event_id": "m01-00113",
+        "at": {
+          "period": 1,
+          "minute": 3,
+          "second": 24
+        },
+        "kind": "foul",
+        "team": "Northvale",
+        "text": {
+          "en": "Foul by Sevrin (Northvale), 4'",
+          "es": "Falta de Sevrin (Northvale), 4'"
+        }
+      },
+      {
+        "event_id": "m01-00115",
+        "at": {
+          "period": 1,
+          "minute": 3,
+          "second": 52
+        },
+        "kind": "free_kick",
+        "team": "Harbour City",
+        "text": {
+          "en": "Free kick to Harbour City, 4'",
+          "es": "Tiro libre para Harbour City, 4'"
+        }
+      },
+      {
+        "event_id": "m01-00193",
+        "at": {
+          "period": 1,
+          "minute": 6,
+          "second": 11
+        },
+        "kind": "foul",
+        "team": "Northvale",
+        "text": {
+          "en": "Foul by Yarrick (Northvale), 7'",
+          "es": "Falta de Yarrick (Northvale), 7'"
+        }
+      },
+      {
+        "event_id": "m01-00196",
+        "at": {
+          "period": 1,
+          "minute": 6,
+          "second": 28
+        },
+        "kind": "free_kick",
+        "team": "Harbour City",
+        "text": {
+          "en": "Free kick to Harbour City, 7'",
+          "es": "Tiro libre para Harbour City, 7'"
+        }
+      },
+      {
+        "event_id": "m01-00376",
+        "at": {
+          "period": 1,
+          "minute": 11,
+          "second": 23
+        },
+        "kind": "shot",
+        "team": "Northvale",
+        "text": {
+          "en": "Shot wide — Brennow, 12' · 76 km/h",
+          "es": "Tiro desviado — Brennow, 12' · 76 km/h"
+        }
+      },
+      {
+        "event_id": "m01-00415",
+        "at": {
+          "period": 1,
+          "minute": 12,
+          "second": 30
+        },
+        "kind": "goal",
+        "team": "Northvale",
+        "text": {
+          "en": "Goal — Yarrick (Northvale), 13' · Harbour City 1–1 Northvale",
+          "es": "Gol — Yarrick (Northvale), 13' · Harbour City 1–1 Northvale"
+        }
+      },
+      {
+        "event_id": "m01-00539",
+        "at": {
+          "period": 1,
+          "minute": 16,
+          "second": 21
+        },
+        "kind": "shot",
+        "team": "Harbour City",
+        "text": {
+          "en": "Shot wide — Kesterby, 17' · 74 km/h",
+          "es": "Tiro desviado — Kesterby, 17' · 74 km/h"
+        }
+      },
+      {
+        "event_id": "m01-00721",
+        "at": {
+          "period": 1,
+          "minute": 21,
+          "second": 38
+        },
+        "kind": "shot",
+        "team": "Northvale",
+        "text": {
+          "en": "Shot blocked — Brennow, 22' · 79 km/h",
+          "es": "Tiro bloqueado — Brennow, 22' · 79 km/h"
+        }
+      },
+      {
+        "event_id": "m01-00759",
+        "at": {
+          "period": 1,
+          "minute": 22,
+          "second": 33
+        },
+        "kind": "shot",
+        "team": "Northvale",
+        "text": {
+          "en": "Shot wide — Zandor, 23' · 60 km/h",
+          "es": "Tiro desviado — Zandor, 23' · 60 km/h"
+        }
+      },
+      {
+        "event_id": "m01-00819",
+        "at": {
+          "period": 1,
+          "minute": 24,
+          "second": 11
+        },
+        "kind": "foul",
+        "team": "Northvale",
+        "text": {
+          "en": "Foul by Valcourt (Northvale), 25'",
+          "es": "Falta de Valcourt (Northvale), 25'"
+        }
+      },
+      {
+        "event_id": "m01-00821",
+        "at": {
+          "period": 1,
+          "minute": 24,
+          "second": 27
+        },
+        "kind": "free_kick",
+        "team": "Harbour City",
+        "text": {
+          "en": "Free kick to Harbour City, 25'",
+          "es": "Tiro libre para Harbour City, 25'"
+        }
+      },
+      {
+        "event_id": "m01-00904",
+        "at": {
+          "period": 1,
+          "minute": 26,
+          "second": 51
+        },
+        "kind": "goal",
+        "team": "Northvale",
+        "text": {
+          "en": "Goal — Brennow (Northvale), 27' · Harbour City 1–2 Northvale",
+          "es": "Gol — Brennow (Northvale), 27' · Harbour City 1–2 Northvale"
+        }
+      },
+      {
+        "event_id": "m01-00995",
+        "at": {
+          "period": 1,
+          "minute": 29,
+          "second": 55
+        },
+        "kind": "shot",
+        "team": "Harbour City",
+        "text": {
+          "en": "Shot on target — Kesterby, 30' · 88 km/h",
+          "es": "Tiro a puerta — Kesterby, 30' · 88 km/h"
+        }
+      },
+      {
+        "event_id": "m01-01133",
+        "at": {
+          "period": 1,
+          "minute": 34,
+          "second": 0
+        },
+        "kind": "shot",
+        "team": "Harbour City",
+        "text": {
+          "en": "Shot wide — Jarrent, 35' · 97 km/h",
+          "es": "Tiro desviado — Jarrent, 35' · 97 km/h"
+        }
+      },
+      {
+        "event_id": "m01-01444",
+        "at": {
+          "period": 1,
+          "minute": 43,
+          "second": 12
+        },
+        "kind": "pass_badge",
+        "team": "Harbour City",
+        "text": {
+          "en": "Standout pass — Bostrik, 44' · difficulty 80",
+          "es": "Pase destacado — Bostrik, 44' · dificultad 80"
+        }
+      },
+      {
+        "event_id": "m01-01524",
+        "at": {
+          "period": 1,
+          "minute": 46,
+          "second": 23
+        },
+        "kind": "pass_badge",
+        "team": "Harbour City",
+        "text": {
+          "en": "Standout pass — Arvenne, 45+2' · difficulty 80",
+          "es": "Pase destacado — Arvenne, 45+2' · dificultad 80"
+        }
+      },
+      {
+        "event_id": "m01-01528",
+        "at": {
+          "period": 1,
+          "minute": 46,
+          "second": 32
+        },
+        "kind": "shot",
+        "team": "Harbour City",
+        "text": {
+          "en": "Shot wide — Jarrent, 45+2' · 70 km/h",
+          "es": "Tiro desviado — Jarrent, 45+2' · 70 km/h"
+        }
+      },
+      {
+        "event_id": "m01-01547",
+        "at": {
+          "period": 1,
+          "minute": 47,
+          "second": 3
+        },
+        "kind": "half_time",
+        "team": null,
+        "text": {
+          "en": "Half-time: Harbour City 1–2 Northvale",
+          "es": "Descanso: Harbour City 1–2 Northvale"
+        }
+      },
+      {
+        "event_id": "m01-01548",
+        "at": {
+          "period": 2,
+          "minute": 45,
+          "second": 0
+        },
+        "kind": "second_half",
+        "team": null,
+        "text": {
+          "en": "Second half under way: Harbour City 1–2 Northvale",
+          "es": "Arranca la segunda parte: Harbour City 1–2 Northvale"
+        }
+      },
+      {
+        "event_id": "m01-01595",
+        "at": {
+          "period": 2,
+          "minute": 46,
+          "second": 16
+        },
+        "kind": "shot",
+        "team": "Harbour City",
+        "text": {
+          "en": "Shot on target — Gollan, 47' · 88 km/h",
+          "es": "Tiro a puerta — Gollan, 47' · 88 km/h"
+        }
+      },
+      {
+        "event_id": "m01-01621",
+        "at": {
+          "period": 2,
+          "minute": 47,
+          "second": 13
+        },
+        "kind": "shot",
+        "team": "Northvale",
+        "text": {
+          "en": "Shot wide — Zandor, 48' · 86 km/h",
+          "es": "Tiro desviado — Zandor, 48' · 86 km/h"
+        }
+      },
+      {
+        "event_id": "m01-01696",
+        "at": {
+          "period": 2,
+          "minute": 49,
+          "second": 43
+        },
+        "kind": "shot",
+        "team": "Northvale",
+        "text": {
+          "en": "Shot blocked — Brennow, 50' · 74 km/h",
+          "es": "Tiro bloqueado — Brennow, 50' · 74 km/h"
+        }
+      },
+      {
+        "event_id": "m01-01726",
+        "at": {
+          "period": 2,
+          "minute": 50,
+          "second": 38
+        },
+        "kind": "pass_badge",
+        "team": "Harbour City",
+        "text": {
+          "en": "Standout pass — Bostrik, 51' · difficulty 80",
+          "es": "Pase destacado — Bostrik, 51' · dificultad 80"
+        }
+      },
+      {
+        "event_id": "m01-01802",
+        "at": {
+          "period": 2,
+          "minute": 52,
+          "second": 54
+        },
+        "kind": "goal",
+        "team": "Northvale",
+        "text": {
+          "en": "Goal — Brennow (Northvale), 53' · Harbour City 1–3 Northvale",
+          "es": "Gol — Brennow (Northvale), 53' · Harbour City 1–3 Northvale"
+        }
+      },
+      {
+        "event_id": "m01-01820",
+        "at": {
+          "period": 2,
+          "minute": 53,
+          "second": 57
+        },
+        "kind": "shot",
+        "team": "Harbour City",
+        "text": {
+          "en": "Shot on target — Jarrent, 54' · 91 km/h",
+          "es": "Tiro a puerta — Jarrent, 54' · 91 km/h"
+        }
+      },
+      {
+        "event_id": "m01-01830",
+        "at": {
+          "period": 2,
+          "minute": 54,
+          "second": 27
+        },
+        "kind": "foul",
+        "team": "Harbour City",
+        "text": {
+          "en": "Foul by Jarrent (Harbour City), 55'",
+          "es": "Falta de Jarrent (Harbour City), 55'"
+        }
+      },
+      {
+        "event_id": "m01-01833",
+        "at": {
+          "period": 2,
+          "minute": 54,
+          "second": 57
+        },
+        "kind": "free_kick",
+        "team": "Northvale",
+        "text": {
+          "en": "Free kick to Northvale, 55'",
+          "es": "Tiro libre para Northvale, 55'"
+        }
+      },
+      {
+        "event_id": "m01-01943",
+        "at": {
+          "period": 2,
+          "minute": 58,
+          "second": 29
+        },
+        "kind": "pass_badge",
+        "team": "Northvale",
+        "text": {
+          "en": "Standout pass — Sevrin, 59' · difficulty 84",
+          "es": "Pase destacado — Sevrin, 59' · dificultad 84"
+        }
+      },
+      {
+        "event_id": "m01-01999",
+        "at": {
+          "period": 2,
+          "minute": 59,
+          "second": 52
+        },
+        "kind": "shot",
+        "team": "Harbour City",
+        "text": {
+          "en": "Shot on target — Jarrent, 60' · 67 km/h",
+          "es": "Tiro a puerta — Jarrent, 60' · 67 km/h"
+        }
+      },
+      {
+        "event_id": "m01-02014",
+        "at": {
+          "period": 2,
+          "minute": 60,
+          "second": 24
+        },
+        "kind": "pass_badge",
+        "team": "Northvale",
+        "text": {
+          "en": "Standout pass — Quillon, 61' · difficulty 88",
+          "es": "Pase destacado — Quillon, 61' · dificultad 88"
+        }
+      },
+      {
+        "event_id": "m01-02042",
+        "at": {
+          "period": 2,
+          "minute": 61,
+          "second": 5
+        },
+        "kind": "pass_badge",
+        "team": "Harbour City",
+        "text": {
+          "en": "Standout pass — Derrowe, 62' · difficulty 80",
+          "es": "Pase destacado — Derrowe, 62' · dificultad 80"
+        }
+      },
+      {
+        "event_id": "m01-02047",
+        "at": {
+          "period": 2,
+          "minute": 61,
+          "second": 16
+        },
+        "kind": "shot",
+        "team": "Harbour City",
+        "text": {
+          "en": "Shot wide — Jarrent, 62' · 67 km/h",
+          "es": "Tiro desviado — Jarrent, 62' · 67 km/h"
+        }
+      },
+      {
+        "event_id": "m01-02076",
+        "at": {
+          "period": 2,
+          "minute": 62,
+          "second": 14
+        },
+        "kind": "pass_badge",
+        "team": "Northvale",
+        "text": {
+          "en": "Standout pass — Quillon, 63' · difficulty 92",
+          "es": "Pase destacado — Quillon, 63' · dificultad 92"
+        }
+      },
+      {
+        "event_id": "m01-02115",
+        "at": {
+          "period": 2,
+          "minute": 63,
+          "second": 12
+        },
+        "kind": "shot",
+        "team": "Harbour City",
+        "text": {
+          "en": "Shot wide — Jarrent, 64' · 64 km/h",
+          "es": "Tiro desviado — Jarrent, 64' · 64 km/h"
+        }
+      },
+      {
+        "event_id": "m01-02173",
+        "at": {
+          "period": 2,
+          "minute": 64,
+          "second": 58
+        },
+        "kind": "shot",
+        "team": "Harbour City",
+        "text": {
+          "en": "Shot on target — Gollan, 65' · 81 km/h",
+          "es": "Tiro a puerta — Gollan, 65' · 81 km/h"
+        }
+      },
+      {
+        "event_id": "m01-02182",
+        "at": {
+          "period": 2,
+          "minute": 65,
+          "second": 22
+        },
+        "kind": "pass_badge",
+        "team": "Northvale",
+        "text": {
+          "en": "Standout pass — Tallowen, 66' · difficulty 84",
+          "es": "Pase destacado — Tallowen, 66' · dificultad 84"
+        }
+      },
+      {
+        "event_id": "m01-02227",
+        "at": {
+          "period": 2,
+          "minute": 66,
+          "second": 26
+        },
+        "kind": "foul",
+        "team": "Harbour City",
+        "text": {
+          "en": "Foul by Farrelin (Harbour City), 67'",
+          "es": "Falta de Farrelin (Harbour City), 67'"
+        }
+      },
+      {
+        "event_id": "m01-02230",
+        "at": {
+          "period": 2,
+          "minute": 66,
+          "second": 41
+        },
+        "kind": "free_kick",
+        "team": "Northvale",
+        "text": {
+          "en": "Free kick to Northvale, 67'",
+          "es": "Tiro libre para Northvale, 67'"
+        }
+      },
+      {
+        "event_id": "m01-02295",
+        "at": {
+          "period": 2,
+          "minute": 68,
+          "second": 20
+        },
+        "kind": "pass_badge",
+        "team": "Northvale",
+        "text": {
+          "en": "Standout pass — Tallowen, 69' · difficulty 84",
+          "es": "Pase destacado — Tallowen, 69' · dificultad 84"
+        }
+      },
+      {
+        "event_id": "m01-02351",
+        "at": {
+          "period": 2,
+          "minute": 70,
+          "second": 25
+        },
+        "kind": "foul",
+        "team": "Harbour City",
+        "text": {
+          "en": "Foul by Callodan (Harbour City), 71'",
+          "es": "Falta de Callodan (Harbour City), 71'"
+        }
+      },
+      {
+        "event_id": "m01-02356",
+        "at": {
+          "period": 2,
+          "minute": 70,
+          "second": 54
+        },
+        "kind": "free_kick",
+        "team": "Northvale",
+        "text": {
+          "en": "Free kick to Northvale, 71'",
+          "es": "Tiro libre para Northvale, 71'"
+        }
+      },
+      {
+        "event_id": "m01-02359",
+        "at": {
+          "period": 2,
+          "minute": 70,
+          "second": 59
+        },
+        "kind": "shot",
+        "team": "Northvale",
+        "text": {
+          "en": "Shot on target — Brennow, 71' · 107 km/h",
+          "es": "Tiro a puerta — Brennow, 71' · 107 km/h"
+        }
+      },
+      {
+        "event_id": "m01-02375",
+        "at": {
+          "period": 2,
+          "minute": 71,
+          "second": 36
+        },
+        "kind": "shot",
+        "team": "Northvale",
+        "text": {
+          "en": "Shot wide — Ambrel, 72' · 88 km/h",
+          "es": "Tiro desviado — Ambrel, 72' · 88 km/h"
+        }
+      },
+      {
+        "event_id": "m01-02397",
+        "at": {
+          "period": 2,
+          "minute": 72,
+          "second": 22
+        },
+        "kind": "pass_badge",
+        "team": "Harbour City",
+        "text": {
+          "en": "Standout pass — Derrowe, 73' · difficulty 80",
+          "es": "Pase destacado — Derrowe, 73' · dificultad 80"
+        }
+      },
+      {
+        "event_id": "m01-02466",
+        "at": {
+          "period": 2,
+          "minute": 74,
+          "second": 30
+        },
+        "kind": "pass_badge",
+        "team": "Northvale",
+        "text": {
+          "en": "Standout pass — Udrick, 75' · difficulty 88",
+          "es": "Pase destacado — Udrick, 75' · dificultad 88"
+        }
+      },
+      {
+        "event_id": "m01-02507",
+        "at": {
+          "period": 2,
+          "minute": 75,
+          "second": 42
+        },
+        "kind": "pass_badge",
+        "team": "Northvale",
+        "text": {
+          "en": "Standout pass — Tallowen, 76' · difficulty 90",
+          "es": "Pase destacado — Tallowen, 76' · dificultad 90"
+        }
+      },
+      {
+        "event_id": "m01-02551",
+        "at": {
+          "period": 2,
+          "minute": 77,
+          "second": 9
+        },
+        "kind": "goal",
+        "team": "Harbour City",
+        "text": {
+          "en": "Goal — Jarrent (Harbour City), 78' · Harbour City 2–3 Northvale",
+          "es": "Gol — Jarrent (Harbour City), 78' · Harbour City 2–3 Northvale"
+        }
+      },
+      {
+        "event_id": "m01-02562",
+        "at": {
+          "period": 2,
+          "minute": 78,
+          "second": 3
+        },
+        "kind": "shot",
+        "team": "Northvale",
+        "text": {
+          "en": "Shot wide — Brennow, 79' · 102 km/h",
+          "es": "Tiro desviado — Brennow, 79' · 102 km/h"
+        }
+      },
+      {
+        "event_id": "m01-02605",
+        "at": {
+          "period": 2,
+          "minute": 79,
+          "second": 34
+        },
+        "kind": "pass_badge",
+        "team": "Northvale",
+        "text": {
+          "en": "Standout pass — Tallowen, 80' · difficulty 94",
+          "es": "Pase destacado — Tallowen, 80' · dificultad 94"
+        }
+      },
+      {
+        "event_id": "m01-02654",
+        "at": {
+          "period": 2,
+          "minute": 80,
+          "second": 58
+        },
+        "kind": "foul",
+        "team": "Northvale",
+        "text": {
+          "en": "Foul by Rastor (Northvale), 81'",
+          "es": "Falta de Rastor (Northvale), 81'"
+        }
+      },
+      {
+        "event_id": "m01-02658",
+        "at": {
+          "period": 2,
+          "minute": 81,
+          "second": 31
+        },
+        "kind": "free_kick",
+        "team": "Harbour City",
+        "text": {
+          "en": "Free kick to Harbour City, 82'",
+          "es": "Tiro libre para Harbour City, 82'"
+        }
+      },
+      {
+        "event_id": "m01-02666",
+        "at": {
+          "period": 2,
+          "minute": 81,
+          "second": 40
+        },
+        "kind": "shot",
+        "team": "Harbour City",
+        "text": {
+          "en": "Shot wide — Kesterby, 82' · 102 km/h",
+          "es": "Tiro desviado — Kesterby, 82' · 102 km/h"
+        }
+      },
+      {
+        "event_id": "m01-02704",
+        "at": {
+          "period": 2,
+          "minute": 82,
+          "second": 48
+        },
+        "kind": "pass_badge",
+        "team": "Northvale",
+        "text": {
+          "en": "Standout pass — Tallowen, 83' · difficulty 82",
+          "es": "Pase destacado — Tallowen, 83' · dificultad 82"
+        }
+      },
+      {
+        "event_id": "m01-02736",
+        "at": {
+          "period": 2,
+          "minute": 83,
+          "second": 33
+        },
+        "kind": "pass_badge",
+        "team": "Northvale",
+        "text": {
+          "en": "Standout pass — Tallowen, 84' · difficulty 90",
+          "es": "Pase destacado — Tallowen, 84' · dificultad 90"
+        }
+      },
+      {
+        "event_id": "m01-02744",
+        "at": {
+          "period": 2,
+          "minute": 83,
+          "second": 42
+        },
+        "kind": "pass_badge",
+        "team": "Harbour City",
+        "text": {
+          "en": "Standout pass — Callodan, 84' · difficulty 84",
+          "es": "Pase destacado — Callodan, 84' · dificultad 84"
+        }
+      },
+      {
+        "event_id": "m01-02750",
+        "at": {
+          "period": 2,
+          "minute": 83,
+          "second": 54
+        },
+        "kind": "pass_badge",
+        "team": "Northvale",
+        "text": {
+          "en": "Standout pass — Tallowen, 84' · difficulty 96",
+          "es": "Pase destacado — Tallowen, 84' · dificultad 96"
+        }
+      },
+      {
+        "event_id": "m01-02763",
+        "at": {
+          "period": 2,
+          "minute": 84,
+          "second": 20
+        },
+        "kind": "shot",
+        "team": "Northvale",
+        "text": {
+          "en": "Shot blocked — Zandor, 85' · 83 km/h",
+          "es": "Tiro bloqueado — Zandor, 85' · 83 km/h"
+        }
+      },
+      {
+        "event_id": "m01-02784",
+        "at": {
+          "period": 2,
+          "minute": 84,
+          "second": 58
+        },
+        "kind": "pass_badge",
+        "team": "Harbour City",
+        "text": {
+          "en": "Standout pass — Derrowe, 85' · difficulty 83",
+          "es": "Pase destacado — Derrowe, 85' · dificultad 83"
+        }
+      },
+      {
+        "event_id": "m01-02811",
+        "at": {
+          "period": 2,
+          "minute": 85,
+          "second": 46
+        },
+        "kind": "shot",
+        "team": "Harbour City",
+        "text": {
+          "en": "Shot wide — Jarrent, 86' · 83 km/h",
+          "es": "Tiro desviado — Jarrent, 86' · 83 km/h"
+        }
+      },
+      {
+        "event_id": "m01-02952",
+        "at": {
+          "period": 2,
+          "minute": 90,
+          "second": 23
+        },
+        "kind": "pass_badge",
+        "team": "Northvale",
+        "text": {
+          "en": "Standout pass — Valcourt, 90+1' · difficulty 87",
+          "es": "Pase destacado — Valcourt, 90+1' · dificultad 87"
+        }
+      },
+      {
+        "event_id": "m01-02974",
+        "at": {
+          "period": 2,
+          "minute": 91,
+          "second": 1
+        },
+        "kind": "full_time",
+        "team": null,
+        "text": {
+          "en": "Full time: Harbour City 2–3 Northvale",
+          "es": "Final: Harbour City 2–3 Northvale"
+        }
+      }
+    ]
+  }
 }

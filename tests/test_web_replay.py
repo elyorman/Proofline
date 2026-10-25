@@ -9,10 +9,13 @@ from unittest.mock import patch
 import pytest
 
 from agents.llm import Replay
+from ambient import build_feed
+from contracts.ambient import AmbientFeed
 from contracts.card import InsightCard
 from contracts.case_file import CaseFile
 from contracts.cue import Cue
-from contracts.event import EventAmendment
+from contracts.event import Event, EventAmendment
+from contracts.meta import MatchMeta
 from contracts.question import Answer
 from contracts.tool_result import DependencyEntry
 from engine.io import write_match
@@ -128,6 +131,38 @@ def test_export_validates_and_preserves_recorded_answers(tmp_path, replayed):
     invalid.write_text(json.dumps(bad) + "\n")
     with pytest.raises(ValueError, match="match"):
         exporter.export(source, "m01", tmp_path / "bad", [], target, answers_path=invalid)
+
+
+def _source_feed(source: Path):
+    meta = MatchMeta.model_validate(json.loads((source / "meta.json").read_text()))
+    lines = (source / "events.jsonl").read_text().splitlines()
+    return build_feed([Event.model_validate_json(line) for line in lines], meta)
+
+
+def test_committed_ambient_is_the_fresh_match_through_the_ambient_layer(replayed):
+    source, _ = replayed
+    committed = json.loads(LEDGER.read_text())["ambient"]
+    feed = AmbientFeed.model_validate(committed)
+    assert committed == _source_feed(source).model_dump(mode="json")
+    assert feed.home == "Harbour City" and feed.away == "Northvale"
+    # The demo match's own story is visible: Harbour City's raised press after 58'
+    # tilts momentum their way and turns the game chaotic.
+    at = {str(p.at): p for p in feed.control}
+    assert at["63:00"].chaos > at["55:00"].chaos
+    assert next(m for m in feed.momentum if m.period == 2 and m.minute == 64).value > 0
+    assert {line.kind for line in feed.ticker} >= {"kick_off", "goal", "half_time", "full_time"}
+    assert [line.text.es for line in feed.ticker if line.kind == "goal"][-1].startswith("Gol")
+
+
+def test_export_adds_the_validated_ambient_feed(tmp_path, replayed):
+    source, take = replayed
+    studio_path = tmp_path / "studio.json"
+    studio_path.write_text(json.dumps(take))
+    target = tmp_path / "web.json"
+    exporter.export(source, "m01", tmp_path / "public", [], target, studio_path)
+    exported = json.loads(target.read_text())
+    assert exported["ambient"] == _source_feed(source).model_dump(mode="json")
+    assert exported["ambient"] == json.loads(LEDGER.read_text())["ambient"]
 
 
 def test_comparison_cases_are_valid_and_preserved_by_export(tmp_path, replayed):

@@ -7,6 +7,8 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from ambient import build_feed
+from contracts.ambient import AmbientFeed
 from contracts.card import InsightCard
 from contracts.case_file import CaseFile
 from contracts.cue import Cue
@@ -125,6 +127,10 @@ def export(
     if len({(f["case"]["case_id"], f["variant"]) for f in comparisons}) != len(comparisons):
         raise ValueError("duplicate comparison case")
     ledger["comparison_case_files"] = comparisons
+    # The ambient layer over the same delivered events the pitch draws; the UI only formats it.
+    ambient = build_feed(events, meta)
+    ledger["ambient"] = ambient.model_dump(mode="json")
+    AmbientFeed.model_validate(ledger["ambient"])  # the payload exactly as the web reads it
     keys = [(c["id"], c.get("revision", 1)) for c in ledger["cards"]]
     if len(keys) != len(set(keys)):
         raise ValueError("duplicate card id and revision")
@@ -139,7 +145,8 @@ def export(
     )
     print(
         f"Exported {match_id}: {len(ledger['cards'])} real revisions, "
-        f"{len(ledger['cues'])} cues and {len(ledger['case_files'])} case files."
+        f"{len(ledger['cues'])} cues, {len(ledger['case_files'])} case files and "
+        f"{len(ambient.ticker)} ambient ticker lines."
     )
 
 

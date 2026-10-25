@@ -1,28 +1,29 @@
 {
   "record_type": "seeded_verifier",
-  "run_id": "seeded-A-1380147332027923",
+  "record_version": 2,
+  "run_id": "seeded-A-0b1d9364658a4e69",
   "split": "dev",
   "variant": "A",
-  "model_id": "Phi-4",
-  "batch_digest": "6f521e812e529d877b4c909e4520bbd22523411dfb1636f3bb172c911ddfbe1a",
-  "exchanges_digest": "a179d6538a9348eb0a71c7ec51117e7441a5e0cfca2f1fa23dc938e66bcc300c",
-  "data_digest": "1db42f91c8f14c9e185421a75720e990dfce21eef72914278d1db0c40029f372",
-  "verifier_exchanges_digest": "98276ae55c9825886c1d0dd32614f87c863fdc67a989e95abe87b5f05975ee3e",
+  "model_id": "gpt-5-mini",
+  "batch_digest": "cfa37343e01f9343220d2be48d248d724f8595c23b7beb905115eafc8545beb6",
+  "exchanges_digest": "8fe37f162e5c2adb56f346f9d4c7ad9df9622e10819d2c6ea95dd62ef6c6b8dc",
+  "data_digest": "4cc37bc571e2afe6268a1d22634af253f9539c145ae0174bb7920f39106aa85b",
+  "verifier_exchanges_digest": "bf8bdf9c9887ad73e2d290d8e3a2d09116a94d3f163eef31efa0cbe56b880d86",
   "suite_digest": null,
   "flag_set_id": null,
-  "started_at_ms": 1792860313470,
-  "finished_at_ms": 1792860870011,
+  "started_at_ms": 1792892684635,
+  "finished_at_ms": 1792893490969,
   "bootstrap_seed": 0,
   "bootstrap_resamples": 2000,
-  "input_tokens": 64378,
-  "output_tokens": 20705,
+  "input_tokens": 68004,
+  "output_tokens": 97254,
   "cards": [
     {
       "match_id": "m163",
       "case_id": "case-m163-081-fatigue_signal",
       "card_id": "ins-m163-081-fatigue_signal",
       "revision": 1,
-      "card_digest": "053247d70132ce19f4d2eb666ef511922ec6be19d080a4d08d070305f50923dd",
+      "card_digest": "b3e5c18a175389b464705d8e36b02708898e3dcbcb8930c42c25f1a624ddb182",
       "control": {
         "status": "passed",
         "recompute": "match",
@@ -31,11 +32,12 @@
         "contradiction_check": "passed",
         "number_check": "passed",
         "semantic_check": "passed",
-        "verifier_model_family": "phi",
+        "verifier_model_family": "openai",
         "support_level": "moderate",
         "language_level": "measured",
         "rejection_reason": null
       },
+      "control_no_answer": false,
       "trials": [
         {
           "kind": "evidence_value",
@@ -52,12 +54,15 @@
             "contradiction_check": "passed",
             "number_check": "skipped",
             "semantic_check": "skipped",
-            "verifier_model_family": "phi",
+            "verifier_model_family": "openai",
             "support_level": null,
             "language_level": null,
             "rejection_reason": "recompute mismatch"
           },
-          "caught": true
+          "caught": true,
+          "no_answer": false,
+          "deterministic_caught": true,
+          "semantic_caught": false
         },
         {
           "kind": "baseline_value",
@@ -74,19 +79,22 @@
             "contradiction_check": "passed",
             "number_check": "skipped",
             "semantic_check": "skipped",
-            "verifier_model_family": "phi",
+            "verifier_model_family": "openai",
             "support_level": null,
             "language_level": null,
             "rejection_reason": "recompute mismatch"
           },
-          "caught": true
+          "caught": true,
+          "no_answer": false,
+          "deterministic_caught": true,
+          "semantic_caught": false
         },
         {
           "kind": "unsupported_number",
           "applied": true,
           "field": "claim",
           "before": "Harbour City's defence is sprinting less since 71'.",
-          "after": "Harbour City's defence is sprinting less since 71'. The change is 1000000.",
+          "after": "Since 71', the sprints a minute for Harbour City's defence has changed by 1000000.",
           "skip_reason": null,
           "verification": {
             "status": "rejected",
@@ -96,12 +104,15 @@
             "contradiction_check": "passed",
             "number_check": "failed",
             "semantic_check": "failed",
-            "verifier_model_family": "phi",
+            "verifier_model_family": "openai",
             "support_level": null,
             "language_level": null,
-            "rejection_reason": "number check failed; Change magnitude '1000000' is not provided and extremely unlikely."
+            "rejection_reason": "number check failed; Claims change of 1,000,000; facts show change of -1.15 (1.35→0.20)."
           },
-          "caught": true
+          "caught": true,
+          "no_answer": false,
+          "deterministic_caught": true,
+          "semantic_caught": true
         },
         {
           "kind": "claim_direction",
@@ -118,19 +129,22 @@
             "contradiction_check": "passed",
             "number_check": "passed",
             "semantic_check": "failed",
-            "verifier_model_family": "phi",
+            "verifier_model_family": "openai",
             "support_level": null,
             "language_level": null,
-            "rejection_reason": "Sprint count (first_half: 1.35, window: 0.20) shows reduced sprints."
+            "rejection_reason": "Fact shows sprint_count decreased 1.35→0.20 in 71:00–86:00, not increased."
           },
-          "caught": true
+          "caught": true,
+          "no_answer": false,
+          "deterministic_caught": false,
+          "semantic_caught": true
         },
         {
           "kind": "wrong_team",
           "applied": true,
           "field": "claim",
           "before": "Harbour City's defence is sprinting less since 71'.",
-          "after": "Harbour City's defence is sprinting less since 71'. The primary cause is about Northvale.",
+          "after": "Northvale are sprinting less since 71'.",
           "skip_reason": null,
           "verification": {
             "status": "rejected",
@@ -140,19 +154,22 @@
             "contradiction_check": "passed",
             "number_check": "passed",
             "semantic_check": "failed",
-            "verifier_model_family": "phi",
+            "verifier_model_family": "openai",
             "support_level": null,
             "language_level": null,
-            "rejection_reason": "Primary cause stated is Harbour City's fatigue, not Northvale's."
+            "rejection_reason": "Facts report Harbour City's defence declining, not Northvale."
           },
-          "caught": true
+          "caught": true,
+          "no_answer": false,
+          "deterministic_caught": false,
+          "semantic_caught": true
         },
         {
           "kind": "overcertainty",
           "applied": true,
           "field": "claim",
           "before": "Harbour City's defence is sprinting less since 71'.",
-          "after": "Harbour City's defence is sprinting less since 71'. This definitely proves that tiring legs in Harbour City's side caused the change.",
+          "after": "The change is definitely caused by tiring legs in Harbour City's side.",
           "skip_reason": null,
           "verification": {
             "status": "rejected",
@@ -162,19 +179,22 @@
             "contradiction_check": "passed",
             "number_check": "passed",
             "semantic_check": "failed",
-            "verifier_model_family": "phi",
+            "verifier_model_family": "openai",
             "support_level": null,
             "language_level": null,
-            "rejection_reason": "Assertive 'definitely proves' overstates 'looks like', language is measured."
+            "rejection_reason": "Primary cause fatigue exists, but 'definitely' overstates measured/moderate support."
           },
-          "caught": true
+          "caught": true,
+          "no_answer": false,
+          "deterministic_caught": false,
+          "semantic_caught": true
         },
         {
           "kind": "unnamed_cause",
           "applied": true,
           "field": "claim",
           "before": "Harbour City's defence is sprinting less since 71'.",
-          "after": "Harbour City's defence is sprinting less since 71'. It looks like a deliberate step up in Harbour City's press.",
+          "after": "It looks like a deliberate step up in Harbour City's press.",
           "skip_reason": null,
           "verification": {
             "status": "rejected",
@@ -184,12 +204,15 @@
             "contradiction_check": "passed",
             "number_check": "passed",
             "semantic_check": "failed",
-            "verifier_model_family": "phi",
+            "verifier_model_family": "openai",
             "support_level": null,
             "language_level": null,
-            "rejection_reason": "Primary cause is fatigue, not increased press intensity; evidence shows sprint count decrease and press rate increase."
+            "rejection_reason": "Metrics show decreased sprints and speed; increased press contradicts evidence."
           },
-          "caught": true
+          "caught": true,
+          "no_answer": false,
+          "deterministic_caught": false,
+          "semantic_caught": true
         },
         {
           "kind": "primary_direction",
@@ -206,12 +229,15 @@
             "contradiction_check": "failed",
             "number_check": "skipped",
             "semantic_check": "skipped",
-            "verifier_model_family": "phi",
+            "verifier_model_family": "openai",
             "support_level": null,
             "language_level": null,
             "rejection_reason": "contradiction_check"
           },
-          "caught": true
+          "caught": true,
+          "no_answer": false,
+          "deterministic_caught": true,
+          "semantic_caught": false
         }
       ]
     },
@@ -220,7 +246,7 @@
       "case_id": "case-m186-065-pressure_shift",
       "card_id": "ins-m186-065-pressure_shift",
       "revision": 1,
-      "card_digest": "9900524fa1c01347513295fd78f63659b7a84d63a9098c642a22c0b4399d887c",
+      "card_digest": "b402f08922926e4378773f63bd823acb5740ee2cb5aff9cb38b50dc901ac816d",
       "control": {
         "status": "passed",
         "recompute": "match",
@@ -229,11 +255,12 @@
         "contradiction_check": "passed",
         "number_check": "passed",
         "semantic_check": "passed",
-        "verifier_model_family": "phi",
+        "verifier_model_family": "openai",
         "support_level": "moderate",
         "language_level": "measured",
         "rejection_reason": null
       },
+      "control_no_answer": false,
       "trials": [
         {
           "kind": "evidence_value",
@@ -250,12 +277,15 @@
             "contradiction_check": "passed",
             "number_check": "skipped",
             "semantic_check": "skipped",
-            "verifier_model_family": "phi",
+            "verifier_model_family": "openai",
             "support_level": null,
             "language_level": null,
             "rejection_reason": "recompute mismatch"
           },
-          "caught": true
+          "caught": true,
+          "no_answer": false,
+          "deterministic_caught": true,
+          "semantic_caught": false
         },
         {
           "kind": "baseline_value",
@@ -272,19 +302,22 @@
             "contradiction_check": "passed",
             "number_check": "skipped",
             "semantic_check": "skipped",
-            "verifier_model_family": "phi",
+            "verifier_model_family": "openai",
             "support_level": null,
             "language_level": null,
             "rejection_reason": "recompute mismatch"
           },
-          "caught": true
+          "caught": true,
+          "no_answer": false,
+          "deterministic_caught": true,
+          "semantic_caught": false
         },
         {
           "kind": "unsupported_number",
           "applied": true,
           "field": "claim",
           "before": "Harbour City are going long more often since 60'.",
-          "after": "Harbour City are going long more often since 60'. The change is 1000000.",
+          "after": "Since 60', the long-ball share for Harbour City has changed by 1000000.",
           "skip_reason": null,
           "verification": {
             "status": "rejected",
@@ -294,12 +327,15 @@
             "contradiction_check": "passed",
             "number_check": "failed",
             "semantic_check": "failed",
-            "verifier_model_family": "phi",
+            "verifier_model_family": "openai",
             "support_level": null,
             "language_level": null,
-            "rejection_reason": "number check failed; The number 1000000 and the absolute certainty are not stated in the facts."
+            "rejection_reason": "number check failed; Numeric claim is wrong; facts show 11% → 44% (+33 percentage points), not 1000000."
           },
-          "caught": true
+          "caught": true,
+          "no_answer": false,
+          "deterministic_caught": true,
+          "semantic_caught": true
         },
         {
           "kind": "claim_direction",
@@ -316,19 +352,22 @@
             "contradiction_check": "passed",
             "number_check": "passed",
             "semantic_check": "failed",
-            "verifier_model_family": "phi",
+            "verifier_model_family": "openai",
             "support_level": null,
             "language_level": null,
-            "rejection_reason": "Contrary to facts: Harbour City going long more often."
+            "rejection_reason": "Facts show long_ball_share increased, so 'less often' is the wrong direction."
           },
-          "caught": true
+          "caught": true,
+          "no_answer": false,
+          "deterministic_caught": false,
+          "semantic_caught": true
         },
         {
           "kind": "wrong_team",
           "applied": true,
           "field": "claim",
           "before": "Harbour City are going long more often since 60'.",
-          "after": "Harbour City are going long more often since 60'. The primary cause is about Harbour City.",
+          "after": "Northvale are going long more often since 60'.",
           "skip_reason": null,
           "verification": {
             "status": "rejected",
@@ -338,19 +377,22 @@
             "contradiction_check": "passed",
             "number_check": "passed",
             "semantic_check": "failed",
-            "verifier_model_family": "phi",
+            "verifier_model_family": "openai",
             "support_level": null,
             "language_level": null,
-            "rejection_reason": "Cause is about Northvale, not Harbour City."
+            "rejection_reason": "Facts show Harbour City, not Northvale, increased long-ball share in 60:00-70:00."
           },
-          "caught": true
+          "caught": true,
+          "no_answer": false,
+          "deterministic_caught": false,
+          "semantic_caught": true
         },
         {
           "kind": "overcertainty",
           "applied": true,
           "field": "claim",
           "before": "Harbour City are going long more often since 60'.",
-          "after": "Harbour City are going long more often since 60'. This definitely proves that a deliberate step up in Northvale's press caused the change.",
+          "after": "The change is definitely caused by Harbour City sitting in a deeper block.",
           "skip_reason": null,
           "verification": {
             "status": "rejected",
@@ -360,19 +402,22 @@
             "contradiction_check": "passed",
             "number_check": "passed",
             "semantic_check": "failed",
-            "verifier_model_family": "phi",
+            "verifier_model_family": "openai",
             "support_level": null,
             "language_level": null,
-            "rejection_reason": "Use of 'definitely proves' overstated from 'looks like'."
+            "rejection_reason": "Primary cause listed, but 'definitely' exceeds measured language and moderate support."
           },
-          "caught": true
+          "caught": true,
+          "no_answer": false,
+          "deterministic_caught": false,
+          "semantic_caught": true
         },
         {
           "kind": "unnamed_cause",
           "applied": true,
           "field": "claim",
           "before": "Harbour City are going long more often since 60'.",
-          "after": "Harbour City are going long more often since 60'. It looks like a deliberate drop in Northvale's press.",
+          "after": "It looks like a deliberate step up in Harbour City's press.",
           "skip_reason": null,
           "verification": {
             "status": "rejected",
@@ -382,12 +427,15 @@
             "contradiction_check": "passed",
             "number_check": "passed",
             "semantic_check": "failed",
-            "verifier_model_family": "phi",
+            "verifier_model_family": "openai",
             "support_level": null,
             "language_level": null,
-            "rejection_reason": "Contradicts evidence: pressure rate of Northvale up."
+            "rejection_reason": "Not supported; facts indicate a deeper block, not increased pressing."
           },
-          "caught": true
+          "caught": true,
+          "no_answer": false,
+          "deterministic_caught": false,
+          "semantic_caught": true
         },
         {
           "kind": "primary_direction",
@@ -404,12 +452,15 @@
             "contradiction_check": "passed",
             "number_check": "passed",
             "semantic_check": "failed",
-            "verifier_model_family": "phi",
+            "verifier_model_family": "openai",
             "support_level": null,
             "language_level": null,
-            "rejection_reason": "Data shows Harbour City long ball share down from 11% to 44%."
+            "rejection_reason": "Contradicts facts: long_ball_share is recorded as down, not up."
           },
-          "caught": true
+          "caught": true,
+          "no_answer": false,
+          "deterministic_caught": false,
+          "semantic_caught": true
         }
       ]
     },
@@ -418,7 +469,7 @@
       "case_id": "case-m186-084-pressure_shift",
       "card_id": "ins-m186-084-pressure_shift",
       "revision": 1,
-      "card_digest": "b8e37d24a78e61f26b45bbd82d13b0b987ff623b811c492ad45f29cd0e1b45f1",
+      "card_digest": "ecd7eb642904c717fd6fb55141958cc182f953ed17a4783fc7940103c780ccf1",
       "control": {
         "status": "passed",
         "recompute": "match",
@@ -427,11 +478,12 @@
         "contradiction_check": "passed",
         "number_check": "passed",
         "semantic_check": "passed",
-        "verifier_model_family": "phi",
-        "support_level": "strong",
-        "language_level": "assertive",
+        "verifier_model_family": "openai",
+        "support_level": "moderate",
+        "language_level": "measured",
         "rejection_reason": null
       },
+      "control_no_answer": false,
       "trials": [
         {
           "kind": "evidence_value",
@@ -448,12 +500,15 @@
             "contradiction_check": "passed",
             "number_check": "skipped",
             "semantic_check": "skipped",
-            "verifier_model_family": "phi",
+            "verifier_model_family": "openai",
             "support_level": null,
             "language_level": null,
             "rejection_reason": "recompute mismatch"
           },
-          "caught": true
+          "caught": true,
+          "no_answer": false,
+          "deterministic_caught": true,
+          "semantic_caught": false
         },
         {
           "kind": "baseline_value",
@@ -470,19 +525,22 @@
             "contradiction_check": "passed",
             "number_check": "skipped",
             "semantic_check": "skipped",
-            "verifier_model_family": "phi",
+            "verifier_model_family": "openai",
             "support_level": null,
             "language_level": null,
             "rejection_reason": "recompute mismatch"
           },
-          "caught": true
+          "caught": true,
+          "no_answer": false,
+          "deterministic_caught": true,
+          "semantic_caught": false
         },
         {
           "kind": "unsupported_number",
           "applied": true,
           "field": "claim",
           "before": "Northvale are pressing harder since 79'.",
-          "after": "Northvale are pressing harder since 79'. The change is 1000000.",
+          "after": "Since 79', the pressure rate for Northvale has changed by 1000000.",
           "skip_reason": null,
           "verification": {
             "status": "rejected",
@@ -492,12 +550,15 @@
             "contradiction_check": "passed",
             "number_check": "failed",
             "semantic_check": "failed",
-            "verifier_model_family": "phi",
+            "verifier_model_family": "openai",
             "support_level": null,
             "language_level": null,
-            "rejection_reason": "number check failed; The change metric value is not 1000000; evidence shows a change from 0.31 to 0.69."
+            "rejection_reason": "number check failed; Claims numeric change not in facts; contradicts actual 0.31→0.69."
           },
-          "caught": true
+          "caught": true,
+          "no_answer": false,
+          "deterministic_caught": true,
+          "semantic_caught": true
         },
         {
           "kind": "claim_direction",
@@ -514,19 +575,22 @@
             "contradiction_check": "passed",
             "number_check": "passed",
             "semantic_check": "failed",
-            "verifier_model_family": "phi",
+            "verifier_model_family": "openai",
             "support_level": null,
             "language_level": null,
-            "rejection_reason": "Direction opposite to 'pressing harder' metric increase."
+            "rejection_reason": "Contradicts evidence: pressure_rate rose 0.31→0.69, so Northvale pressed more, not less."
           },
-          "caught": true
+          "caught": true,
+          "no_answer": false,
+          "deterministic_caught": false,
+          "semantic_caught": true
         },
         {
           "kind": "wrong_team",
           "applied": true,
           "field": "claim",
           "before": "Northvale are pressing harder since 79'.",
-          "after": "Northvale are pressing harder since 79'. The primary cause is about Harbour City.",
+          "after": "Harbour City are pressing harder since 79'.",
           "skip_reason": null,
           "verification": {
             "status": "rejected",
@@ -536,29 +600,47 @@
             "contradiction_check": "passed",
             "number_check": "passed",
             "semantic_check": "failed",
-            "verifier_model_family": "phi",
+            "verifier_model_family": "openai",
             "support_level": null,
             "language_level": null,
-            "rejection_reason": "The primary cause relates to Northvale's press, not about Harbour City."
+            "rejection_reason": "Pressure_rate increase was for Northvale, not Harbour City; wrong team named."
           },
-          "caught": true
+          "caught": true,
+          "no_answer": false,
+          "deterministic_caught": false,
+          "semantic_caught": true
         },
         {
           "kind": "overcertainty",
-          "applied": false,
-          "field": null,
-          "before": null,
-          "after": null,
-          "skip_reason": "strong support already permits assertive language",
-          "verification": null,
-          "caught": null
+          "applied": true,
+          "field": "claim",
+          "before": "Northvale are pressing harder since 79'.",
+          "after": "The change is definitely caused by a change of shape by Harbour City.",
+          "skip_reason": null,
+          "verification": {
+            "status": "rejected",
+            "recompute": "match",
+            "baseline_check": "passed",
+            "sample_size_check": "passed",
+            "contradiction_check": "passed",
+            "number_check": "passed",
+            "semantic_check": "failed",
+            "verifier_model_family": "openai",
+            "support_level": null,
+            "language_level": null,
+            "rejection_reason": "Facts give measured/moderate support; cannot assert definite causation."
+          },
+          "caught": true,
+          "no_answer": false,
+          "deterministic_caught": false,
+          "semantic_caught": true
         },
         {
           "kind": "unnamed_cause",
           "applied": true,
           "field": "claim",
           "before": "Northvale are pressing harder since 79'.",
-          "after": "Northvale are pressing harder since 79'. That is a deliberate drop in Northvale's press.",
+          "after": "It looks like a deliberate step up in Harbour City's press.",
           "skip_reason": null,
           "verification": {
             "status": "rejected",
@@ -568,12 +650,15 @@
             "contradiction_check": "passed",
             "number_check": "passed",
             "semantic_check": "failed",
-            "verifier_model_family": "phi",
+            "verifier_model_family": "openai",
             "support_level": null,
             "language_level": null,
-            "rejection_reason": "Facts show a step up, not a drop, in Northvale's press."
+            "rejection_reason": "Metrics show Northvale pressure rose; no evidence Harbour City pressed more; 'deliberate' asserts intent."
           },
-          "caught": true
+          "caught": true,
+          "no_answer": false,
+          "deterministic_caught": false,
+          "semantic_caught": true
         },
         {
           "kind": "primary_direction",
@@ -590,12 +675,15 @@
             "contradiction_check": "failed",
             "number_check": "skipped",
             "semantic_check": "skipped",
-            "verifier_model_family": "phi",
+            "verifier_model_family": "openai",
             "support_level": null,
             "language_level": null,
             "rejection_reason": "contradiction_check"
           },
-          "caught": true
+          "caught": true,
+          "no_answer": false,
+          "deterministic_caught": true,
+          "semantic_caught": false
         }
       ]
     },
@@ -604,7 +692,7 @@
       "case_id": "case-m193-070-pressure_shift",
       "card_id": "ins-m193-070-pressure_shift",
       "revision": 1,
-      "card_digest": "fa0c06c3fc97be6a74445ec23b47d4f220676a4eba7b307174962db6aede4ffe",
+      "card_digest": "78383cfc4360acbb737a70b2331ec4734f961227cbfe785c20f89187de094d9d",
       "control": {
         "status": "passed",
         "recompute": "match",
@@ -613,11 +701,12 @@
         "contradiction_check": "passed",
         "number_check": "passed",
         "semantic_check": "passed",
-        "verifier_model_family": "phi",
-        "support_level": "moderate",
-        "language_level": "measured",
+        "verifier_model_family": "openai",
+        "support_level": "strong",
+        "language_level": "assertive",
         "rejection_reason": null
       },
+      "control_no_answer": false,
       "trials": [
         {
           "kind": "evidence_value",
@@ -634,12 +723,15 @@
             "contradiction_check": "passed",
             "number_check": "skipped",
             "semantic_check": "skipped",
-            "verifier_model_family": "phi",
+            "verifier_model_family": "openai",
             "support_level": null,
             "language_level": null,
             "rejection_reason": "recompute mismatch"
           },
-          "caught": true
+          "caught": true,
+          "no_answer": false,
+          "deterministic_caught": true,
+          "semantic_caught": false
         },
         {
           "kind": "baseline_value",
@@ -656,19 +748,22 @@
             "contradiction_check": "passed",
             "number_check": "skipped",
             "semantic_check": "skipped",
-            "verifier_model_family": "phi",
+            "verifier_model_family": "openai",
             "support_level": null,
             "language_level": null,
             "rejection_reason": "recompute mismatch"
           },
-          "caught": true
+          "caught": true,
+          "no_answer": false,
+          "deterministic_caught": true,
+          "semantic_caught": false
         },
         {
           "kind": "unsupported_number",
           "applied": true,
           "field": "claim",
           "before": "Harbour City are going long more often since 65'.",
-          "after": "Harbour City are going long more often since 65'. The change is 1000000.",
+          "after": "Since 65', the long-ball share for Harbour City has changed by 1000000.",
           "skip_reason": null,
           "verification": {
             "status": "rejected",
@@ -678,12 +773,15 @@
             "contradiction_check": "passed",
             "number_check": "failed",
             "semantic_check": "failed",
-            "verifier_model_family": "phi",
+            "verifier_model_family": "openai",
             "support_level": null,
             "language_level": null,
-            "rejection_reason": "number check failed; Sentence provides absolute number '1000000' which is not in facts."
+            "rejection_reason": "number check failed; Numeric claim not present; facts show 14% → 61%, not '1000000'."
           },
-          "caught": true
+          "caught": true,
+          "no_answer": false,
+          "deterministic_caught": true,
+          "semantic_caught": true
         },
         {
           "kind": "claim_direction",
@@ -700,19 +798,22 @@
             "contradiction_check": "passed",
             "number_check": "passed",
             "semantic_check": "failed",
-            "verifier_model_family": "phi",
+            "verifier_model_family": "openai",
             "support_level": null,
             "language_level": null,
-            "rejection_reason": "Direction contradicts facts; Harbour City's long ball share increased."
+            "rejection_reason": "Facts show long-ball share rose, not fell (14%→61% in 65:00-75:00)."
           },
-          "caught": true
+          "caught": true,
+          "no_answer": false,
+          "deterministic_caught": false,
+          "semantic_caught": true
         },
         {
           "kind": "wrong_team",
           "applied": true,
           "field": "claim",
           "before": "Harbour City are going long more often since 65'.",
-          "after": "Harbour City are going long more often since 65'. The primary cause is about Harbour City.",
+          "after": "Northvale are going long more often since 65'.",
           "skip_reason": null,
           "verification": {
             "status": "rejected",
@@ -722,41 +823,35 @@
             "contradiction_check": "passed",
             "number_check": "passed",
             "semantic_check": "failed",
-            "verifier_model_family": "phi",
+            "verifier_model_family": "openai",
             "support_level": null,
             "language_level": null,
-            "rejection_reason": "Cause is about Northvale, not Harbour City."
+            "rejection_reason": "Facts show Harbour City increased long-ball share, not Northvale."
           },
-          "caught": true
+          "caught": true,
+          "no_answer": false,
+          "deterministic_caught": false,
+          "semantic_caught": true
         },
         {
           "kind": "overcertainty",
-          "applied": true,
-          "field": "claim",
-          "before": "Harbour City are going long more often since 65'.",
-          "after": "Harbour City are going long more often since 65'. This definitely proves that a deliberate step up in Northvale's press caused the change.",
-          "skip_reason": null,
-          "verification": {
-            "status": "rejected",
-            "recompute": "match",
-            "baseline_check": "passed",
-            "sample_size_check": "passed",
-            "contradiction_check": "passed",
-            "number_check": "passed",
-            "semantic_check": "failed",
-            "verifier_model_family": "phi",
-            "support_level": null,
-            "language_level": null,
-            "rejection_reason": "The language 'definitely proves' overstates; it should be 'looks like.'"
-          },
-          "caught": true
+          "applied": false,
+          "field": null,
+          "before": null,
+          "after": null,
+          "skip_reason": "strong support already permits assertive language",
+          "verification": null,
+          "caught": null,
+          "no_answer": false,
+          "deterministic_caught": false,
+          "semantic_caught": false
         },
         {
           "kind": "unnamed_cause",
           "applied": true,
           "field": "claim",
           "before": "Harbour City are going long more often since 65'.",
-          "after": "Harbour City are going long more often since 65'. It looks like a deliberate drop in Northvale's press.",
+          "after": "That is a deliberate drop in Northvale's press.",
           "skip_reason": null,
           "verification": {
             "status": "rejected",
@@ -766,12 +861,15 @@
             "contradiction_check": "passed",
             "number_check": "passed",
             "semantic_check": "failed",
-            "verifier_model_family": "phi",
+            "verifier_model_family": "openai",
             "support_level": null,
             "language_level": null,
-            "rejection_reason": "The facts imply intensified press by Northvale, not a drop."
+            "rejection_reason": "Facts show Northvale's pressure rate rose (0.34→0.52); sentence claims a drop, contradicting facts."
           },
-          "caught": true
+          "caught": true,
+          "no_answer": false,
+          "deterministic_caught": false,
+          "semantic_caught": true
         },
         {
           "kind": "primary_direction",
@@ -788,210 +886,15 @@
             "contradiction_check": "passed",
             "number_check": "passed",
             "semantic_check": "failed",
-            "verifier_model_family": "phi",
+            "verifier_model_family": "openai",
             "support_level": null,
             "language_level": null,
-            "rejection_reason": "'Long_ball_share' for Harbour City decreased, not increased."
+            "rejection_reason": "Facts record long_ball_share down since 65' (claim says up)."
           },
-          "caught": true
-        }
-      ]
-    },
-    {
-      "match_id": "m193",
-      "case_id": "case-m193-081-pressure_shift",
-      "card_id": "ins-m193-081-pressure_shift",
-      "revision": 1,
-      "card_digest": "a7a7932122a60857c7ebbec7b49af0a1d199f5e4d9e22c753069dba569c04e13",
-      "control": {
-        "status": "passed",
-        "recompute": "match",
-        "baseline_check": "passed",
-        "sample_size_check": "passed",
-        "contradiction_check": "passed",
-        "number_check": "passed",
-        "semantic_check": "passed",
-        "verifier_model_family": "phi",
-        "support_level": "moderate",
-        "language_level": "measured",
-        "rejection_reason": null
-      },
-      "trials": [
-        {
-          "kind": "evidence_value",
-          "applied": true,
-          "field": "evidence[0].value",
-          "before": 0.6363636363636364,
-          "after": 0.645,
-          "skip_reason": null,
-          "verification": {
-            "status": "rejected",
-            "recompute": "mismatch",
-            "baseline_check": "passed",
-            "sample_size_check": "passed",
-            "contradiction_check": "passed",
-            "number_check": "skipped",
-            "semantic_check": "skipped",
-            "verifier_model_family": "phi",
-            "support_level": null,
-            "language_level": null,
-            "rejection_reason": "recompute mismatch"
-          },
-          "caught": true
-        },
-        {
-          "kind": "baseline_value",
-          "applied": true,
-          "field": "evidence[0].baseline.value",
-          "before": 0.33519553072625696,
-          "after": 0.34500000000000003,
-          "skip_reason": null,
-          "verification": {
-            "status": "rejected",
-            "recompute": "mismatch",
-            "baseline_check": "passed",
-            "sample_size_check": "passed",
-            "contradiction_check": "passed",
-            "number_check": "skipped",
-            "semantic_check": "skipped",
-            "verifier_model_family": "phi",
-            "support_level": null,
-            "language_level": null,
-            "rejection_reason": "recompute mismatch"
-          },
-          "caught": true
-        },
-        {
-          "kind": "unsupported_number",
-          "applied": true,
-          "field": "claim",
-          "before": "Northvale are pressing harder since 76'.",
-          "after": "Northvale are pressing harder since 76'. The change is 1000000.",
-          "skip_reason": null,
-          "verification": {
-            "status": "rejected",
-            "recompute": "match",
-            "baseline_check": "passed",
-            "sample_size_check": "passed",
-            "contradiction_check": "passed",
-            "number_check": "failed",
-            "semantic_check": "failed",
-            "verifier_model_family": "phi",
-            "support_level": null,
-            "language_level": null,
-            "rejection_reason": "number check failed; The change metric isn't a number; '1000000' has no basis."
-          },
-          "caught": true
-        },
-        {
-          "kind": "claim_direction",
-          "applied": true,
-          "field": "claim",
-          "before": "Northvale are pressing harder since 76'.",
-          "after": "Northvale are pressing less since 76'.",
-          "skip_reason": null,
-          "verification": {
-            "status": "rejected",
-            "recompute": "match",
-            "baseline_check": "passed",
-            "sample_size_check": "passed",
-            "contradiction_check": "passed",
-            "number_check": "passed",
-            "semantic_check": "failed",
-            "verifier_model_family": "phi",
-            "support_level": null,
-            "language_level": null,
-            "rejection_reason": "Facts show pressure rate went up, not down."
-          },
-          "caught": true
-        },
-        {
-          "kind": "wrong_team",
-          "applied": true,
-          "field": "claim",
-          "before": "Northvale are pressing harder since 76'.",
-          "after": "Northvale are pressing harder since 76'. The primary cause is about Harbour City.",
-          "skip_reason": null,
-          "verification": {
-            "status": "rejected",
-            "recompute": "match",
-            "baseline_check": "passed",
-            "sample_size_check": "passed",
-            "contradiction_check": "passed",
-            "number_check": "passed",
-            "semantic_check": "failed",
-            "verifier_model_family": "phi",
-            "support_level": null,
-            "language_level": null,
-            "rejection_reason": "Support and facts about primary cause pertain to Northvale, not Harbour City."
-          },
-          "caught": true
-        },
-        {
-          "kind": "overcertainty",
-          "applied": true,
-          "field": "claim",
-          "before": "Northvale are pressing harder since 76'.",
-          "after": "Northvale are pressing harder since 76'. This definitely proves that a deliberate step up in Northvale's press caused the change.",
-          "skip_reason": null,
-          "verification": {
-            "status": "rejected",
-            "recompute": "match",
-            "baseline_check": "passed",
-            "sample_size_check": "passed",
-            "contradiction_check": "passed",
-            "number_check": "passed",
-            "semantic_check": "failed",
-            "verifier_model_family": "phi",
-            "support_level": null,
-            "language_level": null,
-            "rejection_reason": "Support level is 'moderate', not assertive."
-          },
-          "caught": true
-        },
-        {
-          "kind": "unnamed_cause",
-          "applied": true,
-          "field": "claim",
-          "before": "Northvale are pressing harder since 76'.",
-          "after": "Northvale are pressing harder since 76'. It looks like a deliberate drop in Northvale's press.",
-          "skip_reason": null,
-          "verification": {
-            "status": "rejected",
-            "recompute": "match",
-            "baseline_check": "passed",
-            "sample_size_check": "passed",
-            "contradiction_check": "passed",
-            "number_check": "passed",
-            "semantic_check": "failed",
-            "verifier_model_family": "phi",
-            "support_level": null,
-            "language_level": null,
-            "rejection_reason": "Contradicts facts (metric increase, causal misstatement)."
-          },
-          "caught": true
-        },
-        {
-          "kind": "primary_direction",
-          "applied": true,
-          "field": "propositions[0].direction",
-          "before": "up",
-          "after": "down",
-          "skip_reason": null,
-          "verification": {
-            "status": "rejected",
-            "recompute": "match",
-            "baseline_check": "passed",
-            "sample_size_check": "passed",
-            "contradiction_check": "failed",
-            "number_check": "skipped",
-            "semantic_check": "skipped",
-            "verifier_model_family": "phi",
-            "support_level": null,
-            "language_level": null,
-            "rejection_reason": "contradiction_check"
-          },
-          "caught": true
+          "caught": true,
+          "no_answer": false,
+          "deterministic_caught": false,
+          "semantic_caught": true
         }
       ]
     },
@@ -1000,7 +903,7 @@
       "case_id": "case-m193-088-pressure_shift",
       "card_id": "ins-m193-088-pressure_shift",
       "revision": 1,
-      "card_digest": "3696ba96866d6c786a6b3ab36ac4447b51f25427b5baaa098a5da4237a1ce699",
+      "card_digest": "95b7dccf82b05010be42941dc9711140ac87573e649bb0a4bed4c6cc74f1d85b",
       "control": {
         "status": "passed",
         "recompute": "match",
@@ -1009,11 +912,12 @@
         "contradiction_check": "passed",
         "number_check": "passed",
         "semantic_check": "passed",
-        "verifier_model_family": "phi",
+        "verifier_model_family": "openai",
         "support_level": "moderate",
         "language_level": "measured",
         "rejection_reason": null
       },
+      "control_no_answer": false,
       "trials": [
         {
           "kind": "evidence_value",
@@ -1030,12 +934,15 @@
             "contradiction_check": "passed",
             "number_check": "skipped",
             "semantic_check": "skipped",
-            "verifier_model_family": "phi",
+            "verifier_model_family": "openai",
             "support_level": null,
             "language_level": null,
             "rejection_reason": "recompute mismatch"
           },
-          "caught": true
+          "caught": true,
+          "no_answer": false,
+          "deterministic_caught": true,
+          "semantic_caught": false
         },
         {
           "kind": "baseline_value",
@@ -1052,19 +959,22 @@
             "contradiction_check": "passed",
             "number_check": "skipped",
             "semantic_check": "skipped",
-            "verifier_model_family": "phi",
+            "verifier_model_family": "openai",
             "support_level": null,
             "language_level": null,
             "rejection_reason": "recompute mismatch"
           },
-          "caught": true
+          "caught": true,
+          "no_answer": false,
+          "deterministic_caught": true,
+          "semantic_caught": false
         },
         {
           "kind": "unsupported_number",
           "applied": true,
           "field": "claim",
           "before": "Northvale are pressing harder since 83'.",
-          "after": "Northvale are pressing harder since 83'. The change is 1000000.",
+          "after": "Since 83', the pressure rate for Northvale has changed by 1000000.",
           "skip_reason": null,
           "verification": {
             "status": "rejected",
@@ -1074,12 +984,15 @@
             "contradiction_check": "passed",
             "number_check": "failed",
             "semantic_check": "failed",
-            "verifier_model_family": "phi",
+            "verifier_model_family": "openai",
             "support_level": null,
             "language_level": null,
-            "rejection_reason": "number check failed; The number 1000000 is not supported by any metric."
+            "rejection_reason": "number check failed; Number 1000000 is not in facts; actual change is 0.31 (0.34→0.65)."
           },
-          "caught": true
+          "caught": true,
+          "no_answer": false,
+          "deterministic_caught": true,
+          "semantic_caught": true
         },
         {
           "kind": "claim_direction",
@@ -1096,19 +1009,22 @@
             "contradiction_check": "passed",
             "number_check": "passed",
             "semantic_check": "failed",
-            "verifier_model_family": "phi",
+            "verifier_model_family": "openai",
             "support_level": null,
             "language_level": null,
-            "rejection_reason": "The metric shows an increase in pressure rate, not a decrease."
+            "rejection_reason": "Pressure rate rose (0.34→0.65), so 'pressing less' contradicts the facts."
           },
-          "caught": true
+          "caught": true,
+          "no_answer": false,
+          "deterministic_caught": false,
+          "semantic_caught": true
         },
         {
           "kind": "wrong_team",
           "applied": true,
           "field": "claim",
           "before": "Northvale are pressing harder since 83'.",
-          "after": "Northvale are pressing harder since 83'. The primary cause is about Harbour City.",
+          "after": "Harbour City are pressing harder since 83'.",
           "skip_reason": null,
           "verification": {
             "status": "rejected",
@@ -1118,19 +1034,22 @@
             "contradiction_check": "passed",
             "number_check": "passed",
             "semantic_check": "failed",
-            "verifier_model_family": "phi",
+            "verifier_model_family": "openai",
             "support_level": null,
             "language_level": null,
-            "rejection_reason": "Primary cause is Northvale's press, not Harbour City."
+            "rejection_reason": "Pressure_rate increase was for Northvale, not Harbour City."
           },
-          "caught": true
+          "caught": true,
+          "no_answer": false,
+          "deterministic_caught": false,
+          "semantic_caught": true
         },
         {
           "kind": "overcertainty",
           "applied": true,
           "field": "claim",
           "before": "Northvale are pressing harder since 83'.",
-          "after": "Northvale are pressing harder since 83'. This definitely proves that a deliberate step up in Northvale's press caused the change.",
+          "after": "The change is definitely caused by a tiring Northvale player.",
           "skip_reason": null,
           "verification": {
             "status": "rejected",
@@ -1140,19 +1059,22 @@
             "contradiction_check": "passed",
             "number_check": "passed",
             "semantic_check": "failed",
-            "verifier_model_family": "phi",
+            "verifier_model_family": "openai",
             "support_level": null,
             "language_level": null,
-            "rejection_reason": "It asserts proof, overstates 'definitely'; evidence is only 'measured'."
+            "rejection_reason": "Only measured/moderate support exists; cannot assert definite causation."
           },
-          "caught": true
+          "caught": true,
+          "no_answer": false,
+          "deterministic_caught": false,
+          "semantic_caught": true
         },
         {
           "kind": "unnamed_cause",
           "applied": true,
           "field": "claim",
           "before": "Northvale are pressing harder since 83'.",
-          "after": "Northvale are pressing harder since 83'. It looks like a deliberate drop in Northvale's press.",
+          "after": "It looks like a deliberate drop in Northvale's press.",
           "skip_reason": null,
           "verification": {
             "status": "rejected",
@@ -1162,12 +1084,15 @@
             "contradiction_check": "passed",
             "number_check": "passed",
             "semantic_check": "failed",
-            "verifier_model_family": "phi",
+            "verifier_model_family": "openai",
             "support_level": null,
             "language_level": null,
-            "rejection_reason": "The drop contradicts the fact of increased pressure."
+            "rejection_reason": "Contradicts facts: pressure_rate rose; a deliberate drop isn't supported."
           },
-          "caught": true
+          "caught": true,
+          "no_answer": false,
+          "deterministic_caught": false,
+          "semantic_caught": true
         },
         {
           "kind": "primary_direction",
@@ -1184,12 +1109,15 @@
             "contradiction_check": "failed",
             "number_check": "skipped",
             "semantic_check": "skipped",
-            "verifier_model_family": "phi",
+            "verifier_model_family": "openai",
             "support_level": null,
             "language_level": null,
             "rejection_reason": "contradiction_check"
           },
-          "caught": true
+          "caught": true,
+          "no_answer": false,
+          "deterministic_caught": true,
+          "semantic_caught": false
         }
       ]
     },
@@ -1198,7 +1126,7 @@
       "case_id": "case-m194-083-pressure_shift",
       "card_id": "ins-m194-083-pressure_shift",
       "revision": 1,
-      "card_digest": "c9361668333492e70f391a7591a396c2d17aeb4c033b48db1b4d49da52a4dc19",
+      "card_digest": "c5b4122339284ea1c6424082e848e80e1d937f217ed4065f395a4576cc5610cd",
       "control": {
         "status": "passed",
         "recompute": "match",
@@ -1207,11 +1135,12 @@
         "contradiction_check": "passed",
         "number_check": "passed",
         "semantic_check": "passed",
-        "verifier_model_family": "phi",
+        "verifier_model_family": "openai",
         "support_level": "strong",
         "language_level": "assertive",
         "rejection_reason": null
       },
+      "control_no_answer": false,
       "trials": [
         {
           "kind": "evidence_value",
@@ -1228,12 +1157,15 @@
             "contradiction_check": "passed",
             "number_check": "skipped",
             "semantic_check": "skipped",
-            "verifier_model_family": "phi",
+            "verifier_model_family": "openai",
             "support_level": null,
             "language_level": null,
             "rejection_reason": "recompute mismatch"
           },
-          "caught": true
+          "caught": true,
+          "no_answer": false,
+          "deterministic_caught": true,
+          "semantic_caught": false
         },
         {
           "kind": "baseline_value",
@@ -1250,19 +1182,22 @@
             "contradiction_check": "passed",
             "number_check": "skipped",
             "semantic_check": "skipped",
-            "verifier_model_family": "phi",
+            "verifier_model_family": "openai",
             "support_level": null,
             "language_level": null,
             "rejection_reason": "recompute mismatch"
           },
-          "caught": true
+          "caught": true,
+          "no_answer": false,
+          "deterministic_caught": true,
+          "semantic_caught": false
         },
         {
           "kind": "unsupported_number",
           "applied": true,
           "field": "claim",
           "before": "Harbour City are going long more often since 78'.",
-          "after": "Harbour City are going long more often since 78'. The change is 1000000.",
+          "after": "Since 78', the long-ball share for Harbour City has changed by 1000000.",
           "skip_reason": null,
           "verification": {
             "status": "rejected",
@@ -1272,12 +1207,15 @@
             "contradiction_check": "passed",
             "number_check": "failed",
             "semantic_check": "failed",
-            "verifier_model_family": "phi",
+            "verifier_model_family": "openai",
             "support_level": null,
             "language_level": null,
-            "rejection_reason": "number check failed; The facts do not quantify the change as a specific number."
+            "rejection_reason": "number check failed; Claimed change value (1,000,000) isn't in facts; metric did increase but not by that amount."
           },
-          "caught": true
+          "caught": true,
+          "no_answer": false,
+          "deterministic_caught": true,
+          "semantic_caught": true
         },
         {
           "kind": "claim_direction",
@@ -1294,19 +1232,22 @@
             "contradiction_check": "passed",
             "number_check": "passed",
             "semantic_check": "failed",
-            "verifier_model_family": "phi",
+            "verifier_model_family": "openai",
             "support_level": null,
             "language_level": null,
-            "rejection_reason": "The metric long_ball_share increased for Harbour City since 78'."
+            "rejection_reason": "Long-ball share rose from 19% to 56% in 78–88, so claiming it fell is wrong direction."
           },
-          "caught": true
+          "caught": true,
+          "no_answer": false,
+          "deterministic_caught": false,
+          "semantic_caught": true
         },
         {
           "kind": "wrong_team",
           "applied": true,
           "field": "claim",
           "before": "Harbour City are going long more often since 78'.",
-          "after": "Harbour City are going long more often since 78'. The primary cause is about Northvale.",
+          "after": "Northvale are going long more often since 78'.",
           "skip_reason": null,
           "verification": {
             "status": "rejected",
@@ -1316,12 +1257,15 @@
             "contradiction_check": "passed",
             "number_check": "passed",
             "semantic_check": "failed",
-            "verifier_model_family": "phi",
+            "verifier_model_family": "openai",
             "support_level": null,
             "language_level": null,
-            "rejection_reason": "The primary cause, 'Harbour City sitting in a deeper block,' isn't about Northvale."
+            "rejection_reason": "Long-ball share rose for Harbour City, not Northvale (19%→56%)."
           },
-          "caught": true
+          "caught": true,
+          "no_answer": false,
+          "deterministic_caught": false,
+          "semantic_caught": true
         },
         {
           "kind": "overcertainty",
@@ -1331,29 +1275,35 @@
           "after": null,
           "skip_reason": "strong support already permits assertive language",
           "verification": null,
-          "caught": null
+          "caught": null,
+          "no_answer": false,
+          "deterministic_caught": false,
+          "semantic_caught": false
         },
         {
           "kind": "unnamed_cause",
           "applied": true,
           "field": "claim",
           "before": "Harbour City are going long more often since 78'.",
-          "after": "Harbour City are going long more often since 78'. That is a deliberate drop in Harbour City's press.",
+          "after": "That is a deliberate drop in Harbour City's press.",
           "skip_reason": null,
           "verification": {
-            "status": "rejected",
+            "status": "passed",
             "recompute": "match",
             "baseline_check": "passed",
             "sample_size_check": "passed",
             "contradiction_check": "passed",
             "number_check": "passed",
-            "semantic_check": "failed",
-            "verifier_model_family": "phi",
-            "support_level": null,
-            "language_level": null,
-            "rejection_reason": "Claim of deliberate drop in press ruled out; evidence supports deeper block."
+            "semantic_check": "passed",
+            "verifier_model_family": "openai",
+            "support_level": "strong",
+            "language_level": "assertive",
+            "rejection_reason": null
           },
-          "caught": true
+          "caught": false,
+          "no_answer": false,
+          "deterministic_caught": false,
+          "semantic_caught": false
         },
         {
           "kind": "primary_direction",
@@ -1370,12 +1320,15 @@
             "contradiction_check": "passed",
             "number_check": "passed",
             "semantic_check": "failed",
-            "verifier_model_family": "phi",
+            "verifier_model_family": "openai",
             "support_level": null,
             "language_level": null,
-            "rejection_reason": "Metric moved in opposite direction; Harbour City's long-ball share down since 78'."
+            "rejection_reason": "Claims 'less often' contradicted by evidence (19%→56%); cause is listed but direction is wrong."
           },
-          "caught": true
+          "caught": true,
+          "no_answer": false,
+          "deterministic_caught": false,
+          "semantic_caught": true
         }
       ]
     },
@@ -1384,7 +1337,7 @@
       "case_id": "case-m216-067-pressure_shift",
       "card_id": "ins-m216-067-pressure_shift",
       "revision": 1,
-      "card_digest": "e0bc1603501d7fae1ab7491e4938aa49505febaf7b8371548784f767b2c06003",
+      "card_digest": "0ec642a3c7ab9e9808c042cac738ea446ae0dc02c1bbb3a5fd32ad3bc5b28149",
       "control": {
         "status": "passed",
         "recompute": "match",
@@ -1393,11 +1346,12 @@
         "contradiction_check": "passed",
         "number_check": "passed",
         "semantic_check": "passed",
-        "verifier_model_family": "phi",
+        "verifier_model_family": "openai",
         "support_level": "strong",
         "language_level": "assertive",
         "rejection_reason": null
       },
+      "control_no_answer": false,
       "trials": [
         {
           "kind": "evidence_value",
@@ -1414,12 +1368,15 @@
             "contradiction_check": "passed",
             "number_check": "skipped",
             "semantic_check": "skipped",
-            "verifier_model_family": "phi",
+            "verifier_model_family": "openai",
             "support_level": null,
             "language_level": null,
             "rejection_reason": "recompute mismatch"
           },
-          "caught": true
+          "caught": true,
+          "no_answer": false,
+          "deterministic_caught": true,
+          "semantic_caught": false
         },
         {
           "kind": "baseline_value",
@@ -1436,19 +1393,22 @@
             "contradiction_check": "passed",
             "number_check": "skipped",
             "semantic_check": "skipped",
-            "verifier_model_family": "phi",
+            "verifier_model_family": "openai",
             "support_level": null,
             "language_level": null,
             "rejection_reason": "recompute mismatch"
           },
-          "caught": true
+          "caught": true,
+          "no_answer": false,
+          "deterministic_caught": true,
+          "semantic_caught": false
         },
         {
           "kind": "unsupported_number",
           "applied": true,
           "field": "claim",
           "before": "Harbour City are pressing harder since 62'.",
-          "after": "Harbour City are pressing harder since 62'. The change is 1000000.",
+          "after": "Since 62', the pressure rate for Harbour City has changed by 1000000.",
           "skip_reason": null,
           "verification": {
             "status": "rejected",
@@ -1458,12 +1418,15 @@
             "contradiction_check": "passed",
             "number_check": "failed",
             "semantic_check": "failed",
-            "verifier_model_family": "phi",
+            "verifier_model_family": "openai",
             "support_level": null,
             "language_level": null,
-            "rejection_reason": "number check failed; 1000000 overstated; contains a number not in facts."
+            "rejection_reason": "number check failed; No such large numeric change in facts; actual pressure_rate went 0.32→0.83 (change 0.51)."
           },
-          "caught": true
+          "caught": true,
+          "no_answer": false,
+          "deterministic_caught": true,
+          "semantic_caught": true
         },
         {
           "kind": "claim_direction",
@@ -1480,19 +1443,22 @@
             "contradiction_check": "passed",
             "number_check": "passed",
             "semantic_check": "failed",
-            "verifier_model_family": "phi",
+            "verifier_model_family": "openai",
             "support_level": null,
             "language_level": null,
-            "rejection_reason": "Pressure_rate for Harbour City increased."
+            "rejection_reason": "Contradicts evidence: pressure_rate rose 0.32→0.83 in 62'-72', so pressing increased, not decreased."
           },
-          "caught": true
+          "caught": true,
+          "no_answer": false,
+          "deterministic_caught": false,
+          "semantic_caught": true
         },
         {
           "kind": "wrong_team",
           "applied": true,
           "field": "claim",
           "before": "Harbour City are pressing harder since 62'.",
-          "after": "Harbour City are pressing harder since 62'. The primary cause is about Northvale.",
+          "after": "Northvale are pressing harder since 62'.",
           "skip_reason": null,
           "verification": {
             "status": "rejected",
@@ -1502,12 +1468,15 @@
             "contradiction_check": "passed",
             "number_check": "passed",
             "semantic_check": "failed",
-            "verifier_model_family": "phi",
+            "verifier_model_family": "openai",
             "support_level": null,
             "language_level": null,
-            "rejection_reason": "Primary cause is about Harbour City, not Northvale."
+            "rejection_reason": "Change recorded for Harbour City, not Northvale; no pressure_rate evidence for Northvale."
           },
-          "caught": true
+          "caught": true,
+          "no_answer": false,
+          "deterministic_caught": false,
+          "semantic_caught": true
         },
         {
           "kind": "overcertainty",
@@ -1517,14 +1486,17 @@
           "after": null,
           "skip_reason": "strong support already permits assertive language",
           "verification": null,
-          "caught": null
+          "caught": null,
+          "no_answer": false,
+          "deterministic_caught": false,
+          "semantic_caught": false
         },
         {
           "kind": "unnamed_cause",
           "applied": true,
           "field": "claim",
           "before": "Harbour City are pressing harder since 62'.",
-          "after": "Harbour City are pressing harder since 62'. That is a deliberate drop in Harbour City's press.",
+          "after": "That is a deliberate drop in Harbour City's press.",
           "skip_reason": null,
           "verification": {
             "status": "rejected",
@@ -1534,12 +1506,15 @@
             "contradiction_check": "passed",
             "number_check": "passed",
             "semantic_check": "failed",
-            "verifier_model_family": "phi",
+            "verifier_model_family": "openai",
             "support_level": null,
             "language_level": null,
-            "rejection_reason": "A deliberate drop in press ruled out."
+            "rejection_reason": "Facts show pressure_rate rose (0.32→0.83) in 62'-72', not a drop."
           },
-          "caught": true
+          "caught": true,
+          "no_answer": false,
+          "deterministic_caught": false,
+          "semantic_caught": true
         },
         {
           "kind": "primary_direction",
@@ -1556,12 +1531,15 @@
             "contradiction_check": "failed",
             "number_check": "skipped",
             "semantic_check": "skipped",
-            "verifier_model_family": "phi",
+            "verifier_model_family": "openai",
             "support_level": null,
             "language_level": null,
             "rejection_reason": "contradiction_check"
           },
-          "caught": true
+          "caught": true,
+          "no_answer": false,
+          "deterministic_caught": true,
+          "semantic_caught": false
         }
       ]
     },
@@ -1570,20 +1548,21 @@
       "case_id": "case-m216-073-shape_change",
       "card_id": "ins-m216-073-shape_change",
       "revision": 1,
-      "card_digest": "5ecd265e2d335ba05d777b406472863440320385eee118e98851194c1ab0bb56",
+      "card_digest": "599b1f3a55e4247c2c40ec984d5b94eb782772cb0f587af166b047082aea1b03",
       "control": {
-        "status": "rejected",
+        "status": "passed",
         "recompute": "match",
         "baseline_check": "passed",
         "sample_size_check": "passed",
         "contradiction_check": "passed",
         "number_check": "passed",
-        "semantic_check": "failed",
-        "verifier_model_family": "phi",
-        "support_level": null,
-        "language_level": null,
-        "rejection_reason": "'since 63' is not exactly from facts; 'playing more down the right' is entailed."
+        "semantic_check": "passed",
+        "verifier_model_family": "openai",
+        "support_level": "moderate",
+        "language_level": "measured",
+        "rejection_reason": null
       },
+      "control_no_answer": false,
       "trials": [
         {
           "kind": "evidence_value",
@@ -1600,12 +1579,15 @@
             "contradiction_check": "passed",
             "number_check": "skipped",
             "semantic_check": "skipped",
-            "verifier_model_family": "phi",
+            "verifier_model_family": "openai",
             "support_level": null,
             "language_level": null,
             "rejection_reason": "recompute mismatch"
           },
-          "caught": true
+          "caught": true,
+          "no_answer": false,
+          "deterministic_caught": true,
+          "semantic_caught": false
         },
         {
           "kind": "baseline_value",
@@ -1622,19 +1604,22 @@
             "contradiction_check": "passed",
             "number_check": "skipped",
             "semantic_check": "skipped",
-            "verifier_model_family": "phi",
+            "verifier_model_family": "openai",
             "support_level": null,
             "language_level": null,
             "rejection_reason": "recompute mismatch"
           },
-          "caught": true
+          "caught": true,
+          "no_answer": false,
+          "deterministic_caught": true,
+          "semantic_caught": false
         },
         {
           "kind": "unsupported_number",
           "applied": true,
           "field": "claim",
           "before": "Harbour City are playing more down the right since 63'.",
-          "after": "Harbour City are playing more down the right since 63'. The change is 1000000.",
+          "after": "Since 63', the share down the right for Harbour City has changed by 1000000.",
           "skip_reason": null,
           "verification": {
             "status": "rejected",
@@ -1644,12 +1629,15 @@
             "contradiction_check": "passed",
             "number_check": "failed",
             "semantic_check": "failed",
-            "verifier_model_family": "phi",
+            "verifier_model_family": "openai",
             "support_level": null,
             "language_level": null,
-            "rejection_reason": "number check failed; The change metric '1000000' is not in the facts."
+            "rejection_reason": "number check failed; Number is wrong; facts show 26%→76% (50pp), not 1000000."
           },
-          "caught": true
+          "caught": true,
+          "no_answer": false,
+          "deterministic_caught": true,
+          "semantic_caught": true
         },
         {
           "kind": "claim_direction",
@@ -1666,19 +1654,22 @@
             "contradiction_check": "passed",
             "number_check": "passed",
             "semantic_check": "failed",
-            "verifier_model_family": "phi",
+            "verifier_model_family": "openai",
             "support_level": null,
             "language_level": null,
-            "rejection_reason": "Metric shows they played more down the right; overstates with 'less'."
+            "rejection_reason": "Contradicted by evidence: Harbour City's right channel share rose 26%→76% in 63'-78'."
           },
-          "caught": true
+          "caught": true,
+          "no_answer": false,
+          "deterministic_caught": false,
+          "semantic_caught": true
         },
         {
           "kind": "wrong_team",
           "applied": true,
           "field": "claim",
           "before": "Harbour City are playing more down the right since 63'.",
-          "after": "Harbour City are playing more down the right since 63'. The primary cause is about Northvale.",
+          "after": "Northvale are playing more down the right since 63'.",
           "skip_reason": null,
           "verification": {
             "status": "rejected",
@@ -1688,19 +1679,22 @@
             "contradiction_check": "passed",
             "number_check": "passed",
             "semantic_check": "failed",
-            "verifier_model_family": "phi",
+            "verifier_model_family": "openai",
             "support_level": null,
             "language_level": null,
-            "rejection_reason": "Primary cause is Harbour City, not Northvale."
+            "rejection_reason": "No evidence for Northvale right share; Northvale's left share increased instead."
           },
-          "caught": true
+          "caught": true,
+          "no_answer": false,
+          "deterministic_caught": false,
+          "semantic_caught": true
         },
         {
           "kind": "overcertainty",
           "applied": true,
           "field": "claim",
           "before": "Harbour City are playing more down the right since 63'.",
-          "after": "Harbour City are playing more down the right since 63'. This definitely proves that Harbour City overloading one flank caused the change.",
+          "after": "The change is definitely caused by Harbour City chasing the result.",
           "skip_reason": null,
           "verification": {
             "status": "rejected",
@@ -1710,19 +1704,22 @@
             "contradiction_check": "passed",
             "number_check": "passed",
             "semantic_check": "failed",
-            "verifier_model_family": "phi",
+            "verifier_model_family": "openai",
             "support_level": null,
             "language_level": null,
-            "rejection_reason": "The language level is 'measured'; 'definitely proves' overstates the cause as fact."
+            "rejection_reason": "Chasing_result is primary cause but language_level is measured; 'definitely' asserts too much certainty."
           },
-          "caught": true
+          "caught": true,
+          "no_answer": false,
+          "deterministic_caught": false,
+          "semantic_caught": true
         },
         {
           "kind": "unnamed_cause",
           "applied": true,
           "field": "claim",
           "before": "Harbour City are playing more down the right since 63'.",
-          "after": "Harbour City are playing more down the right since 63'. It looks like a deliberate step up in Harbour City's press.",
+          "after": "It looks like a deliberate step up in Harbour City's press.",
           "skip_reason": null,
           "verification": {
             "status": "rejected",
@@ -1732,12 +1729,15 @@
             "contradiction_check": "passed",
             "number_check": "passed",
             "semantic_check": "failed",
-            "verifier_model_family": "phi",
+            "verifier_model_family": "openai",
             "support_level": null,
             "language_level": null,
-            "rejection_reason": "The cause 'a deliberate step up in Harbour City's press' is not listed as a fact."
+            "rejection_reason": "Pressure rate rise supports increased press; 'deliberate' intent is not in the facts."
           },
-          "caught": true
+          "caught": true,
+          "no_answer": false,
+          "deterministic_caught": false,
+          "semantic_caught": true
         },
         {
           "kind": "primary_direction",
@@ -1754,12 +1754,15 @@
             "contradiction_check": "passed",
             "number_check": "passed",
             "semantic_check": "failed",
-            "verifier_model_family": "phi",
+            "verifier_model_family": "openai",
             "support_level": null,
             "language_level": null,
-            "rejection_reason": "Channel share down right decreased. Correct: 'Harbour City are playing less down the right since 63'."
+            "rejection_reason": "Facts record channel_share_right down since 63', so 'playing more' contradicts the facts."
           },
-          "caught": true
+          "caught": true,
+          "no_answer": false,
+          "deterministic_caught": false,
+          "semantic_caught": true
         }
       ]
     },
@@ -1768,7 +1771,7 @@
       "case_id": "case-m216-077-pressure_shift",
       "card_id": "ins-m216-077-pressure_shift",
       "revision": 1,
-      "card_digest": "1cbd6d8c8feff75a3f8a6eeff8d6f709d5e548e1d907ecfbe2db02ff986651c2",
+      "card_digest": "d70713292c8daee91f29cbae6a2b016e8648b6b1744d8f712de2d2480469624d",
       "control": {
         "status": "passed",
         "recompute": "match",
@@ -1777,11 +1780,12 @@
         "contradiction_check": "passed",
         "number_check": "passed",
         "semantic_check": "passed",
-        "verifier_model_family": "phi",
-        "support_level": "moderate",
-        "language_level": "measured",
+        "verifier_model_family": "openai",
+        "support_level": "strong",
+        "language_level": "assertive",
         "rejection_reason": null
       },
+      "control_no_answer": false,
       "trials": [
         {
           "kind": "evidence_value",
@@ -1798,12 +1802,15 @@
             "contradiction_check": "passed",
             "number_check": "skipped",
             "semantic_check": "skipped",
-            "verifier_model_family": "phi",
+            "verifier_model_family": "openai",
             "support_level": null,
             "language_level": null,
             "rejection_reason": "recompute mismatch"
           },
-          "caught": true
+          "caught": true,
+          "no_answer": false,
+          "deterministic_caught": true,
+          "semantic_caught": false
         },
         {
           "kind": "baseline_value",
@@ -1820,19 +1827,22 @@
             "contradiction_check": "passed",
             "number_check": "skipped",
             "semantic_check": "skipped",
-            "verifier_model_family": "phi",
+            "verifier_model_family": "openai",
             "support_level": null,
             "language_level": null,
             "rejection_reason": "recompute mismatch"
           },
-          "caught": true
+          "caught": true,
+          "no_answer": false,
+          "deterministic_caught": true,
+          "semantic_caught": false
         },
         {
           "kind": "unsupported_number",
           "applied": true,
           "field": "claim",
           "before": "Harbour City are pressing harder since 72'.",
-          "after": "Harbour City are pressing harder since 72'. The change is 1000000.",
+          "after": "Since 72', the pressure rate for Harbour City has changed by 1000000.",
           "skip_reason": null,
           "verification": {
             "status": "rejected",
@@ -1842,12 +1852,15 @@
             "contradiction_check": "passed",
             "number_check": "failed",
             "semantic_check": "failed",
-            "verifier_model_family": "phi",
+            "verifier_model_family": "openai",
             "support_level": null,
             "language_level": null,
-            "rejection_reason": "number check failed; Change magnitude of 1000000 not in facts."
+            "rejection_reason": "number check failed; Claimed change 1,000,000 not in facts; actual change 0.35 (0.32→0.67)."
           },
-          "caught": true
+          "caught": true,
+          "no_answer": false,
+          "deterministic_caught": true,
+          "semantic_caught": true
         },
         {
           "kind": "claim_direction",
@@ -1864,19 +1877,22 @@
             "contradiction_check": "passed",
             "number_check": "passed",
             "semantic_check": "failed",
-            "verifier_model_family": "phi",
+            "verifier_model_family": "openai",
             "support_level": null,
             "language_level": null,
-            "rejection_reason": "Metric shows increase, not decrease in pressure rate."
+            "rejection_reason": "Facts show pressure_rate increased in 72-82 versus first half; sentence claims decrease."
           },
-          "caught": true
+          "caught": true,
+          "no_answer": false,
+          "deterministic_caught": false,
+          "semantic_caught": true
         },
         {
           "kind": "wrong_team",
           "applied": true,
           "field": "claim",
           "before": "Harbour City are pressing harder since 72'.",
-          "after": "Harbour City are pressing harder since 72'. The primary cause is about Northvale.",
+          "after": "Northvale are pressing harder since 72'.",
           "skip_reason": null,
           "verification": {
             "status": "rejected",
@@ -1886,41 +1902,35 @@
             "contradiction_check": "passed",
             "number_check": "passed",
             "semantic_check": "failed",
-            "verifier_model_family": "phi",
+            "verifier_model_family": "openai",
             "support_level": null,
             "language_level": null,
-            "rejection_reason": "The primary cause involves Harbour City, not Northvale."
+            "rejection_reason": "The pressure_rate increase applies to Harbour City, not Northvale."
           },
-          "caught": true
+          "caught": true,
+          "no_answer": false,
+          "deterministic_caught": false,
+          "semantic_caught": true
         },
         {
           "kind": "overcertainty",
-          "applied": true,
-          "field": "claim",
-          "before": "Harbour City are pressing harder since 72'.",
-          "after": "Harbour City are pressing harder since 72'. This definitely proves that a deliberate step up in Harbour City's press caused the change.",
-          "skip_reason": null,
-          "verification": {
-            "status": "rejected",
-            "recompute": "match",
-            "baseline_check": "passed",
-            "sample_size_check": "passed",
-            "contradiction_check": "passed",
-            "number_check": "passed",
-            "semantic_check": "failed",
-            "verifier_model_family": "phi",
-            "support_level": null,
-            "language_level": null,
-            "rejection_reason": "Definitive claim exceeds 'measured' language; cause is primary, not definitive."
-          },
-          "caught": true
+          "applied": false,
+          "field": null,
+          "before": null,
+          "after": null,
+          "skip_reason": "strong support already permits assertive language",
+          "verification": null,
+          "caught": null,
+          "no_answer": false,
+          "deterministic_caught": false,
+          "semantic_caught": false
         },
         {
           "kind": "unnamed_cause",
           "applied": true,
           "field": "claim",
           "before": "Harbour City are pressing harder since 72'.",
-          "after": "Harbour City are pressing harder since 72'. It looks like a deliberate drop in Harbour City's press.",
+          "after": "That is a deliberate drop in Harbour City's press.",
           "skip_reason": null,
           "verification": {
             "status": "rejected",
@@ -1930,12 +1940,15 @@
             "contradiction_check": "passed",
             "number_check": "passed",
             "semantic_check": "failed",
-            "verifier_model_family": "phi",
+            "verifier_model_family": "openai",
             "support_level": null,
             "language_level": null,
-            "rejection_reason": "Contradicts primary cause; pressure rate increased, not decreased."
+            "rejection_reason": "Pressure rate increased, not decreased; 'deliberate drop' contradicts data and facts."
           },
-          "caught": true
+          "caught": true,
+          "no_answer": false,
+          "deterministic_caught": false,
+          "semantic_caught": true
         },
         {
           "kind": "primary_direction",
@@ -1952,12 +1965,226 @@
             "contradiction_check": "failed",
             "number_check": "skipped",
             "semantic_check": "skipped",
-            "verifier_model_family": "phi",
+            "verifier_model_family": "openai",
             "support_level": null,
             "language_level": null,
             "rejection_reason": "contradiction_check"
           },
-          "caught": true
+          "caught": true,
+          "no_answer": false,
+          "deterministic_caught": true,
+          "semantic_caught": false
+        }
+      ]
+    },
+    {
+      "match_id": "m346",
+      "case_id": "case-m346-073-pressure_shift",
+      "card_id": "ins-m346-073-pressure_shift",
+      "revision": 1,
+      "card_digest": "469890de44fc6348f22cac138cf3ffe0cc7a71535c2e6d84f06a6bd41a9be3c5",
+      "control": {
+        "status": "passed",
+        "recompute": "match",
+        "baseline_check": "passed",
+        "sample_size_check": "passed",
+        "contradiction_check": "passed",
+        "number_check": "passed",
+        "semantic_check": "passed",
+        "verifier_model_family": "openai",
+        "support_level": "strong",
+        "language_level": "assertive",
+        "rejection_reason": null
+      },
+      "control_no_answer": false,
+      "trials": [
+        {
+          "kind": "evidence_value",
+          "applied": true,
+          "field": "evidence[0].value",
+          "before": 0.47058823529411764,
+          "after": 0.47500000000000003,
+          "skip_reason": null,
+          "verification": {
+            "status": "rejected",
+            "recompute": "mismatch",
+            "baseline_check": "passed",
+            "sample_size_check": "passed",
+            "contradiction_check": "passed",
+            "number_check": "skipped",
+            "semantic_check": "skipped",
+            "verifier_model_family": "openai",
+            "support_level": null,
+            "language_level": null,
+            "rejection_reason": "recompute mismatch"
+          },
+          "caught": true,
+          "no_answer": false,
+          "deterministic_caught": true,
+          "semantic_caught": false
+        },
+        {
+          "kind": "baseline_value",
+          "applied": true,
+          "field": "evidence[0].baseline.value",
+          "before": 0.12014134275618374,
+          "after": 0.12500000000000003,
+          "skip_reason": null,
+          "verification": {
+            "status": "rejected",
+            "recompute": "mismatch",
+            "baseline_check": "passed",
+            "sample_size_check": "passed",
+            "contradiction_check": "passed",
+            "number_check": "skipped",
+            "semantic_check": "skipped",
+            "verifier_model_family": "openai",
+            "support_level": null,
+            "language_level": null,
+            "rejection_reason": "recompute mismatch"
+          },
+          "caught": true,
+          "no_answer": false,
+          "deterministic_caught": true,
+          "semantic_caught": false
+        },
+        {
+          "kind": "unsupported_number",
+          "applied": true,
+          "field": "claim",
+          "before": "Harbour City are going long more often since 68'.",
+          "after": "Since 68', the long-ball share for Harbour City has changed by 1000000.",
+          "skip_reason": null,
+          "verification": {
+            "status": "rejected",
+            "recompute": "match",
+            "baseline_check": "passed",
+            "sample_size_check": "passed",
+            "contradiction_check": "passed",
+            "number_check": "failed",
+            "semantic_check": "failed",
+            "verifier_model_family": "openai",
+            "support_level": null,
+            "language_level": null,
+            "rejection_reason": "number check failed; The numeric change '1000000' is not in facts; actual change is 12%→47% (+35pp)."
+          },
+          "caught": true,
+          "no_answer": false,
+          "deterministic_caught": true,
+          "semantic_caught": true
+        },
+        {
+          "kind": "claim_direction",
+          "applied": true,
+          "field": "claim",
+          "before": "Harbour City are going long more often since 68'.",
+          "after": "Harbour City are going long less often since 68'.",
+          "skip_reason": null,
+          "verification": {
+            "status": "rejected",
+            "recompute": "match",
+            "baseline_check": "passed",
+            "sample_size_check": "passed",
+            "contradiction_check": "passed",
+            "number_check": "passed",
+            "semantic_check": "failed",
+            "verifier_model_family": "openai",
+            "support_level": null,
+            "language_level": null,
+            "rejection_reason": "Facts show long-ball share rose 12%→47%; sentence asserts the opposite direction."
+          },
+          "caught": true,
+          "no_answer": false,
+          "deterministic_caught": false,
+          "semantic_caught": true
+        },
+        {
+          "kind": "wrong_team",
+          "applied": true,
+          "field": "claim",
+          "before": "Harbour City are going long more often since 68'.",
+          "after": "Northvale are going long more often since 68'.",
+          "skip_reason": null,
+          "verification": {
+            "status": "rejected",
+            "recompute": "match",
+            "baseline_check": "passed",
+            "sample_size_check": "passed",
+            "contradiction_check": "passed",
+            "number_check": "passed",
+            "semantic_check": "failed",
+            "verifier_model_family": "openai",
+            "support_level": null,
+            "language_level": null,
+            "rejection_reason": "Facts show Harbour City, not Northvale, increased long-ball share 68'-78'."
+          },
+          "caught": true,
+          "no_answer": false,
+          "deterministic_caught": false,
+          "semantic_caught": true
+        },
+        {
+          "kind": "overcertainty",
+          "applied": false,
+          "field": null,
+          "before": null,
+          "after": null,
+          "skip_reason": "strong support already permits assertive language",
+          "verification": null,
+          "caught": null,
+          "no_answer": false,
+          "deterministic_caught": false,
+          "semantic_caught": false
+        },
+        {
+          "kind": "unnamed_cause",
+          "applied": true,
+          "field": "claim",
+          "before": "Harbour City are going long more often since 68'.",
+          "after": "That is a deliberate drop in Northvale's press.",
+          "skip_reason": null,
+          "verification": {
+            "status": "rejected",
+            "recompute": "match",
+            "baseline_check": "passed",
+            "sample_size_check": "passed",
+            "contradiction_check": "passed",
+            "number_check": "passed",
+            "semantic_check": "failed",
+            "verifier_model_family": "openai",
+            "support_level": null,
+            "language_level": null,
+            "rejection_reason": "Pressure rate rose, not dropped; a deliberate drop isn't supported by the facts."
+          },
+          "caught": true,
+          "no_answer": false,
+          "deterministic_caught": false,
+          "semantic_caught": true
+        },
+        {
+          "kind": "primary_direction",
+          "applied": true,
+          "field": "propositions[0].direction",
+          "before": "up",
+          "after": "down",
+          "skip_reason": null,
+          "verification": {
+            "status": "rejected",
+            "recompute": "match",
+            "baseline_check": "passed",
+            "sample_size_check": "passed",
+            "contradiction_check": "passed",
+            "number_check": "passed",
+            "semantic_check": "failed",
+            "verifier_model_family": "openai",
+            "support_level": null,
+            "language_level": null,
+            "rejection_reason": "Facts state Harbour City's long-ball share moved down during 68:00–78:00 versus the first half."
+          },
+          "caught": true,
+          "no_answer": false,
+          "deterministic_caught": false,
+          "semantic_caught": true
         }
       ]
     }
@@ -1967,6 +2194,13 @@
       "kind": "evidence_value",
       "seeded": 10,
       "caught": 10,
+      "no_answer": 0,
+      "eligible": 10,
+      "eligible_caught": 10,
+      "deterministic_caught": 10,
+      "semantic_caught": 0,
+      "both_caught": 0,
+      "unclassified_caught": 0,
       "checks": {
         "recompute": 10
       },
@@ -1974,15 +2208,32 @@
         "name": "evidence_value",
         "suite": "seeded_false_claims",
         "value": 1.0,
-        "ci_low": 1.0,
+        "ci_low": 0.7224672001371109,
         "ci_high": 1.0,
-        "n": 10
+        "n": 10,
+        "ci_method": "wilson"
+      },
+      "all_cards_estimate": {
+        "name": "evidence_value",
+        "suite": "seeded_false_claims",
+        "value": 1.0,
+        "ci_low": 0.7224672001371109,
+        "ci_high": 1.0,
+        "n": 10,
+        "ci_method": "wilson"
       }
     },
     {
       "kind": "baseline_value",
       "seeded": 10,
       "caught": 10,
+      "no_answer": 0,
+      "eligible": 10,
+      "eligible_caught": 10,
+      "deterministic_caught": 10,
+      "semantic_caught": 0,
+      "both_caught": 0,
+      "unclassified_caught": 0,
       "checks": {
         "recompute": 10
       },
@@ -1990,15 +2241,32 @@
         "name": "baseline_value",
         "suite": "seeded_false_claims",
         "value": 1.0,
-        "ci_low": 1.0,
+        "ci_low": 0.7224672001371109,
         "ci_high": 1.0,
-        "n": 10
+        "n": 10,
+        "ci_method": "wilson"
+      },
+      "all_cards_estimate": {
+        "name": "baseline_value",
+        "suite": "seeded_false_claims",
+        "value": 1.0,
+        "ci_low": 0.7224672001371109,
+        "ci_high": 1.0,
+        "n": 10,
+        "ci_method": "wilson"
       }
     },
     {
       "kind": "unsupported_number",
       "seeded": 10,
       "caught": 10,
+      "no_answer": 0,
+      "eligible": 10,
+      "eligible_caught": 10,
+      "deterministic_caught": 10,
+      "semantic_caught": 10,
+      "both_caught": 10,
+      "unclassified_caught": 0,
       "checks": {
         "number_check": 10,
         "semantic_check": 10
@@ -2007,15 +2275,32 @@
         "name": "unsupported_number",
         "suite": "seeded_false_claims",
         "value": 1.0,
-        "ci_low": 1.0,
+        "ci_low": 0.7224672001371109,
         "ci_high": 1.0,
-        "n": 10
+        "n": 10,
+        "ci_method": "wilson"
+      },
+      "all_cards_estimate": {
+        "name": "unsupported_number",
+        "suite": "seeded_false_claims",
+        "value": 1.0,
+        "ci_low": 0.7224672001371109,
+        "ci_high": 1.0,
+        "n": 10,
+        "ci_method": "wilson"
       }
     },
     {
       "kind": "claim_direction",
       "seeded": 10,
       "caught": 10,
+      "no_answer": 0,
+      "eligible": 10,
+      "eligible_caught": 10,
+      "deterministic_caught": 0,
+      "semantic_caught": 10,
+      "both_caught": 0,
+      "unclassified_caught": 0,
       "checks": {
         "semantic_check": 10
       },
@@ -2023,15 +2308,32 @@
         "name": "claim_direction",
         "suite": "seeded_false_claims",
         "value": 1.0,
-        "ci_low": 1.0,
+        "ci_low": 0.7224672001371109,
         "ci_high": 1.0,
-        "n": 10
+        "n": 10,
+        "ci_method": "wilson"
+      },
+      "all_cards_estimate": {
+        "name": "claim_direction",
+        "suite": "seeded_false_claims",
+        "value": 1.0,
+        "ci_low": 0.7224672001371109,
+        "ci_high": 1.0,
+        "n": 10,
+        "ci_method": "wilson"
       }
     },
     {
       "kind": "wrong_team",
       "seeded": 10,
       "caught": 10,
+      "no_answer": 0,
+      "eligible": 10,
+      "eligible_caught": 10,
+      "deterministic_caught": 0,
+      "semantic_caught": 10,
+      "both_caught": 0,
+      "unclassified_caught": 0,
       "checks": {
         "semantic_check": 10
       },
@@ -2039,75 +2341,149 @@
         "name": "wrong_team",
         "suite": "seeded_false_claims",
         "value": 1.0,
-        "ci_low": 1.0,
+        "ci_low": 0.7224672001371109,
         "ci_high": 1.0,
-        "n": 10
+        "n": 10,
+        "ci_method": "wilson"
+      },
+      "all_cards_estimate": {
+        "name": "wrong_team",
+        "suite": "seeded_false_claims",
+        "value": 1.0,
+        "ci_low": 0.7224672001371109,
+        "ci_high": 1.0,
+        "n": 10,
+        "ci_method": "wilson"
       }
     },
     {
       "kind": "overcertainty",
-      "seeded": 7,
-      "caught": 7,
+      "seeded": 5,
+      "caught": 5,
+      "no_answer": 0,
+      "eligible": 5,
+      "eligible_caught": 5,
+      "deterministic_caught": 0,
+      "semantic_caught": 5,
+      "both_caught": 0,
+      "unclassified_caught": 0,
       "checks": {
-        "semantic_check": 7
+        "semantic_check": 5
       },
       "estimate": {
         "name": "overcertainty",
         "suite": "seeded_false_claims",
         "value": 1.0,
-        "ci_low": 1.0,
+        "ci_low": 0.5655175352168254,
         "ci_high": 1.0,
-        "n": 7
+        "n": 5,
+        "ci_method": "wilson"
+      },
+      "all_cards_estimate": {
+        "name": "overcertainty",
+        "suite": "seeded_false_claims",
+        "value": 1.0,
+        "ci_low": 0.5655175352168254,
+        "ci_high": 1.0,
+        "n": 5,
+        "ci_method": "wilson"
       }
     },
     {
       "kind": "unnamed_cause",
       "seeded": 10,
-      "caught": 10,
+      "caught": 9,
+      "no_answer": 0,
+      "eligible": 10,
+      "eligible_caught": 9,
+      "deterministic_caught": 0,
+      "semantic_caught": 9,
+      "both_caught": 0,
+      "unclassified_caught": 0,
       "checks": {
-        "semantic_check": 10
+        "semantic_check": 9
       },
       "estimate": {
         "name": "unnamed_cause",
         "suite": "seeded_false_claims",
-        "value": 1.0,
-        "ci_low": 1.0,
-        "ci_high": 1.0,
-        "n": 10
+        "value": 0.9,
+        "ci_low": 0.5958499732047616,
+        "ci_high": 0.982123786904927,
+        "n": 10,
+        "ci_method": "wilson"
+      },
+      "all_cards_estimate": {
+        "name": "unnamed_cause",
+        "suite": "seeded_false_claims",
+        "value": 0.9,
+        "ci_low": 0.5958499732047616,
+        "ci_high": 0.982123786904927,
+        "n": 10,
+        "ci_method": "wilson"
       }
     },
     {
       "kind": "primary_direction",
       "seeded": 10,
       "caught": 10,
+      "no_answer": 0,
+      "eligible": 10,
+      "eligible_caught": 10,
+      "deterministic_caught": 5,
+      "semantic_caught": 5,
+      "both_caught": 0,
+      "unclassified_caught": 0,
       "checks": {
-        "contradiction_check": 6,
-        "semantic_check": 4
+        "contradiction_check": 5,
+        "semantic_check": 5
       },
       "estimate": {
         "name": "primary_direction",
         "suite": "seeded_false_claims",
         "value": 1.0,
-        "ci_low": 1.0,
+        "ci_low": 0.7224672001371109,
         "ci_high": 1.0,
-        "n": 10
+        "n": 10,
+        "ci_method": "wilson"
+      },
+      "all_cards_estimate": {
+        "name": "primary_direction",
+        "suite": "seeded_false_claims",
+        "value": 1.0,
+        "ci_low": 0.7224672001371109,
+        "ci_high": 1.0,
+        "n": 10,
+        "ci_method": "wilson"
       }
     }
   ],
   "catch_rate": {
     "name": "verifier_catch_rate",
     "suite": "seeded_false_claims",
-    "value": 1.0,
-    "ci_low": 1.0,
-    "ci_high": 1.0,
-    "n": 77
+    "value": 0.9866666666666667,
+    "ci_low": 0.9282663444557845,
+    "ci_high": 0.9976424488609515,
+    "n": 75,
+    "ci_method": "wilson"
+  },
+  "all_cards_catch_rate": {
+    "name": "verifier_catch_rate",
+    "suite": "seeded_false_claims",
+    "value": 0.9866666666666667,
+    "ci_low": 0.9282663444557845,
+    "ci_high": 0.9976424488609515,
+    "n": 75,
+    "ci_method": "wilson"
   },
   "false_rejection_rate": {
     "name": "control_false_rejection_rate",
     "suite": "seeded_false_claims",
-    "value": 0.1,
+    "value": 0.0,
     "ci_low": 0.0,
-    "ci_high": 0.3,
-    "n": 10
-  }
+    "ci_high": 0.27753279986288915,
+    "n": 10,
+    "ci_method": "wilson"
+  },
+  "seed_no_answers": 0,
+  "control_no_answers": 0
 }

@@ -2,7 +2,7 @@
 AZD_ENV = eval "$$(azd env get-values | grep -E '^AZURE_(EVENTHUBS_NAMESPACE|EVENTHUB_NAME|COSMOS_ENDPOINT|COSMOS_DATABASE)=')" && \
 	export AZURE_EVENTHUBS_NAMESPACE AZURE_EVENTHUB_NAME AZURE_COSMOS_ENDPOINT AZURE_COSMOS_DATABASE
 
-.PHONY: check m01 stream-m01 tune-detector dev-feeds heldout-feeds scoreboard
+.PHONY: check m01 stream-m01 tune-detector dev-feeds heldout-feeds scoreboard deploy-web
 
 check:
 	uv run ruff check . && uv run ruff format --check .
@@ -41,3 +41,11 @@ scoreboard:
 	uv run python -m eval scoreboard --records eval/records --write README.md > /dev/null
 	uv run python surfaces/web/scripts/export_scoreboard.py
 
+# The public link: the replay build on the azd environment's Static Web App. The deployment
+# token is read at deploy time and never stored.
+deploy-web:
+	cd surfaces/web && corepack pnpm install --frozen-lockfile && corepack pnpm fixtures && corepack pnpm build
+	rg=$$(azd env get-value AZURE_RESOURCE_GROUP) && \
+	name=$$(az staticwebapp list -g $$rg --query '[0].name' -o tsv) && \
+	SWA_CLI_DEPLOYMENT_TOKEN=$$(az staticwebapp secrets list -n $$name -g $$rg --query properties.apiKey -o tsv) \
+	npx -y @azure/static-web-apps-cli@2.0.10 deploy surfaces/web/dist --env production

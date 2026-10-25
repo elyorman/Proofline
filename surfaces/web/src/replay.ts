@@ -46,6 +46,48 @@ export function formatClock(clock: MatchClock): string {
   return `${minutes}:${String(clock.second).padStart(2, '0')}`;
 }
 
+/** Reads the clock's text forms: "70:00", "45+2:10", "90+3" or a bare minute, "63". */
+export function parseClock(text: string): MatchClock | undefined {
+  const m = /^(\d{1,3})(?:\+(\d{1,2}))?(?::(\d{2}))?$/.exec(text.trim());
+  if (!m) return undefined;
+  const base = Number(m[1]);
+  const second = m[3] === undefined ? 0 : Number(m[3]);
+  if (second > 59) return undefined;
+  if (m[2] !== undefined) {
+    if (base !== 45 && base !== 90) return undefined;
+    return { period: base === 45 ? 1 : 2, minute: base + Number(m[2]), second };
+  }
+  return base > 130 ? undefined : { period: base < 45 ? 1 : 2, minute: base, second };
+}
+
+export type Route = 'fan' | 'analyst' | 'broadcast' | 'overlay';
+export interface Link { route: Route; clock?: MatchClock; locale?: 'en' | 'es' }
+
+/** A deep link: `#/analyst?t=68:00&lang=en`. Unknown routes open the fan view. */
+export function parseLink(hash: string): Link {
+  const [path, query = ''] = hash.replace(/^#\/?/, '').split('?');
+  const route = (['analyst', 'broadcast', 'overlay'] as const).find(name => name === path) ?? 'fan';
+  const params = new URLSearchParams(query);
+  const lang = params.get('lang');
+  const t = params.get('t');
+  return {
+    route,
+    ...(t && parseClock(t) ? { clock: parseClock(t) } : {}),
+    ...(lang === 'en' || lang === 'es' ? { locale: lang } : {}),
+  };
+}
+
+/** Where a linked clock lands in this replay: a first-half clock never spills past half-time. */
+export function linkedElapsed(clock: MatchClock, timeline: Timeline): number {
+  const at = elapsedAt(clock, timeline.firstHalfSeconds);
+  return Math.max(0, Math.min(clock.period === 1 ? timeline.firstHalfSeconds : timeline.duration, at));
+}
+
+/** Items already known at `elapsed`: the replay never shows a value before its clock. */
+export function knownAt<T extends { at: MatchClock }>(items: T[], elapsed: number, firstHalfSeconds: number): T[] {
+  return items.filter(item => elapsedAt(item.at, firstHalfSeconds) <= elapsed);
+}
+
 export function scoreAt(timeline: Timeline, elapsed: number, teams: string[]): number[] {
   return teams.map(team => timeline.events.filter(({ event, at }) =>
     at <= elapsed && event.type === 'goal' && event.team === team).length);
@@ -81,6 +123,12 @@ export function visibleCards(cards: InsightCard[], elapsed: number, firstHalfSec
   }
   return [...latest.values()].sort((a, b) =>
     firstDisplay.get(b.id)! - firstDisplay.get(a.id)!);
+}
+
+/** The card whose current revision was shown most recently; ties keep `visibleCards` order. */
+export function latestCard(cards: InsightCard[], firstHalfSeconds: number): InsightCard | undefined {
+  return cards.reduce<InsightCard | undefined>((best, card) => !best
+    || displayElapsed(card, firstHalfSeconds) > displayElapsed(best, firstHalfSeconds) ? card : best, undefined);
 }
 
 const DEAD_BALL = new Set(['goal', 'foul', 'set_piece', 'substitution']);

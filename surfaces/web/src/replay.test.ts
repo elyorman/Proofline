@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { activityAt, applyDecisions, buildTimeline, clockAt, displayTime, elapsedAt, formatClock, scoreAt, teamStats, variantText, visibleCards, visibleCues, pitchPoint } from './replay';
+import { activityAt, applyDecisions, buildTimeline, clockAt, displayTime, elapsedAt, formatClock, knownAt, latestCard, linkedElapsed, parseClock, parseLink, scoreAt, teamStats, variantText, visibleCards, visibleCues, pitchPoint } from './replay';
 import { cards, cues } from './fixtures';
 import { catalogs, metricNumber, t } from './i18n';
 import type { Event } from './types/event';
@@ -160,5 +160,42 @@ describe('catalogs and metric formatting', () => {
       expect(Object.hasOwn(catalogs.en, `metric.${metric}`)).toBe(true);
       expect(Object.hasOwn(catalogs.es, `metric.${metric}`)).toBe(true);
     }
+  });
+});
+
+describe('deep links', () => {
+  it('reads every clock form the match uses', () => {
+    expect(parseClock('70:00')).toEqual({ period: 2, minute: 70, second: 0 });
+    expect(parseClock('45+2:10')).toEqual({ period: 1, minute: 47, second: 10 });
+    expect(parseClock('90+3')).toEqual({ period: 2, minute: 93, second: 0 });
+    expect(parseClock(' 12:05 ')).toEqual({ period: 1, minute: 12, second: 5 });
+    for (const bad of ['', 'abc', '12:75', '50+1:00', '70:0', '200']) expect(parseClock(bad)).toBeUndefined();
+  });
+  it('opens a route at a clock and language, and ignores what it cannot read', () => {
+    expect(parseLink('#/analyst?t=68:00&lang=en')).toEqual({ route: 'analyst', clock: { period: 2, minute: 68, second: 0 }, locale: 'en' });
+    expect(parseLink('#/fan?t=70:00')).toEqual({ route: 'fan', clock: { period: 2, minute: 70, second: 0 } });
+    expect(parseLink('#/overlay')).toEqual({ route: 'overlay' });
+    expect(parseLink('')).toEqual({ route: 'fan' });
+    expect(parseLink('#/nowhere?t=soon&lang=fr')).toEqual({ route: 'fan' });
+  });
+  it('lands a linked clock inside the replay', () => {
+    const timeline = timelineWithEnds([]);
+    expect(linkedElapsed({ period: 2, minute: 70, second: 0 }, timeline)).toBe(2700 + 25 * 60);
+    expect(linkedElapsed({ period: 1, minute: 52, second: 0 }, timeline)).toBe(2700);
+    expect(linkedElapsed({ period: 2, minute: 130, second: 0 }, timeline)).toBe(timeline.duration);
+  });
+});
+
+describe('replay gating for the fan view', () => {
+  it('knows an item only from its own clock', () => {
+    const items = [{ at: { period: 2 as const, minute: 63, second: 0 } }, { at: { period: 2 as const, minute: 64, second: 0 } }];
+    expect(knownAt(items, 2700 + 18 * 60, 2700)).toEqual([items[0]]);
+    expect(knownAt(items, 2700 + 18 * 60 - 1, 2700)).toEqual([]);
+  });
+  it('leads with the latest update: the press card at 69:00, the flank withdrawal at 71:00', () => {
+    expect(latestCard(visibleCards(cards, 69 * 60, 2700), 2700)?.id).toBe(press.id);
+    const after = latestCard(visibleCards(cards, 71 * 60, 2700), 2700);
+    expect([after?.id, after?.status]).toEqual(['ins-m01-057-shape_change', 'withdrawn']);
+    expect(latestCard([], 2700)).toBeUndefined();
   });
 });

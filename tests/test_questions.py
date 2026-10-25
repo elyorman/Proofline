@@ -74,6 +74,9 @@ def test_the_lead_states_what_a_question_assumes_or_why_it_cannot(m01):
     assert framed(_framing(answerable=False, why="who will win?"))[:2] == (None, "who will win?")
     assert "not measurable" in framed(_framing(metric="xg"))[1]
     assert "at least 5 minutes" in framed(_framing(since="66:00"))[1]  # 66-68' is too short
+    # "Who ran the most?": a measure, but no one whose change to test.
+    assert framed(_framing(subject=None))[0] is None
+    assert "names no team, unit or player" in framed(_framing(subject=None))[1]
 
 
 def test_a_false_premise_is_answered_with_what_happened_and_no_one_investigates(m01):

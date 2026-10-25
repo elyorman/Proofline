@@ -56,6 +56,8 @@ async def frame(
     try:
         if answer.metric not in MEASURED:
             raise ValueError(f"{answer.metric} is not measurable")
+        if not answer.subject:  # "who ran the most?" names a measure but no one to measure
+            raise ValueError("it names no team, unit or player whose change to test")
         resolve(meta, answer.subject)
         premise = Premise(
             metric=answer.metric,

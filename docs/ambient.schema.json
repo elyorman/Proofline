@@ -1,0 +1,441 @@
+{
+  "$defs": {
+    "AmbientRules": {
+      "additionalProperties": false,
+      "description": "The thresholds and windows the feed was computed with, for surfaces to state.",
+      "properties": {
+        "sprint_kmh": {
+          "exclusiveMinimum": 0,
+          "title": "Sprint Kmh",
+          "type": "number"
+        },
+        "shot_kmh": {
+          "exclusiveMinimum": 0,
+          "title": "Shot Kmh",
+          "type": "number"
+        },
+        "badge_difficulty": {
+          "maximum": 100,
+          "minimum": 0,
+          "title": "Badge Difficulty",
+          "type": "integer"
+        },
+        "momentum_half_life_min": {
+          "exclusiveMinimum": 0,
+          "title": "Momentum Half Life Min",
+          "type": "number"
+        },
+        "control_window_min": {
+          "exclusiveMinimum": 0,
+          "title": "Control Window Min",
+          "type": "integer"
+        },
+        "control_min_actions": {
+          "exclusiveMinimum": 0,
+          "title": "Control Min Actions",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "sprint_kmh",
+        "shot_kmh",
+        "badge_difficulty",
+        "momentum_half_life_min",
+        "control_window_min",
+        "control_min_actions"
+      ],
+      "title": "AmbientRules",
+      "type": "object"
+    },
+    "ControlPoint": {
+      "additionalProperties": false,
+      "description": "The control-vs-chaos gauge over the window [since, at).",
+      "properties": {
+        "since": {
+          "$ref": "#/$defs/MatchClock"
+        },
+        "at": {
+          "$ref": "#/$defs/MatchClock"
+        },
+        "actions": {
+          "description": "passes, carries and dribbles in the window",
+          "minimum": 0,
+          "title": "Actions",
+          "type": "integer"
+        },
+        "turnovers": {
+          "description": "possession changes in the window",
+          "minimum": 0,
+          "title": "Turnovers",
+          "type": "integer"
+        },
+        "spell": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "on-ball actions per possession",
+          "title": "Spell"
+        },
+        "chaos": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "0 control, 1 chaos",
+          "title": "Chaos"
+        }
+      },
+      "required": [
+        "since",
+        "at",
+        "actions",
+        "turnovers"
+      ],
+      "title": "ControlPoint",
+      "type": "object"
+    },
+    "LocalizedText": {
+      "additionalProperties": false,
+      "description": "A rendered template in every viewer language.",
+      "properties": {
+        "en": {
+          "minLength": 1,
+          "title": "En",
+          "type": "string"
+        },
+        "es": {
+          "minLength": 1,
+          "title": "Es",
+          "type": "string"
+        }
+      },
+      "required": [
+        "en",
+        "es"
+      ],
+      "title": "LocalizedText",
+      "type": "object"
+    },
+    "MatchClock": {
+      "description": "Period plus elapsed minute and second within that period's own numbering.\n\n`minute` is the on-screen minute: 0-45+ in the first half, 45-90+ in the second.",
+      "properties": {
+        "period": {
+          "enum": [
+            1,
+            2
+          ],
+          "title": "Period",
+          "type": "integer"
+        },
+        "minute": {
+          "maximum": 130,
+          "minimum": 0,
+          "title": "Minute",
+          "type": "integer"
+        },
+        "second": {
+          "maximum": 59,
+          "minimum": 0,
+          "title": "Second",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "period",
+        "minute",
+        "second"
+      ],
+      "title": "MatchClock",
+      "type": "object"
+    },
+    "MomentumPoint": {
+      "additionalProperties": false,
+      "description": "One minute of the momentum strip: +1 is all home threat, -1 all away.",
+      "properties": {
+        "period": {
+          "enum": [
+            1,
+            2
+          ],
+          "title": "Period",
+          "type": "integer"
+        },
+        "minute": {
+          "description": "on-screen minute the bucket covers",
+          "maximum": 130,
+          "minimum": 0,
+          "title": "Minute",
+          "type": "integer"
+        },
+        "at": {
+          "$ref": "#/$defs/MatchClock",
+          "description": "the end of the minute, when its value is known"
+        },
+        "home_threat": {
+          "minimum": 0,
+          "title": "Home Threat",
+          "type": "number"
+        },
+        "away_threat": {
+          "minimum": 0,
+          "title": "Away Threat",
+          "type": "number"
+        },
+        "value": {
+          "maximum": 1,
+          "minimum": -1,
+          "title": "Value",
+          "type": "number"
+        }
+      },
+      "required": [
+        "period",
+        "minute",
+        "at",
+        "home_threat",
+        "away_threat",
+        "value"
+      ],
+      "title": "MomentumPoint",
+      "type": "object"
+    },
+    "PassBadge": {
+      "additionalProperties": false,
+      "description": "A completed pass whose difficulty clears `AmbientRules.badge_difficulty`.",
+      "properties": {
+        "event_id": {
+          "title": "Event Id",
+          "type": "string"
+        },
+        "at": {
+          "$ref": "#/$defs/MatchClock"
+        },
+        "team": {
+          "title": "Team",
+          "type": "string"
+        },
+        "player_id": {
+          "title": "Player Id",
+          "type": "string"
+        },
+        "receiver_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Receiver Id"
+        },
+        "difficulty": {
+          "maximum": 100,
+          "minimum": 0,
+          "title": "Difficulty",
+          "type": "integer"
+        },
+        "distance_m": {
+          "minimum": 0,
+          "title": "Distance M",
+          "type": "number"
+        },
+        "pressure_on_passer": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Pressure On Passer",
+          "type": "number"
+        }
+      },
+      "required": [
+        "event_id",
+        "at",
+        "team",
+        "player_id",
+        "difficulty",
+        "distance_m",
+        "pressure_on_passer"
+      ],
+      "title": "PassBadge",
+      "type": "object"
+    },
+    "SpeedTag": {
+      "additionalProperties": false,
+      "description": "A sprint or a shot whose speed clears its threshold in `AmbientRules`.",
+      "properties": {
+        "kind": {
+          "enum": [
+            "sprint",
+            "shot"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "event_id": {
+          "title": "Event Id",
+          "type": "string"
+        },
+        "at": {
+          "$ref": "#/$defs/MatchClock"
+        },
+        "team": {
+          "title": "Team",
+          "type": "string"
+        },
+        "player_id": {
+          "title": "Player Id",
+          "type": "string"
+        },
+        "speed_kmh": {
+          "minimum": 0,
+          "title": "Speed Kmh",
+          "type": "number"
+        }
+      },
+      "required": [
+        "kind",
+        "event_id",
+        "at",
+        "team",
+        "player_id",
+        "speed_kmh"
+      ],
+      "title": "SpeedTag",
+      "type": "object"
+    },
+    "TickerLine": {
+      "additionalProperties": false,
+      "description": "A templated one-liner from `ambient/i18n/`; never model text.",
+      "properties": {
+        "event_id": {
+          "title": "Event Id",
+          "type": "string"
+        },
+        "at": {
+          "$ref": "#/$defs/MatchClock"
+        },
+        "kind": {
+          "enum": [
+            "kick_off",
+            "goal",
+            "shot",
+            "foul",
+            "free_kick",
+            "card",
+            "substitution",
+            "half_time",
+            "second_half",
+            "full_time",
+            "pass_badge"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "team": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Team"
+        },
+        "text": {
+          "$ref": "#/$defs/LocalizedText"
+        }
+      },
+      "required": [
+        "event_id",
+        "at",
+        "kind",
+        "text"
+      ],
+      "title": "TickerLine",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "match_id": {
+      "title": "Match Id",
+      "type": "string"
+    },
+    "home": {
+      "title": "Home",
+      "type": "string"
+    },
+    "away": {
+      "title": "Away",
+      "type": "string"
+    },
+    "rules": {
+      "$ref": "#/$defs/AmbientRules"
+    },
+    "speed_tags": {
+      "items": {
+        "$ref": "#/$defs/SpeedTag"
+      },
+      "title": "Speed Tags",
+      "type": "array"
+    },
+    "pass_badges": {
+      "items": {
+        "$ref": "#/$defs/PassBadge"
+      },
+      "title": "Pass Badges",
+      "type": "array"
+    },
+    "momentum": {
+      "items": {
+        "$ref": "#/$defs/MomentumPoint"
+      },
+      "title": "Momentum",
+      "type": "array"
+    },
+    "control": {
+      "items": {
+        "$ref": "#/$defs/ControlPoint"
+      },
+      "title": "Control",
+      "type": "array"
+    },
+    "ticker": {
+      "items": {
+        "$ref": "#/$defs/TickerLine"
+      },
+      "title": "Ticker",
+      "type": "array"
+    }
+  },
+  "required": [
+    "match_id",
+    "home",
+    "away",
+    "rules",
+    "speed_tags",
+    "pass_badges",
+    "momentum",
+    "control",
+    "ticker"
+  ],
+  "title": "AmbientFeed",
+  "type": "object"
+}

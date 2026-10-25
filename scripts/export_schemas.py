@@ -17,6 +17,7 @@ from contracts import (
     ToolResult,
     VariantComparison,
 )
+from contracts.ambient import AmbientFeed
 from contracts.case_file import CaseFile
 from contracts.eval_run import SeededRun
 from contracts.live import LiveJob
@@ -44,6 +45,7 @@ SCHEMAS = {
     "plain-answer": PlainAnswer,
     "question-run": __import__("contracts.eval_run", fromlist=["QuestionRun"]).QuestionRun,
     "live-job": LiveJob,
+    "ambient": AmbientFeed,
 }
 
 

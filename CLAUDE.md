@@ -63,6 +63,7 @@ uv run proofline questions --data data/dev --questions runs/q1/questions.jsonl -
 uv run python -m eval.questions score --runs runs/q1 --split dev --variant A   # right answers, false premises rejected, false claims; --after-follow-up scores each card as its follow-up left it
 uv run proofline-engine season   # rebuild state/season_baselines.json, the normal variation every test reads against
 uv run python -m eval --runs runs/dev --split dev --variant A       # score a batch against the sealed truth; --compare A B for the paired difference; --after-follow-up for the cards as their follow-ups left them
+make scoreboard                           # after any new record in eval/records: rewrite the README's scoreboard block and the console's fixture (CI checks both the block and every figure the README quotes)
 azd up                                    # provision + deploy everything
 azd env get-values                        # endpoints and resource names
 pnpm --dir surfaces/web dev

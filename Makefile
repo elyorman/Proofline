@@ -2,7 +2,7 @@
 AZD_ENV = eval "$$(azd env get-values | grep -E '^AZURE_(EVENTHUBS_NAMESPACE|EVENTHUB_NAME|COSMOS_ENDPOINT|COSMOS_DATABASE)=')" && \
 	export AZURE_EVENTHUBS_NAMESPACE AZURE_EVENTHUB_NAME AZURE_COSMOS_ENDPOINT AZURE_COSMOS_DATABASE
 
-.PHONY: check m01 stream-m01 tune-detector dev-feeds heldout-feeds
+.PHONY: check m01 stream-m01 tune-detector dev-feeds heldout-feeds scoreboard
 
 check:
 	uv run ruff check . && uv run ruff format --check .
@@ -35,3 +35,9 @@ heldout-feeds:
 	for script in engine/suites/*/heldout/scripts/*.yaml; do \
 		uv run proofline-engine generate --script $$script --out data/heldout/$$(basename $$script .yaml)/ || exit 1; \
 	done
+
+# After any new evaluation record: the README's scoreboard block and the console's fixture.
+scoreboard:
+	uv run python -m eval scoreboard --records eval/records --write README.md > /dev/null
+	uv run python surfaces/web/scripts/export_scoreboard.py
+

@@ -171,16 +171,19 @@ def _compare(argv: list[str]) -> int:
 
 
 def _scoreboard(argv: list[str]) -> int:
-    from eval.scoreboard import scoreboard
+    from eval.scoreboard import scoreboard, write
 
     parser = argparse.ArgumentParser(prog="python -m eval scoreboard")
     parser.add_argument("--records", type=Path, required=True)
     parser.add_argument("--check", type=Path)
+    parser.add_argument("--write", type=Path, help="rewrite this README's scoreboard block")
     parser.add_argument(
         "--json", action="store_true", help="emit structured record-backed scoreboard data"
     )
     args = parser.parse_args(argv)
     try:
+        if args.write:
+            write(args.records, args.write)
         print(scoreboard(args.records, args.check, json_output=args.json), end="")
     except (OSError, ValueError) as exc:
         parser.error(str(exc))

@@ -8,7 +8,7 @@ from eval.__main__ import main
 from eval.compare import compare
 from eval.records import identity, load_records, save_records
 from eval.runner import evaluate
-from eval.scoreboard import END, START, render, scoreboard
+from eval.scoreboard import END, FIGURE, START, render, scoreboard
 from eval.suites import load_suite
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -69,10 +69,20 @@ def test_readme_check_requires_exact_generated_text(evaluated, tmp_path, capsys)
     readme.write_text(f"User prose\n{START}\n{text}{END}\nOther prose\n")
     assert main(["scoreboard", "--records", str(records), "--check", str(readme)]) == 0
     assert capsys.readouterr().out == text
-    readme.write_text(readme.read_text().replace("n=11", "n=999"))
+    quoted = FIGURE.findall(text)[0]
+    readme.write_text(f"Prose quotes {quoted}.\n{START}\n{text}{END}\n")
+    assert scoreboard(records, readme) == text
+    readme.write_text(f"Prose quotes 99.9% and [1.0, 2.0].\n{START}\n{text}{END}\n")
+    with pytest.raises(ValueError, match=r"no record holds: 99\.9%, \[1\.0, 2\.0\]"):
+        scoreboard(records, readme)
+    readme.write_text(f"{START}\n{text}{END}\n".replace("n=11", "n=999"))
     with pytest.raises(SystemExit) as exc:
         main(["scoreboard", "--records", str(records), "--check", str(readme)])
     assert exc.value.code == 2
+    readme.write_text(f"Prose\n{START}\nstale\n{END}\nTail\n")
+    assert main(["scoreboard", "--records", str(records), "--write", str(readme)]) == 0
+    assert readme.read_text() == f"Prose\n{START}\n{text}{END}\nTail\n"
+    assert scoreboard(records, readme) == text
     readme.write_text("no markers")
     with pytest.raises(ValueError, match="markers"):
         scoreboard(records, readme)

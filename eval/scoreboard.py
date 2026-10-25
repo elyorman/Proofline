@@ -2,6 +2,7 @@
 
 import html
 import json
+import re
 from pathlib import Path
 
 from contracts.eval_run import (
@@ -18,6 +19,8 @@ from eval.records import Record, identity, load_records
 from eval.seed_checks import failed_checks
 
 START, END = "<!-- scoreboard:start -->", "<!-- scoreboard:end -->"
+# A rate, a difference or an interval as the scoreboard writes them; prose may quote only these.
+FIGURE = re.compile(r"[+-]?\d+\.\d(?:%| pp)|\[-?\d+\.\d, -?\d+\.\d\]")
 
 
 def cell(value: object) -> str:
@@ -471,6 +474,16 @@ def render(records: list[Record]) -> str:
     return "\n".join(lines).rstrip() + "\n"
 
 
+def write(folder: Path, document: Path) -> None:
+    """Replace the README's marked block with the scoreboard rendered from the records."""
+    text = document.read_bytes().decode("utf-8")
+    if text.count(START) != 1 or text.count(END) != 1:
+        raise ValueError("README must contain exactly one pair of scoreboard markers")
+    head, tail = text.split(START)
+    _, rest = tail.split(END)
+    document.write_bytes(f"{head}{START}\n{render(load_records(folder))}{END}{rest}".encode())
+
+
 def scoreboard(folder: Path, check: Path | None = None, *, json_output: bool = False) -> str:
     records = load_records(folder)
     text = render(records)
@@ -478,10 +491,13 @@ def scoreboard(folder: Path, check: Path | None = None, *, json_output: bool = F
         document = check.read_bytes().decode("utf-8")
         if document.count(START) != 1 or document.count(END) != 1:
             raise ValueError("README must contain exactly one pair of scoreboard markers")
-        _, tail = document.split(START)
-        middle, _ = tail.split(END)
+        head, tail = document.split(START)
+        middle, rest = tail.split(END)
         if middle != "\n" + text:
             raise ValueError("README scoreboard differs from the evaluation records")
+        unbacked = sorted(set(FIGURE.findall(head + rest)) - set(FIGURE.findall(text)))
+        if unbacked:
+            raise ValueError(f"README quotes figures no record holds: {', '.join(unbacked)}")
     return (
         json.dumps(scoreboard_data(records), ensure_ascii=False, indent=2) + "\n"
         if json_output

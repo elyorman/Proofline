@@ -8,6 +8,8 @@ Built for the Microsoft × Premier League "Inside the Game" Developer Hackathon,
 
 **Public link (no sign-in):** https://nice-coast-044d8740f.5.azurestaticapps.net. It replays a recorded match, and answers any typed question about it live, in Azure.
 
+![The fan view at 68:00: the pitch, the verified card with How we know, and the momentum and control-vs-chaos strip](docs/images/fan.png)
+
 ## The problem
 
 A live stats feed can tell you that Harbour City's pressing has jumped since 58'. It cannot tell you why. Harbour City might have decided to press higher. They might be chasing a 1-3 scoreline. Northvale might have pushed up into the press. All three move the same numbers. A language model will pick one and explain it fluently. It will just as fluently explain a change that never happened if the viewer's question assumes it.
@@ -125,6 +127,14 @@ The [public link](https://nice-coast-044d8740f.5.azurestaticapps.net) replays on
   - **Compare with one agent:** sets the 63' moment beside the single agent's investigation.
   - **Evaluation:** the scoreboard, read from the records.
 - **Broadcast (`#/broadcast`) and overlay (`#/overlay`).** Producer cues with approve, hold and kill. The withdrawal cue waits for approval at 70:25.
+
+| A typed question, investigated live | ...and answered, with its verified card |
+|---|---|
+| ![Live stages: the Lead's premise and code's test reached, the specialists next](docs/images/live-stages.png) | ![The live answer: every stage reached, the premise test and the verified card](docs/images/live-answer.png) |
+| **Each specialist's pre-registered causes, tested by code** | **The 70' feed correction withdraws a card in place** |
+| ![The Analyst Console: Tactics, Physical and Game state columns with code's verdicts](docs/images/investigation.png) | ![The fan view at 70:00 with the withdrawn card and its evidence](docs/images/correction.png) |
+
+<img src="docs/images/phone.png" alt="The fan view on a phone, in Spanish" width="260">
 
 **Which take is shown.** Re-running the same match does not always give the same explanation. In recorded full-match runs on the frozen agents, the three-agent variant explained the 63' press moment three different ways:
 

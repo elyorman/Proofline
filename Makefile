@@ -2,7 +2,7 @@
 AZD_ENV = eval "$$(azd env get-values | grep -E '^AZURE_(EVENTHUBS_NAMESPACE|EVENTHUB_NAME|COSMOS_ENDPOINT|COSMOS_DATABASE)=')" && \
 	export AZURE_EVENTHUBS_NAMESPACE AZURE_EVENTHUB_NAME AZURE_COSMOS_ENDPOINT AZURE_COSMOS_DATABASE
 
-.PHONY: check m01 stream-m01 tune-detector dev-feeds heldout-feeds scoreboard deploy-web
+.PHONY: check m01 stream-m01 tune-detector dev-feeds heldout-feeds scoreboard deploy-web video-clips
 
 check:
 	uv run ruff check . && uv run ruff format --check .
@@ -51,3 +51,8 @@ deploy-web:
 	name=$$(az staticwebapp list -g $$rg --query '[0].name' -o tsv) && \
 	SWA_CLI_DEPLOYMENT_TOKEN=$$(az staticwebapp secrets list -n $$name -g $$rg --query properties.apiKey -o tsv) \
 	npx -y @azure/static-web-apps-cli@2.0.10 deploy surfaces/web/dist --env production
+
+# The demo video's on-screen beats as silent 1080p clips of the public link (one real live
+# question included), into runs/video/ for narration and editing.
+video-clips:
+	node --experimental-websocket surfaces/web/scripts/record_beats.mjs $$(azd env get-value WEB_URL) runs/video

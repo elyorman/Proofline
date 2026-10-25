@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { Ask, AnswerView, answerCard, questionLabel, recordedAnswer } from './Ask';
+import { Ask, AnswerView, LiveProgress, answerCard, questionLabel, recordedAnswer } from './Ask';
+import type { LiveJob } from './types/live-job';
 import { answers } from './fixtures';
 import { LocaleContext } from './ui';
 import type { ReplayData } from './data';
@@ -12,6 +13,7 @@ const data: ReplayData = { matchId: 'm01', teams: [
 ], timeline: { events: [], firstHalfSeconds: 2700, duration: 5400 } };
 const render = (element: React.ReactNode, locale: Locale = 'en') => renderToStaticMarkup(<LocaleContext.Provider value={locale}>{element}</LocaleContext.Provider>);
 const explained = answers.find(a => a.question.question_id === 'q1')!;
+const undated = (() => { const a = structuredClone(explained); a.card!.timing.verified_at = null; a.card!.timing.published_at = null; return a; })();
 
 describe('recorded questions', () => {
   it('matches only recorded text or localized chips, without inventing answers', () => {
@@ -30,13 +32,13 @@ describe('recorded questions', () => {
     expect(html).not.toContain('recorded-answer');
   });
   it('keeps the recorded answer and premise visible while withholding its undated card', () => {
-    const html = render(<AnswerView answer={explained} data={data} elapsed={6000} />);
+    const html = render(<AnswerView answer={undated} data={data} elapsed={6000} />);
     expect(html).toContain(renderToStaticMarkup(<h3>{explained.text.en}</h3>));
     expect(html).toContain('Northvale has increased this measure: Long-ball share');
     expect(html).toContain('7.17 sd');
     expect(html).not.toContain('insight-card');
     expect(html).toContain('no available recorded display time');
-    const spanish = render(<AnswerView answer={explained} data={data} elapsed={6000} />, 'es');
+    const spanish = render(<AnswerView answer={undated} data={data} elapsed={6000} />, 'es');
     expect(spanish).toContain(renderToStaticMarkup(<h3>{explained.text.es}</h3>));
     expect(spanish).not.toContain('insight-card');
     expect(spanish).toContain('momento de presentación');
@@ -57,7 +59,8 @@ describe('recorded questions', () => {
     }
   });
   it('requires explained, verified and clock-available cards', () => {
-    expect(answerCard(explained, 6000, 2700)).toBeUndefined();
+    expect(answerCard(undated, 6000, 2700)).toBeUndefined();
+    expect(answerCard(explained, 6000, 2700)).toBeDefined();  // recorded answers carry the minute asked
     const dated = structuredClone(explained);
     dated.card!.timing.verified_at = dated.question.asked_at;
     expect(answerCard(dated, 6000, 2700)).toBeDefined();
@@ -69,5 +72,27 @@ describe('recorded questions', () => {
     expect(answerCard(rejected, 6000, 2700)).toBeUndefined();
     rejected.card = null;
     expect(answerCard(rejected, 6000, 2700)).toBeUndefined();
+  });
+});
+
+describe('live questions', () => {
+  const question = { question_id: 'live-1', match_id: 'm01', asked_at: { period: 2 as const, minute: 70, second: 0 }, text: 'Why is Ambrel tired?', locale: 'en' as const };
+  const turnedAway = answers.find(a => a.outcome === 'premise_false')!;
+  it('lists every stage while the agents work, marking those reached, in both languages', () => {
+    const job: LiveJob = { job_id: 'live-1', question, status: 'running', created_ms: 0, trace_id: 'abc',
+      stages: [{ stage: 'framed', at_ms: 1 }, { stage: 'premise', at_ms: 2, note: 'beyond 1.5 sd' }] };
+    const html = render(<LiveProgress job={job} />);
+    expect(html.match(/<li/g)).toHaveLength(7);
+    expect(html.match(/class="reached"/g)).toHaveLength(2);
+    expect(html).toContain('beyond 1.5 sd');
+    expect(html).toContain('Trace abc');
+    expect(render(<LiveProgress job={job} />, 'es')).toContain('El código ejecuta cada prueba');
+  });
+  it('stops at the premise when it is turned away', () => {
+    const job: LiveJob = { job_id: 'live-1', question, status: 'done', created_ms: 0, answer: { ...turnedAway, question },
+      stages: [{ stage: 'framed', at_ms: 1 }, { stage: 'premise', at_ms: 2 }] };
+    const html = render(<LiveProgress job={job} />);
+    expect(html.match(/<li/g)).toHaveLength(2);
+    expect(html).toContain('Answered live');
   });
 });

@@ -109,7 +109,10 @@ async def run_question(
     verdict, followed = await keep_watching(agents, verifier, finding, card, feed)
     progress.report("verified", verdict.card.verification.status)
     spent = usage + finding.usage + verdict.usage + (followed.usage if followed else Usage())
-    shown = verdict.card if verdict.card.status == CardStatus.VERIFIED else None
+    shown = None
+    if verdict.card.status == CardStatus.VERIFIED:  # shown from the minute it was asked
+        timing = verdict.card.timing.model_copy(update={"verified_at": question.asked_at})
+        shown = verdict.card.model_copy(update={"timing": timing})
     final = followed.card if followed and followed.card.status == CardStatus.REVISED else None
     reason = (
         finding.ranking.why if shown else f"rejected: {verdict.card.verification.rejection_reason}"

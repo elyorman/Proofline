@@ -1,7 +1,9 @@
-import { useId, useState, type FormEvent } from 'react';
+import { useEffect, useId, useRef, useState, type FormEvent } from 'react';
 import type { Answer } from './types/answer';
+import type { LiveJob } from './types/live-job';
 import type { ReplayData } from './data';
-import { displayElapsed, elapsedAt, formatClock } from './replay';
+import { askLive, followLive, LIVE_API, LiveRefused } from './live';
+import { clockAt, displayElapsed, elapsedAt, formatClock } from './replay';
 import { t, type Locale } from './i18n';
 import { Insight } from './Insights';
 import { PersistenceView } from './Investigation';
@@ -49,6 +51,28 @@ export function AnswerView({ answer, data, elapsed }: { answer: Answer; data: Re
   </section>;
 }
 
+const STAGES = ['framed', 'premise', 'preregistered', 'tested', 'cross_examined', 'synthesized', 'verified'] as const;
+
+/** A live question's stages as the API reports them; a premise turned away stops after two. */
+export function LiveProgress({ job }: { job: LiveJob }) {
+  const { text } = useText();
+  const settled = job.status === 'done' || job.status === 'failed';
+  const stages = job.stages ?? [];
+  const shown = settled && job.answer?.outcome !== 'explained' ? STAGES.filter(s => stages.some(r => r.stage === s)) : STAGES;
+  return <section className="live-progress" aria-live="polite">
+    <span className="eyebrow">{text('ask.live.asking', { clock: formatClock(job.question.asked_at), question: job.question.text })}</span>
+    <span className={`status live-${job.status}`}>{text(`ask.live.status.${job.status}`)}</span>
+    <ol>{shown.map(stage => {
+      const reached = stages.find(s => s.stage === stage);
+      return <li key={stage} className={reached ? 'reached' : ''}><span>{text(`ask.live.stage.${stage}`)}</span>{reached?.note && <small>{reached.note}</small>}</li>;
+    })}</ol>
+    {!settled && <p className="muted">{text('ask.live.slow')}</p>}
+    {job.trace_id && <p className="muted live-trace">{text('ask.live.trace', { id: job.trace_id })}</p>}
+  </section>;
+}
+
+type LiveProblem = { reason: string; values: Record<string, string | number> };
+
 export function Ask({ answers, data, elapsed, onSeek }: {
   answers: Answer[]; data: ReplayData; elapsed: number; onSeek: (at: number) => void;
 }) {
@@ -56,18 +80,34 @@ export function Ask({ answers, data, elapsed, onSeek }: {
   const [query, setQuery] = useState('');
   const [selected, setSelected] = useState<string>();
   const [unknown, setUnknown] = useState(false);
+  const [live, setLive] = useState<LiveJob>();
+  const [problem, setProblem] = useState<LiveProblem>();
+  const following = useRef<AbortController | undefined>(undefined);
+  useEffect(() => () => following.current?.abort(), []);
   const inputId = useId();
   const answer = answers.find(answer => answer.question.question_id === selected);
   const available = answer && elapsed >= elapsedAt(answer.question.asked_at, data.timeline.firstHalfSeconds);
   function choose(answer: Answer, label: string) {
-    setQuery(label); setSelected(answer.question.question_id); setUnknown(false);
+    setQuery(label); setSelected(answer.question.question_id); setUnknown(false); setLive(undefined); setProblem(undefined);
     onSeek(elapsedAt(answer.question.asked_at, data.timeline.firstHalfSeconds));
   }
   function submit(event: FormEvent) {
     event.preventDefault();
     const found = recordedAnswer(query, answers);
-    if (found) choose(found, query);
-    else { setSelected(undefined); setUnknown(true); }
+    if (found) { choose(found, query); return; }
+    setSelected(undefined); setLive(undefined); setProblem(undefined);
+    if (!LIVE_API) { setUnknown(true); return; }
+    setUnknown(false);
+    const asked = clockAt(elapsed, data.timeline.firstHalfSeconds);
+    if (asked.period !== 2) { setProblem({ reason: 'first_half', values: {} }); return; }
+    following.current?.abort();
+    const control = new AbortController();
+    following.current = control;
+    askLive({ match_id: data.matchId, asked_at: asked, text: query.trim(), locale })
+      .then(job => { setLive(job); return followLive(job, setLive, { signal: control.signal }); })
+      .catch(error => setProblem(error instanceof LiveRefused && error.reason !== 'unconfigured'
+        ? { reason: error.reason, values: { seconds: error.retryAfterS ?? 60, detail: error.detail ?? '' } }
+        : { reason: 'unavailable', values: {} }));
   }
   return <section className="panel ask-panel">
     <SectionTitle title={text('ask.title')} sub={text('ask.replayOnly')} />
@@ -78,6 +118,9 @@ export function Ask({ answers, data, elapsed, onSeek }: {
       {questionLabel(answer, locale)}<time>{formatClock(answer.question.asked_at)}</time>
     </button>)}</div>
     {unknown && <div className="unknown-question" role="status"><p>{text('ask.liveRequired')}</p><button className="button" disabled>{text('live')}</button></div>}
+    {problem && <div className="unknown-question" role="status"><p>{text(`ask.live.error.${problem.reason}`, problem.values)}</p></div>}
+    {live && <LiveProgress job={live} />}
+    {live?.status === 'done' && live.answer && <AnswerView answer={live.answer as Answer} data={data} elapsed={Math.max(elapsed, elapsedAt(live.question.asked_at, data.timeline.firstHalfSeconds))} />}
     {answer && available && <AnswerView answer={answer} data={data} elapsed={elapsed} />}
     {answer && !available && <p className="muted ask-time-note">{text('ask.future', { clock: formatClock(answer.question.asked_at) })}</p>}
   </section>;

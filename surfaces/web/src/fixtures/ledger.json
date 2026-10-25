@@ -764,7 +764,7 @@
       "supersedes": null,
       "superseded_by": null,
       "provenance": {
-        "trace_id": "82eae3a9bdcc492ea2e86b5abe1e88e4",
+        "trace_id": "a2f3a7f71ccf49f682f86b6386f9f6b7",
         "foundry_eval_run": null
       }
     },
@@ -1009,7 +1009,7 @@
       "supersedes": null,
       "superseded_by": null,
       "provenance": {
-        "trace_id": "5d6544a98f394467b0ae153f190c702a",
+        "trace_id": "2fc47aa4f5304bdf832227f2bf603f0d",
         "foundry_eval_run": null
       }
     },
@@ -1371,7 +1371,7 @@
       "supersedes": null,
       "superseded_by": null,
       "provenance": {
-        "trace_id": "703ffe73694449609951f914ceee37f8",
+        "trace_id": "0449251ede8041abbd36c24578fba71f",
         "foundry_eval_run": null
       }
     },
@@ -1629,7 +1629,7 @@
       "supersedes": null,
       "superseded_by": null,
       "provenance": {
-        "trace_id": "5d6544a98f394467b0ae153f190c702a",
+        "trace_id": "2fc47aa4f5304bdf832227f2bf603f0d",
         "foundry_eval_run": null
       }
     },
@@ -1987,7 +1987,7 @@
       "supersedes": null,
       "superseded_by": null,
       "provenance": {
-        "trace_id": "82eae3a9bdcc492ea2e86b5abe1e88e4",
+        "trace_id": "a2f3a7f71ccf49f682f86b6386f9f6b7",
         "foundry_eval_run": null
       }
     },
@@ -2232,7 +2232,7 @@
       "supersedes": null,
       "superseded_by": null,
       "provenance": {
-        "trace_id": "d8470c3f91bc43ebbbd392533a74d9fe",
+        "trace_id": "5291ac5b5de443f8a7af1cd7ff45e669",
         "foundry_eval_run": null
       }
     },
@@ -2680,7 +2680,7 @@
       "supersedes": null,
       "superseded_by": null,
       "provenance": {
-        "trace_id": "703ffe73694449609951f914ceee37f8",
+        "trace_id": "0449251ede8041abbd36c24578fba71f",
         "foundry_eval_run": null
       }
     }
@@ -3131,7 +3131,7 @@
         "checkpoints": [
           {
             "stage": "preregistered",
-            "wall_clock_ms": 1792890386628,
+            "wall_clock_ms": 1792920486968,
             "agents_completed": [
               "tactics",
               "physical",
@@ -3142,7 +3142,7 @@
           },
           {
             "stage": "tested",
-            "wall_clock_ms": 1792890386661,
+            "wall_clock_ms": 1792920486999,
             "agents_completed": [
               "tactics",
               "physical",
@@ -3153,7 +3153,7 @@
           },
           {
             "stage": "cross_examined",
-            "wall_clock_ms": 1792890386682,
+            "wall_clock_ms": 1792920487017,
             "agents_completed": [
               "tactics",
               "physical",
@@ -3164,7 +3164,7 @@
           },
           {
             "stage": "synthesized",
-            "wall_clock_ms": 1792890386682,
+            "wall_clock_ms": 1792920487018,
             "agents_completed": [
               "tactics",
               "physical",
@@ -3901,7 +3901,7 @@
         "checkpoints": [
           {
             "stage": "preregistered",
-            "wall_clock_ms": 1792890386733,
+            "wall_clock_ms": 1792920487093,
             "agents_completed": [
               "tactics",
               "physical",
@@ -3912,7 +3912,7 @@
           },
           {
             "stage": "tested",
-            "wall_clock_ms": 1792890386830,
+            "wall_clock_ms": 1792920487206,
             "agents_completed": [
               "tactics",
               "physical",
@@ -3923,7 +3923,7 @@
           },
           {
             "stage": "cross_examined",
-            "wall_clock_ms": 1792890386840,
+            "wall_clock_ms": 1792920487218,
             "agents_completed": [
               "tactics",
               "physical",
@@ -3934,7 +3934,7 @@
           },
           {
             "stage": "synthesized",
-            "wall_clock_ms": 1792890386840,
+            "wall_clock_ms": 1792920487218,
             "agents_completed": [
               "tactics",
               "physical",
@@ -4580,7 +4580,7 @@
         "checkpoints": [
           {
             "stage": "preregistered",
-            "wall_clock_ms": 1792890386865,
+            "wall_clock_ms": 1792920487248,
             "agents_completed": [
               "tactics",
               "physical",
@@ -4591,7 +4591,7 @@
           },
           {
             "stage": "tested",
-            "wall_clock_ms": 1792890386898,
+            "wall_clock_ms": 1792920487285,
             "agents_completed": [
               "tactics",
               "physical",
@@ -4602,7 +4602,7 @@
           },
           {
             "stage": "cross_examined",
-            "wall_clock_ms": 1792890386908,
+            "wall_clock_ms": 1792920487297,
             "agents_completed": [
               "tactics",
               "physical",
@@ -4613,7 +4613,7 @@
           },
           {
             "stage": "synthesized",
-            "wall_clock_ms": 1792890386908,
+            "wall_clock_ms": 1792920487297,
             "agents_completed": [
               "tactics",
               "physical",
@@ -5322,7 +5322,7 @@
         "checkpoints": [
           {
             "stage": "preregistered",
-            "wall_clock_ms": 1792890386972,
+            "wall_clock_ms": 1792920487371,
             "agents_completed": [
               "tactics",
               "physical",
@@ -5333,7 +5333,7 @@
           },
           {
             "stage": "tested",
-            "wall_clock_ms": 1792890387070,
+            "wall_clock_ms": 1792920487484,
             "agents_completed": [
               "tactics",
               "physical",
@@ -5344,7 +5344,7 @@
           },
           {
             "stage": "cross_examined",
-            "wall_clock_ms": 1792890387074,
+            "wall_clock_ms": 1792920487488,
             "agents_completed": [
               "tactics",
               "physical",
@@ -5355,7 +5355,7 @@
           },
           {
             "stage": "synthesized",
-            "wall_clock_ms": 1792890387074,
+            "wall_clock_ms": 1792920487488,
             "agents_completed": [
               "tactics",
               "physical",
@@ -51852,7 +51852,11 @@
             "minute": 68,
             "second": 0
           },
-          "verified_at": null,
+          "verified_at": {
+            "period": 2,
+            "minute": 68,
+            "second": 0
+          },
           "published_at": null
         },
         "propositions": [
@@ -52150,7 +52154,7 @@
         "supersedes": null,
         "superseded_by": null,
         "provenance": {
-          "trace_id": "c4164627f74d4044b8901d59dd447a3a",
+          "trace_id": "b8168964885b4565a1a4d337465ae2a1",
           "foundry_eval_run": null
         }
       },
@@ -52553,7 +52557,7 @@
         "supersedes": null,
         "superseded_by": null,
         "provenance": {
-          "trace_id": "c4164627f74d4044b8901d59dd447a3a",
+          "trace_id": "b8168964885b4565a1a4d337465ae2a1",
           "foundry_eval_run": null
         }
       },
@@ -52783,7 +52787,11 @@
             "minute": 68,
             "second": 0
           },
-          "verified_at": null,
+          "verified_at": {
+            "period": 2,
+            "minute": 68,
+            "second": 0
+          },
           "published_at": null
         },
         "propositions": [
@@ -53101,7 +53109,7 @@
         "supersedes": null,
         "superseded_by": null,
         "provenance": {
-          "trace_id": "c6207a6bf26f49939112ea38b87c8d2c",
+          "trace_id": "bd76c8e2c6b34af8861b6a7385357aab",
           "foundry_eval_run": null
         }
       },
@@ -53547,7 +53555,7 @@
         "supersedes": null,
         "superseded_by": null,
         "provenance": {
-          "trace_id": "c6207a6bf26f49939112ea38b87c8d2c",
+          "trace_id": "bd76c8e2c6b34af8861b6a7385357aab",
           "foundry_eval_run": null
         }
       },
@@ -53645,7 +53653,7 @@
         "checkpoints": [
           {
             "stage": "preregistered",
-            "wall_clock_ms": 1792890386865,
+            "wall_clock_ms": 1792920487248,
             "agents_completed": [
               "tactics",
               "physical",
@@ -53656,7 +53664,7 @@
           },
           {
             "stage": "tested",
-            "wall_clock_ms": 1792890386898,
+            "wall_clock_ms": 1792920487285,
             "agents_completed": [
               "tactics",
               "physical",
@@ -53667,7 +53675,7 @@
           },
           {
             "stage": "cross_examined",
-            "wall_clock_ms": 1792890386908,
+            "wall_clock_ms": 1792920487297,
             "agents_completed": [
               "tactics",
               "physical",
@@ -53678,7 +53686,7 @@
           },
           {
             "stage": "synthesized",
-            "wall_clock_ms": 1792890386908,
+            "wall_clock_ms": 1792920487297,
             "agents_completed": [
               "tactics",
               "physical",

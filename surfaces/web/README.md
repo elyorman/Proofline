@@ -64,12 +64,17 @@ The generated event feed stays in ignored `public/fixtures/m01/`; `data/`,
 - **Ask Proofline (fan and console).** Five localized suggestion chips jump to
   the recorded question time. The response uses the narrator's locale, explains
   the premise in plain words, shows code's measured premise test and, when
-  explained with a recorded publication or verification time, the verified card
-  with How we know. The two current explained answers lack both timestamps, so
-  their cards are withheld with a localized notice while their answer text and
-  premise tests remain visible. Rewinding hides a future
-  answer. An unknown typed question explicitly requires Run live, which is
-  unavailable in this public replay. No request is sent.
+  explained, the verified card with How we know, shown from the minute the
+  question was asked. Rewinding hides a future answer.
+- **Live questions.** A typed question no recording holds is sent to the live
+  API (`src/live.ts`, `VITE_PROOFLINE_API` at build time, set by
+  `make deploy-web`) at the replay's current second-half minute. The page polls
+  the job and lists each stage as the API reports it (the Lead's premise, code's
+  test, registration, tests, cross-examination, synthesis, the Verifier), then
+  renders the answer exactly like a recorded one. Each refusal (a viewer's
+  minute, the daily cap, a busy queue, an outage, a first-half clock) has its
+  own localized message. Without an API configured, the page says so and sends
+  nothing.
 - **Investigation (`#/analyst`).** Select any recorded case, including the faded
   51-minute detection. Confirmation, both teams' readings, agent columns,
   pre-registered predictions, test verdicts, refusals, directed counter-tests,
@@ -136,8 +141,6 @@ comparison pairing. No dependencies were added.
   validation-mode JSON schema. The UI reads that recorded value through a typed
   extension; it does not derive a verdict. Exporting the serialization schema
   would make this explicit in generated TypeScript.
-- Question-card producers should record `verified_at` (or `published_at`) so
-  saved explanation cards can be displayed without inventing a timestamp.
 - Recovery shows the recorded flag and completed/failed agents per checkpoint.
   Case files do not identify successfully retried agents separately.
 - Trace URLs are not supplied; the UI shows the recorded trace identifier.

@@ -231,6 +231,12 @@
           "default": true,
           "title": "Usage Known",
           "type": "boolean"
+        },
+        "excluded": {
+          "default": false,
+          "description": "its planted change is flagged not observable: counted in no metric",
+          "title": "Excluded",
+          "type": "boolean"
         }
       },
       "required": [
@@ -319,6 +325,12 @@
     "suite_origin_verified": {
       "default": false,
       "title": "Suite Origin Verified",
+      "type": "boolean"
+    },
+    "after_follow_up": {
+      "default": false,
+      "description": "cards scored as their follow-ups left them",
+      "title": "After Follow Up",
       "type": "boolean"
     },
     "model_id": {

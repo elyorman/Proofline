@@ -414,3 +414,17 @@ def test_legacy_question_manifest_remains_verifiable(question_batch):
         )
     )
     assert score_run(root, "dev", "P").suite_origin_verified
+
+
+def test_a_question_on_an_unobservable_change_is_listed_but_counted_nowhere(tmp_path):
+    key = keys("dev")
+    (tmp_path / "questions.jsonl").write_text(
+        "".join(k.question.model_dump_json() + "\n" for k in key)
+    )
+    (tmp_path / "P").mkdir()
+    (tmp_path / "P/answers.jsonl").write_text("")
+    run = score_run(tmp_path, "dev", "P", resamples=100)
+    (excluded,) = [r for r in run.rows if r.excluded]
+    assert excluded.match_id == "m225" and excluded.premise_true  # its tired player, unseen
+    accuracy = next(m for m in run.metrics if m.name == "true_premise_accuracy")
+    assert accuracy.n == sum(k.premise_true and not k.excluded for k in key) == 11

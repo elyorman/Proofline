@@ -662,6 +662,7 @@ class QuestionOutcome(BaseModel):
 def question_counts(
     rows: list[QuestionOutcome], *, explicit_rejection: bool = True
 ) -> dict[str, tuple[int, int]]:
+    rows = [r for r in rows if not r.excluded]  # an unobservable planted change counts nowhere
     return {
         "true_premise_accuracy": (
             sum(r.right for r in rows if r.premise_true),

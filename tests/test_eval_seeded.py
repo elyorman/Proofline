@@ -84,7 +84,8 @@ def test_each_seed_changes_only_its_declared_field(real_case):
     assert card.model_dump(mode="json") == original
     by_type = {m.kind: m for m in seeded}
     assert by_type[SeedType.CLAIM_DIRECTION].after != card.claim
-    other = next(t.name for t in feed.meta.teams.values() if t.name != card.subject.team)
+    # The claim names the team its change is about; the seed names the other one.
+    other = next(t.name for t in feed.meta.teams.values() if not card.claim.startswith(t.name))
     assert by_type[SeedType.WRONG_TEAM].after.startswith(f"{other} ")
     assert "primary cause is about" not in by_type[SeedType.WRONG_TEAM].after
     for seed in seeded:

@@ -279,8 +279,7 @@ def question_samples(
 ) -> list[tuple[int, int]]:
     if metric not in QUESTION_METRICS:
         raise ValueError(f"unknown question metric {metric}")
-    rows = [r for r in rows if not r.excluded]  # unobservable: listed, never counted
-    matches = sorted({r.match_id for r in rows})
+    matches = sorted({r.match_id for r in rows if not r.excluded})
     return [
         question_counts(
             [r for r in rows if r.match_id == match], explicit_rejection=explicit_rejection

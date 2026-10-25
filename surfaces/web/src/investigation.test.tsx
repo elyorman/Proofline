@@ -28,7 +28,10 @@ describe('recorded investigation', () => {
     expect(html).toContain('At least');
     expect(html).toContain('Supported');
     expect(html).toContain('Failed');
-    expect(html).toContain(renderToStaticMarkup(<p>{hero.refused[0].reason}</p>));
+    // A take may refuse nothing; a refused proposal is shown with its reason whenever there is one.
+    const refused = structuredClone(hero);
+    refused.refused = [{ agent: 'tactics', cause: 'tactical.press_intensity_up', metric: 'xg', subject: 'Harbour City', reason: 'xg is not measurable yet' }];
+    expect(render(refused)).toContain(renderToStaticMarkup(<p>xg is not measurable yet</p>));
   });
   it('draws directed corollaries with the recorded result and does not recompute measured changes', () => {
     const html = render();

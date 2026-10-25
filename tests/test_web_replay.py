@@ -80,7 +80,11 @@ def test_real_correction_changes_only_the_flank_and_keeps_all_revisions():
     assert flank[1]["timing"]["published_at"]["minute"] == 70
     assert flank[1]["variants"]["casual"]["es"]
     assert flank[0]["evidence"] != flank[1]["evidence"]
-    assert len(hero) == 1 and hero[0]["timing"]["verified_at"]["minute"] == 68
+    # The press card is shown at 68' and settled by its follow-up at 83', not by a correction.
+    assert [(c["revision"], c["status"]) for c in hero] == [(1, "shown"), (2, "revised")]
+    assert hero[0]["timing"]["verified_at"]["minute"] == 68
+    assert hero[1]["revisions"][-1]["reason"].startswith("follow-up over 68:00-83:00")
+    assert not hero[1]["revisions"][-1]["amendment_ids"]
     assert take["corrections"] == [
         dict(card_id=flank[1]["id"], decision="withdraw", revision=2, amendment_id="a1")
     ]

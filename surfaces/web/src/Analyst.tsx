@@ -7,6 +7,7 @@ import { Empty, Icon, SectionTitle, useText } from './ui';
 import { InvestigationCompare } from './InvestigationCompare';
 import type { CaseFile } from './types/case-file';
 import { RevisionDiff } from './RevisionDiff';
+import { Scoreboard } from './Scoreboard';
 import type { EventAmendment } from './types/event-amendment';
 
 const checks = ['recompute', 'baseline_check', 'sample_size_check', 'contradiction_check', 'number_check', 'semantic_check'] as const;
@@ -135,7 +136,7 @@ export function Analyst({ cards, allRevisions, selected, onSelect, amendments = 
       }
     }}>{text(`case.${name}`)}</button>)}</div>
     <div className="case-body" id={`panel-${tab}`} role="tabpanel" aria-labelledby={`tab-${tab}`} tabIndex={0}>
-      {tab === 'evaluation' ? <Empty title={text('case.evaluation.empty')} body={text('case.evaluation.text')} /> : tab === 'investigation' ? (file ? <InvestigationCompare key={file.case.case_id} file={file} candidates={comparisonFiles} onScoreboard={() => setTab('evaluation')} /> : <Empty title={text('inv.noFile')} />) : !card ? <Empty title={text('case.empty')} /> : <>
+      {tab === 'evaluation' ? <Scoreboard /> : tab === 'investigation' ? (file ? <InvestigationCompare key={file.case.case_id} file={file} candidates={comparisonFiles} onScoreboard={() => setTab('evaluation')} /> : <Empty title={text('inv.noFile')} />) : !card ? <Empty title={text('case.empty')} /> : <>
         <div className="case-heading"><span className="eyebrow">{text(isStandInCard(card) ? 'fixture.short' : 'record.backend')} · {text('insights.revision', { number: card.revision ?? 1 })}</span>
           <h2>{cardText(card, 'analyst') ?? text('insights.noVariant')}</h2><code>{card.case_id}</code>
           <p className="case-outcome">{text('case.outcome')}: {text(`outcome.${card.case_outcome}`)}</p>

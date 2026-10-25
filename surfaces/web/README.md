@@ -22,6 +22,7 @@ uv run python surfaces/web/scripts/export_web_replay.py \
   --studio-ledger runs/studio/m01/ledger.json \
   --answers tests/fixtures/questions/m01/A/answers.jsonl \
   --case-files runs/case-m01-063-pressure_shift-A.json runs/case-m01-063-pressure_shift-B.json
+uv run python surfaces/web/scripts/export_scoreboard.py   # the evaluation tab, from eval/records
 cd surfaces/web
 corepack pnpm install --frozen-lockfile
 corepack pnpm types

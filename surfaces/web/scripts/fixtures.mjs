@@ -20,6 +20,8 @@ for (const args of [
     '--out', 'surfaces/web/public/fixtures/m01', '--studio-ledger', 'runs/studio/m01/ledger.json',
     '--answers', 'tests/fixtures/questions/m01/A/answers.jsonl',
     '--case-files', 'runs/case-m01-063-pressure_shift-A.json', 'runs/case-m01-063-pressure_shift-B.json'],
+  // The evaluation tab's numbers, from the saved records only.
+  ['surfaces/web/scripts/export_scoreboard.py'],
 ]) {
   const result = spawnSync(python || 'uv', [...(python ? ['-B'] : ['run', 'python']), ...args], {
     cwd: root, stdio: 'inherit',

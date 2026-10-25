@@ -1,0 +1,88 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Proofline architecture</title>
+<style>
+  :root { --bg: #f4f5f0; --ink: #20392e; --muted: #6f7d73; --green: #22684f; --deep: #163a2c; --lime: #d7ec9c; --line: #cfd8cc; --azure: #2f6fb3; --code: #8a6d1d; }
+  * { box-sizing: border-box; }
+  body { margin: 0; width: 1920px; height: 1080px; background: var(--bg); font-family: "Inter", "Segoe UI", Helvetica, Arial, sans-serif; color: var(--ink); }
+  .frame { width: 1920px; height: 1080px; padding: 52px 72px 40px; display: flex; flex-direction: column; }
+  h1 { margin: 0; font: 400 46px Georgia, serif; letter-spacing: -.5px; }
+  h1 b { font-weight: 400; color: var(--green); }
+  .sub { margin: 10px 0 0; color: var(--muted); font-size: 21px; }
+  .grid { flex: 1; margin: 34px 0 26px; display: grid; grid-template-columns: 300px 1fr 330px; gap: 56px; }
+  .col { display: flex; flex-direction: column; gap: 22px; }
+  .lane { font-size: 13px; letter-spacing: 2.4px; text-transform: uppercase; color: var(--muted); font-weight: 650; margin-bottom: -6px; }
+  .box { background: #fff; border: 1.5px solid var(--line); border-radius: 12px; padding: 18px 20px; box-shadow: 0 2px 0 #e3e8df; }
+  .box h3 { margin: 0 0 6px; font-size: 21px; font-weight: 650; }
+  .box p { margin: 0; color: var(--muted); font-size: 15.5px; line-height: 1.45; }
+  .tag { display: inline-block; margin-top: 10px; font-size: 12.5px; font-weight: 650; padding: 4px 9px; border-radius: 999px; }
+  .tag.azure { background: #e3eefa; color: var(--azure); }
+  .tag.code { background: #f6efd9; color: var(--code); }
+  .tag.model { background: #e4f1e7; color: var(--green); }
+  .engine { background: var(--deep); color: #eef4ea; border: 0; border-radius: 16px; padding: 24px 26px; flex: 1; display: flex; flex-direction: column; gap: 16px; }
+  .engine h2 { margin: 0; font: 400 28px Georgia, serif; color: #fff; }
+  .engine h2 span { font: 600 14px "Segoe UI", sans-serif; letter-spacing: 2px; color: var(--lime); margin-left: 12px; text-transform: uppercase; }
+  .steps { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; flex: 1; }
+  .step { background: #214b3a; border-radius: 10px; padding: 20px 18px; display: flex; flex-direction: column; }
+  .step b { display: block; font-size: 21px; margin-bottom: 10px; color: #fff; }
+  .step p { margin: 0; font-size: 17px; line-height: 1.45; color: #c4d6c8; }
+  .step .who { margin-top: auto; padding-top: 12px; font-size: 14px; font-weight: 650; color: var(--lime); }
+  .agents { display: flex; gap: 10px; flex-wrap: wrap; }
+  .agent { background: var(--lime); color: var(--deep); font-weight: 650; font-size: 15px; padding: 7px 13px; border-radius: 999px; }
+  .agent.code { background: #f1e3b5; }
+  .rule { border-top: 1px solid #335d4b; padding-top: 14px; font-size: 16px; color: #dfeadb; }
+  .rule b { color: var(--lime); font-weight: 650; }
+  .verifier { background: #fff; color: var(--ink); border-radius: 12px; padding: 16px 18px; display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .verifier h3 { margin: 0 0 5px; font-size: 20px; }
+  .verifier p { margin: 0; color: var(--muted); font-size: 16px; line-height: 1.4; }
+  .arrow { position: absolute; color: var(--green); font-size: 34px; font-weight: 300; }
+  .foot { display: flex; gap: 28px; color: var(--muted); font-size: 15.5px; align-items: center; }
+  .gates { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .gate { background: #f1e3b5; color: #3b3218; border-radius: 10px; padding: 14px 16px; }
+  .gate b { display: block; font-size: 17px; margin-bottom: 5px; }
+  .gate p { margin: 0; font-size: 14.5px; line-height: 1.4; }
+  .gate em { font-style: normal; font-weight: 650; }
+  .foot b { color: var(--ink); }
+  .legend { margin-left: auto; display: flex; gap: 12px; }
+</style></head>
+<body><div class="frame">
+  <h1>Proofline: <b>statistics decides what is real; agents decide why.</b></h1>
+  <p class="sub">Every number comes from code. Every claim is pre-registered, tested, cross-examined and verified before anyone sees it, and corrected when the data changes.</p>
+  <div class="grid">
+    <div class="col">
+      <div class="lane">In</div>
+      <div class="box"><h3>Match event feed</h3><p>Synthetic matches from our possession-chain simulator, streamed by the Match Clock</p><span class="tag azure">Event Hubs</span></div>
+      <div class="box"><h3>Ledger</h3><p>Events, cases, cards, dependencies and audit records, every version kept</p><span class="tag azure">Cosmos DB</span></div>
+      <div class="box"><h3>State Builder</h3><p>Deterministic metrics and a season of normal variation, served as tools</p><span class="tag code">MCP server</span></div>
+      <div class="box"><h3>Viewer question</h3><p>Typed in English or Spanish, at any minute of the second half</p><span class="tag azure">Container Apps · live API</span></div>
+    </div>
+    <div class="engine">
+      <h2>The Why Engine <span>Microsoft Agent Framework · Foundry gpt-5-mini</span></h2>
+      <div class="gates">
+        <div class="gate"><b>A detected moment</b><p>The Moment Detector fires; five minutes later code re-measures it. <em>Faded: closed as normal variation, no model asked.</em></p></div>
+        <div class="gate"><b>A viewer's question</b><p>The Lead states what it assumes; code tests that premise. <em>Not real: answered with what did happen, no investigation.</em></p></div>
+      </div>
+      <div class="agents"><span class="agent">Lead</span><span class="agent">Tactics</span><span class="agent">Physical</span><span class="agent">Game state</span><span class="agent">Synthesis</span><span class="agent code">Code scores every step</span></div>
+      <div class="steps">
+        <div class="step"><b>Pre-register</b><p>Each specialist states its causes and what each predicts, in numbers, before any tool runs</p><div class="who">Agents</div></div>
+        <div class="step"><b>Test</b><p>Every prediction is measured against normal variation through the MCP tools</p><div class="who">Code</div></div>
+        <div class="step"><b>Cross-examine</b><p>Specialists design counter-tests on each other's survivors; unfair ones are refused</p><div class="who">Agents · scored by code</div></div>
+        <div class="step"><b>Synthesise</b><p>Survivors are ranked into a primary cause and alternatives, or "no clear cause"</p><div class="who">Agent</div></div>
+        <div class="step"><b>Keep watching</b><p>When two causes still fit, each side bets on the next 15 minutes; code settles it</p><div class="who">Agents · settled by code</div></div>
+      </div>
+      <div class="verifier">
+        <div><h3>Verifier: recompute</h3><p>Every number re-run over the exact events it came from, at their recorded versions</p></div>
+        <div><h3>Verifier: semantic check</h3><p>Every sentence judged against the facts, at the wording the evidence allows, with none of the agents' context</p></div>
+      </div>
+      <div class="rule"><b>Checkpointed after every stage.</b> A failed agent is retried inside its stage; the card says it recovered. <b>Correction Watcher:</b> amended events revise or withdraw every card that used them.</div>
+    </div>
+    <div class="col">
+      <div class="lane">Out</div>
+      <div class="box"><h3>Fan companion</h3><p>Live pitch, momentum, control vs chaos, verified cards with How we know, in English or Spanish</p><span class="tag azure">Static Web Apps</span></div>
+      <div class="box"><h3>Analyst console</h3><p>The full case file: predictions, tests, counter-tests, refusals, the Verifier's checks, revisions</p></div>
+      <div class="box"><h3>Broadcast cues</h3><p>Timed overlays with approve, hold and kill; correction cues</p></div>
+      <div class="box"><h3>Observability and proof</h3><p>Every live run traced; Foundry evaluators; held-out scoreboard with intervals</p><span class="tag azure">Application Insights</span> <span class="tag model">Foundry evaluations</span></div>
+    </div>
+  </div>
+  <div class="foot"><span><b>Keyless:</b> managed identity and roles end to end, provisioned with azd and Bicep</span><span><b>Fictional</b> clubs and players; synthetic data</span>
+    <span class="legend"><span class="tag azure">Azure</span><span class="tag code">deterministic code</span><span class="tag model">Foundry</span></span></div>
+</div></body></html>

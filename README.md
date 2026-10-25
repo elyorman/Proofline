@@ -23,6 +23,11 @@ Proofline splits the job: **statistics decides what is real; agents decide why.*
 - **An independent Verifier checks everything first.** It recomputes every number from the exact events it came from. It also checks every sentence against the facts, at the wording the evidence allows. Nothing reaches a fan, analyst or overlay without it.
 - **It corrects itself.** When the feed amends events, the Correction Watcher finds every card that used them. It re-verifies each one, then revises or withdraws it on every surface. Earlier revisions stay visible.
 
+![Proofline's architecture: code gates what is real, the Why Engine's agents explain it, the Verifier checks it, and the surfaces show it](docs/images/architecture.png)
+
+<details>
+<summary>The same flow as a diagram GitHub renders</summary>
+
 ```mermaid
 flowchart LR
   feed[Event feed] --> state[State Builder<br/>deterministic metrics]
@@ -43,6 +48,8 @@ flowchart LR
   watch --> verify
   amend[Feed amendment] --> watcher[Correction Watcher] --> verify
 ```
+
+</details>
 
 ## What we measured
 
@@ -601,6 +608,7 @@ Record provenance:
 | [`infra/`](infra/) | Bicep for every Azure resource, deployed with `azd` |
 | [`docs/spec.md`](docs/spec.md) | Product spec |
 | [`docs/submission.md`](docs/submission.md) | Pitch, description and testing instructions for judges |
+| [`docs/architecture.html`](docs/architecture.html) | Source of the architecture image |
 | [`scripts/check_engine_isolation.py`](scripts/check_engine_isolation.py) | CI guard: product code never imports the engine or reads ground truth |
 
 ## Licence

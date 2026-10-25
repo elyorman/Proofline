@@ -1,0 +1,21 @@
+# The API image needs the product packages, the engine's CLI and the demo match's script.
+# Sealed answers, local data and runs, tests, the web app and history never enter it.
+.git
+.github
+.azure
+.env
+.env.*
+.venv
+**/__pycache__
+.pytest_cache
+.ruff_cache
+data
+runs
+tests
+docs
+eval/records
+engine/suites
+.claude
+**/node_modules
+surfaces/web
+*.log

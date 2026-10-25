@@ -1,7 +1,16 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/Azure/azure-dev/main/schemas/v1.0/azure.yaml.json
 
-# Infrastructure only for now. Services (api, web) are added here as their code lands.
+# The live API ships as a container (surfaces/api); the web app is a static replay deployed
+# with `make deploy-web`.
 name: proofline
 infra:
   provider: bicep
   path: infra
+services:
+  api:
+    project: .
+    host: containerapp
+    language: docker
+    docker:
+      path: surfaces/api/Dockerfile
+      context: .

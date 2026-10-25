@@ -24,6 +24,9 @@ param budgetAmount int = 150000
 @description('First day of the budget period; budgets need a fixed start date')
 param budgetStartDate string = '2026-10-01'
 
+@description('The API image azd last deployed (SERVICE_API_IMAGE_NAME); empty before the first')
+param apiImage string = ''
+
 var tags = { 'azd-env-name': environmentName }
 var resourceToken = toLower(uniqueString(subscription().id, environmentName, location))
 
@@ -41,6 +44,7 @@ module resources 'resources.bicep' = {
     tags: tags
     resourceToken: resourceToken
     principalId: principalId
+    apiImage: apiImage
   }
 }
 

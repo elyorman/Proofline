@@ -22,6 +22,12 @@ param modelCapacity int = 100
 @description('Thousands of tokens per minute for the verifier model; the Free Trial grants 20')
 param verifierCapacity int = 20
 
+@description('The API image azd last deployed; empty keeps the placeholder until the first deploy')
+param apiImage string = ''
+
+@description('Live questions the public API answers per day, across all viewers')
+param dailyQuestions int = 60
+
 // Built-in role definition ids
 var roles = {
   acrPull: '7f951dda-4ed3-4680-a7ca-43fe172d538d'
@@ -115,11 +121,13 @@ resource containerEnv 'Microsoft.App/managedEnvironments@2025-01-01' = {
   }
 }
 
-// Placeholder image until surfaces/api exists; azd swaps it on first deploy.
+// The live API (surfaces/api): typed questions answered by the agents on Foundry, written to
+// the ledger, traced to Application Insights. One replica, always on: its jobs and caps live
+// in memory, and a viewer's question should not wait for a cold start.
 resource api 'Microsoft.App/containerApps@2025-01-01' = {
   name: 'ca-api-${resourceToken}'
   location: location
-  tags: tags
+  tags: union(tags, { 'azd-service-name': 'api' })
   identity: {
     type: 'UserAssigned'
     userAssignedIdentities: { '${identity.id}': {} }
@@ -127,21 +135,29 @@ resource api 'Microsoft.App/containerApps@2025-01-01' = {
   properties: {
     managedEnvironmentId: containerEnv.id
     configuration: {
-      ingress: { external: true, targetPort: 80 }
+      ingress: { external: true, targetPort: 8000 }
+      registries: [{ server: registry.properties.loginServer, identity: identity.id }]
     }
     template: {
       containers: [
         {
           name: 'api'
-          image: 'mcr.microsoft.com/azuredocs/containerapps-helloworld:latest'
-          resources: { cpu: json('0.25'), memory: '0.5Gi' }
+          image: empty(apiImage) ? 'mcr.microsoft.com/azuredocs/containerapps-helloworld:latest' : apiImage
+          resources: { cpu: json('0.5'), memory: '1Gi' }
           env: [
             { name: 'AZURE_CLIENT_ID', value: identity.properties.clientId }
             { name: 'APPLICATIONINSIGHTS_CONNECTION_STRING', value: appInsights.properties.ConnectionString }
+            { name: 'AZURE_FOUNDRY_PROJECT_ENDPOINT', value: 'https://${foundry.properties.customSubDomainName}.services.ai.azure.com/api/projects/${foundryProject.name}' }
+            { name: 'AZURE_OPENAI_DEPLOYMENT', value: modelDeployment.name }
+            { name: 'AZURE_VERIFIER_DEPLOYMENT', value: modelDeployment.name }
+            { name: 'AZURE_COSMOS_ENDPOINT', value: cosmos.properties.documentEndpoint }
+            { name: 'AZURE_COSMOS_DATABASE', value: ledger.name }
+            { name: 'PROOFLINE_WEB_ORIGINS', value: 'https://${web.properties.defaultHostname},http://localhost:5173,http://localhost:4173' }
+            { name: 'PROOFLINE_DAILY_QUESTIONS', value: string(dailyQuestions) }
           ]
         }
       ]
-      scale: { minReplicas: 0, maxReplicas: 1 }
+      scale: { minReplicas: 1, maxReplicas: 1 }
     }
   }
 }

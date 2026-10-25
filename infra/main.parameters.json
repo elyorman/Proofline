@@ -6,6 +6,7 @@
     "location": { "value": "${AZURE_LOCATION}" },
     "principalId": { "value": "${AZURE_PRINCIPAL_ID}" },
     "budgetContactEmail": { "value": "${AZURE_BUDGET_EMAIL}" },
-    "budgetAmount": { "value": "${AZURE_BUDGET_AMOUNT=150000}" }
+    "budgetAmount": { "value": "${AZURE_BUDGET_AMOUNT=150000}" },
+    "apiImage": { "value": "${SERVICE_API_IMAGE_NAME=}" }
   }
 }

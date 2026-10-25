@@ -10,6 +10,8 @@ Built for the Microsoft × Premier League "Inside the Game" Developer Hackathon,
 
 ![The fan view at 68:00: the pitch, the verified card with How we know, and the momentum and control-vs-chaos strip](docs/images/fan.png)
 
+**A two-minute tour:** [the 68' card and its evidence](https://nice-coast-044d8740f.5.azurestaticapps.net/#/fan?t=68:00&lang=en) · [the 70' correction](https://nice-coast-044d8740f.5.azurestaticapps.net/#/fan?t=70:00&lang=en) · [the agents' investigation](https://nice-coast-044d8740f.5.azurestaticapps.net/#/analyst?t=68:00&lang=en) · then type your own question in Ask Proofline, below the cards, and watch it answered live. Step-by-step testing instructions are in [`docs/submission.md`](docs/submission.md#testing-instructions-for-judges).
+
 ## The problem
 
 A live stats feed can tell you that Harbour City's pressing has jumped since 58'. It cannot tell you why. Harbour City might have decided to press higher. They might be chasing a 1-3 scoreline. Northvale might have pushed up into the press. All three move the same numbers. A language model will pick one and explain it fluently. It will just as fluently explain a change that never happened if the viewer's question assumes it.

@@ -29,3 +29,6 @@ surfaces/web/dist/
 .DS_Store
 .idea/
 .vscode/
+
+# Agent worktrees made inside the checkout
+.claude/worktrees/

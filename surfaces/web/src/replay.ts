@@ -189,6 +189,40 @@ export function teamStats(events: Event[], team: string) {
   };
 }
 
+export const LEADER_STATS = ['sprint_distance', 'sprints', 'top_speed', 'passes', 'shots', 'pressures'] as const;
+export interface Leader { stat: (typeof LEADER_STATS)[number]; player: string; team: string; value: number }
+
+/** Who leads each player stat the feed carries, from the events delivered so far. The feed
+ * has events and sprints but no tracking, so total distance run is not measured; sprint
+ * distance is the nearest thing it records. Ties go to whoever reached the value first. */
+export function leaders(events: Event[]): Leader[] {
+  const totals = new Map<string, Map<string, { team: string; value: number }>>();
+  const add = (stat: string, e: Event, value: number, best = false) => {
+    if (!e.player_id || !Number.isFinite(value)) return;
+    const table = totals.get(stat) ?? new Map();
+    totals.set(stat, table);
+    const row = table.get(e.player_id) ?? { team: e.team ?? '', value: 0 };
+    row.value = best ? Math.max(row.value, value) : row.value + value;
+    table.set(e.player_id, row);
+  };
+  for (const e of events) {
+    const q = (e.qualifiers ?? {}) as Record<string, unknown>;
+    if (e.type === 'sprint') {
+      add('sprints', e, 1);
+      add('sprint_distance', e, Number(q.distance_m ?? 0));
+      add('top_speed', e, Number(q.speed_kmh ?? 0), true);
+    }
+    if (e.type === 'pass' && e.outcome === 'complete') add('passes', e, 1);
+    if (e.type === 'shot') add('shots', e, 1);
+    if (e.type === 'pressure') add('pressures', e, 1);
+  }
+  return LEADER_STATS.flatMap(stat => {
+    let top: Leader | undefined;
+    for (const [player, row] of totals.get(stat) ?? []) if (!top || row.value > top.value) top = { stat, player, team: row.team, value: row.value };
+    return top ? [top] : [];
+  });
+}
+
 export function activityAt(timeline: Timeline, elapsed: number, teams: string[]) {
   // Thirty-second buckets, current period only. No future events enter the chart.
   const period = clockAt(elapsed, timeline.firstHalfSeconds).period;

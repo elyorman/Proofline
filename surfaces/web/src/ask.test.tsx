@@ -102,6 +102,7 @@ describe('live questions', () => {
     expect(render(<AnswerView answer={declined} data={data} elapsed={6000} />)).toContain('Proofline explains what changed in the match and why');
     expect(render(<AnswerView answer={declined} data={data} elapsed={6000} />, 'es')).toContain('Proofline explica qué cambió');
     expect(render(<AnswerView answer={explained} data={data} elapsed={6000} />)).not.toContain('Proofline explains what changed');
+    expect(render(<AnswerView answer={declined} data={data} elapsed={6000} />)).toContain('Match leaders so far');
   });
   it('stops at the premise when it is turned away', () => {
     const job: LiveJob = { job_id: 'live-1', question, status: 'done', created_ms: 0, answer: { ...turnedAway, question },

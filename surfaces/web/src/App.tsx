@@ -10,6 +10,7 @@ import type { Locale } from './i18n';
 import { Insights } from './Insights';
 import { MatchHeader } from './MatchHeader';
 import { Activity, Pitch, involves } from './Pitch';
+import { Leaders } from './Leaders';
 import { displayElapsed, displayTime, elapsedAt, linkedElapsed, parseLink, teamStats, visibleCards, type ProducerDecision, type Route } from './replay';
 import { Icon, LocaleContext, SectionTitle, ViewBoundary, useText } from './ui';
 
@@ -146,6 +147,7 @@ function Workspace({ setLocale }: { setLocale: (locale: Locale) => void }) {
               <Ticker feed={ambient} data={data} elapsed={elapsed} />
               <section className="panel stats-panel"><SectionTitle title={text('stats')} sub={text('stats.sub')} /><div className="stats-team-head"><span>{data.teams[0].code}</span><span>{data.teams[1].code}</span></div>{(['passes', 'accuracy', 'shots', 'pressures'] as const).map(key => <div className="stat-row" key={key}><strong>{stats[0][key] === null ? '—' : num(stats[0][key], key === 'accuracy')}</strong><span>{text(`stats.${key}`)}</span><strong>{stats[1][key] === null ? '—' : num(stats[1][key], key === 'accuracy')}</strong></div>)}</section>
               <Activity data={data} elapsed={elapsed} />
+              <Leaders data={data} elapsed={elapsed} />
             </div>
           </div>
         </div></ViewBoundary>}

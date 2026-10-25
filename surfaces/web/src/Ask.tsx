@@ -6,6 +6,7 @@ import { askLive, followLive, LIVE_API, LiveRefused } from './live';
 import { clockAt, displayElapsed, elapsedAt, formatClock } from './replay';
 import { t, type Locale } from './i18n';
 import { Insight } from './Insights';
+import { Leaders } from './Leaders';
 import { PersistenceView } from './Investigation';
 import { SectionTitle, useText } from './ui';
 
@@ -46,6 +47,7 @@ export function AnswerView({ answer, data, elapsed, live = false }: { answer: An
     <h4>{text('ask.premise')}</h4>
     {premise ? <p>{text(`ask.premise.${premise.direction}`, { subject, metric: text(`metric.${premise.metric}`), clock: formatClock(premise.since) })}</p> : <p>{text('ask.noPremise')}</p>}
     {answer.outcome === 'unanswerable' && <p className="muted ask-hint">{text('ask.hint')}</p>}
+    {answer.outcome === 'unanswerable' && <Leaders data={data} elapsed={elapsedAt(answer.question.asked_at, data.timeline.firstHalfSeconds)} compact />}
     {answer.premise_test && <PersistenceView item={answer.premise_test} label={premise && answer.premise_test.subject === premise.subject ? subject : undefined} />}
     {card && <Insight card={card} />}
     {answer.outcome === 'explained' && answer.card && !card && <p className="muted ask-time-note">{text('ask.cardUnavailable')}</p>}

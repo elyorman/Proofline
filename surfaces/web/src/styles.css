@@ -410,3 +410,10 @@ pre { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 10px; line-heig
 .comparison-take .card-facts { grid-template-columns: 1fr; }
 @media (max-width: 1000px) { .investigation-comparison { grid-template-columns: 1fr; } }
 .insight-team .relevance { margin-left: 8px; padding: 1px 7px; border-radius: 999px; background: #edf3e4; color: #3f6b4f; font-size: 10px; font-weight: 600; letter-spacing: .2px; }
+.leaders-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.leaders-table th, .leaders-table td { padding: 7px 0; border-top: 1px solid var(--line); text-align: left; font-weight: 400; }
+.leaders-table th { color: var(--muted); }
+.leaders-table .leaders-value { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; white-space: nowrap; }
+.leaders-note { font-size: 11px; line-height: 1.5; margin-top: 10px; }
+.leaders.compact { margin-top: 16px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 8px; }
+.leaders.compact h4 { margin: 0 0 6px; }

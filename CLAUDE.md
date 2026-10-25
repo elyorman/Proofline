@@ -53,7 +53,7 @@ uv run proofline-engine suite --suite planted --split heldout   # writes engine/
 make stream-m01                          # gate 2: m01 through Event Hubs into Cosmos, detector cases printed
 uv run python -m tools_server.server --data data --match m01 --as-of 63:00   # the State Builder over MCP (stdio)
 make tune-detector                        # re-tune detector thresholds on the dev split only
-uv run proofline case --match m01 --minute 63 --variant B --record tests/fixtures/cases/m01-063-B   # one case end to end, live (gpt-5-mini + verifier); --replay DIR answers from fixtures
+uv run proofline case --match m01 --minute 63 --variant B --record tests/fixtures/cases/m01-063-B   # one case end to end, live (gpt-5-mini + verifier); --replay DIR answers from fixtures; --reverify DIR --record DIR replays the agents and re-runs only the Verifier (case, batch, ask, questions, run)
 uv run proofline case --match m01 --minute 63 --variant A --kill-agent physical   # the recovery beat: an agent stopped mid-case, retried from its checkpoint
 uv run proofline run --mode studio --match m01 --replay tests/fixtures/studio/m01   # the whole match through the product (cases, Verifier, the 68' correction, Director) into runs/studio/m01/ledger.json; --record DIR to run live
 uv run proofline batch --data data/dev --variant A --out runs/dev   # every detected case of a split through one variant (resumable); make heldout-feeds writes data/heldout once the agents are frozen

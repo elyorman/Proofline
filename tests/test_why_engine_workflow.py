@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 
 from agents.cross_exam import Counter, Counters
-from agents.llm import Replay, Usage
+from agents.llm import FoundryModel, Recording, Replay, Usage
 from agents.outputs import Proposal, Ranking, Registration
 from agents.verifier.semantic import SemanticReport, SentenceCheck
 from contracts.case import CaseStage
@@ -18,7 +18,7 @@ from detector.cusum import detect
 from engine.io import match_meta
 from engine.script import load_script
 from engine.sim import MatchSim
-from orchestration.case import case_file, run_case
+from orchestration.case import case_file, models, run_case
 from orchestration.workflow import AgentDown, investigate
 from state.tools import Feed
 
@@ -205,3 +205,14 @@ def test_a_case_every_agent_failed_is_an_error_not_a_finding(m01):
     down = {a: 2 for a in (AgentRole.TACTICS, AgentRole.PHYSICAL, AgentRole.GAME_STATE)}
     with pytest.raises(AgentDown, match="every agent failed"):
         asyncio.run(investigate(ByRole(SCRIPT), case, feed, down))
+
+
+def test_reverify_replays_the_agents_and_runs_only_the_verifier(tmp_path, monkeypatch):
+    monkeypatch.setenv("AZURE_FOUNDRY_PROJECT_ENDPOINT", "https://example.invalid/api/projects/p")
+    monkeypatch.setenv("AZURE_VERIFIER_DEPLOYMENT", "Phi-4")
+    agents, verifier = models(tmp_path / "out", reverify=tmp_path / "take")
+    assert isinstance(agents, Replay) and agents.folder == tmp_path / "take"
+    assert isinstance(verifier, Recording) and verifier.folder == tmp_path / "out"
+    assert verifier.model.deployment == "Phi-4" and not verifier.model.structured
+    _, live = models(reverify=tmp_path / "take")
+    assert isinstance(live, FoundryModel)

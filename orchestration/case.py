@@ -161,18 +161,23 @@ def case_file(outcome: Outcome, variant: Variant) -> CaseFile:
     )
 
 
-def models(record: Path | None = None, replay: Path | None = None) -> tuple[Model, Model]:
-    """(agents' model, verifier's model): live, live and recorded, or replayed. The Verifier
-    runs on Foundry, on the deployment AZURE_VERIFIER_DEPLOYMENT names: gpt-5-mini, as the
-    agents, sent only the card's facts and sentences, never their reasoning."""
+def models(
+    record: Path | None = None, replay: Path | None = None, reverify: Path | None = None
+) -> tuple[Model, Model]:
+    """(agents' model, verifier's model): live, live and recorded, or replayed; or, with
+    `reverify`, the agents' recorded answers with only the Verifier live (and recorded). The
+    Verifier runs on Foundry, on the deployment AZURE_VERIFIER_DEPLOYMENT names (spec §15),
+    sent only the card's facts and sentences, never their reasoning."""
     if replay is not None:
         return Replay(replay), Replay(replay)
-    agents = FoundryModel.from_env()
     endpoint, deployment = (
         os.environ["AZURE_FOUNDRY_PROJECT_ENDPOINT"],
         os.environ["AZURE_VERIFIER_DEPLOYMENT"],
     )
     verifier = FoundryModel(endpoint, deployment, structured=False)
+    if reverify is not None:
+        return Replay(reverify), Recording(verifier, record) if record else verifier
+    agents = FoundryModel.from_env()
     if record is None:
         return agents, verifier
     return Recording(agents, record), Recording(verifier, record)

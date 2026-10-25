@@ -52,6 +52,11 @@ def main(argv: list[str] | None = None) -> int:
     case.add_argument("--record", type=Path, help="save every model exchange here")
     case.add_argument("--replay", type=Path, help="answer from saved exchanges only")
     case.add_argument(
+        "--reverify",
+        type=Path,
+        help="replay the agents from these exchanges; only the Verifier runs",
+    )
+    case.add_argument(
         "--kill-agent",
         action="append",
         default=[],
@@ -64,6 +69,11 @@ def main(argv: list[str] | None = None) -> int:
     batch.add_argument("--out", type=Path, default=Path("runs"), help="results root")
     batch.add_argument("--concurrency", type=int, default=3)
     batch.add_argument("--record", type=Path, help="save every model exchange here")
+    batch.add_argument(
+        "--reverify",
+        type=Path,
+        help="replay the agents from these exchanges; only the Verifier runs",
+    )
     ask = sub.add_parser("ask", help="answer one viewer question about a match so far")
     ask.add_argument("--data", default="data", help="folder of engine-written matches")
     ask.add_argument("--match", required=True)
@@ -73,6 +83,11 @@ def main(argv: list[str] | None = None) -> int:
     ask.add_argument("--variant", choices=["A", "B"], default="A")
     ask.add_argument("--record", type=Path, help="save every model exchange here")
     ask.add_argument("--replay", type=Path, help="answer from saved exchanges only")
+    ask.add_argument(
+        "--reverify",
+        type=Path,
+        help="replay the agents from these exchanges; only the Verifier runs",
+    )
     asked = sub.add_parser("questions", help="answer every question in a questions file")
     asked.add_argument("--data", type=Path, required=True, help="folder of match feeds")
     asked.add_argument("--questions", type=Path, required=True, help="questions.jsonl")
@@ -83,6 +98,11 @@ def main(argv: list[str] | None = None) -> int:
     asked.add_argument("--concurrency", type=int, default=2)
     asked.add_argument("--record", type=Path, help="save every model exchange here")
     asked.add_argument("--replay", type=Path, help="answer from saved exchanges only")
+    asked.add_argument(
+        "--reverify",
+        type=Path,
+        help="replay the agents from these exchanges; only the Verifier runs",
+    )
     run = sub.add_parser("run", help="run a whole match through the product")
     run.add_argument("--mode", choices=["studio"], default="studio")
     run.add_argument("--data", type=Path, default=Path("data"), help="folder of written matches")
@@ -90,11 +110,16 @@ def main(argv: list[str] | None = None) -> int:
     run.add_argument("--variant", choices=["A", "B"], default="A")
     run.add_argument("--record", type=Path, help="save every model exchange here")
     run.add_argument("--replay", type=Path, help="answer from saved exchanges only")
+    run.add_argument(
+        "--reverify",
+        type=Path,
+        help="replay the agents from these exchanges; only the Verifier runs",
+    )
     run.add_argument("--out", type=Path, default=Path("runs/studio"), help="ledger root")
     args = parser.parse_args(argv)
     if args.command == "run":
         _quiet()
-        agents, verifier = models(args.record, args.replay)
+        agents, verifier = models(args.record, args.replay, args.reverify)
         source = DirectorySource(args.data)
         ledger = asyncio.run(studio(source, args.match, agents, verifier, Variant(args.variant)))
         shown = [c for c in ledger["cards"] if c["lane"] == "full" and c["timing"]["published_at"]]
@@ -122,7 +147,7 @@ def main(argv: list[str] | None = None) -> int:
             text=args.question,
             locale=args.locale,
         )
-        agents, verifier = models(args.record, args.replay)
+        agents, verifier = models(args.record, args.replay, args.reverify)
         answer = asyncio.run(run_question(Variant(args.variant), agents, verifier, question, feed))
         if answer.premise:
             p = answer.premise
@@ -133,7 +158,7 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if args.command == "questions":
         _quiet()
-        agents, verifier = models(args.record, args.replay)
+        agents, verifier = models(args.record, args.replay, args.reverify)
         asyncio.run(
             answer_all(
                 args.data,
@@ -148,7 +173,7 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if args.command == "batch":
         _quiet()
-        agents, verifier = models(args.record)
+        agents, verifier = models(args.record, reverify=args.reverify)
         asyncio.run(
             run_batch(
                 args.data, Variant(args.variant), args.out, agents, verifier, args.concurrency
@@ -187,7 +212,7 @@ def _case(parser: argparse.ArgumentParser, args: argparse.Namespace) -> int:
     found = [c for c in detect(feed.meta, feed.events) if c.window.end.minute == args.minute]
     if not found:
         parser.error(f"no case on {args.match} opened at {args.minute}'")
-    agents, verifier = models(args.record, args.replay)
+    agents, verifier = models(args.record, args.replay, args.reverify)
     stop = {AgentRole(a): 1 for a in args.kill_agent}
     outcome = asyncio.run(run_case(Variant(args.variant), agents, verifier, found[0], feed, stop))
     f = outcome.finding

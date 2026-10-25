@@ -250,8 +250,770 @@
      "ci_method": "paired_match_bootstrap"
     }
    ]
+  },
+  {
+   "id": "questions-heldout-A-99e67b73770ed5b8-vs-questions-heldout-B-164d3953ee116a53-claim_precision",
+   "split": "heldout",
+   "model_id": "gpt-5-mini",
+   "type": "questions",
+   "variant_a": "A",
+   "variant_b": "B",
+   "after_follow_up": false,
+   "differences": [
+    {
+     "name": "claim_precision",
+     "value": -0.028571428571428525,
+     "ci_low": -0.2549019607843137,
+     "ci_high": 0.20833333333333331,
+     "n": 79,
+     "ci_method": "paired_match_bootstrap"
+    }
+   ]
+  },
+  {
+   "id": "questions-heldout-A-99e67b73770ed5b8-vs-questions-heldout-B-164d3953ee116a53-false_claims_per_question",
+   "split": "heldout",
+   "model_id": "gpt-5-mini",
+   "type": "questions",
+   "variant_a": "A",
+   "variant_b": "B",
+   "after_follow_up": false,
+   "differences": [
+    {
+     "name": "false_claims_per_question",
+     "value": 0.0,
+     "ci_low": -0.07594936708860761,
+     "ci_high": 0.06756756756756757,
+     "n": 77,
+     "ci_method": "paired_match_bootstrap"
+    }
+   ]
+  },
+  {
+   "id": "questions-heldout-A-99e67b73770ed5b8-vs-questions-heldout-B-164d3953ee116a53-false_premise_rejection",
+   "split": "heldout",
+   "model_id": "gpt-5-mini",
+   "type": "questions",
+   "variant_a": "A",
+   "variant_b": "B",
+   "after_follow_up": false,
+   "differences": [
+    {
+     "name": "false_premise_rejection",
+     "value": 0.020000000000000018,
+     "ci_low": 0.0,
+     "ci_high": 0.06382978723404253,
+     "n": 50,
+     "ci_method": "paired_match_bootstrap"
+    }
+   ]
+  },
+  {
+   "id": "questions-heldout-A-99e67b73770ed5b8-vs-questions-heldout-B-164d3953ee116a53-true_premise_accuracy",
+   "split": "heldout",
+   "model_id": "gpt-5-mini",
+   "type": "questions",
+   "variant_a": "A",
+   "variant_b": "B",
+   "after_follow_up": false,
+   "differences": [
+    {
+     "name": "true_premise_accuracy",
+     "value": -0.037037037037037035,
+     "ci_low": -0.19354838709677422,
+     "ci_high": 0.12903225806451613,
+     "n": 27,
+     "ci_method": "paired_match_bootstrap"
+    }
+   ]
+  },
+  {
+   "id": "questions-heldout-A-99e67b73770ed5b8-vs-questions-heldout-P-7bbae1678cd512dd-claim_precision",
+   "split": "heldout",
+   "model_id": "gpt-5-mini",
+   "type": "questions",
+   "variant_a": "A",
+   "variant_b": "P",
+   "after_follow_up": false,
+   "differences": [
+    {
+     "name": "claim_precision",
+     "value": 0.0564784053156146,
+     "ci_low": -0.2,
+     "ci_high": 0.3333333333333333,
+     "n": 80,
+     "ci_method": "paired_match_bootstrap"
+    }
+   ]
+  },
+  {
+   "id": "questions-heldout-A-99e67b73770ed5b8-vs-questions-heldout-P-7bbae1678cd512dd-false_claims_per_question",
+   "split": "heldout",
+   "model_id": "gpt-5-mini",
+   "type": "questions",
+   "variant_a": "A",
+   "variant_b": "P",
+   "after_follow_up": false,
+   "differences": [
+    {
+     "name": "false_claims_per_question",
+     "value": -0.1923076923076923,
+     "ci_low": -0.3333333333333333,
+     "ci_high": -0.05194805194805191,
+     "n": 78,
+     "ci_method": "paired_match_bootstrap"
+    }
+   ]
+  },
+  {
+   "id": "questions-heldout-A-99e67b73770ed5b8-vs-questions-heldout-P-7bbae1678cd512dd-false_premise_rejection",
+   "split": "heldout",
+   "model_id": "gpt-5-mini",
+   "type": "questions",
+   "variant_a": "A",
+   "variant_b": "P",
+   "after_follow_up": false,
+   "differences": [
+    {
+     "name": "false_premise_rejection",
+     "value": 0.28,
+     "ci_low": 0.15909090909090906,
+     "ci_high": 0.40384615384615385,
+     "n": 50,
+     "ci_method": "paired_match_bootstrap"
+    }
+   ]
+  },
+  {
+   "id": "questions-heldout-A-99e67b73770ed5b8-vs-questions-heldout-P-7bbae1678cd512dd-true_premise_accuracy",
+   "split": "heldout",
+   "model_id": "gpt-5-mini",
+   "type": "questions",
+   "variant_a": "A",
+   "variant_b": "P",
+   "after_follow_up": false,
+   "differences": [
+    {
+     "name": "true_premise_accuracy",
+     "value": -0.24999999999999994,
+     "ci_low": -0.5172413793103449,
+     "ci_high": 0.0,
+     "n": 28,
+     "ci_method": "paired_match_bootstrap"
+    }
+   ]
+  },
+  {
+   "id": "questions-heldout-A-after-follow-up-cb4d5eb905e48353-vs-questions-heldout-B-after-follow-up-02d7a3c686c8c36d-claim_precision",
+   "split": "heldout",
+   "model_id": "gpt-5-mini",
+   "type": "questions",
+   "variant_a": "A",
+   "variant_b": "B",
+   "after_follow_up": true,
+   "differences": [
+    {
+     "name": "claim_precision",
+     "value": 0.2272727272727273,
+     "ci_low": -0.09999999999999998,
+     "ci_high": 0.575,
+     "n": 79,
+     "ci_method": "paired_match_bootstrap"
+    }
+   ]
+  },
+  {
+   "id": "questions-heldout-A-after-follow-up-cb4d5eb905e48353-vs-questions-heldout-B-after-follow-up-02d7a3c686c8c36d-false_claims_per_question",
+   "split": "heldout",
+   "model_id": "gpt-5-mini",
+   "type": "questions",
+   "variant_a": "A",
+   "variant_b": "B",
+   "after_follow_up": true,
+   "differences": [
+    {
+     "name": "false_claims_per_question",
+     "value": -0.05194805194805195,
+     "ci_low": -0.11688311688311687,
+     "ci_high": 0.0,
+     "n": 77,
+     "ci_method": "paired_match_bootstrap"
+    }
+   ]
+  },
+  {
+   "id": "questions-heldout-A-after-follow-up-cb4d5eb905e48353-vs-questions-heldout-B-after-follow-up-02d7a3c686c8c36d-false_premise_rejection",
+   "split": "heldout",
+   "model_id": "gpt-5-mini",
+   "type": "questions",
+   "variant_a": "A",
+   "variant_b": "B",
+   "after_follow_up": true,
+   "differences": [
+    {
+     "name": "false_premise_rejection",
+     "value": 0.020000000000000018,
+     "ci_low": 0.0,
+     "ci_high": 0.06382978723404253,
+     "n": 50,
+     "ci_method": "paired_match_bootstrap"
+    }
+   ]
+  },
+  {
+   "id": "questions-heldout-A-after-follow-up-cb4d5eb905e48353-vs-questions-heldout-B-after-follow-up-02d7a3c686c8c36d-true_premise_accuracy",
+   "split": "heldout",
+   "model_id": "gpt-5-mini",
+   "type": "questions",
+   "variant_a": "A",
+   "variant_b": "B",
+   "after_follow_up": true,
+   "differences": [
+    {
+     "name": "true_premise_accuracy",
+     "value": 0.037037037037037035,
+     "ci_low": -0.14814814814814814,
+     "ci_high": 0.23809523809523814,
+     "n": 27,
+     "ci_method": "paired_match_bootstrap"
+    }
+   ]
+  },
+  {
+   "id": "questions-heldout-A-after-follow-up-cb4d5eb905e48353-vs-questions-heldout-P-after-follow-up-1b5aac88b41a7f17-claim_precision",
+   "split": "heldout",
+   "model_id": "gpt-5-mini",
+   "type": "questions",
+   "variant_a": "A",
+   "variant_b": "P",
+   "after_follow_up": true,
+   "differences": [
+    {
+     "name": "claim_precision",
+     "value": 0.37790697674418605,
+     "ci_low": 0.038461538461538436,
+     "ci_high": 0.6842105263157895,
+     "n": 80,
+     "ci_method": "paired_match_bootstrap"
+    }
+   ]
+  },
+  {
+   "id": "questions-heldout-A-after-follow-up-cb4d5eb905e48353-vs-questions-heldout-P-after-follow-up-1b5aac88b41a7f17-false_claims_per_question",
+   "split": "heldout",
+   "model_id": "gpt-5-mini",
+   "type": "questions",
+   "variant_a": "A",
+   "variant_b": "P",
+   "after_follow_up": true,
+   "differences": [
+    {
+     "name": "false_claims_per_question",
+     "value": -0.3076923076923077,
+     "ci_low": -0.42857142857142855,
+     "ci_high": -0.1923076923076923,
+     "n": 78,
+     "ci_method": "paired_match_bootstrap"
+    }
+   ]
+  },
+  {
+   "id": "questions-heldout-A-after-follow-up-cb4d5eb905e48353-vs-questions-heldout-P-after-follow-up-1b5aac88b41a7f17-false_premise_rejection",
+   "split": "heldout",
+   "model_id": "gpt-5-mini",
+   "type": "questions",
+   "variant_a": "A",
+   "variant_b": "P",
+   "after_follow_up": true,
+   "differences": [
+    {
+     "name": "false_premise_rejection",
+     "value": 0.28,
+     "ci_low": 0.15909090909090906,
+     "ci_high": 0.40384615384615385,
+     "n": 50,
+     "ci_method": "paired_match_bootstrap"
+    }
+   ]
+  },
+  {
+   "id": "questions-heldout-A-after-follow-up-cb4d5eb905e48353-vs-questions-heldout-P-after-follow-up-1b5aac88b41a7f17-true_premise_accuracy",
+   "split": "heldout",
+   "model_id": "gpt-5-mini",
+   "type": "questions",
+   "variant_a": "A",
+   "variant_b": "P",
+   "after_follow_up": true,
+   "differences": [
+    {
+     "name": "true_premise_accuracy",
+     "value": -0.24999999999999994,
+     "ci_low": -0.5,
+     "ci_high": 0.0,
+     "n": 28,
+     "ci_method": "paired_match_bootstrap"
+    }
+   ]
+  },
+  {
+   "id": "questions-heldout-B-164d3953ee116a53-vs-questions-heldout-P-7bbae1678cd512dd-claim_precision",
+   "split": "heldout",
+   "model_id": "gpt-5-mini",
+   "type": "questions",
+   "variant_a": "B",
+   "variant_b": "P",
+   "after_follow_up": false,
+   "differences": [
+    {
+     "name": "claim_precision",
+     "value": 0.047619047619047616,
+     "ci_low": -0.22402159244264508,
+     "ci_high": 0.3317073170731707,
+     "n": 79,
+     "ci_method": "paired_match_bootstrap"
+    }
+   ]
+  },
+  {
+   "id": "questions-heldout-B-164d3953ee116a53-vs-questions-heldout-P-7bbae1678cd512dd-false_claims_per_question",
+   "split": "heldout",
+   "model_id": "gpt-5-mini",
+   "type": "questions",
+   "variant_a": "B",
+   "variant_b": "P",
+   "after_follow_up": false,
+   "differences": [
+    {
+     "name": "false_claims_per_question",
+     "value": -0.18181818181818182,
+     "ci_low": -0.32894736842105265,
+     "ci_high": -0.038961038961038946,
+     "n": 77,
+     "ci_method": "paired_match_bootstrap"
+    }
+   ]
+  },
+  {
+   "id": "questions-heldout-B-164d3953ee116a53-vs-questions-heldout-P-7bbae1678cd512dd-false_premise_rejection",
+   "split": "heldout",
+   "model_id": "gpt-5-mini",
+   "type": "questions",
+   "variant_a": "B",
+   "variant_b": "P",
+   "after_follow_up": false,
+   "differences": [
+    {
+     "name": "false_premise_rejection",
+     "value": 0.26,
+     "ci_low": 0.12765957446808518,
+     "ci_high": 0.38888888888888895,
+     "n": 50,
+     "ci_method": "paired_match_bootstrap"
+    }
+   ]
+  },
+  {
+   "id": "questions-heldout-B-164d3953ee116a53-vs-questions-heldout-P-7bbae1678cd512dd-true_premise_accuracy",
+   "split": "heldout",
+   "model_id": "gpt-5-mini",
+   "type": "questions",
+   "variant_a": "B",
+   "variant_b": "P",
+   "after_follow_up": false,
+   "differences": [
+    {
+     "name": "true_premise_accuracy",
+     "value": -0.25925925925925924,
+     "ci_low": -0.5217391304347826,
+     "ci_high": 0.0,
+     "n": 27,
+     "ci_method": "paired_match_bootstrap"
+    }
+   ]
+  },
+  {
+   "id": "questions-heldout-B-after-follow-up-02d7a3c686c8c36d-vs-questions-heldout-P-after-follow-up-1b5aac88b41a7f17-claim_precision",
+   "split": "heldout",
+   "model_id": "gpt-5-mini",
+   "type": "questions",
+   "variant_a": "B",
+   "variant_b": "P",
+   "after_follow_up": true,
+   "differences": [
+    {
+     "name": "claim_precision",
+     "value": 0.11904761904761907,
+     "ci_low": -0.21428571428571427,
+     "ci_high": 0.4423076923076923,
+     "n": 79,
+     "ci_method": "paired_match_bootstrap"
+    }
+   ]
+  },
+  {
+   "id": "questions-heldout-B-after-follow-up-02d7a3c686c8c36d-vs-questions-heldout-P-after-follow-up-1b5aac88b41a7f17-false_claims_per_question",
+   "split": "heldout",
+   "model_id": "gpt-5-mini",
+   "type": "questions",
+   "variant_a": "B",
+   "variant_b": "P",
+   "after_follow_up": true,
+   "differences": [
+    {
+     "name": "false_claims_per_question",
+     "value": -0.24675324675324675,
+     "ci_low": -0.379746835443038,
+     "ci_high": -0.10526315789473684,
+     "n": 77,
+     "ci_method": "paired_match_bootstrap"
+    }
+   ]
+  },
+  {
+   "id": "questions-heldout-B-after-follow-up-02d7a3c686c8c36d-vs-questions-heldout-P-after-follow-up-1b5aac88b41a7f17-false_premise_rejection",
+   "split": "heldout",
+   "model_id": "gpt-5-mini",
+   "type": "questions",
+   "variant_a": "B",
+   "variant_b": "P",
+   "after_follow_up": true,
+   "differences": [
+    {
+     "name": "false_premise_rejection",
+     "value": 0.26,
+     "ci_low": 0.12765957446808518,
+     "ci_high": 0.38888888888888895,
+     "n": 50,
+     "ci_method": "paired_match_bootstrap"
+    }
+   ]
+  },
+  {
+   "id": "questions-heldout-B-after-follow-up-02d7a3c686c8c36d-vs-questions-heldout-P-after-follow-up-1b5aac88b41a7f17-true_premise_accuracy",
+   "split": "heldout",
+   "model_id": "gpt-5-mini",
+   "type": "questions",
+   "variant_a": "B",
+   "variant_b": "P",
+   "after_follow_up": true,
+   "differences": [
+    {
+     "name": "true_premise_accuracy",
+     "value": -0.3333333333333333,
+     "ci_low": -0.5909090909090909,
+     "ci_high": -0.07407407407407407,
+     "n": 27,
+     "ci_method": "paired_match_bootstrap"
+    }
+   ]
   }
  ],
- "questions": [],
- "seeded": []
+ "questions": [
+  {
+   "id": "questions-heldout-A-99e67b73770ed5b8",
+   "split": "heldout",
+   "model_id": "gpt-5-mini",
+   "variant": "A",
+   "after_follow_up": false,
+   "metrics": [
+    {
+     "name": "true_premise_accuracy",
+     "value": 0.32142857142857145,
+     "ci_low": 0.17933246922494966,
+     "ci_high": 0.5066115681914238,
+     "n": 28,
+     "ci_method": "wilson"
+    },
+    {
+     "name": "false_premise_rejection",
+     "value": 0.98,
+     "ci_low": 0.8950455641036219,
+     "ci_high": 0.9964607407283539,
+     "n": 50,
+     "ci_method": "wilson"
+    },
+    {
+     "name": "false_claims_per_question",
+     "value": 0.15384615384615385,
+     "ci_low": 0.09025504908387115,
+     "ci_high": 0.24993266533226333,
+     "n": 78,
+     "ci_method": "wilson"
+    },
+    {
+     "name": "claim_precision",
+     "value": 0.42857142857142855,
+     "ci_low": 0.2446996892537595,
+     "ci_high": 0.6345344563069327,
+     "n": 21,
+     "ci_method": "wilson"
+    }
+   ]
+  },
+  {
+   "id": "questions-heldout-A-after-follow-up-cb4d5eb905e48353",
+   "split": "heldout",
+   "model_id": "gpt-5-mini",
+   "variant": "A",
+   "after_follow_up": true,
+   "metrics": [
+    {
+     "name": "true_premise_accuracy",
+     "value": 0.32142857142857145,
+     "ci_low": 0.17933246922494966,
+     "ci_high": 0.5066115681914238,
+     "n": 28,
+     "ci_method": "wilson"
+    },
+    {
+     "name": "false_premise_rejection",
+     "value": 0.98,
+     "ci_low": 0.8950455641036219,
+     "ci_high": 0.9964607407283539,
+     "n": 50,
+     "ci_method": "wilson"
+    },
+    {
+     "name": "false_claims_per_question",
+     "value": 0.038461538461538464,
+     "ci_low": 0.01316582541316106,
+     "ci_high": 0.10708446047501827,
+     "n": 78,
+     "ci_method": "wilson"
+    },
+    {
+     "name": "claim_precision",
+     "value": 0.75,
+     "ci_low": 0.4676946650664344,
+     "ci_high": 0.9110583316059453,
+     "n": 12,
+     "ci_method": "wilson"
+    }
+   ]
+  },
+  {
+   "id": "questions-heldout-B-164d3953ee116a53",
+   "split": "heldout",
+   "model_id": "gpt-5-mini",
+   "variant": "B",
+   "after_follow_up": false,
+   "metrics": [
+    {
+     "name": "true_premise_accuracy",
+     "value": 0.32142857142857145,
+     "ci_low": 0.17933246922494966,
+     "ci_high": 0.5066115681914238,
+     "n": 28,
+     "ci_method": "wilson"
+    },
+    {
+     "name": "false_premise_rejection",
+     "value": 0.96,
+     "ci_low": 0.8653990931249298,
+     "ci_high": 0.9889611156723801,
+     "n": 50,
+     "ci_method": "wilson"
+    },
+    {
+     "name": "false_claims_per_question",
+     "value": 0.15384615384615385,
+     "ci_low": 0.09025504908387115,
+     "ci_high": 0.24993266533226333,
+     "n": 78,
+     "ci_method": "wilson"
+    },
+    {
+     "name": "claim_precision",
+     "value": 0.42857142857142855,
+     "ci_low": 0.2446996892537595,
+     "ci_high": 0.6345344563069327,
+     "n": 21,
+     "ci_method": "wilson"
+    }
+   ]
+  },
+  {
+   "id": "questions-heldout-B-after-follow-up-02d7a3c686c8c36d",
+   "split": "heldout",
+   "model_id": "gpt-5-mini",
+   "variant": "B",
+   "after_follow_up": true,
+   "metrics": [
+    {
+     "name": "true_premise_accuracy",
+     "value": 0.25,
+     "ci_low": 0.12676494919293319,
+     "ci_high": 0.43355670318998957,
+     "n": 28,
+     "ci_method": "wilson"
+    },
+    {
+     "name": "false_premise_rejection",
+     "value": 0.96,
+     "ci_low": 0.8653990931249298,
+     "ci_high": 0.9889611156723801,
+     "n": 50,
+     "ci_method": "wilson"
+    },
+    {
+     "name": "false_claims_per_question",
+     "value": 0.08974358974358974,
+     "ci_low": 0.04415300851677373,
+     "ci_high": 0.17384724560605233,
+     "n": 78,
+     "ci_method": "wilson"
+    },
+    {
+     "name": "claim_precision",
+     "value": 0.5,
+     "ci_low": 0.26799202452413634,
+     "ci_high": 0.7320079754758637,
+     "n": 14,
+     "ci_method": "wilson"
+    }
+   ]
+  },
+  {
+   "id": "questions-heldout-P-7bbae1678cd512dd",
+   "split": "heldout",
+   "model_id": "gpt-5-mini",
+   "variant": "P",
+   "after_follow_up": false,
+   "metrics": [
+    {
+     "name": "true_premise_accuracy",
+     "value": 0.5714285714285714,
+     "ci_low": 0.3907078562746876,
+     "ci_high": 0.734914528758763,
+     "n": 28,
+     "ci_method": "wilson"
+    },
+    {
+     "name": "false_premise_rejection",
+     "value": 0.7,
+     "ci_low": 0.562496495355466,
+     "ci_high": 0.8089644649911906,
+     "n": 50,
+     "ci_method": "wilson"
+    },
+    {
+     "name": "false_claims_per_question",
+     "value": 0.34615384615384615,
+     "ci_low": 0.2500520390631077,
+     "ci_high": 0.456698056232952,
+     "n": 78,
+     "ci_method": "wilson"
+    },
+    {
+     "name": "claim_precision",
+     "value": 0.37209302325581395,
+     "ci_low": 0.2437633900965057,
+     "ci_high": 0.5214019084031152,
+     "n": 43,
+     "ci_method": "wilson"
+    }
+   ]
+  },
+  {
+   "id": "questions-heldout-P-after-follow-up-1b5aac88b41a7f17",
+   "split": "heldout",
+   "model_id": "gpt-5-mini",
+   "variant": "P",
+   "after_follow_up": true,
+   "metrics": [
+    {
+     "name": "true_premise_accuracy",
+     "value": 0.5714285714285714,
+     "ci_low": 0.3907078562746876,
+     "ci_high": 0.734914528758763,
+     "n": 28,
+     "ci_method": "wilson"
+    },
+    {
+     "name": "false_premise_rejection",
+     "value": 0.7,
+     "ci_low": 0.562496495355466,
+     "ci_high": 0.8089644649911906,
+     "n": 50,
+     "ci_method": "wilson"
+    },
+    {
+     "name": "false_claims_per_question",
+     "value": 0.34615384615384615,
+     "ci_low": 0.2500520390631077,
+     "ci_high": 0.456698056232952,
+     "n": 78,
+     "ci_method": "wilson"
+    },
+    {
+     "name": "claim_precision",
+     "value": 0.37209302325581395,
+     "ci_low": 0.2437633900965057,
+     "ci_high": 0.5214019084031152,
+     "n": 43,
+     "ci_method": "wilson"
+    }
+   ]
+  }
+ ],
+ "seeded": [
+  {
+   "id": "seeded-A-0b1d9364658a4e69",
+   "split": "dev",
+   "model_id": "gpt-5-mini",
+   "catch_rate": {
+    "name": "verifier_catch_rate",
+    "value": 0.9866666666666667,
+    "ci_low": 0.9282663444557845,
+    "ci_high": 0.9976424488609515,
+    "n": 75,
+    "ci_method": "wilson"
+   },
+   "all_cards_catch_rate": {
+    "name": "verifier_catch_rate",
+    "value": 0.9866666666666667,
+    "ci_low": 0.9282663444557845,
+    "ci_high": 0.9976424488609515,
+    "n": 75,
+    "ci_method": "wilson"
+   },
+   "false_rejection_rate": {
+    "name": "control_false_rejection_rate",
+    "value": 0.0,
+    "ci_low": 0.0,
+    "ci_high": 0.27753279986288915,
+    "n": 10,
+    "ci_method": "wilson"
+   }
+  },
+  {
+   "id": "seeded-A-3ad5e530026dcede",
+   "split": "dev",
+   "model_id": "Phi-4",
+   "catch_rate": {
+    "name": "verifier_catch_rate",
+    "value": 0.9866666666666667,
+    "ci_low": 0.9282663444557845,
+    "ci_high": 0.9976424488609515,
+    "n": 75,
+    "ci_method": "wilson"
+   },
+   "all_cards_catch_rate": {
+    "name": "verifier_catch_rate",
+    "value": 0.9866666666666667,
+    "ci_low": 0.9282663444557845,
+    "ci_high": 0.9976424488609515,
+    "n": 75,
+    "ci_method": "wilson"
+   },
+   "false_rejection_rate": {
+    "name": "control_false_rejection_rate",
+    "value": 0.0,
+    "ci_low": 0.0,
+    "ci_high": 0.27753279986288915,
+    "n": 10,
+    "ci_method": "wilson"
+   }
+  }
+ ]
 }

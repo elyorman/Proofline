@@ -106,7 +106,7 @@ Code's own checks catch the wrong numbers. Only the semantic check catches a wro
 
 ### An outside judge
 
-Microsoft Foundry's built-in evaluators read every card revision the demo take published, in both languages, and the answers that turned a premise away. Each text is judged against the same facts our Verifier saw ([`eval/foundry/demo-take.json`](eval/foundry/demo-take.json), from [`eval/foundry_evals.py`](eval/foundry_evals.py)). All 28 texts pass relevance, coherence and fluency, and 23 pass groundedness. Of the five it marks weakly grounded, four are Spanish, which our own semantic check does not read. Three are the settled follow-up's "the numbers still fit all three" wording. The judge is itself a model, so its verdicts vary a little between runs.
+Microsoft Foundry's built-in evaluators read every card revision the demo take published, in both languages, and the answers that turned a premise away. Each text is judged against the same facts our Verifier saw ([`eval/foundry/demo-take.json`](eval/foundry/demo-take.json), from [`eval/foundry_evals.py`](eval/foundry_evals.py)). All 28 texts pass relevance and coherence, 27 pass fluency, and 23 pass groundedness. Four of the five it marks weakly grounded are the settled 63' card, in every version: casual and analyst, English and Spanish. The fifth is the first 63' card in Spanish, a language our own semantic check does not read. An earlier run flagged the settled card's "the numbers still fit all three", which claimed more than the follow-up found; the card now says no check had told the causes apart, and the judge still marks it weakly grounded. The judge is itself a model, so its verdicts vary a little between runs.
 
 ## See it
 

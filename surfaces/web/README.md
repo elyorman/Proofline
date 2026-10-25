@@ -1,10 +1,30 @@
 # Proofline replay surfaces
 
 The web app plays the complete recorded Studio ledger: verified cards, fast-lane
-goals, case files, revisions, amendments and producer cues. It starts paused at
-68:00 with the Studio profile: a Northvale fan reading Spanish and following
-Ambrel. The fan companion, analyst console, broadcast studio and overlay share
-a replay clock. No runtime path calls a model.
+goals, case files, revisions, amendments and producer cues, plus the ambient
+layer computed from the match's events. It starts paused at 68:00 with the
+Studio profile: a Northvale fan reading Spanish and following Ambrel. The fan
+companion, analyst console, broadcast studio and overlay share one replay clock,
+shown in the sticky match header on every route, beside a small badge that says
+this is a recorded replay with no live model calls. No runtime path calls a
+model.
+
+## Deep links
+
+A URL can open any route at a clock, paused, and in a language:
+
+| Link | Opens |
+|---|---|
+| `#/fan?t=68:00` | the press card landing on the fan view |
+| `#/fan?t=70:00` | the flank card's withdrawal leading the fan view |
+| `#/analyst?t=68:00` | the 63' case file on the console |
+| `#/fan?t=68:00&lang=en` | the same in English (`lang` is `en` or `es`) |
+| `#/overlay?t=70:25` | the withdrawal cue's slot on the overlay |
+
+`t` takes every clock form the match uses (`70:00`, `45+2:10`, `90+3`, or a bare
+minute). A first-half clock never spills into the second half, a clock past the
+final whistle opens full time, and an unreadable `t` or `lang` is ignored.
+Navigating between routes keeps the current clock.
 
 ## Run and regenerate
 
@@ -50,18 +70,59 @@ unchanged after contract validation. `--ledger PATH` selects another output.
 validated comparison case files. `--cards PATH...` supports individual cards
 instead of a Studio ledger, without inventing any other records. The
 `stand_ins` index is empty: all demo records now have real backend producers.
-The generated event feed stays in ignored `public/fixtures/m01/`; `data/`,
-`runs/`, browser screenshots and build output are also ignored.
+The exporter also runs `ambient/` over the same delivered events the pitch
+draws and adds the validated `AmbientFeed` (`contracts/ambient.py`) under
+`ambient`; the Python tests require it to equal a fresh computation from the
+committed inputs. The generated event feed stays in ignored
+`public/fixtures/m01/`; `data/`, `runs/`, browser screenshots and build output
+are also ignored.
+
+## The ambient layer
+
+Spec 8.2's always-on layer, computed in Python by `ambient/` from events alone
+and only formatted here. Every item carries the clock from which it is known,
+and the app shows nothing before that clock. The rules travel with the feed, so
+the numbers the UI states come from it.
+
+- **Speed tags.** A sprint over 32 km/h or a shot over 110 km/h is tagged on the
+  pitch with its speed. In m01 no shot reaches 110 km/h (the fastest is
+  106.7), so only sprint tags appear.
+- **Pass difficulty.** `50 × min(distance / 40 m, 1) + 50 × pressure on the
+  passer`, from the pass's own qualifiers. Completed passes of 80 or more get a
+  badge on the pitch and a ticker line.
+- **Momentum strip.** Each minute, each side's attacking threat (a shot 3
+  points, a completed pass, carry or dribble into the final third 1 point),
+  summed with a two-minute half-life; the strip shows `(home − away) /
+  max(home + away, 3)`, from −1 to +1. It restarts each half.
+- **Control vs chaos.** Over the last five minutes of the half, on-ball actions
+  per possession (`actions / (possession changes + 1)`): 10 or more reads
+  control, 3 or fewer chaos. Fewer than 10 actions gives no reading. Harbour
+  City's raised press after 58' pushes the m01 gauge to chaos.
+- **Ticker.** Kick-off, goals with the score, shots with their speed, fouls, free
+  kicks, cards, substitutions, half-time and full time, and standout passes,
+  from the EN/ES templates in `ambient/i18n/`.
 
 ## Views and demo beats
 
-- **Fan companion (`#/fan`).** Cards appear at `published_at`, falling back to
-  `verified_at`. Cards with neither timestamp are withheld, including fast-lane
-  records; detection time never publishes a card. The 62:00 cards precede
-  the 68:00 press explanation. At 70:00 the flank card becomes its withdrawal in
-  the same position; the press explanation stays. How we know reveals supplied
-  evidence, rejected alternatives and revision history.
-- **Ask Proofline (fan and console).** Five localized suggestion chips jump to
+- **Fan companion (`#/fan`).** The first screen holds the match header, the
+  live pitch, the current card and the ambient strip; Ask, the ticker, the
+  numbers and recent activity follow. On a phone the order is header, pitch,
+  current card, ambient strip, earlier cards, then the rest. The pitch shows
+  the last 25 seconds of play by both teams. Player Focus highlights the
+  followed player's events and names them, and says when they last touched the
+  ball; it never empties the pitch. Cards appear at `published_at`, falling
+  back to `verified_at`. Cards with neither timestamp are withheld, including
+  fast-lane records; detection time never publishes a card. The current card
+  is the one whose current revision appeared last, with How we know at a
+  glance: its first two recorded numbers against their baselines, and the
+  causes ruled out. The other cards follow in their usual order, newest first,
+  as compact rows that open to the same evidence. At 68:00 the press
+  explanation leads; at 70:00 the flank card's withdrawal leads and the press
+  explanation follows it untouched. All evidence and checks, rejected
+  alternatives and the case file stay one tap away.
+- **Ask Proofline (fan and console).** Rendered below each route's main
+  content: under the first screen on the fan view, under the case list and
+  investigation on the console. Five localized suggestion chips jump to
   the recorded question time. The response uses the narrator's locale, explains
   the premise in plain words, shows code's measured premise test and, when
   explained, the verified card with How we know, shown from the minute the
@@ -75,7 +136,8 @@ The generated event feed stays in ignored `public/fixtures/m01/`; `data/`,
   minute, the daily cap, a busy queue, an outage, a first-half clock) has its
   own localized message. Without an API configured, the page says so and sends
   nothing.
-- **Investigation (`#/analyst`).** Select any recorded case, including the faded
+- **Investigation (`#/analyst`).** The case list and the investigation open the
+  console; Evaluation is a tab. Select any recorded case, including the faded
   51-minute detection. Confirmation, both teams' readings, agent columns,
   pre-registered predictions, test verdicts, refusals, directed counter-tests,
   synthesis and checkpoints come from its case file. Challenge buttons scroll
@@ -95,9 +157,12 @@ The generated event feed stays in ignored `public/fixtures/m01/`; `data/`,
   remain inspectable under Preview fields, explicitly separate from on-air
   output; no cue or airing time is fabricated.
 
-All views were checked in Chrome at desktop and 360px widths. Local ignored
-screenshots in `.artifacts/studio-*.png` capture the withdrawal, Spanish Ask,
-investigation, A/B comparison, revision diff, correction cue and mobile layouts.
+All views were checked in Chrome at 1440×900 and with phone emulation at 360,
+390 and 430 px, with no horizontal scroll. Check phone widths with device
+emulation (DevTools, or the DevTools protocol's
+`Emulation.setDeviceMetricsOverride`): headless Chrome's `--window-size=390,844`
+renders a 500 px-wide viewport, its minimum window width, and crops it, which
+looks like an overflow that a phone never shows.
 
 ## Verification
 
@@ -122,9 +187,13 @@ Python tests build a fresh match from committed inputs and replay Studio with
 model calls forbidden. They validate committed records, compare the complete
 Studio payload (excluding trace IDs and checkpoint wall times), verify the real
 correction and exercise the answer/comparison export boundaries. Tests never
-read ignored `data/` or `runs/`. Web tests cover clock and verification guards,
-revisions, cue controls, localized questions, case-file investigations and
-comparison pairing. No dependencies were added.
+read ignored `data/` or `runs/`; they also require the committed ambient feed to
+equal `ambient/` over the freshly built match. Web tests cover clock and
+verification guards, revisions, cue controls, localized questions, case-file
+investigations, comparison pairing, deep links, the ambient strip and ticker
+(nothing shown before its clock, EN and ES), the pitch (both teams, the followed
+player, ambient tags, labels that never overlap) and the current card. No
+dependencies were added.
 
 ## Boundaries
 

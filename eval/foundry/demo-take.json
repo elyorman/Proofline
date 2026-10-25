@@ -1,0 +1,669 @@
+{
+ "what": "Foundry built-in evaluators on the demo take's viewer-facing text",
+ "ledger": "surfaces/web/src/fixtures/ledger.json",
+ "evaluated_on": "2026-10-25",
+ "evaluators": [
+  "groundedness",
+  "relevance",
+  "coherence",
+  "fluency"
+ ],
+ "texts": {
+  "ins-m01-057-pressure_shift:r1:casual:en": "Northvale are going long more often since 52'. It looks like a deliberate step up in Harbour City's press. Harbour City chasing the result may also be part of it; we'll know more by 77'.",
+  "ins-m01-057-pressure_shift:r1:casual:es": "El Northvale juega en largo más a menudo desde el minuto 52. Parece un aumento deliberado de la presión del Harbour City. El Harbour City buscando el resultado también puede influir; lo sabremos mejor en el minuto 77.",
+  "ins-m01-057-pressure_shift:r1:analyst:en": "Long-ball share (Northvale): 11% → 47%; Pressure rate (Harbour City): 0.32 → 0.53, 52'-62' against the first half. It looks like a deliberate step up in Harbour City's press. We'll check it against Harbour City chasing the result by 77'. Ruled out: Northvale sitting in a deeper block, tiring legs in Northvale's side, tiring legs in Harbour City's side, Northvale protecting their lead. Support: moderate.",
+  "ins-m01-057-pressure_shift:r1:analyst:es": "Proporción de balones largos (Northvale): 11% → 47%; Tasa de presión (Harbour City): 0.32 → 0.53, 52'-62' frente a la primera parte. Parece un aumento deliberado de la presión del Harbour City. Lo comprobaremos frente a el Harbour City buscando el resultado antes del minuto 77. Descartado: el Northvale defendiendo más atrás, el cansancio en el Northvale, el cansancio en el Harbour City, el Northvale protegiendo su ventaja. Apoyo: moderado.",
+  "ins-m01-057-shape_change:r1:casual:en": "Northvale are playing more down the right since 47'. It looks like Harbour City chasing the result.",
+  "ins-m01-057-shape_change:r1:casual:es": "El Northvale juega más por la derecha desde el minuto 47. Parece el Harbour City buscando el resultado.",
+  "ins-m01-057-shape_change:r1:analyst:en": "Share down the right (Northvale): 24% → 76%; Pressure rate (Harbour City): 0.32 → 0.45, 47'-62' against the first half. It looks like Harbour City chasing the result. Ruled out: Northvale overloading one flank, a deliberate step up in Harbour City's press, tiring legs in Harbour City's side, a tiring Northvale player, Northvale protecting their lead. Support: moderate.",
+  "ins-m01-057-shape_change:r1:analyst:es": "Proporción por la derecha (Northvale): 24% → 76%; Tasa de presión (Harbour City): 0.32 → 0.45, 47'-62' frente a la primera parte. Parece el Harbour City buscando el resultado. Descartado: el Northvale sobrecargando una banda, un aumento deliberado de la presión del Harbour City, el cansancio en el Harbour City, un jugador del Northvale que se cansa, el Northvale protegiendo su ventaja. Apoyo: moderado.",
+  "ins-m01-063-pressure_shift:r1:casual:en": "Harbour City are pressing harder since 58'. That is a deliberate step up in Harbour City's press. Northvale pushing their block higher or Harbour City chasing the result may also be part of it; we'll know more by 83'.",
+  "ins-m01-063-pressure_shift:r1:casual:es": "El Harbour City presiona con más intensidad desde el minuto 58. Es un aumento deliberado de la presión del Harbour City. El Northvale adelantando su bloque o el Harbour City buscando el resultado también puede influir; lo sabremos mejor en el minuto 83.",
+  "ins-m01-063-pressure_shift:r1:analyst:en": "Pressure rate (Harbour City): 0.32 → 0.77; Sprints a minute (Harbour City's attack): 1.32 → 1.50; Long-ball share (Northvale): 11% → 61%, 58'-68' against the first half. That is a deliberate step up in Harbour City's press. We'll check it against Northvale pushing their block higher and Harbour City chasing the result by 83'. Ruled out: tiring legs in Northvale's side, a tiring Northvale player, Northvale protecting their lead. Support: strong.",
+  "ins-m01-063-pressure_shift:r1:analyst:es": "Tasa de presión (Harbour City): 0.32 → 0.77; Esprints por minuto (la delantera del Harbour City): 1.32 → 1.50; Proporción de balones largos (Northvale): 11% → 61%, 58'-68' frente a la primera parte. Es un aumento deliberado de la presión del Harbour City. Lo comprobaremos frente a el Northvale adelantando su bloque y el Harbour City buscando el resultado antes del minuto 83. Descartado: el cansancio en el Northvale, un jugador del Northvale que se cansa, el Northvale protegiendo su ventaja. Apoyo: fuerte.",
+  "ins-m01-057-pressure_shift:r2:casual:en": "Northvale are going long more often since 52'. It could be a deliberate step up in Harbour City's press or Harbour City chasing the result: by 77' the numbers still fit both.",
+  "ins-m01-057-pressure_shift:r2:casual:es": "El Northvale juega en largo más a menudo desde el minuto 52. Puede ser un aumento deliberado de la presión del Harbour City o el Harbour City buscando el resultado: en el minuto 77 los números aún encajan con ambas.",
+  "ins-m01-057-pressure_shift:r2:analyst:en": "Long-ball share (Northvale): 11% → 47%; Pressure rate (Harbour City): 0.32 → 0.53, 52'-62' against the first half. 62'-77': Sprints a minute (Harbour City's defence): 1.28 → 1.33; Long-ball share (Harbour City): 12% → 12%. It could be a deliberate step up in Harbour City's press or Harbour City chasing the result: by 77' the numbers still fit both. Ruled out: Northvale sitting in a deeper block, tiring legs in Northvale's side, tiring legs in Harbour City's side, Northvale protecting their lead. Support: moderate.",
+  "ins-m01-057-pressure_shift:r2:analyst:es": "Proporción de balones largos (Northvale): 11% → 47%; Tasa de presión (Harbour City): 0.32 → 0.53, 52'-62' frente a la primera parte. 62'-77': Esprints por minuto (la defensa del Harbour City): 1.28 → 1.33; Proporción de balones largos (Harbour City): 12% → 12%. Puede ser un aumento deliberado de la presión del Harbour City o el Harbour City buscando el resultado: en el minuto 77 los números aún encajan con ambas. Descartado: el Northvale defendiendo más atrás, el cansancio en el Northvale, el cansancio en el Harbour City, el Northvale protegiendo su ventaja. Apoyo: moderado.",
+  "ins-m01-078-pressure_shift:r1:casual:en": "Northvale are going long more often since 73'. That is Harbour City chasing the result.",
+  "ins-m01-078-pressure_shift:r1:casual:es": "El Northvale juega en largo más a menudo desde el minuto 73. Es el Harbour City buscando el resultado.",
+  "ins-m01-078-pressure_shift:r1:analyst:en": "Long-ball share (Northvale): 11% → 50%; Pressure rate (Harbour City): 0.32 → 0.57, 73'-83' against the first half. That is Harbour City chasing the result. Ruled out: Northvale sitting in a deeper block, tiring legs in Northvale's side, tiring legs in Harbour City's side. Support: strong.",
+  "ins-m01-078-pressure_shift:r1:analyst:es": "Proporción de balones largos (Northvale): 11% → 50%; Tasa de presión (Harbour City): 0.32 → 0.57, 73'-83' frente a la primera parte. Es el Harbour City buscando el resultado. Descartado: el Northvale defendiendo más atrás, el cansancio en el Northvale, el cansancio en el Harbour City. Apoyo: fuerte.",
+  "ins-m01-063-pressure_shift:r2:casual:en": "Harbour City are pressing harder since 58'. It could be a deliberate step up in Harbour City's press, Northvale pushing their block higher or Harbour City chasing the result: by 83' the numbers still fit all three.",
+  "ins-m01-063-pressure_shift:r2:casual:es": "El Harbour City presiona con más intensidad desde el minuto 58. Puede ser un aumento deliberado de la presión del Harbour City, el Northvale adelantando su bloque o el Harbour City buscando el resultado: en el minuto 83 los números aún encajan con las tres.",
+  "ins-m01-063-pressure_shift:r2:analyst:en": "Pressure rate (Harbour City): 0.32 → 0.77; Sprints a minute (Harbour City's attack): 1.32 → 1.50; Long-ball share (Northvale): 11% → 61%, 58'-68' against the first half. 68'-83': Sprint speed (Harbour City's attack): 32.4 km/h → 31.3 km/h; Pressure rate (Northvale): 0.40 → 0.38; Long-ball share (Harbour City): 12% → 17%. It could be a deliberate step up in Harbour City's press, Northvale pushing their block higher or Harbour City chasing the result: by 83' the numbers still fit all three. Ruled out: tiring legs in Northvale's side, a tiring Northvale player, Northvale protecting their lead. Support: strong.",
+  "ins-m01-063-pressure_shift:r2:analyst:es": "Tasa de presión (Harbour City): 0.32 → 0.77; Esprints por minuto (la delantera del Harbour City): 1.32 → 1.50; Proporción de balones largos (Northvale): 11% → 61%, 58'-68' frente a la primera parte. 68'-83': Velocidad de esprint (la delantera del Harbour City): 32.4 km/h → 31.3 km/h; Tasa de presión (Northvale): 0.40 → 0.38; Proporción de balones largos (Harbour City): 12% → 17%. Puede ser un aumento deliberado de la presión del Harbour City, el Northvale adelantando su bloque o el Harbour City buscando el resultado: en el minuto 83 los números aún encajan con las tres. Descartado: el cansancio en el Northvale, un jugador del Northvale que se cansa, el Northvale protegiendo su ventaja. Apoyo: fuerte.",
+  "q3:en": "The other way: Sprints a minute (Harbour City's defence) has been 1.60 since 58', against 1.28 in the first half.",
+  "q3:es": "Al contrario: Esprints por minuto (la defensa del Harbour City) es 1.60 desde el minuto 58, frente a 1.28 en la primera parte.",
+  "q4:en": "Not beyond ordinary play: Sprints a minute (Ambrel) has been 0.25 since 60', against 0.45 in the first half.",
+  "q4:es": "No más allá de lo normal: Esprints por minuto (Ambrel) es 0.25 desde el minuto 60, frente a 0.45 en la primera parte."
+ },
+ "foundry": {
+  "judge_model": "gpt-5-mini",
+  "items": 28,
+  "passed": {
+   "groundedness": 23,
+   "relevance": 28,
+   "coherence": 28,
+   "fluency": 28
+  },
+  "per_item": [
+   {
+    "id": "ins-m01-057-pressure_shift:r1:casual:en",
+    "status": "completed",
+    "scores": {
+     "groundedness": {
+      "score": 5.0,
+      "passed": true
+     },
+     "relevance": {
+      "score": 3.0,
+      "passed": true
+     },
+     "coherence": {
+      "score": 4.0,
+      "passed": true
+     },
+     "fluency": {
+      "score": 3.0,
+      "passed": true
+     }
+    }
+   },
+   {
+    "id": "ins-m01-057-pressure_shift:r1:casual:es",
+    "status": "completed",
+    "scores": {
+     "groundedness": {
+      "score": 5.0,
+      "passed": true
+     },
+     "relevance": {
+      "score": 3.0,
+      "passed": true
+     },
+     "coherence": {
+      "score": 4.0,
+      "passed": true
+     },
+     "fluency": {
+      "score": 3.0,
+      "passed": true
+     }
+    }
+   },
+   {
+    "id": "ins-m01-057-pressure_shift:r1:analyst:en",
+    "status": "completed",
+    "scores": {
+     "groundedness": {
+      "score": 5.0,
+      "passed": true
+     },
+     "relevance": {
+      "score": 4.0,
+      "passed": true
+     },
+     "coherence": {
+      "score": 4.0,
+      "passed": true
+     },
+     "fluency": {
+      "score": 3.0,
+      "passed": true
+     }
+    }
+   },
+   {
+    "id": "ins-m01-057-pressure_shift:r1:analyst:es",
+    "status": "completed",
+    "scores": {
+     "groundedness": {
+      "score": 5.0,
+      "passed": true
+     },
+     "relevance": {
+      "score": 5.0,
+      "passed": true
+     },
+     "coherence": {
+      "score": 4.0,
+      "passed": true
+     },
+     "fluency": {
+      "score": 4.0,
+      "passed": true
+     }
+    }
+   },
+   {
+    "id": "ins-m01-057-shape_change:r1:casual:en",
+    "status": "completed",
+    "scores": {
+     "groundedness": {
+      "score": 4.0,
+      "passed": true
+     },
+     "relevance": {
+      "score": 3.0,
+      "passed": true
+     },
+     "coherence": {
+      "score": 4.0,
+      "passed": true
+     },
+     "fluency": {
+      "score": 3.0,
+      "passed": true
+     }
+    }
+   },
+   {
+    "id": "ins-m01-057-shape_change:r1:casual:es",
+    "status": "completed",
+    "scores": {
+     "groundedness": {
+      "score": 4.0,
+      "passed": true
+     },
+     "relevance": {
+      "score": 3.0,
+      "passed": true
+     },
+     "coherence": {
+      "score": 3.0,
+      "passed": true
+     },
+     "fluency": {
+      "score": 3.0,
+      "passed": true
+     }
+    }
+   },
+   {
+    "id": "ins-m01-057-shape_change:r1:analyst:en",
+    "status": "completed",
+    "scores": {
+     "groundedness": {
+      "score": 5.0,
+      "passed": true
+     },
+     "relevance": {
+      "score": 3.0,
+      "passed": true
+     },
+     "coherence": {
+      "score": 3.0,
+      "passed": true
+     },
+     "fluency": {
+      "score": 3.0,
+      "passed": true
+     }
+    }
+   },
+   {
+    "id": "ins-m01-057-shape_change:r1:analyst:es",
+    "status": "completed",
+    "scores": {
+     "groundedness": {
+      "score": 5.0,
+      "passed": true
+     },
+     "relevance": {
+      "score": 3.0,
+      "passed": true
+     },
+     "coherence": {
+      "score": 3.0,
+      "passed": true
+     },
+     "fluency": {
+      "score": 3.0,
+      "passed": true
+     }
+    }
+   },
+   {
+    "id": "ins-m01-063-pressure_shift:r1:casual:en",
+    "status": "completed",
+    "scores": {
+     "groundedness": {
+      "score": 5.0,
+      "passed": true
+     },
+     "relevance": {
+      "score": 3.0,
+      "passed": true
+     },
+     "coherence": {
+      "score": 4.0,
+      "passed": true
+     },
+     "fluency": {
+      "score": 3.0,
+      "passed": true
+     }
+    }
+   },
+   {
+    "id": "ins-m01-063-pressure_shift:r1:casual:es",
+    "status": "completed",
+    "scores": {
+     "groundedness": {
+      "score": 2.0,
+      "passed": false
+     },
+     "relevance": {
+      "score": 3.0,
+      "passed": true
+     },
+     "coherence": {
+      "score": 3.0,
+      "passed": true
+     },
+     "fluency": {
+      "score": 3.0,
+      "passed": true
+     }
+    }
+   },
+   {
+    "id": "ins-m01-063-pressure_shift:r1:analyst:en",
+    "status": "completed",
+    "scores": {
+     "groundedness": {
+      "score": 5.0,
+      "passed": true
+     },
+     "relevance": {
+      "score": 5.0,
+      "passed": true
+     },
+     "coherence": {
+      "score": 3.0,
+      "passed": true
+     },
+     "fluency": {
+      "score": 3.0,
+      "passed": true
+     }
+    }
+   },
+   {
+    "id": "ins-m01-063-pressure_shift:r1:analyst:es",
+    "status": "completed",
+    "scores": {
+     "groundedness": {
+      "score": 5.0,
+      "passed": true
+     },
+     "relevance": {
+      "score": 5.0,
+      "passed": true
+     },
+     "coherence": {
+      "score": 4.0,
+      "passed": true
+     },
+     "fluency": {
+      "score": 4.0,
+      "passed": true
+     }
+    }
+   },
+   {
+    "id": "ins-m01-057-pressure_shift:r2:casual:en",
+    "status": "completed",
+    "scores": {
+     "groundedness": {
+      "score": 4.0,
+      "passed": true
+     },
+     "relevance": {
+      "score": 3.0,
+      "passed": true
+     },
+     "coherence": {
+      "score": 3.0,
+      "passed": true
+     },
+     "fluency": {
+      "score": 3.0,
+      "passed": true
+     }
+    }
+   },
+   {
+    "id": "ins-m01-057-pressure_shift:r2:casual:es",
+    "status": "completed",
+    "scores": {
+     "groundedness": {
+      "score": 2.0,
+      "passed": false
+     },
+     "relevance": {
+      "score": 3.0,
+      "passed": true
+     },
+     "coherence": {
+      "score": 3.0,
+      "passed": true
+     },
+     "fluency": {
+      "score": 3.0,
+      "passed": true
+     }
+    }
+   },
+   {
+    "id": "ins-m01-057-pressure_shift:r2:analyst:en",
+    "status": "completed",
+    "scores": {
+     "groundedness": {
+      "score": 5.0,
+      "passed": true
+     },
+     "relevance": {
+      "score": 4.0,
+      "passed": true
+     },
+     "coherence": {
+      "score": 4.0,
+      "passed": true
+     },
+     "fluency": {
+      "score": 3.0,
+      "passed": true
+     }
+    }
+   },
+   {
+    "id": "ins-m01-057-pressure_shift:r2:analyst:es",
+    "status": "completed",
+    "scores": {
+     "groundedness": {
+      "score": 5.0,
+      "passed": true
+     },
+     "relevance": {
+      "score": 5.0,
+      "passed": true
+     },
+     "coherence": {
+      "score": 4.0,
+      "passed": true
+     },
+     "fluency": {
+      "score": 4.0,
+      "passed": true
+     }
+    }
+   },
+   {
+    "id": "ins-m01-078-pressure_shift:r1:casual:en",
+    "status": "completed",
+    "scores": {
+     "groundedness": {
+      "score": 4.0,
+      "passed": true
+     },
+     "relevance": {
+      "score": 3.0,
+      "passed": true
+     },
+     "coherence": {
+      "score": 3.0,
+      "passed": true
+     },
+     "fluency": {
+      "score": 3.0,
+      "passed": true
+     }
+    }
+   },
+   {
+    "id": "ins-m01-078-pressure_shift:r1:casual:es",
+    "status": "completed",
+    "scores": {
+     "groundedness": {
+      "score": 4.0,
+      "passed": true
+     },
+     "relevance": {
+      "score": 3.0,
+      "passed": true
+     },
+     "coherence": {
+      "score": 3.0,
+      "passed": true
+     },
+     "fluency": {
+      "score": 3.0,
+      "passed": true
+     }
+    }
+   },
+   {
+    "id": "ins-m01-078-pressure_shift:r1:analyst:en",
+    "status": "completed",
+    "scores": {
+     "groundedness": {
+      "score": 4.0,
+      "passed": true
+     },
+     "relevance": {
+      "score": 3.0,
+      "passed": true
+     },
+     "coherence": {
+      "score": 3.0,
+      "passed": true
+     },
+     "fluency": {
+      "score": 3.0,
+      "passed": true
+     }
+    }
+   },
+   {
+    "id": "ins-m01-078-pressure_shift:r1:analyst:es",
+    "status": "completed",
+    "scores": {
+     "groundedness": {
+      "score": 4.0,
+      "passed": true
+     },
+     "relevance": {
+      "score": 5.0,
+      "passed": true
+     },
+     "coherence": {
+      "score": 4.0,
+      "passed": true
+     },
+     "fluency": {
+      "score": 3.0,
+      "passed": true
+     }
+    }
+   },
+   {
+    "id": "ins-m01-063-pressure_shift:r2:casual:en",
+    "status": "completed",
+    "scores": {
+     "groundedness": {
+      "score": 2.0,
+      "passed": false
+     },
+     "relevance": {
+      "score": 4.0,
+      "passed": true
+     },
+     "coherence": {
+      "score": 4.0,
+      "passed": true
+     },
+     "fluency": {
+      "score": 4.0,
+      "passed": true
+     }
+    }
+   },
+   {
+    "id": "ins-m01-063-pressure_shift:r2:casual:es",
+    "status": "completed",
+    "scores": {
+     "groundedness": {
+      "score": 2.0,
+      "passed": false
+     },
+     "relevance": {
+      "score": 4.0,
+      "passed": true
+     },
+     "coherence": {
+      "score": 4.0,
+      "passed": true
+     },
+     "fluency": {
+      "score": 4.0,
+      "passed": true
+     }
+    }
+   },
+   {
+    "id": "ins-m01-063-pressure_shift:r2:analyst:en",
+    "status": "completed",
+    "scores": {
+     "groundedness": {
+      "score": 4.0,
+      "passed": true
+     },
+     "relevance": {
+      "score": 3.0,
+      "passed": true
+     },
+     "coherence": {
+      "score": 3.0,
+      "passed": true
+     },
+     "fluency": {
+      "score": 3.0,
+      "passed": true
+     }
+    }
+   },
+   {
+    "id": "ins-m01-063-pressure_shift:r2:analyst:es",
+    "status": "completed",
+    "scores": {
+     "groundedness": {
+      "score": 5.0,
+      "passed": true
+     },
+     "relevance": {
+      "score": 5.0,
+      "passed": true
+     },
+     "coherence": {
+      "score": 4.0,
+      "passed": true
+     },
+     "fluency": {
+      "score": 4.0,
+      "passed": true
+     }
+    }
+   },
+   {
+    "id": "q3:en",
+    "status": "completed",
+    "scores": {
+     "groundedness": {
+      "score": 4.0,
+      "passed": true
+     },
+     "relevance": {
+      "score": 3.0,
+      "passed": true
+     },
+     "coherence": {
+      "score": 3.0,
+      "passed": true
+     },
+     "fluency": {
+      "score": 3.0,
+      "passed": true
+     }
+    }
+   },
+   {
+    "id": "q3:es",
+    "status": "completed",
+    "scores": {
+     "groundedness": {
+      "score": 2.0,
+      "passed": false
+     },
+     "relevance": {
+      "score": 4.0,
+      "passed": true
+     },
+     "coherence": {
+      "score": 4.0,
+      "passed": true
+     },
+     "fluency": {
+      "score": 3.0,
+      "passed": true
+     }
+    }
+   },
+   {
+    "id": "q4:en",
+    "status": "completed",
+    "scores": {
+     "groundedness": {
+      "score": 5.0,
+      "passed": true
+     },
+     "relevance": {
+      "score": 5.0,
+      "passed": true
+     },
+     "coherence": {
+      "score": 4.0,
+      "passed": true
+     },
+     "fluency": {
+      "score": 3.0,
+      "passed": true
+     }
+    }
+   },
+   {
+    "id": "q4:es",
+    "status": "completed",
+    "scores": {
+     "groundedness": {
+      "score": 5.0,
+      "passed": true
+     },
+     "relevance": {
+      "score": 5.0,
+      "passed": true
+     },
+     "coherence": {
+      "score": 4.0,
+      "passed": true
+     },
+     "fluency": {
+      "score": 3.0,
+      "passed": true
+     }
+    }
+   }
+  ]
+ }
+}

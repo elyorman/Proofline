@@ -46,7 +46,8 @@ scoreboard:
 # never stored.
 deploy-web:
 	api=$$(azd env get-value API_URL) && cd surfaces/web && corepack pnpm install --frozen-lockfile \
-		&& corepack pnpm fixtures && VITE_PROOFLINE_API=$$api corepack pnpm build
+		&& corepack pnpm fixtures && VITE_PROOFLINE_API=$$api corepack pnpm build \
+		&& node scripts/swa_config.mjs $$api dist
 	rg=$$(azd env get-value AZURE_RESOURCE_GROUP) && \
 	name=$$(az staticwebapp list -g $$rg --query '[0].name' -o tsv) && \
 	SWA_CLI_DEPLOYMENT_TOKEN=$$(az staticwebapp secrets list -n $$name -g $$rg --query properties.apiKey -o tsv) \

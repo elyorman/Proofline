@@ -83,7 +83,12 @@ def test_readme_check_requires_exact_generated_text(evaluated, tmp_path, capsys)
     assert main(["scoreboard", "--records", str(records), "--write", str(readme)]) == 0
     assert readme.read_text() == f"Prose\n{START}\n{text}{END}\nTail\n"
     assert scoreboard(records, readme) == text
-    readme.write_text("no markers")
+    readme.write_text(f"Prose with no scoreboard quotes {quoted}.\n")  # figures checked alone
+    assert scoreboard(records, readme) == text
+    readme.write_text("Prose with no scoreboard quotes 99.9%.\n")
+    with pytest.raises(ValueError, match="no record holds"):
+        scoreboard(records, readme)
+    readme.write_text(f"{START}\nhalf a pair\n")
     with pytest.raises(ValueError, match="markers"):
         scoreboard(records, readme)
 

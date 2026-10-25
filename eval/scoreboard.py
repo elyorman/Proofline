@@ -488,16 +488,22 @@ def scoreboard(folder: Path, check: Path | None = None, *, json_output: bool = F
     records = load_records(folder)
     text = render(records)
     if check is not None:
+        # A document holding the scoreboard must hold it exactly; any document may quote only
+        # figures the records render.
         document = check.read_bytes().decode("utf-8")
-        if document.count(START) != 1 or document.count(END) != 1:
-            raise ValueError("README must contain exactly one pair of scoreboard markers")
-        head, tail = document.split(START)
-        middle, rest = tail.split(END)
-        if middle != "\n" + text:
-            raise ValueError("README scoreboard differs from the evaluation records")
-        unbacked = sorted(set(FIGURE.findall(head + rest)) - set(FIGURE.findall(text)))
+        markers = (document.count(START), document.count(END))
+        if markers not in ((0, 0), (1, 1)):
+            raise ValueError(f"{check.name} must hold one pair of scoreboard markers or none")
+        prose = document
+        if markers == (1, 1):
+            head, tail = document.split(START)
+            middle, rest = tail.split(END)
+            if middle != "\n" + text:
+                raise ValueError(f"{check.name} scoreboard differs from the evaluation records")
+            prose = head + rest
+        unbacked = sorted(set(FIGURE.findall(prose)) - set(FIGURE.findall(text)))
         if unbacked:
-            raise ValueError(f"README quotes figures no record holds: {', '.join(unbacked)}")
+            raise ValueError(f"{check.name} quotes figures no record holds: {', '.join(unbacked)}")
     return (
         json.dumps(scoreboard_data(records), ensure_ascii=False, indent=2) + "\n"
         if json_output

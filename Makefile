@@ -36,9 +36,9 @@ heldout-feeds:
 		uv run proofline-engine generate --script $$script --out data/heldout/$$(basename $$script .yaml)/ || exit 1; \
 	done
 
-# After any new evaluation record: the README's scoreboard block and the console's fixture.
+# After any new evaluation record: the scoreboard in docs/scoreboard.md and the console's fixture.
 scoreboard:
-	uv run python -m eval scoreboard --records eval/records --write README.md > /dev/null
+	uv run python -m eval scoreboard --records eval/records --write docs/scoreboard.md > /dev/null
 	uv run python surfaces/web/scripts/export_scoreboard.py
 
 # The public link: the replay build on the azd environment's Static Web App, pointed at the

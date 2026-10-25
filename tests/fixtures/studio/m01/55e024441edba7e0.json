@@ -7,24 +7,24 @@
         "sentence": "Northvale are playing more down the right since 47'.",
         "entailed": true,
         "overstated": false,
-        "reason": "channel_share_right rose 24%\u219276% in 47'-62'; published, so 'since 47'' is entailed."
+        "reason": "Channel share right rose 24%\u219276% in 47'-62' versus the first half."
       },
       {
         "sentence": "Northvale are playing more down the right since 47'. It looks like Harbour City chasing the result.",
         "entailed": true,
         "overstated": false,
-        "reason": "Channel_share_right rise entailed; 'looks like' fits measured language and moderate support."
+        "reason": "Metric change entailed; cause 'Harbour City chasing the result' is listed, phrased 'It looks like' (measured)."
       },
       {
         "sentence": "Share down the right (Northvale): 24% \u2192 76%; Pressure rate (Harbour City): 0.32 \u2192 0.45, 47'-62' against the first half. It looks like Harbour City chasing the result. Ruled out: Northvale overloading one flank, a deliberate step up in Harbour City's press, tiring legs in Harbour City's side, a tiring Northvale player, Northvale protecting their lead. Support: moderate.",
         "entailed": true,
         "overstated": false,
-        "reason": "All stats, timeframe, ruled-out items and 'moderate' support match the facts; 'looks like' allowed."
+        "reason": "All metrics, timings, ruled_out items, cause phrasing, and 'moderate' support match the facts."
       }
     ]
   },
   "usage": {
-    "input_tokens": 1009,
-    "output_tokens": 1595
+    "input_tokens": 1019,
+    "output_tokens": 1245
   }
 }

@@ -134,6 +134,11 @@ def test_comparison_cases_are_valid_and_preserved_by_export(tmp_path, replayed):
     source, _ = replayed
     files = json.loads(LEDGER.read_text())["comparison_case_files"]
     assert [f["variant"] for f in files] == ["A", "B"]
+    # One take everywhere: the three agents' side is the Studio take's own 63' case.
+    studio = json.loads(LEDGER.read_text())["case_files"]
+    assert files[0] == next(
+        f for f in studio if f["case"]["case_id"] == files[1]["case"]["case_id"]
+    )
     a, b = [CaseFile.model_validate(f) for f in files]
     assert a.case.case_id == b.case.case_id == "case-m01-063-pressure_shift"
     assert a.case.window == b.case.window

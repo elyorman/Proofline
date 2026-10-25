@@ -9,8 +9,11 @@ for (const args of [
   ['-m', 'engine.cli', 'generate', '--script', 'engine/scripts/planted/m01.yaml', '--out', 'data/m01'],
   ['-m', 'orchestration.cli', 'run', '--mode', 'studio', '--match', 'm01',
     '--replay', 'tests/fixtures/studio/m01'],
-  ['-m', 'orchestration.cli', 'case', '--match', 'm01', '--minute', '63', '--variant', 'A',
-    '--replay', 'tests/fixtures/cases/m01-063-A'],
+  // One take everywhere: the three agents' side of the comparison is the Studio take's own
+  // 63' case, the one the fan surface shows, not a separate recording.
+  ['-c', "import json; d = json.load(open('runs/studio/m01/ledger.json')); "
+    + "f = next(f for f in d['case_files'] if f['case']['case_id'] == 'case-m01-063-pressure_shift'); "
+    + "open('runs/case-m01-063-pressure_shift-A.json', 'w').write(json.dumps(f, indent=2) + '\\n')"],
   ['-m', 'orchestration.cli', 'case', '--match', 'm01', '--minute', '63', '--variant', 'B',
     '--replay', 'tests/fixtures/cases/m01-063-B'],
   ['surfaces/web/scripts/export_web_replay.py', '--source', 'data/m01', '--match', 'm01',

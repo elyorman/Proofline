@@ -55,7 +55,7 @@ const STAGES = ['framed', 'premise', 'preregistered', 'tested', 'cross_examined'
 
 /** A live question's stages as the API reports them; a premise turned away stops after two. */
 export function LiveProgress({ job }: { job: LiveJob }) {
-  const { text } = useText();
+  const { text, locale } = useText();
   const settled = job.status === 'done' || job.status === 'failed';
   const stages = job.stages ?? [];
   const shown = settled && job.answer?.outcome !== 'explained' ? STAGES.filter(s => stages.some(r => r.stage === s)) : STAGES;
@@ -64,7 +64,8 @@ export function LiveProgress({ job }: { job: LiveJob }) {
     <span className={`status live-${job.status}`}>{text(`ask.live.status.${job.status}`)}</span>
     <ol>{shown.map(stage => {
       const reached = stages.find(s => s.stage === stage);
-      return <li key={stage} className={reached ? 'reached' : ''}><span>{text(`ask.live.stage.${stage}`)}</span>{reached?.note && <small>{reached.note}</small>}</li>;
+      // Notes are the backend's own English; in Spanish the stage names carry the meaning.
+      return <li key={stage} className={reached ? 'reached' : ''}><span>{text(`ask.live.stage.${stage}`)}</span>{locale === 'en' && reached?.note && <small>{reached.note}</small>}</li>;
     })}</ol>
     {!settled && <p className="muted">{text('ask.live.slow')}</p>}
     {job.trace_id && <p className="muted live-trace">{text('ask.live.trace', { id: job.trace_id })}</p>}

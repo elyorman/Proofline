@@ -86,7 +86,9 @@ describe('live questions', () => {
     expect(html.match(/class="reached"/g)).toHaveLength(2);
     expect(html).toContain('beyond 1.5 sd');
     expect(html).toContain('Trace abc');
-    expect(render(<LiveProgress job={job} />, 'es')).toContain('El código ejecuta cada prueba');
+    const spanish = render(<LiveProgress job={job} />, 'es');
+    expect(spanish).toContain('El código ejecuta cada prueba');
+    expect(spanish).not.toContain('beyond 1.5 sd');
   });
   it('says a live answer was asked live, and names the player its premise is about', () => {
     const ambrel = answers.find(a => a.premise?.subject === 'NV-10')!;

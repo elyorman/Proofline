@@ -63,7 +63,7 @@ No sign-in is needed. The replay starts paused at 68:00, viewed as a Northvale f
    - Then type your own question about the match so far, in the second half. It is answered live in Azure, and you can watch the stages:
      - "Is Ambrel running out of legs?" at 76:00 is turned away in seconds.
      - "Why have Harbour City been pressing so high since 58?" at 68:00 runs the full investigation in one to three minutes.
-   - Each viewer may ask one live question a minute, and there is a daily cap.
+   - Ask as many as you like, one at a time. A generous daily budget only stops a single visitor from scripting through it.
 4. **Analyst console**, at https://nice-coast-044d8740f.5.azurestaticapps.net/#/analyst?t=68:00&lang=en.
    - The 63' case shows each specialist's pre-registered causes and code's verdicts, the cross-examination, the refusals and the Verifier's checks.
    - "Compare with one agent" sets it beside the single-agent run.

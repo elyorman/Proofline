@@ -133,7 +133,7 @@ the numbers the UI states come from it.
   the job and lists each stage as the API reports it (the Lead's premise, code's
   test, registration, tests, cross-examination, synthesis, the Verifier), then
   renders the answer exactly like a recorded one. Each refusal (a viewer's
-  minute, the daily cap, a busy queue, an outage, a first-half clock) has its
+  share of the day, the day's budget, a question still running, a busy queue, an outage, a first-half clock) has its
   own localized message. Without an API configured, the page says so and sends
   nothing.
 - **Investigation (`#/analyst`).** The case list and the investigation open the

@@ -5,7 +5,7 @@ import type { MatchClock } from './types/answer';
 
 export const LIVE_API = ((import.meta.env.VITE_PROOFLINE_API as string | undefined) ?? '').replace(/\/$/, '');
 
-export type LiveRefusal = 'unconfigured' | 'daily' | 'per_viewer' | 'busy' | 'invalid' | 'unavailable';
+export type LiveRefusal = 'unconfigured' | 'daily' | 'per_viewer' | 'running' | 'busy' | 'invalid' | 'unavailable';
 
 export class LiveRefused extends Error {
   constructor(public readonly reason: LiveRefusal, public readonly retryAfterS?: number, public readonly detail?: string) {
@@ -25,7 +25,7 @@ async function call(path: string, init: RequestInit | undefined, api: string, fe
   }
   const body = await response.json().catch(() => ({}));
   if (response.ok) return body as LiveJob;
-  const reason = (['daily', 'per_viewer', 'busy', 'invalid'] as const).find(r => r === body.error);
+  const reason = (['daily', 'per_viewer', 'running', 'busy', 'invalid'] as const).find(r => r === body.error);
   throw new LiveRefused(reason ?? 'unavailable', body.retry_after_s, body.detail);
 }
 

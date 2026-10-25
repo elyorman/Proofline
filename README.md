@@ -129,7 +129,7 @@ The [public link](https://nice-coast-044d8740f.5.azurestaticapps.net) replays on
     - **77' and 83':** the follow-ups settle, saying honestly that no check told the causes apart.
   - **How we know** on any card shows its evidence, the causes it ruled out and its revisions.
   - **Ask Proofline** plays five recorded questions. Two have false premises and are turned away; one ("Who will win?") is declined.
-  - **Type any other question** about the match so far, in English or Spanish, and it is answered live. The Lead's premise, code's test, the three agents and the Verifier run in Azure, and each stage appears as it is reached. A false premise is answered in seconds; a real investigation takes one to three minutes. Each viewer may ask one a minute, and there is a daily cap.
+  - **Type any other question** about the match so far, in English or Spanish, and it is answered live. The Lead's premise, code's test, the three agents and the Verifier run in Azure, and each stage appears as it is reached. A false premise is answered in seconds; a real investigation takes one to three minutes. Each viewer asks one question at a time, and a day's questions share a budget of model tokens that no single viewer may use more than a fifth of.
 - **Analyst (`#/analyst`).** The full case file for every case:
   - **Investigation:** each agent's pre-registered predictions, tool calls, counter-tests, refusals, synthesis and checkpoints.
   - **Verification and revision history:** the Verifier's results and the amendment's diff.
@@ -241,7 +241,7 @@ Matches come from a possession-chain simulator ([`engine/`](engine/)) driven by 
 - **A cause can survive on evidence unrelated to the change it explains.** The 62' flank card explains a shift the feed error invented with "Harbour City chasing the result". That cause survived only because Harbour City's pressing really did rise. The correction withdraws the card at 70'.
 - **The Verifier's semantic check uses the agents' model.** It is gpt-5-mini with its own prompt and none of their context. Phi-4, the other model family we could deploy, tied on the seeded suite but rejected a sound demo card. The check judges the English sentences. Spanish sentences get the deterministic number check, not the semantic one.
 - **Some things changed after the freeze.** Viewer wording for follow-ups, and the Verifier's instructions about that wording, changed after the held-out runs. So did the surfaces and the evaluation's reporting: intervals, paired comparisons, and applying the frozen not-observable flags to questions. No agent prompt, test rule or workflow changed. The held-out cards were narrated and verified with the earlier wording.
-- **Live questions are slow and capped.** A real investigation takes one to three minutes; each viewer may ask one a minute, and there is a daily cap. Recorded questions answer instantly.
+- **Live questions take time and share a budget.** A real investigation takes one to three minutes. A day's questions share a budget of model tokens, about 300 full investigations, and no viewer may spend more than a fifth of it. Recorded questions answer instantly.
 
 ## Full scoreboard
 

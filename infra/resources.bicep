@@ -25,8 +25,8 @@ param verifierCapacity int = 20
 @description('The API image azd last deployed; empty keeps the placeholder until the first deploy')
 param apiImage string = ''
 
-@description('Live questions the public API answers per day, across all viewers')
-param dailyQuestions int = 60
+@description('Model tokens all viewers\' live questions may spend in a UTC day (about 300 full investigations)')
+param dailyTokens int = 15000000
 
 // Built-in role definition ids
 var roles = {
@@ -153,7 +153,7 @@ resource api 'Microsoft.App/containerApps@2025-01-01' = {
             { name: 'AZURE_COSMOS_ENDPOINT', value: cosmos.properties.documentEndpoint }
             { name: 'AZURE_COSMOS_DATABASE', value: ledger.name }
             { name: 'PROOFLINE_WEB_ORIGINS', value: 'https://${web.properties.defaultHostname},http://localhost:5173,http://localhost:4173' }
-            { name: 'PROOFLINE_DAILY_QUESTIONS', value: string(dailyQuestions) }
+            { name: 'PROOFLINE_DAILY_TOKENS', value: string(dailyTokens) }
           ]
         }
       ]

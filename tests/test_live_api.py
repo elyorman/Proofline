@@ -1,6 +1,7 @@
 """The live API answers typed questions through the same run_question as every other path;
 here it replays the demo's recorded exchanges, with live model calls forbidden."""
 
+import json
 import time
 from pathlib import Path
 from unittest.mock import patch
@@ -10,12 +11,12 @@ from starlette.testclient import TestClient
 
 from agents.llm import Replay
 from contracts.live import LiveJob
-from contracts.question import Question
+from contracts.question import Answer, Question
 from engine.io import write_match
 from engine.script import load_script
 from engine.sim import MatchSim
 from ledger.store import MemoryLedger
-from surfaces.api.app import Service, build
+from surfaces.api.app import Job, Service, build
 from tools_server.server import DirectorySource
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -99,26 +100,23 @@ def test_a_true_premise_is_investigated_verified_and_written_to_the_ledger(data)
     assert stored[("m01", f"{card.id}:r2")]["revision"] == job.answer.final.revision == 2
 
 
-def test_each_viewer_waits_a_minute_and_the_day_has_a_cap(data):
-    service = _service(data, ["q3", "q4", "q5"], daily=2)
-    with TestClient(build(service, [])) as client:
-        q3 = "¿Por qué se está cansando la defensa de Harbour City desde el minuto 58?"
-        assert _ask(client, q3).status_code == 202
-        again = _ask(client, "¿Está cansado Ambrel desde el minuto 60?", at="76:00")
-        assert again.status_code == 429 and again.json()["error"] == "per_viewer"
-        other = _ask(
-            client, "¿Está cansado Ambrel desde el minuto 60?", at="76:00", viewer="5.6.7.8"
-        )
-        assert other.status_code == 202
-        third = _ask(client, "Who will win the match?", at="76:00", locale="en", viewer="9.9.9.9")
-        assert third.status_code == 429 and third.json()["error"] == "daily"
-        assert client.get("/api/health").json() == {
-            "ok": True,
-            "daily_cap": 2,
-            "daily_used": 2,
-            "busy": sum(j.status in ("queued", "running") for j in service.jobs.values()),
-        }
-        _settled(client, "q3"), _settled(client, "q4")
+def test_a_viewer_asks_one_at_a_time_and_the_day_has_a_token_budget(data):
+    done = Answer.model_validate(
+        json.loads((RECORDED / "A" / "answers.jsonl").read_text().splitlines()[0])
+    )
+    cost = done.input_tokens + done.output_tokens  # one full investigation
+    service = _service(data, [], daily_tokens=2 * cost)
+    question = Question(question_id="q", match_id="m01", asked_at="68:00", text="Why now?")
+    service.jobs["q"] = Job(question=question, created_ms=0, viewer="a", status="running")
+    assert service.admit("a", 0)[1]["error"] == "running"  # still answering a's last question
+    assert service.admit("b", 0) is None  # anyone else may ask; there is no waiting minute
+    service.jobs["q"].status, service.jobs["q"].answer = "done", done
+    service.charge(service.jobs["q"])
+    assert service.admit("a", 0)[1]["error"] == "per_viewer"  # a has spent its share of today
+    assert service.admit("b", 0) is None  # half the day's budget is left for others
+    service.charge(Job(question=question, created_ms=0, viewer="b", answer=done))
+    assert service.admit("c", 0)[1]["error"] == "daily"  # and now none is
+    assert service.admit("c", 86400) is None  # a new day starts over
 
 
 def test_a_question_must_be_about_the_replayed_match_and_after_half_time(data):
@@ -126,10 +124,12 @@ def test_a_question_must_be_about_the_replayed_match_and_after_half_time(data):
     with TestClient(build(service, [])) as client:
         first_half = _ask(client, "Why are they pressing?", at="30:00", locale="en")
         assert first_half.status_code == 422 and "first half" in first_half.json()["detail"]
+        after = _ask(client, "Why are they pressing?", at="125:00", locale="en")
+        assert after.status_code == 422 and after.json()["detail"] == "after full time"
         body = {"match_id": "m99", "asked_at": "68:00", "text": "Why?", "locale": "en"}
         assert client.post("/api/questions", json=body).status_code == 422
         assert client.get("/api/questions/nope").status_code == 404
-    assert service.used == 0
+    assert service.spent == 0 and not service.jobs
 
 
 def test_a_job_has_an_answer_exactly_when_it_is_done():

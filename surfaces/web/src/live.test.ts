@@ -26,6 +26,7 @@ describe('the live API client', () => {
       { api: 'https://api.example', fetcher: (async () => reply(status, body)) as typeof fetch });
     await expect(refuse(429, { error: 'per_viewer', retry_after_s: 42 })).rejects.toMatchObject({ reason: 'per_viewer', retryAfterS: 42 });
     await expect(refuse(429, { error: 'daily' })).rejects.toMatchObject({ reason: 'daily' });
+    await expect(refuse(429, { error: 'running' })).rejects.toMatchObject({ reason: 'running' });
     await expect(refuse(503, { error: 'busy' })).rejects.toMatchObject({ reason: 'busy' });
     await expect(refuse(500, {})).rejects.toMatchObject({ reason: 'unavailable' });
     const offline = askLive({ match_id: 'm01', asked_at: question.asked_at, text: 'Why?', locale: 'en' },

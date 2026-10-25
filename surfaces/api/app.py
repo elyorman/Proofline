@@ -2,8 +2,10 @@
 replayed match, answered by the real agents on Foundry, verified, and written to the ledger.
 
 The public link replays recordings and never depends on this API: it asks here only what
-the recordings do not hold. Questions run one at a time, at most one per viewer a minute and
-a capped number a day, and each reports its stages as they happen. Every sentence a viewer
+the recordings do not hold. Each viewer has one question in progress at a time, and a day's
+questions share a budget of model tokens: a declined or false-premise question costs little,
+a full investigation much more, and no one viewer may spend more than a share of the day.
+Each question reports its stages as they happen. Every sentence a viewer
 reads is still written by the Narrator's templates from verified propositions, so a typed
 question cannot make Proofline say anything the Verifier did not pass.
 
@@ -39,8 +41,10 @@ from orchestration.question import run_question
 from tools_server.server import DirectorySource
 
 MATCHES = {"m01"}  # the matches the public link replays
-PER_VIEWER_S = 60  # one live question per viewer a minute (spec §7.4)
-WAITING = 3  # questions that may wait behind the one running
+DAILY_TOKENS = 15_000_000  # all viewers' questions in a UTC day: about 300 full investigations
+VIEWER_SHARE = 0.2  # no one viewer spends more than this share of a day's budget
+AT_ONCE = 2  # questions answered at the same time
+WAITING = 8  # questions that may wait behind them
 JOB_TIMEOUT_S = 420  # a full investigation takes one to three minutes
 KEPT = 500  # finished jobs kept for polling
 STAGES = set(get_args(LiveStageName))
@@ -53,6 +57,7 @@ WEB = (
 class Job:
     question: Question
     created_ms: int
+    viewer: str = ""
     status: str = "queued"
     stages: list[LiveStage] = field(default_factory=list)
     answer: Answer | None = None
@@ -60,13 +65,14 @@ class Job:
     trace_id: str | None = None
 
     def view(self, job_id: str, status: str | None = None) -> LiveJob:
+        status = status or self.status  # the answer shows once the job is done, not before
         return LiveJob(
             job_id=job_id,
             question=self.question,
-            status=status or self.status,
+            status=status,
             stages=self.stages,
-            answer=self.answer,
-            error=self.error,
+            answer=self.answer if status == "done" else None,
+            error=self.error if status == "failed" else None,
             trace_id=self.trace_id,
             created_ms=self.created_ms,
         )
@@ -87,27 +93,44 @@ class Service:
     ledger: Ledger | None = None
     models: Callable[[], tuple[Model, Model]] = _live_models
     ids: Iterator[str] = field(default_factory=_ids)
-    daily: int = 60
+    daily_tokens: int = DAILY_TOKENS
     jobs: dict[str, Job] = field(default_factory=dict)
-    asked: dict[str, float] = field(default_factory=dict)
     day: str = ""
-    used: int = 0
-    gate: asyncio.Lock = field(default_factory=asyncio.Lock)
+    spent: int = 0
+    spent_by: dict[str, int] = field(default_factory=dict)
+    gate: asyncio.Semaphore = field(default_factory=lambda: asyncio.Semaphore(AT_ONCE))
     tasks: set[asyncio.Task] = field(default_factory=set)
+    match_end: dict[str, tuple[int, int]] = field(default_factory=dict)
 
     def admit(self, viewer: str, now: float) -> tuple[int, dict[str, Any]] | None:
         """Why a question may not run now, or None when it may."""
         today = time.strftime("%Y-%m-%d", time.gmtime(now))
         if today != self.day:
-            self.day, self.used = today, 0
-        if self.used >= self.daily:
-            return 429, {"error": "daily", "detail": "today's live questions are used up"}
-        wait = PER_VIEWER_S - (now - self.asked.get(viewer, -PER_VIEWER_S))
-        if wait > 0:
-            return 429, {"error": "per_viewer", "retry_after_s": int(wait) + 1}
-        if sum(j.status in ("queued", "running") for j in self.jobs.values()) > WAITING:
+            self.day, self.spent, self.spent_by = today, 0, {}
+        if self.spent >= self.daily_tokens:
+            return 429, {"error": "daily", "detail": "today's live budget is spent"}
+        if self.spent_by.get(viewer, 0) >= self.daily_tokens * VIEWER_SHARE:
+            return 429, {"error": "per_viewer", "detail": "this viewer's share of today is spent"}
+        open_jobs = [j for j in self.jobs.values() if j.status in ("queued", "running")]
+        if any(j.viewer == viewer for j in open_jobs):
+            return 429, {"error": "running", "detail": "your previous question is still running"}
+        if len(open_jobs) >= AT_ONCE + WAITING:
             return 503, {"error": "busy", "detail": "other questions are being answered"}
         return None
+
+    def charge(self, job: Job) -> None:
+        """What a finished question spent, against the day and its viewer."""
+        a = job.answer
+        cost = (a.input_tokens + a.output_tokens) if a else 0
+        self.spent += cost
+        self.spent_by[job.viewer] = self.spent_by.get(job.viewer, 0) + cost
+
+    def played(self, match_id: str) -> tuple[int, int]:
+        """The last clock the match reached: a question after full time is refused."""
+        if match_id not in self.match_end:
+            events = self.source.feed(match_id).events
+            self.match_end[match_id] = max(e.clock.sort_key for e in events)
+        return self.match_end[match_id]
 
     async def answer(self, job_id: str) -> None:
         job = self.jobs[job_id]
@@ -140,6 +163,7 @@ class Service:
             finally:
                 progress.listener.reset(token)
         ended = "done" if job.answer is not None else "failed"
+        self.charge(job)
         if self.ledger is not None:  # recorded before the viewer is told it ended
             try:
                 await asyncio.to_thread(_record, self.ledger, job.view(job_id, ended))
@@ -209,15 +233,16 @@ def build(service: Service, origins: list[str]) -> Starlette:
             return JSONResponse({"error": "invalid", "detail": detail[:200]}, status_code=422)
         if question.match_id not in MATCHES:
             return JSONResponse({"error": "invalid", "detail": "unknown match"}, status_code=422)
+        if question.asked_at.sort_key > service.played(question.match_id):
+            return JSONResponse({"error": "invalid", "detail": "after full time"}, status_code=422)
         now, viewer = time.time(), _viewer(request)
         refused = service.admit(viewer, now)
         if refused:
             status, payload = refused
             return JSONResponse(payload, status_code=status)
-        service.asked[viewer], service.used = now, service.used + 1
         job_id = next(service.ids)
         question = question.model_copy(update={"question_id": job_id})
-        service.jobs[job_id] = Job(question=question, created_ms=int(now * 1000))
+        service.jobs[job_id] = Job(question=question, created_ms=int(now * 1000), viewer=viewer)
         task = asyncio.create_task(service.answer(job_id))
         service.tasks.add(task)
         task.add_done_callback(service.tasks.discard)
@@ -233,7 +258,12 @@ def build(service: Service, origins: list[str]) -> Starlette:
     async def health(_: Request) -> JSONResponse:
         running = sum(j.status in ("queued", "running") for j in service.jobs.values())
         return JSONResponse(
-            {"ok": True, "daily_cap": service.daily, "daily_used": service.used, "busy": running}
+            {
+                "ok": True,
+                "daily_tokens": service.daily_tokens,
+                "spent_today": service.spent,
+                "busy": running,
+            }
         )
 
     return Starlette(
@@ -274,6 +304,6 @@ def create() -> Starlette:
     service = Service(
         source=DirectorySource(Path(os.getenv("PROOFLINE_DATA", "data"))),
         ledger=ledger,
-        daily=int(os.getenv("PROOFLINE_DAILY_QUESTIONS", "60")),
+        daily_tokens=int(os.getenv("PROOFLINE_DAILY_TOKENS", str(DAILY_TOKENS))),
     )
     return build(service, os.getenv("PROOFLINE_WEB_ORIGINS", WEB).split(","))

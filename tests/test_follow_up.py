@@ -103,10 +103,17 @@ def test_a_rival_that_survives_is_settled_on_the_minutes_after_the_card(m01):
     assert first.status == CardStatus.VERIFIED and first.follow_up.status == "pending"
     assert [r.cause for r in first.follow_up.rivals] == [Cause.PRESS_INTENSITY_UP]
     assert str(first.follow_up.window) == "68:00-83:00"
+    # A fan hears it as a commentator would put it; the analyst view names the check.
     assert first.variants["casual"]["en"].endswith(
-        "We'll check it against a deliberate step up in Harbour City's press by 83'."
+        "A deliberate step up in Harbour City's press may also be part of it; we'll know more by "
+        "83'."
     )
-    assert "antes del minuto 83" in first.variants["casual"]["es"]
+    assert first.variants["casual"]["es"].endswith(
+        "Un aumento deliberado de la presión del Harbour City también puede influir; lo sabremos "
+        "mejor en el minuto 83."
+    )
+    assert first.variants["casual"]["es"].startswith("El Harbour City presiona")
+    assert "We'll check it against a deliberate step up" in first.variants["analyst"]["en"]
     # Each side was asked by its own agent, after the first card's window was closed.
     asked = [(role, schema) for role, schema, _ in model.asked if schema == "Decisive"]
     assert asked == [("game_state", "Decisive"), ("tactics", "Decisive")]
@@ -120,7 +127,7 @@ def test_a_rival_that_survives_is_settled_on_the_minutes_after_the_card(m01):
     assert ruled.taxonomy == Cause.CHASING_RESULT and "did not come true" in ruled.reason
     assert str(later.timing.verified_at) == "83:00"
     assert later.revisions[-1].reason == "follow-up over 68:00-83:00: overturned"
-    assert "Checked by 83': not Harbour City chasing the result." in later.variants["casual"]["en"]
+    assert "Ruled out by 83': Harbour City chasing the result." in later.variants["casual"]["en"]
     assert "68'-83': Long-ball share (Harbour City)" in later.variants["analyst"]["en"]
     assert InsightCard.model_validate_json(later.model_dump_json()) == later
     # Scored as the follow-up left it, the answer names the press.
@@ -135,7 +142,7 @@ def test_the_same_minutes_confirm_a_primary_whose_prediction_came_true(m01):
     later = asyncio.run(run_case(Variant.A_PROOFLINE, model, model, case, feed)).followed.card
     assert later.follow_up.status == "confirmed"
     assert later.primary_cause.cause == Cause.PRESS_INTENSITY_UP
-    assert "Checked by 83': not Harbour City chasing the result." in later.variants["casual"]["en"]
+    assert "Ruled out by 83': Harbour City chasing the result." in later.variants["casual"]["en"]
 
 
 def test_minutes_that_fit_both_leave_the_card_open_and_claim_no_cause(m01):
@@ -280,17 +287,18 @@ def test_every_rival_is_watched_and_each_must_fail_for_the_card_to_stand(m01):
         Cause.BLOCK_HIGHER,
     ]
     assert first.variants["casual"]["en"].endswith(
-        "We'll check it against Harbour City chasing the result and Northvale pushing their "
-        "block higher by 83'."
+        "Harbour City chasing the result or Northvale pushing their block higher may also be part "
+        "of it; we'll know more by 83'."
     )
     assert later.follow_up.status == "confirmed"
     assert all(t.sigmas is not None for t in later.follow_up.tests)  # all three measured
     assert later.variants["casual"]["en"].endswith(
-        "Checked by 83': not Harbour City chasing the result or Northvale pushing their block "
+        "Ruled out by 83': Harbour City chasing the result and Northvale pushing their block "
         "higher."
     )
     assert later.variants["casual"]["es"].endswith(
-        "no es Harbour City buscando el resultado ni Northvale adelantando su bloque."
+        "Descartado en el minuto 83: el Harbour City buscando el resultado y el Northvale "
+        "adelantando su bloque."
     )
 
 

@@ -57,24 +57,24 @@ CHANGE = {  # (metric, direction) -> (English with {is}, Spanish)
 CAUSE = {  # {team} is the team the cause is about
     Cause.PRESS_INTENSITY_UP: (
         "a deliberate step up in {team}'s press",
-        "un aumento deliberado de la presión de {team}",
+        "un aumento deliberado de la presión del {team}",
     ),
     Cause.PRESS_INTENSITY_DOWN: (
         "a deliberate drop in {team}'s press",
-        "una bajada deliberada de la presión de {team}",
+        "una bajada deliberada de la presión del {team}",
     ),
-    Cause.BLOCK_DEEPER: ("{team} sitting in a deeper block", "{team} defendiendo más atrás"),
-    Cause.BLOCK_HIGHER: ("{team} pushing their block higher", "{team} adelantando su bloque"),
-    Cause.FORMATION_CHANGE: ("a change of shape by {team}", "un cambio de sistema de {team}"),
-    Cause.FLANK_OVERLOAD: ("{team} overloading one flank", "{team} sobrecargando una banda"),
-    Cause.UNIT_FATIGUE: ("tiring legs in {team}'s side", "el cansancio en {team}"),
-    Cause.PLAYER_FATIGUE: ("a tiring {team} player", "un jugador de {team} que se cansa"),
+    Cause.BLOCK_DEEPER: ("{team} sitting in a deeper block", "el {team} defendiendo más atrás"),
+    Cause.BLOCK_HIGHER: ("{team} pushing their block higher", "el {team} adelantando su bloque"),
+    Cause.FORMATION_CHANGE: ("a change of shape by {team}", "un cambio de sistema del {team}"),
+    Cause.FLANK_OVERLOAD: ("{team} overloading one flank", "el {team} sobrecargando una banda"),
+    Cause.UNIT_FATIGUE: ("tiring legs in {team}'s side", "el cansancio en el {team}"),
+    Cause.PLAYER_FATIGUE: ("a tiring {team} player", "un jugador del {team} que se cansa"),
     Cause.FRESH_LEGS_SUBSTITUTION: (
         "fresh legs off {team}'s bench",
-        "piernas frescas del banquillo de {team}",
+        "piernas frescas del banquillo del {team}",
     ),
-    Cause.PROTECTING_LEAD: ("{team} protecting their lead", "{team} protegiendo su ventaja"),
-    Cause.CHASING_RESULT: ("{team} chasing the result", "{team} buscando el resultado"),
+    Cause.PROTECTING_LEAD: ("{team} protecting their lead", "el {team} protegiendo su ventaja"),
+    Cause.CHASING_RESULT: ("{team} chasing the result", "el {team} buscando el resultado"),
     Cause.NUMERICAL_CHANGE: (
         "a change in numbers on the pitch",
         "un cambio en el número de jugadores",
@@ -121,29 +121,29 @@ def number(metric: Metric, value: float) -> str:
 UNIT_ES = {"defence": "la defensa", "midfield": "el centro del campo", "attack": "la delantera"}
 
 
-def who(meta: MatchMeta, subject: str, locale: int = 0) -> tuple[str, bool]:
-    """(the subject as written in the locale, whether it takes a singular verb in English)."""
+def who(meta: MatchMeta, subject: str, locale: int = 0, label: bool = False) -> tuple[str, bool]:
+    """(the subject as written in the locale, whether it takes a singular verb in English).
+    In Spanish a team takes its article in a sentence ("el Harbour City"), not in a label."""
     who = resolve(meta, subject)
     if who.player_id:
         team = next(t for t in meta.teams.values() if t.name == who.team)
         return next(p.name for p in team.players if p.player_id == who.player_id), True
     if who.unit:
-        return (f"{who.team}'s {who.unit}", f"{UNIT_ES[who.unit]} de {who.team}")[locale], True
-    return who.team, False
+        return (f"{who.team}'s {who.unit}", f"{UNIT_ES[who.unit]} del {who.team}")[locale], True
+    return (who.team if locale == 0 or label else f"el {who.team}"), False
 
 
-def _sentence(card: InsightCard, meta: MatchMeta, locale: int) -> str:
+def _sentence(card: InsightCard, meta: MatchMeta, locale: int, start: bool = True) -> str:
     change = next(p for p in card.propositions if p.type == "change")
     name, singular = who(meta, change.subject, locale)
     en, es = CHANGE[change.metric, change.direction]
-    start = change.window.start.minute
     if locale == 0:
         text = en.format(
             **{"is": "is" if singular else "are", "has": "has" if singular else "have"}
         )
-        return f"{name} {text} since {start}'."
-    text = f"{name} {es} desde el minuto {start}."
-    return text[0].upper() + text[1:]  # "La defensa de Harbour City ..."
+        return f"{name} {text} since {change.window.start.minute}'."
+    text = f"{name} {es} desde el minuto {change.window.start.minute}."
+    return text[0].upper() + text[1:] if start else text  # "El Harbour City ..." opens one
 
 
 def claim(card: InsightCard, meta: MatchMeta) -> str:
@@ -162,15 +162,22 @@ def variants(
     for i, locale in enumerate(LOCALES):
         team = card.subject.team
         because = LEVEL[level][i].format(cause=cause_phrase(primary.cause, team, i))
+        asserted = because
         if f:  # keep watching: what the next minutes will settle, or what they settled
-            because = f"{because} {_follow_up(card, i)}"
+            because = f"{asserted} {_follow_up(card, i, fan=True)}"
             if f.status == "unresolved":  # the minutes did not choose: no cause is asserted
-                because = _follow_up(card, i)
+                because = _follow_up(card, i, fan=True)
         out["casual"][locale] = f"{_sentence(card, meta, i)} {because}"
+        if f:
+            because = (
+                _follow_up(card, i)
+                if f.status == "unresolved"
+                else f"{asserted} {_follow_up(card, i)}"
+            )
 
         def facts(window: Window | None, i: int = i) -> str:
             return "; ".join(
-                f"{LABEL[ev.metric][i]} ({who(meta, ev.subject, i)[0]}): "
+                f"{LABEL[ev.metric][i]} ({who(meta, ev.subject, i, label=True)[0]}): "
                 f"{number(ev.metric, ev.baseline.value)} → {number(ev.metric, ev.value)}"
                 for ev in card.evidence
                 if (ev.window == later) == (window is not None)
@@ -202,28 +209,36 @@ def variants(
     return out
 
 
-# Keep watching (agents/follow_up.py): one sentence per state, English and Spanish.
+# Keep watching (agents/follow_up.py): one sentence per state, English and Spanish; a fan
+# hears the open question as a commentator would put it, the analyst view names the check.
 PENDING = (
     "We'll check it against {rivals} by {end}'.",
     "Lo comprobaremos frente a {rivals} antes del minuto {end}.",
 )
-CHECKED = ("Checked by {end}': not {loser}.", "Comprobado en el minuto {end}: no es {loser}.")
+PENDING_FAN = (
+    "{rivals} may also be part of it; we'll know more by {end}'.",
+    "{rivals} también puede influir; lo sabremos mejor en el minuto {end}.",
+)
+CHECKED = ("Ruled out by {end}': {loser}.", "Descartado en el minuto {end}: {loser}.")
 STILL_OPEN = (
     "It could be {causes}: by {end}' the numbers still fit {every}.",
     "Puede ser {causes}: en el minuto {end} los números aún encajan con {every}.",
 )
 EVERY = {2: ("both", "ambas"), 3: ("all three", "las tres")}
-AND, OR, NOR = ("and", "y"), ("or", "o"), ("or", "ni")
+AND, OR = ("and", "y"), ("or", "o")
 
 
 def _listed(items: list[str], word: str) -> str:
     return items[0] if len(items) == 1 else f"{', '.join(items[:-1])} {word} {items[-1]}"
 
 
-def _follow_up(card: InsightCard, locale: int) -> str:
+def _follow_up(card: InsightCard, locale: int, fan: bool = False) -> str:
     f, primary = card.follow_up, card.primary_cause
     end = f.window.end.minute
     rivals = [cause_phrase(r.cause, r.team, locale) for r in f.rivals]
+    if f.status == "pending" and fan:
+        text = PENDING_FAN[locale].format(rivals=_listed(rivals, OR[locale]), end=end)
+        return text[0].upper() + text[1:]  # "Harbour City chasing ..." / "El Harbour City ..."
     if f.status == "pending":
         return PENDING[locale].format(rivals=_listed(rivals, AND[locale]), end=end)
     if f.status == "unresolved":
@@ -231,7 +246,7 @@ def _follow_up(card: InsightCard, locale: int) -> str:
         every = EVERY[len(causes)][locale]
         return STILL_OPEN[locale].format(causes=_listed(causes, OR[locale]), end=end, every=every)
     if f.status == "confirmed":
-        return CHECKED[locale].format(end=end, loser=_listed(rivals, NOR[locale]))
+        return CHECKED[locale].format(end=end, loser=_listed(rivals, AND[locale]))
     was = next(r for r in card.rejected_alternatives if r.rejected_by == "follow_up")
     return CHECKED[locale].format(end=end, loser=cause_phrase(was.taxonomy, was.team, locale))
 
@@ -252,11 +267,11 @@ def withdrawal(
     shown = {(e.metric, e.subject): e for e in was.evidence}
     out: dict[str, dict[str, str]] = {"casual": {}, "analyst": {}}
     for i, locale in enumerate(LOCALES):
-        notice = WITHDRAWN[i].format(sentence=_sentence(card, meta, i))
+        notice = WITHDRAWN[i].format(sentence=_sentence(card, meta, i, start=False))
         facts = []
         for ev in card.evidence:
             line = (
-                f"{LABEL[ev.metric][i]} ({who(meta, ev.subject, i)[0]}): "
+                f"{LABEL[ev.metric][i]} ({who(meta, ev.subject, i, label=True)[0]}): "
                 f"{number(ev.metric, ev.baseline.value)} → {number(ev.metric, ev.value)}"
             )
             before = shown.get((ev.metric, ev.subject))
@@ -314,7 +329,7 @@ def broadcast(card: InsightCard, meta: MatchMeta, locale: int) -> dict[str, str 
     return {
         "team": card.subject.team,
         "headline": HEADLINE[change.metric, change.direction][locale],
-        "stat_label": f"{LABEL[ev.metric][locale]} ({who(meta, ev.subject, locale)[0]})",
+        "stat_label": f"{LABEL[ev.metric][locale]} ({who(meta, ev.subject, locale, True)[0]})",
         "metric": ev.metric.value,
         "before": ev.baseline.value,
         "after": ev.value,
@@ -367,6 +382,7 @@ def answer(
     if card is not None:
         return dict(card.variants["casual"])
     names = [who(meta, premise.subject, i)[0] for i in range(len(LOCALES))]
+    labels = [who(meta, premise.subject, i, label=True)[0] for i in range(len(LOCALES))]
     singular = who(meta, premise.subject)[1]
     since = premise.since.minute
     if outcome == "premise_false":
@@ -382,7 +398,7 @@ def answer(
         template = OTHER_WAY if reversed_ else NOT_HAPPENING
         return {
             locale: template[i].format(
-                **facts | {"label": LABEL[premise.metric][i], "who": names[i]}
+                **facts | {"label": LABEL[premise.metric][i], "who": labels[i]}
             )
             for i, locale in enumerate(LOCALES)
         }

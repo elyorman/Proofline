@@ -1,5 +1,6 @@
 import type { Cue } from './types/cue';
 import type { InsightCard } from './types/insight-card';
+import type { AmbientFeed } from './types/ambient';
 import type { ReplayData } from './data';
 import { isStandInCue } from './fixtures';
 import { applyDecisions, elapsedAt, visibleCards, visibleCues, type ProducerDecision } from './replay';
@@ -60,13 +61,13 @@ export function ProgramOverlay({ cues }: { cues: Cue[] }) {
   </div>;
 }
 
-export function Overlay({ data, elapsed, cards, cues, decisions }: {
-  data: ReplayData; elapsed: number; cards: InsightCard[]; cues: Cue[]; decisions: ProducerDecision[];
+export function Overlay({ data, elapsed, cards, cues, decisions, ambient }: {
+  data: ReplayData; elapsed: number; cards: InsightCard[]; cues: Cue[]; decisions: ProducerDecision[]; ambient?: AmbientFeed;
 }) {
   const firstHalf = data.timeline.firstHalfSeconds;
   const effective = applyDecisions(publishedCues(cues, cards, elapsed, firstHalf), decisions, elapsed, firstHalf);
   const active = visibleCues(effective, elapsed, firstHalf, data.timeline.events);
   return <div className="overlay-view"><div className="program-monitor">
-    <Pitch data={data} elapsed={elapsed} /><ProgramOverlay cues={active} />
+    <Pitch data={data} elapsed={elapsed} ambient={ambient} /><ProgramOverlay cues={active} />
   </div></div>;
 }

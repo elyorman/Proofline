@@ -1,8 +1,8 @@
 import { useId } from 'react';
 import type { InsightCard } from './types/insight-card';
-import { displayTime, formatClock, variantText } from './replay';
+import { displayElapsed, displayTime, formatClock, latestCard, variantText } from './replay';
 import { isStandInCard } from './fixtures';
-import { Empty, Icon, SectionTitle, useText } from './ui';
+import { Empty, Icon, useText } from './ui';
 
 export function useCardText() {
   const { locale } = useText();
@@ -75,10 +75,96 @@ export function Insight({ card, onOpen, mode = 'casual' }: { card: InsightCard; 
   </article>;
 }
 
-export function Insights({ cards, onOpen, mode, full }: { cards: InsightCard[]; onOpen: (id: string) => void; mode: string; full: boolean }) {
+type Text = (key: string, values?: Record<string, string | number>) => string;
+const UNITS = ['defence', 'midfield', 'attack'];
+
+/** "Harbour City.attack" reads "Harbour City · attack"; teams and player ids stay as recorded. */
+export function subjectLabel(subject: string, text: Text) {
+  const dot = subject.lastIndexOf('.');
+  const unit = subject.slice(dot + 1);
+  return dot > 0 && UNITS.includes(unit) ? text('ask.unitSubject', { team: subject.slice(0, dot), unit: text(`unit.${unit}`) }) : subject;
+}
+
+/** Spec 12.1's "How we know" at a glance: two recorded numbers with baselines and what was ruled out. */
+export function HowWeKnow({ card }: { card: InsightCard }) {
+  const { text, metric } = useText();
+  const evidence = (card.evidence ?? []).slice(0, 2);
+  const ruledOut = [...new Set((card.rejected_alternatives ?? []).map(a => a.taxonomy))];
+  if (!evidence.length && !ruledOut.length) return <p className="how-empty">{text('insights.noEvidence')}</p>;
+  return <div className="how-summary">
+    <div className="how-numbers">{evidence.map((e, index) => <div className="how-number" key={`${e.tool_call_id}-${index}`}>
+      <span>{text('how.subject', { metric: text(`metric.${e.metric}`), subject: subjectLabel(e.subject, text) })}</span>
+      <p><small>{text(`baseline.${e.baseline.window}`)}</small><b className="before">{metric(e.metric, e.baseline.value)}</b>
+        <Icon name="arrow" size={14} /><b>{metric(e.metric, e.value)}</b></p>
+      <small>{formatClock(e.window.start)}–{formatClock(e.window.end)} · {text('insights.sample', { count: e.n_events })}</small>
+    </div>)}</div>
+    {ruledOut.length > 0 && <p className="how-ruled"><span>{text('how.ruledOut')}</span>{ruledOut.map(cause => <em key={cause}>{text(`cause.${cause}`)}</em>)}</p>}
+  </div>;
+}
+
+function statusLabel(card: InsightCard, text: Text) {
+  if (card.status === 'withdrawn') return text('insights.withdrawn');
+  if (card.lane === 'fast') return text('insights.key');
+  const level = card.verification?.support_level;
+  return text('insights.support', { level: level ? text(`support.${level}`) : text('value.unset') });
+}
+
+export function NowCard({ card, onOpen, mode = 'casual', full = false }: { card: InsightCard; onOpen?: (id: string) => void; mode?: string; full?: boolean }) {
   const { text } = useText();
-  return <aside className="insights-column"><SectionTitle title={text(full ? 'recap' : 'insights')} sub={text(full ? 'recap.sub' : 'insights.sub')} />
-    {cards.length ? cards.map(card => <Insight key={card.id} card={card} onOpen={onOpen} mode={mode} />)
-      : <div className="panel"><Empty title={text('insights.empty')} body={text('insights.empty.sub')} /></div>}
+  const cardText = useCardText();
+  const labelId = useId();
+  const at = displayTime(card);
+  if (!at) return null;
+  const withdrawn = card.status === 'withdrawn';
+  return <article className={`now-card ${withdrawn ? 'withdrawn' : ''} ${card.lane === 'fast' ? 'key-event' : ''}`} aria-labelledby={labelId}>
+    <div className="now-top"><span className="now-label"><i />{text(full ? 'recap' : (card.revision ?? 1) > 1 ? 'now.revised' : 'now')}</span>
+      <span className="card-kind"><Icon name={withdrawn ? 'reset' : 'evidence'} size={14} />{text(isStandInCard(card) ? 'fixture.short' : 'record.backend')}</span>
+      <time>{formatClock(at)}</time></div>
+    <p className="insight-team">{card.subject.team}<span> · {text('insights.revision', { number: card.revision ?? 1 })}</span></p>
+    <h3 id={labelId}>{cardText(card, mode === 'data' ? 'analyst' : 'casual') ?? text('insights.noVariant')}</h3>
+    <p className={`support ${withdrawn ? 'orange' : ''}`}><i />{statusLabel(card, text)}</p>
+    <section className="how"><h4>{text('insights.evidence')}</h4><HowWeKnow card={card} /></section>
+    <details className="insight-details" open={mode === 'data' ? true : undefined} key={mode}>
+      <summary>{text('how.all')}<Icon name="chevron" size={16} /></summary>
+      <Evidence card={card} />
+    </details>
+    {onOpen && <button className="text-button case-link" onClick={() => onOpen(card.id)}>{text('insights.open')}<Icon name="arrow" size={16} /></button>}
+  </article>;
+}
+
+export function InsightRow({ card, onOpen, mode = 'casual', fresh = false }: { card: InsightCard; onOpen?: (id: string) => void; mode?: string; fresh?: boolean }) {
+  const { text } = useText();
+  const cardText = useCardText();
+  const at = displayTime(card);
+  if (!at) return null;
+  const withdrawn = card.status === 'withdrawn';
+  return <details className={`insight-row ${withdrawn ? 'withdrawn' : ''} ${fresh ? 'fresh' : ''}`}>
+    <summary><time>{formatClock(at)}</time>
+      <div><p className="insight-team">{card.subject.team}{(card.revision ?? 1) > 1 && <span> · {text('now.updated', { clock: formatClock(at) })}</span>}</p>
+        <strong>{cardText(card, mode === 'data' ? 'analyst' : 'casual') ?? text('insights.noVariant')}</strong></div>
+      <span className={`status ${withdrawn ? 'warn' : ''}`}>{statusLabel(card, text)}</span></summary>
+    <div className="row-body"><HowWeKnow card={card} />
+      <details className="insight-details"><summary>{text('how.all')}<Icon name="chevron" size={16} /></summary><Evidence card={card} /></details>
+      {onOpen && <button className="text-button case-link" onClick={() => onOpen(card.id)}>{text('insights.open')}<Icon name="arrow" size={16} /></button>}
+    </div>
+  </details>;
+}
+
+const FRESH_SECONDS = 180;
+
+export function Insights({ cards, onOpen, mode, full, elapsed = Infinity, firstHalf = 0 }: {
+  cards: InsightCard[]; onOpen: (id: string) => void; mode: string; full: boolean; elapsed?: number; firstHalf?: number;
+}) {
+  const { text } = useText();
+  // The latest update leads, so a correction is seen; the rest keep visibleCards order.
+  const now = latestCard(cards, firstHalf);
+  const earlier = cards.filter(card => card !== now);
+  return <aside className="insights-column">
+    {now ? <NowCard card={now} onOpen={onOpen} mode={mode} full={full} />
+      : <div className="panel now-empty"><Empty title={text('insights.empty')} body={text('insights.empty.sub')} /></div>}
+    {earlier.length > 0 && <section className="earlier" aria-label={text('now.earlier')}><h3>{text('now.earlier')}</h3>
+      {earlier.map(card => <InsightRow key={card.id} card={card} onOpen={onOpen} mode={mode}
+        fresh={elapsed - displayElapsed(card, firstHalf) < FRESH_SECONDS} />)}
+    </section>}
   </aside>;
 }

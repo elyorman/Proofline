@@ -1,4 +1,6 @@
+import type { ReactNode } from 'react';
 import type { Event } from './types/event';
+import type { AmbientFeed } from './types/ambient';
 import type { ReplayData } from './data';
 import { activityAt, clockAt, formatClock, pitchPoint, type TimedEvent } from './replay';
 import { SectionTitle, useText } from './ui';
@@ -14,17 +16,62 @@ export function ShotMarker({ outcome, x = 0, y = 0 }: { outcome: string; x?: num
   </g>;
 }
 
-export function Pitch({ data, elapsed, player }: { data: ReplayData; elapsed: number; player?: string }) {
-  const { text } = useText();
-  const recent = data.timeline.events.filter(({ event, at }) => at <= elapsed && at >= elapsed - 25
-    && event.start && (!player || event.player_id === player));
+/** A player's own events and the passes aimed at them. */
+export const involves = (event: Event, player: string) => event.player_id === player || event.pass_q?.receiver_id === player;
+const RECENT_SECONDS = 25;
+
+interface PitchLabel { id: string; kind: 'name' | 'followed' | 'sprint' | 'shot' | 'pass'; text: string; x: number; y: number }
+interface Placed extends PitchLabel { left: number; top: number; width: number }
+
+/** Puts each label above its point, or below it, so no two labels overlap. Presentation only. */
+export function placeLabels(labels: PitchLabel[]): Placed[] {
+  const placed: Placed[] = [];
+  const height = 5;
+  for (const label of labels) {
+    const width = Math.max(12, label.text.length * 1.38 + 4);
+    const left = Math.max(-5, Math.min(110 - width, label.x - width / 2));
+    const tops = [label.y - 7.4, label.y + 2.6, label.y - 13, label.y + 8.2].filter(top => top > -6 && top < 69);
+    const free = (top: number) => placed.every(other => left + width <= other.left || other.left + other.width <= left
+      || top + height <= other.top || other.top + height <= top);
+    placed.push({ ...label, left, width, top: tops.find(free) ?? tops[0] ?? label.y });
+  }
+  return placed;
+}
+
+export function Pitch({ data, elapsed, player, ambient, children, footer }: {
+  data: ReplayData; elapsed: number; player?: string; ambient?: AmbientFeed; children?: ReactNode; footer?: ReactNode;
+}) {
+  const { text, num } = useText();
+  // Recent play by both teams; a followed player is highlighted, never the only one shown.
+  const recent = data.timeline.events.filter(({ event, at }) => at <= elapsed && at >= elapsed - RECENT_SECONDS && event.start).slice(-14);
   const latest = recent.at(-1)?.event;
-  const name = (event: Event) => data.teams.flatMap(team => team.players).find(p => p.id === event.player_id)?.name ?? event.team;
-  const latestPoint = latest?.start ? pitchPoint(latest.start, latest.team === data.teams[0].name) : null;
-  return <div className="pitch-panel">
-    <div className="pitch-heading"><div><span className="eyebrow">{text('pitch')}</span><p>{text('pitch.caption')}</p></div><span className="pitch-indicator"><i />{text('replay')}</span></div>
-    <svg className="pitch" viewBox="-7 -8 119 86" role="img" aria-label={text('pitch.aria')}>
-      <defs><pattern id="grass" width="10.5" height="68" patternUnits="userSpaceOnUse"><rect width="5.25" height="68" fill="#ffffff" opacity=".018" /></pattern></defs>
+  const focus = player ? recent.filter(({ event }) => involves(event, player)).at(-1)?.event : undefined;
+  let lastTouch: TimedEvent | undefined;
+  for (const item of player ? data.timeline.events : []) {
+    if (item.at > elapsed) break;
+    if (involves(item.event, player!)) lastTouch = item;
+  }
+  const players = data.teams.flatMap(team => team.players);
+  const name = (event: Event) => players.find(p => p.id === event.player_id)?.name ?? event.team;
+  const followed = player ? players.find(p => p.id === player)?.name ?? player : undefined;
+  const speeds = new Map((ambient?.speed_tags ?? []).map(tag => [tag.event_id, tag]));
+  const badges = new Map((ambient?.pass_badges ?? []).map(badge => [badge.event_id, badge]));
+  const point = (event: Event, which: 'start' | 'end' = 'start') =>
+    pitchPoint(event[which] ?? event.start!, event.team === data.teams[0].name);
+  const names: PitchLabel[] = [latest, focus].filter((event, i, all): event is Event => !!event && all.indexOf(event) === i)
+    .map(event => ({ id: `name-${event.event_id}`, kind: event === focus ? 'followed' : 'name', text: name(event), ...point(event) }));
+  // Ambient tags for the two most recent tagged events, so the pitch stays readable.
+  const tags: PitchLabel[] = recent.filter(({ event }) => speeds.has(event.event_id) || badges.has(event.event_id)).slice(-2).map(({ event }) => {
+    const speed = speeds.get(event.event_id);
+    const at = point(event, speed?.kind === 'shot' ? 'start' : 'end');
+    return speed
+      ? { id: event.event_id, kind: speed.kind, text: text('tag.speed', { speed: num(speed.speed_kmh) }), ...at }
+      : { id: event.event_id, kind: 'pass', text: text('tag.difficulty', { value: badges.get(event.event_id)!.difficulty }), ...at };
+  });
+  return <div className={`pitch-panel ${player ? 'focus-mode' : ''}`}>
+    <div className="pitch-heading"><div><span className="eyebrow">{text('pitch')}</span><p>{text('pitch.caption')}</p></div>{children}</div>
+    <svg className="pitch" viewBox="-6 -5.5 117 81" role="img" aria-label={text('pitch.aria')}>
+      <defs><pattern id="grass" width="10.5" height="68" patternUnits="userSpaceOnUse"><rect width="5.25" height="68" fill="#ffffff" opacity=".022" /></pattern></defs>
       <rect x="0" y="0" width="105" height="68" fill="url(#grass)" />
       <g className="pitch-lines" fill="none" strokeWidth=".23">
         <rect width="105" height="68" rx=".2" /><path d="M52.5 0v68" /><circle cx="52.5" cy="34" r="9.15" />
@@ -32,28 +79,40 @@ export function Pitch({ data, elapsed, player }: { data: ReplayData; elapsed: nu
         <path d="M16.5 26.7a9.15 9.15 0 0 1 0 14.6m72-14.6a9.15 9.15 0 0 0 0 14.6M0 30.34h-2v7.32h2m105-7.32h2v7.32h-2" />
         <circle cx="11" cy="34" r=".3" /><circle cx="94" cy="34" r=".3" /><circle cx="52.5" cy="34" r=".4" />
       </g>
-      {recent.slice(-12).map(({ event }, i) => {
+      <text x="0" y="-1.9" className="pitch-direction home">{text('pitch.homeDirection', { team: data.teams[0].name })}</text>
+      <text x="105" y="-1.9" textAnchor="end" className="pitch-direction away">{text('pitch.awayDirection', { team: data.teams[1].name })}</text>
+      {recent.map(({ event }, i) => {
         const home = event.team === data.teams[0].name;
-        const start = pitchPoint(event.start!, home);
-        const end = event.end ? pitchPoint(event.end, home) : null;
+        const start = point(event);
+        const end = event.end ? point(event, 'end') : null;
         const active = event === latest;
-        return <g key={event.event_id} className={home ? 'home-event' : 'away-event'} opacity={active ? 1 : .18 + i * .035}>
+        const mine = !!player && involves(event, player);
+        const opacity = active || mine ? 1 : (player ? .14 : .2) + i * (player ? .03 : .045);
+        return <g key={event.event_id} className={`${home ? 'home-event' : 'away-event'} ${mine ? 'followed' : ''}`} opacity={opacity}>
           <title>{`${formatClock(event.clock)} · ${name(event)} · ${text(`event.${event.type}`)}`}</title>
-          {event.type === 'pass' && end && <><line x1={start.x} y1={start.y} x2={end.x} y2={end.y} strokeWidth=".35" strokeDasharray="1.1 .8" /><circle cx={end.x} cy={end.y} r=".55" /></>}
-          {event.type === 'shot' ? <ShotMarker outcome={event.outcome ?? 'na'} x={start.x} y={start.y} /> : <circle cx={start.x} cy={start.y} r={active ? 1.5 : .8} />}
-          {active && <circle cx={start.x} cy={start.y} r="3.2" fill="none" strokeWidth=".25" opacity=".6" />}
+          {(event.type === 'pass' || event.type === 'carry' || event.type === 'sprint') && end && <line x1={start.x} y1={start.y} x2={end.x} y2={end.y}
+            strokeWidth={event.type === 'pass' ? .35 : .25} strokeDasharray={event.type === 'pass' ? '1.1 .8' : event.type === 'sprint' ? '.3 .6' : undefined} />}
+          {event.type === 'pass' && end && <circle cx={end.x} cy={end.y} r=".55" />}
+          {event.type === 'shot' ? <ShotMarker outcome={event.outcome ?? 'na'} x={start.x} y={start.y} /> : <circle cx={start.x} cy={start.y} r={active || event === focus ? 1.4 : mine ? 1.05 : .8} />}
+          {(active || event === focus) && <circle cx={start.x} cy={start.y} r={event === focus ? 3.6 : 3} fill="none" strokeWidth={event === focus ? .45 : .25} opacity=".7" />}
         </g>;
       })}
-      {latest && latestPoint && <g className="player-label" transform={`translate(${Math.max(14, Math.min(91, latestPoint.x))},${latestPoint.y < 10 ? latestPoint.y + 7 : latestPoint.y - 6})`}>
-        <rect x="-15" y="-2.6" width="30" height="5.4" rx="1.4" /><text textAnchor="middle" dy=".9">{name(latest)}</text>
-      </g>}
+      {placeLabels([...names, ...tags]).map(label => <g key={label.id} className={label.kind === 'name' || label.kind === 'followed' ? `player-label ${label.kind}` : `pitch-tag tag-${label.kind}`}
+        transform={`translate(${label.left},${label.top})`}>
+        <rect width={label.width} height="5" rx="1.3" /><text x={label.width / 2} y="3.5" textAnchor="middle">{label.text}</text>
+      </g>)}
       {!recent.length && <text x="52.5" y="34" className="pitch-empty" textAnchor="middle">{text('pitch.empty')}</text>}
+      <g className="pitch-legend">{['goal', 'on_target', 'off_target', 'blocked'].map((outcome, i) => <g key={outcome} transform={`translate(${i * 17},72.4)`}>
+        <g transform="scale(.6)"><ShotMarker outcome={outcome} /></g><text x="1.8" y=".8">{text(`outcome.${outcome}`)}</text>
+      </g>)}<text x="105" y="73.2" textAnchor="end">{text('pitch.scale')}</text></g>
     </svg>
-    <div className="pitch-bottom"><span><i className="team-dot home" />{text('pitch.homeDirection', { team: data.teams[0].name })}</span><span>{text('pitch.scale')}</span><span>{text('pitch.awayDirection', { team: data.teams[1].name })}<i className="team-dot away" /></span></div>
-    <div className="pitch-caption">{latest ? <><span>{formatClock(latest.clock)}</span><strong>{name(latest)}</strong><span>{text(`event.${latest.type}`)}{latest.type === 'shot' ? ` · ${text(`outcome.${latest.outcome ?? 'na'}`)}` : ''}</span></> : text('pitch.note')}</div>
-    <div className="shot-legend">{['goal', 'on_target', 'off_target', 'blocked'].map(outcome => <span key={outcome}>
-      <svg viewBox="-3 -3 6 6" aria-hidden="true"><ShotMarker outcome={outcome} /></svg>{text(`outcome.${outcome}`)}
-    </span>)}</div>
+    <div className="pitch-caption">
+      {latest ? <p><time>{formatClock(latest.clock)}</time><strong>{name(latest)}</strong><span>{text(`event.${latest.type}`)}{latest.type === 'shot' ? ` · ${text(`outcome.${latest.outcome ?? 'na'}`)}` : ''}</span></p>
+        : <p>{text('pitch.note')}</p>}
+      {followed && <p className="pitch-following"><i />{text('pitch.following', { player: followed })} · {focus ? text('pitch.focusNow')
+        : lastTouch ? text('pitch.lastTouch', { clock: formatClock(lastTouch.event.clock) }) : text('pitch.notYet')}</p>}
+    </div>
+    {footer}
   </div>;
 }
 
@@ -76,16 +135,5 @@ export function Activity({ data, elapsed }: { data: ReplayData; elapsed: number 
       {labels.map(i => <text x={46 + i * 28.7} y="82" key={i} textAnchor="middle">{series[i].start >= 0 ? formatClock(clockAt(series[i].start, data.timeline.firstHalfSeconds)) : '—'}</text>)}
       <text x="320" y="110" textAnchor="middle">{text('match.minute')}</text>
     </svg>
-  </section>;
-}
-
-export function EventFeed({ events, data }: { events: TimedEvent[]; data: ReplayData }) {
-  const { text } = useText();
-  const feed = events.filter(({ event }) => ['goal', 'shot', 'card', 'substitution', 'set_piece'].includes(event.type)).slice(-5).reverse();
-  return <section className="panel event-panel"><SectionTitle title={text('feed')} />
-    {feed.length ? <ol className="event-feed">{feed.map(({ event }) => <li key={event.event_id}>
-      <time>{formatClock(event.clock)}</time><span className={`event-mark ${event.team === data.teams[0].name ? 'home' : 'away'}`}>{event.type === 'goal' ? '◆' : '·'}</span>
-      <div><strong>{text(`event.${event.type}`)}</strong><p>{event.team}{event.player_id && ` · ${data.teams.flatMap(t => t.players).find(p => p.id === event.player_id)?.name ?? event.player_id}`}</p></div>
-    </li>)}</ol> : <p className="muted padded">{text('feed.empty')}</p>}
   </section>;
 }

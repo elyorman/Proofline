@@ -1,5 +1,6 @@
 import type { Cue } from './types/cue';
 import type { InsightCard } from './types/insight-card';
+import type { AmbientFeed } from './types/ambient';
 import type { ReplayData } from './data';
 import { applyDecisions, cueStart, elapsedAt, formatClock, visibleCues, clockAt, type ProducerDecision } from './replay';
 import { Pitch } from './Pitch';
@@ -7,8 +8,8 @@ import { Empty, SectionTitle, useText } from './ui';
 import { CueGraphic, ProgramOverlay, publishedCues } from './Overlay';
 import { isStandInCue } from './fixtures';
 
-export function Broadcast({ data, elapsed, cues, cards, decisions, onDecide, onReset }: {
-  data: ReplayData; elapsed: number; cues: Cue[]; cards: InsightCard[];
+export function Broadcast({ data, elapsed, cues, cards, decisions, onDecide, onReset, ambient }: {
+  data: ReplayData; elapsed: number; cues: Cue[]; cards: InsightCard[]; ambient?: AmbientFeed;
   decisions: ProducerDecision[]; onDecide: (decision: ProducerDecision) => void; onReset: () => void;
 }) {
   const { text } = useText();
@@ -18,7 +19,7 @@ export function Broadcast({ data, elapsed, cues, cards, decisions, onDecide, onR
   const active = visibleCues(effective, elapsed, firstHalf, data.timeline.events);
   return <div className="broadcast-layout"><div>
     <SectionTitle title={text('broadcast.monitor')} sub={text('broadcast.monitor.sub')} />
-    <div className="program-monitor"><Pitch data={data} elapsed={elapsed} />
+    <div className="program-monitor"><Pitch data={data} elapsed={elapsed} ambient={ambient} />
       <ProgramOverlay cues={active} />
     </div><p className="monitor-note">{text('broadcast.waiting')}</p>
     <section className="panel producer-log"><SectionTitle title={text('broadcast.log')}><button className="text-button" onClick={onReset} disabled={!decisions.length}>{text('broadcast.reset')}</button></SectionTitle>

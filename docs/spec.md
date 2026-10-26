@@ -18,7 +18,7 @@ One verified insight, three experiences:
 | **Analyst Console** | Analysts, pundits, studio researchers | The full case file: pre-registered predictions, tool calls, cross-examination, rejected explanations, verification results, provenance for every number, revision history, and the ledger itself |
 | **Broadcast Cue Feed** | Broadcast and streaming producers | Timed, machine-readable cues drawn as synchronized overlays, with approve, hold and kill controls and correction cues |
 
-**Entry.** Grand Prize, plus category **Best Multi-Agent System**.
+**Entry.** Grand Prize, plus category **Best Enterprise Solution** (moved from Best Multi-Agent System on 26 October, once the held-out results showed reliability, not the specialists' split, was what the design measurably bought).
 
 **Deliberately out of scope.** Scenario Author, blind set, out-of-vocabulary suite, calibration report, ablations C and D, rehearsal mode, delayed/dropped-event faults. Each would score under at most one judging criterion and none appears in a two-minute video. The effort goes to the fan surface, the video, and visible use of every hero technology, which together move four of the five criteria.
 
@@ -720,7 +720,7 @@ The subscription is a Free Trial whose only gpt-5 quota is gpt-5-mini; gpt-5.6-t
 | Favorite club, favorite player, player-focused mode | Profiles and Player Focus |
 | Auto-eventing from video | Out of scope; the ingest contract accepts any event source |
 
-**Best Multi-Agent System, clause by clause**
+**Best Multi-Agent System, clause by clause** (the original category; the README maps the Enterprise clauses)
 
 | Rubric clause | Where a judge sees it |
 |---|---|
@@ -806,7 +806,7 @@ The script lives in [`docs/demo-script.md`](demo-script.md). It was rewritten fr
 
 ## 20. Submission package
 
-**Elevator pitch.** Proofline is a multi-agent match-intelligence engine for live football. It ingests a synthetic event feed, detects moments where the game shifts, and lets three specialist agents investigate and cross-examine competing explanations on a shared ledger. An independent verifier recomputes every number before anything reaches a fan, an analyst or a broadcast overlay, and every published claim is corrected or withdrawn when the data changes. Built on Microsoft Foundry, Agent Framework, a custom MCP server, Azure MCP, Event Hubs, Cosmos DB, Container Apps, Web PubSub and Static Web Apps, scored against sealed synthetic ground truth. Category: Best Multi-Agent System.
+**Elevator pitch.** Proofline is a multi-agent match-intelligence engine for live football. It ingests a synthetic event feed, detects moments where the game shifts, and lets three specialist agents investigate and cross-examine competing explanations on a shared ledger. An independent verifier recomputes every number before anything reaches a fan, an analyst or a broadcast overlay, and every published claim is corrected or withdrawn when the data changes. Built on Microsoft Foundry, Agent Framework, a custom MCP server, Azure MCP, Event Hubs, Cosmos DB, Container Apps, Web PubSub and Static Web Apps, scored against sealed synthetic ground truth. Category: Best Enterprise Solution.
 
 **README order.** Pitch, video, public link, CI badge, licence → 90-second quickstart (`azd up`) → architecture and five-stage mapping → multi-agent category mapping → hero technology table → synthetic data and dataset download → scoreboard with CIs and what it does and does not measure → path to production (human controls, audit, provider adapter contract, cost per match) → software practices (tests, CI guard, managed identity, tracing, Copilot PRs) → limitations.
 

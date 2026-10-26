@@ -5,11 +5,11 @@ Everything the project page needs: the pitch, the description, and testing instr
 - **Public link (no sign-in):** https://nice-coast-044d8740f.5.azurestaticapps.net
 - **Repository:** https://github.com/elyorman/Proofline
 - **Video:** added after recording
-- **Category:** Best Multi-Agent System
+- **Category:** Best Enterprise Solution
 
 ## Elevator pitch
 
-Proofline is match intelligence that shows its evidence, knows its limits, and corrects itself. Statistics decides what is real; agents decide why. Code checks every change, and every viewer's premise, against a season of normal variation before any model sees it. Three specialist agents on Microsoft Foundry pre-register what their causes would predict. Code tests each prediction through our MCP server, and the agents cross-examine each other's survivors. An independent Verifier recomputes every number and checks every sentence. When the feed is corrected, every card that relied on it is revised or withdrawn on every screen. On held-out matches it made far fewer false claims than a plain tool-using agent.
+Proofline is match intelligence a broadcaster can stand behind: it shows its evidence, knows its limits, and corrects itself. Nothing reaches a viewer until code has recomputed every number and an independent Verifier has checked every sentence. A producer approves what goes on air, a corrected feed revises or withdraws every claim that relied on it on every screen, and every step leaves an audit trail in Azure. Underneath, statistics decides what is real and agents decide why: code tests every change and every viewer's premise against normal variation, then three specialist agents on Microsoft Foundry pre-register what their causes would predict, code tests them, and the agents cross-examine each other. On held-out matches it made far fewer false claims than a plain tool-using agent, and turned away almost every false premise.
 
 ## Description
 

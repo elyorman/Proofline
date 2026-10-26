@@ -4,7 +4,7 @@ Proofline is a multi-agent match-intelligence engine for live football, built so
 
 ## The one-line mission
 
-Win Grand Prize and Best Multi-Agent by making every rubric clause visible in a two-minute video, a public link and the README. If a change does not move one of those three, it is not the next task.
+Win Grand Prize and Best Enterprise Solution by making every rubric clause visible in a two-minute video, a public link and the README. (The entry moved from Best Multi-Agent on 26 October: our measured strengths are reliability, transparency and controls, and three agents measured the same as one.) If a change does not move one of those three, it is not the next task.
 
 ## Non-negotiable rules
 

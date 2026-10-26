@@ -4,7 +4,9 @@
 
 [![CI](https://github.com/elyorman/Proofline/actions/workflows/ci.yml/badge.svg)](https://github.com/elyorman/Proofline/actions/workflows/ci.yml)
 
-Built for the Microsoft × Premier League "Inside the Game" Developer Hackathon, category **Best Multi-Agent System**. Every club, player and competition is fictional, and all match data is synthetic.
+Built for the Microsoft × Premier League "Inside the Game" Developer Hackathon, category **Best Enterprise Solution**. Every club, player and competition is fictional, and all match data is synthetic.
+
+For broadcasters and clubs that cannot afford a confident wrong claim on air: every number is recomputed and every sentence verified before it airs, a producer approves what goes on screen, published claims are corrected when the data changes, and every step leaves an audit trail.
 
 **Public link (no sign-in):** https://nice-coast-044d8740f.5.azurestaticapps.net. It replays a recorded match, and answers any typed question about it live, in Azure.
 
@@ -185,9 +187,31 @@ uv run uvicorn surfaces.api.app:create --factory --port 8000  # the live API loc
 
 **Reproduce the evaluation:** the commands are in [`docs/scoreboard.md`](docs/scoreboard.md), beside every record.
 
-## Best Multi-Agent System, clause by clause
+## Best Enterprise Solution, clause by clause
 
 | Clause | Where to see it |
+|---|---|
+| Path to enterprise adoption | One command (`azd up`) provisions everything into a customer's own Azure subscription, keyless, from Bicep; the event contract ([`docs/event.schema.json`](docs/event.schema.json)) is where a data provider's feed plugs in. See [Path to production](#path-to-production). |
+| Reliability | Statistics decides what is real before any model runs. Against a plain tool-using agent on held-out questions, Proofline cut false causes and turned away almost every false premise ([What we measured](#what-we-measured)). The Verifier caught seeded false claims and rejected no untouched card; a failed agent is retried from its stage's checkpoint. |
+| Transparency | Every card carries How we know: its numbers, their baselines, the causes ruled out and every revision. The analyst console shows each agent's pre-registered predictions, code's verdicts and the Verifier's checks. Every evaluation is published, including where three agents did no better than one, and CI fails if the README quotes a number no record holds. |
+| Controls | Nothing reaches a viewer without the Verifier. Broadcast cues wait for a producer to approve, hold or kill them. Corrections revise or withdraw a card on every surface that showed it, and history is never erased. The live API caps spend per viewer and per day. |
+| Long-term business impact | One verified insight serves three products: a fan companion in the viewer's language, an analyst console and a broadcast cue feed. A retraction costs a broadcaster more than a delay; Proofline would rather say "not clear yet" than guess, and says so on air. |
+
+## Path to production
+
+What it takes to run Proofline on a real match, and what it costs. These are true today or one step away.
+
+- **A real feed.** A provider's events plug in through the event contract ([`contracts/event.py`](contracts/event.py)), streamed through Event Hubs into the Cosmos DB ledger as the demo match is (`make stream-m01`). An adapter maps the provider's event names to ours. Amended events arrive as versions, which the Correction Watcher already handles.
+- **Tracking data.** The feed today carries events and sprints, not player tracking. Tracking would add distance, speed and team shape: new State Builder metrics and tools for the agents, with the same verification.
+- **Cost.** The held-out records count the model's tokens. A full match's detected moments took about 37,000 tokens on average across 40 matches ([record](eval/records/batch-A-715af4adadbb1553-wilson.json)), and a viewer's question about 12,000 across 80 ([record](eval/records/questions-heldout-A-99e67b73770ed5b8.json)), on gpt-5-mini. The live API's daily token budget caps what viewers can spend.
+- **Human approval.** Broadcast cues wait for a producer; correction cues are raised automatically for approval. Fan and analyst surfaces show only verified cards.
+- **Deployment.** `azd up` into the customer's own subscription, keyless throughout: managed identity and roles, no secrets, security headers on the public site.
+- **Governance.** The Cosmos DB ledger keeps every version of every event, every live answer's cards and an audit record per question. Application Insights holds a trace of every live run. The evaluation records and CI keep every published claim honest.
+- **Still to build for production:** durable checkpoints and idempotent writes, a multi-replica API, and the Correction Watcher on the Cosmos change feed ([`docs/backlog.md`](docs/backlog.md)).
+
+## How the agents work together
+
+| Property | Where to see it |
 |---|---|
 | Specialized agents with distinct roles | Tactics, Physical and Game-State each register causes only in their own domain ([`agents/prompts.py`](agents/prompts.py)). The Lead turns a viewer's question into a measurable premise. The Verifier judges the card's text with none of their context. The Investigation view gives each agent its own column. |
 | Coordination through shared state | Each stage's output is a typed record ([`contracts/`](contracts/)), checkpointed before the next stage starts and written to the case file. Challengers read only the hypotheses and their results, never another agent's reasoning. The Correction Watcher works from the ledger's dependency index ([`corrections/`](corrections/)). |

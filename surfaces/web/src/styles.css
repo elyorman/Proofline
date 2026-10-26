@@ -389,6 +389,7 @@ pre { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 10px; line-heig
 .recorded-answer > .insight-card { margin-top: 20px; }
 .live-progress { margin-top: 24px; border-top: 1px solid var(--line); padding-top: 24px; }
 .live-progress > .status { margin-left: 12px; }
+.live-timer { margin-left: 10px; font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .live-progress ol { list-style: none; margin: 16px 0 8px; padding: 0; display: grid; gap: 8px; }
 .live-progress li { display: grid; gap: 2px; padding-left: 26px; position: relative; color: var(--muted); }
 .live-progress li::before { content: ''; position: absolute; left: 4px; top: 5px; width: 10px; height: 10px; border-radius: 50%; border: 2px solid var(--line); }

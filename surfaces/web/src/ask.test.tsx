@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { Ask, AnswerView, LiveProgress, answerCard, questionLabel, recordedAnswer } from './Ask';
+import { Ask, AnswerView, LiveProgress, answerCard, formatElapsed, questionLabel, recordedAnswer } from './Ask';
 import type { LiveJob } from './types/live-job';
 import { answers } from './fixtures';
 import { LocaleContext } from './ui';
@@ -103,6 +103,17 @@ describe('live questions', () => {
     expect(render(<AnswerView answer={declined} data={data} elapsed={6000} />, 'es')).toContain('Proofline explica qué cambió');
     expect(render(<AnswerView answer={explained} data={data} elapsed={6000} />)).not.toContain('Proofline explains what changed');
     expect(render(<AnswerView answer={declined} data={data} elapsed={6000} />)).toContain('Match leaders so far');
+  });
+  it('times a queued or running question beside its stages, outside the live region, and stops when it settles', () => {
+    const running: LiveJob = { job_id: 'live-1', question, status: 'running', created_ms: 0, stages: [{ stage: 'framed', at_ms: 1 }] };
+    const html = render(<LiveProgress job={running} elapsedMs={42_400} />);
+    expect(html).toContain('<span class="live-timer" role="timer" aria-live="off">0:42 · usually 1–3 min</span>');
+    expect(html).toContain('<section class="live-progress" aria-live="polite">');
+    expect(render(<LiveProgress job={{ ...running, status: 'queued' }} elapsedMs={125_000} />, 'es')).toContain('2:05 · suele tardar 1–3 min');
+    expect(render(<LiveProgress job={{ ...running, status: 'done' }} elapsedMs={42_000} />)).not.toContain('live-timer');
+    expect(render(<LiveProgress job={{ ...running, status: 'failed' }} elapsedMs={42_000} />)).not.toContain('live-timer');
+    expect(render(<LiveProgress job={running} />)).not.toContain('live-timer');
+    expect([0, 999, 59_999, 60_000, 3_601_000, -5].map(formatElapsed)).toEqual(['0:00', '0:00', '0:59', '1:00', '60:01', '0:00']);
   });
   it('stops at the premise when it is turned away', () => {
     const job: LiveJob = { job_id: 'live-1', question, status: 'done', created_ms: 0, answer: { ...turnedAway, question },

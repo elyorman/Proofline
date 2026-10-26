@@ -133,8 +133,10 @@ the numbers the UI states come from it.
   API (`src/live.ts`, `VITE_PROOFLINE_API` at build time, set by
   `make deploy-web`) at the replay's current second-half minute. The page polls
   the job and lists each stage as the API reports it (the Lead's premise, code's
-  test, registration, tests, cross-examination, synthesis, the Verifier), then
-  renders the answer exactly like a recorded one. Each refusal (a viewer's
+  test, registration, tests, cross-examination, synthesis, the Verifier), with
+  a timer beside them while the job is queued or running ("0:42 · usually 1–3
+  min", counted from when the API admitted it; a `timer` role with
+  `aria-live="off"`, so screen readers announce stages, not seconds), then renders the answer exactly like a recorded one. Each refusal (a viewer's
   share of the day, the day's budget, a question still running, a busy queue, an outage, a first-half clock) has its
   own localized message. Without an API configured, the page says so and sends
   nothing.

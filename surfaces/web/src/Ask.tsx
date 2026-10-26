@@ -56,8 +56,27 @@ export function AnswerView({ answer, data, elapsed, live = false }: { answer: An
 
 const STAGES = ['framed', 'premise', 'preregistered', 'tested', 'cross_examined', 'synthesized', 'verified'] as const;
 
-/** A live question's stages as the API reports them; a premise turned away stops after two. */
-export function LiveProgress({ job }: { job: LiveJob }) {
+/** Wall time as m:ss, for the live question's timer. */
+export function formatElapsed(ms: number): string {
+  const seconds = Math.max(0, Math.floor(ms / 1000));
+  return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
+}
+
+/** The current time, re-read every second while `active`. */
+function useNow(active: boolean): number {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    if (!active) return;
+    setNow(Date.now());
+    const id = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(id);
+  }, [active]);
+  return now;
+}
+
+/** A live question's stages as the API reports them; a premise turned away stops after two.
+ * While it is queued or running, `elapsedMs` (time since it was admitted) is shown beside them. */
+export function LiveProgress({ job, elapsedMs }: { job: LiveJob; elapsedMs?: number }) {
   const { text, locale } = useText();
   const settled = job.status === 'done' || job.status === 'failed';
   const stages = job.stages ?? [];
@@ -65,6 +84,7 @@ export function LiveProgress({ job }: { job: LiveJob }) {
   return <section className="live-progress" aria-live="polite">
     <span className="eyebrow">{text('ask.live.asking', { clock: formatClock(job.question.asked_at), question: job.question.text })}</span>
     <span className={`status live-${job.status}`}>{text(`ask.live.status.${job.status}`)}</span>
+    {!settled && elapsedMs !== undefined && <span className="live-timer" role="timer" aria-live="off">{text('ask.live.elapsed', { time: formatElapsed(elapsedMs) })}</span>}
     <ol>{shown.map(stage => {
       const reached = stages.find(s => s.stage === stage);
       // Notes are the backend's own English; in Spanish the stage names carry the meaning.
@@ -85,6 +105,7 @@ export function Ask({ answers, data, elapsed, onSeek }: {
   const [selected, setSelected] = useState<string>();
   const [unknown, setUnknown] = useState(false);
   const [live, setLive] = useState<LiveJob>();
+  const [startedAt, setStartedAt] = useState<number>();
   const [problem, setProblem] = useState<LiveProblem>();
   const following = useRef<AbortController | undefined>(undefined);
   useEffect(() => () => following.current?.abort(), []);
@@ -97,6 +118,7 @@ export function Ask({ answers, data, elapsed, onSeek }: {
   }
   // One live question at a time: a second click while it runs must not abandon it.
   const busy = live?.status === 'queued' || live?.status === 'running';
+  const now = useNow(busy);
   function submit(event: FormEvent) {
     event.preventDefault();
     const found = recordedAnswer(query, answers);
@@ -112,6 +134,7 @@ export function Ask({ answers, data, elapsed, onSeek }: {
         following.current?.abort();  // only an admitted question replaces the one shown
         const control = new AbortController();
         following.current = control;
+        setStartedAt(Date.now());
         setLive(job);
         return followLive(job, setLive, { signal: control.signal });
       })
@@ -129,7 +152,7 @@ export function Ask({ answers, data, elapsed, onSeek }: {
     </button>)}</div>
     {unknown && <div className="unknown-question" role="status"><p>{text('ask.liveRequired')}</p><button className="button" disabled>{text('live')}</button></div>}
     {problem && <div className="unknown-question" role="status"><p>{text(`ask.live.error.${problem.reason}`, problem.values)}</p></div>}
-    {live && <LiveProgress job={live} />}
+    {live && <LiveProgress job={live} elapsedMs={startedAt === undefined ? undefined : Math.max(0, now - startedAt)} />}
     {live?.status === 'done' && live.answer && <AnswerView answer={live.answer as Answer} data={data} live elapsed={Math.max(elapsed, elapsedAt(live.question.asked_at, data.timeline.firstHalfSeconds))} />}
     {answer && available && <AnswerView answer={answer} data={data} elapsed={elapsed} />}
     {answer && !available && <p className="muted ask-time-note">{text('ask.future', { clock: formatClock(answer.question.asked_at) })}</p>}

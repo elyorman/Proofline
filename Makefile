@@ -2,7 +2,7 @@
 AZD_ENV = eval "$$(azd env get-values | grep -E '^AZURE_(EVENTHUBS_NAMESPACE|EVENTHUB_NAME|COSMOS_ENDPOINT|COSMOS_DATABASE)=')" && \
 	export AZURE_EVENTHUBS_NAMESPACE AZURE_EVENTHUB_NAME AZURE_COSMOS_ENDPOINT AZURE_COSMOS_DATABASE
 
-.PHONY: check m01 stream-m01 tune-detector dev-feeds heldout-feeds scoreboard deploy-web video-clips
+.PHONY: check m01 stream-m01 tune-detector dev-feeds heldout-feeds scoreboard deploy-web video-clips video
 
 check:
 	uv run ruff check . && uv run ruff format --check .
@@ -57,3 +57,8 @@ deploy-web:
 # question included), into runs/video/ for narration and editing.
 video-clips:
 	node --experimental-websocket surfaces/web/scripts/record_beats.mjs $$(azd env get-value WEB_URL) runs/video
+
+# The demo video in one file: the clips, narrated by Azure AI Speech (keyless) and captioned,
+# into runs/video/proofline-demo.mp4 and .srt. Run make video-clips first.
+video:
+	uv run python scripts/make_video.py

@@ -42,7 +42,7 @@ export function AnswerView({ answer, data, elapsed, live = false }: { answer: An
   const card = answerCard(answer, elapsed, data.timeline.firstHalfSeconds);
   return <section className="recorded-answer" aria-live="polite">
     <span className="eyebrow">{text(live ? 'ask.live.answeredAt' : 'ask.recordedAt', { clock: formatClock(answer.question.asked_at) })}</span>
-    <span className="status">{text(`answer.${answer.outcome}`)}</span>
+    <span className="status">{text(answer.outcome === 'premise_false' && answer.premise_test && answer.premise_test.sigmas == null ? 'answer.untested' : `answer.${answer.outcome}`)}</span>
     <h3>{answer.text[locale] ?? answer.text.en}</h3>
     <h4>{text('ask.premise')}</h4>
     {premise ? <p>{text(`ask.premise.${premise.direction}`, { subject, metric: text(`metric.${premise.metric}`), clock: formatClock(premise.since) })}</p> : <p>{text('ask.noPremise')}</p>}

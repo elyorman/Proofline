@@ -93,6 +93,21 @@ def test_a_false_premise_is_answered_with_what_happened_and_no_one_investigates(
     assert Answer.model_validate_json(answer.model_dump_json()) == answer
 
 
+def test_a_premise_that_cannot_be_tested_is_not_called_ordinary_play(m01):
+    # "Is Ambrel running out of legs?" read as sprint speed: one sprint since 71' tests nothing.
+    slower = _framing(metric="sprint_speed", subject="NV-10", direction="down", since="71:00")
+    model = ByRole({("single", "Framing"): slower})
+    question = _question("Is Ambrel running out of legs?", at="76:00")
+    answer = asyncio.run(run_question(Variant.B_SINGLE_AGENT, model, model, question, m01))
+    assert answer.outcome == "premise_false" and answer.premise_test.sigmas is None
+    assert "too little data" in answer.premise_test.reason
+    assert answer.text["en"] == (
+        "Proofline can't tell: Sprint speed (Ambrel) since 71' could not be tested against "
+        "ordinary play."
+    )
+    assert answer.text["es"].startswith("Proofline no puede saberlo: Velocidad de esprint")
+
+
 def test_a_true_premise_is_investigated_and_verified_like_a_detected_moment(m01):
     press = Proposal(
         cause="tactical.press_intensity_up",

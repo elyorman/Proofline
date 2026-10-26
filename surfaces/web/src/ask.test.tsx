@@ -58,6 +58,16 @@ describe('recorded questions', () => {
       if (answer.question.question_id === 'q4') expect(html).toContain('Ambrel');
     }
   });
+  it('says a premise with no measurement could not be tested, not that it faded', () => {
+    const untested = structuredClone(answers.find(a => a.outcome === 'premise_false')!);
+    untested.premise_test = { ...untested.premise_test!, sigmas: null, holds: false, reason: 'too little data: 1 events' };
+    const html = render(<AnswerView answer={untested} data={data} elapsed={6000} />);
+    expect(html).toContain('Could not be tested');
+    expect(html).toContain('Not tested');
+    expect(html).not.toContain('Premise did not hold');
+    expect(html).not.toContain('Faded');
+    expect(render(<AnswerView answer={untested} data={data} elapsed={6000} />, 'es')).toContain('No se pudo comprobar');
+  });
   it('requires explained, verified and clock-available cards', () => {
     expect(answerCard(undated, 6000, 2700)).toBeUndefined();
     expect(answerCard(explained, 6000, 2700)).toBeDefined();  // recorded answers carry the minute asked

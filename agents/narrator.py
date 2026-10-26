@@ -352,6 +352,12 @@ OTHER_WAY = (  # the premise's change went the opposite way, beyond ordinary pla
     "Al contrario: {label} ({who}) es {now} desde el minuto {since}, frente a {then} en la "
     "primera parte.",
 )
+UNTESTED = (  # no measure to test the premise against (too few events, say): not "ordinary play"
+    "Proofline can't tell: {label} ({who}) since {since}' could not be tested against ordinary "
+    "play.",
+    "Proofline no puede saberlo: {label} ({who}) desde el minuto {since} no se pudo comprobar "
+    "frente al juego normal.",
+)
 NO_CAUSE = (
     "{who} {change} since {since}', but no cause stands up to the evidence yet.",
     "{who} {change_es} desde el minuto {since}, pero ninguna causa resiste la evidencia todavía.",
@@ -383,6 +389,11 @@ def answer(
     labels = [who(meta, premise.subject, i, label=True)[0] for i in range(len(LOCALES))]
     singular = who(meta, premise.subject)[1]
     since = premise.since.minute
+    if outcome == "premise_false" and (test is None or test.sigmas is None):
+        return {
+            locale: UNTESTED[i].format(label=LABEL[premise.metric][i], who=labels[i], since=since)
+            for i, locale in enumerate(LOCALES)
+        }
     if outcome == "premise_false":
         facts = {"label": "", "since": since, "now": "-", "then": "-"}
         up = premise.direction == Direction.UP

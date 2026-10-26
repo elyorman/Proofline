@@ -64,6 +64,8 @@ async function record(out, steps) {
   });
   const evaluate = async expr => (await send('Runtime.evaluate', { expression: expr, returnByValue: true, awaitPromise: true })).result?.result?.value;
   await send('Page.enable');
+  // A fresh profile would show the tour's first-visit invitation in every clip.
+  await send('Page.addScriptToEvaluateOnNewDocument', { source: "try { localStorage.setItem('proofline.tour', 'seen'); } catch {}" });
   await send('Emulation.setDeviceMetricsOverride', { width: 1920, height: 1080, deviceScaleFactor: 1, mobile: false });
 
   let recording = false;

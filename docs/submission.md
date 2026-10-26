@@ -49,7 +49,7 @@ All on a held-out split with sealed ground truth, run once after the agents were
 
 ## Testing instructions for judges
 
-No sign-in is needed. The replay starts paused at 68:00, viewed as a Northvale fan, in your browser's language (Spanish or English); the language switch is in the top bar. Each link below opens a view at a given minute and language:
+No sign-in is needed. The replay starts paused at 68:00, viewed as a Northvale fan, in your browser's language (Spanish or English); the language switch is in the top bar. **Take the tour**, also in the top bar, walks through the stops below in about a minute. Each link below opens a view at a given minute and language:
 
 1. **Fan view**, at https://nice-coast-044d8740f.5.azurestaticapps.net/#/fan?t=68:00&lang=en.
    - The pitch shows the last moments of play; the card beside it says why Harbour City are pressing harder, and what it will check by 83'.

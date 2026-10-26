@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
-import { Ask } from './Ask';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Ask, type Draft } from './Ask';
 import { Analyst, type CaseTab } from './Analyst';
 import { AmbientStrip, Ticker } from './Ambient';
 import { Broadcast } from './Broadcast';
@@ -12,7 +12,8 @@ import { EarlierCards, NowSlot, isFresh, splitCards } from './Insights';
 import { MatchHeader } from './MatchHeader';
 import { Activity, Pitch, involves } from './Pitch';
 import { Leaders } from './Leaders';
-import { displayElapsed, displayTime, elapsedAt, linkedElapsed, parseLink, teamStats, visibleCards, type ProducerDecision, type Route } from './replay';
+import { displayElapsed, displayTime, elapsedAt, linkedElapsed, parseClock, parseLink, teamStats, visibleCards, type ProducerDecision, type Route } from './replay';
+import { TOUR_STEPS, Tour, TourInvite, markTourSeen, tourLink, tourSeen } from './Tour';
 import { Icon, LocaleContext, SectionTitle, ViewBoundary, useText } from './ui';
 
 const pressureCard = cards.find(card => card.id === 'ins-m01-063-pressure_shift');
@@ -40,6 +41,12 @@ function Workspace({ setLocale }: { setLocale: (locale: Locale) => void }) {
   const [decisions, setDecisions] = useState<ProducerDecision[]>([]);
   const [railTab, setRailTab] = useState<RailTab>('ask');
   const [caseTab, setCaseTab] = useState<CaseTab>('investigation');
+  const [tourStep, setTourStep] = useState<number | null>(null);
+  const [invite, setInvite] = useState(() => !tourSeen());
+  const [draft, setDraft] = useState<Draft>();
+  const tourButton = useRef<HTMLButtonElement>(null);
+  const closeTour = useCallback(() => { setTourStep(null); tourButton.current?.focus(); }, []);
+  const dismissInvite = () => { setInvite(false); markTourSeen(); };
 
   useEffect(() => {
     if (!data) return;
@@ -114,6 +121,20 @@ function Workspace({ setLocale }: { setLocale: (locale: Locale) => void }) {
     setDecisions(previous => previous.filter(d => d.at <= target));
   };
   const jumpTo = (at: number) => { seek(at); setPlaying(false); };
+  // A tour step moves the replay itself: route, clock and tab, and leaves its deep link.
+  const goTour = (index: number) => {
+    const step = TOUR_STEPS[index];
+    const clock = parseClock(step.clock);
+    if (clock) jumpTo(linkedElapsed(clock, data.timeline));
+    setRoute(step.route);
+    if (step.rail) setRailTab(step.rail);
+    if (step.caseTab) setCaseTab(step.caseTab);
+    if (step.route === 'analyst' && pressureCard) setSelected(pressureCard.id);
+    if (step.draft) setDraft({ text: text('tour.draft'), n: Date.now() });
+    history.replaceState(history.state, '', tourLink(step, parseLink(location.hash).locale));
+    setTourStep(index);
+  };
+  const startTour = () => { dismissInvite(); goTour(0); };
   const jumps = [
     { key: 'start', at: 0 },
     { key: 'flank', at: flankCard ? displayElapsed(flankCard, firstHalf) : 0 },
@@ -122,7 +143,7 @@ function Workspace({ setLocale }: { setLocale: (locale: Locale) => void }) {
     ...cues.filter(c => c.kind === 'withdrawal').slice(0, 1).map(cue => ({ key: 'overlay', at: elapsedAt(cue.show_at.not_before, firstHalf) })),
     { key: 'full', at: data.timeline.duration },
   ].filter(jump => Number.isFinite(jump.at));
-  const ask = <Ask answers={answers} data={data} elapsed={elapsed} onSeek={jumpTo} />;
+  const ask = <Ask answers={answers} data={data} elapsed={elapsed} onSeek={jumpTo} draft={draft} />;
   const modes = <div className="mode-selector" role="group" aria-label={text('mode')}>{['casual', 'data', 'player'].map(value =>
     <button aria-pressed={mode === value} className={mode === value ? 'active' : ''} key={value} onClick={() => setMode(value)}>{text(`mode.${value}`)}</button>)}</div>;
   const focusBar = mode === 'player' && <div className="focus-bar">
@@ -139,7 +160,7 @@ function Workspace({ setLocale }: { setLocale: (locale: Locale) => void }) {
     <div className="workspace">
       <MatchHeader data={data} elapsed={elapsed} playing={playing} speed={speed} jumps={jumps}
         onToggle={() => { if (full) seek(0); setPlaying(!playing); }} onReset={() => { seek(0); setPlaying(false); setDecisions([]); }}
-        onSeek={seek} onJump={jumpTo} onSpeed={setSpeed} onLocale={setLocale} />
+        onSeek={seek} onJump={jumpTo} onSpeed={setSpeed} onLocale={setLocale} onTour={startTour} tourRef={tourButton} />
       <main className={`main-content route-${route}`} id="main-content">
         {route !== 'fan' && <div className="page-title"><h1>{text(`nav.${route}`)}</h1><p>{text(`page.${route}.sub`)}</p></div>}
         {route === 'fan' && <ViewBoundary key="fan"><h1 className="sr-only">{text('nav.fan')}</h1><div className="fan-grid">
@@ -164,5 +185,7 @@ function Workspace({ setLocale }: { setLocale: (locale: Locale) => void }) {
         <footer className="workspace-footer"><span>{text('brand.name')}</span><p>{text('nav.about')}</p><span>{data.matchId} · {text('fixture')}</span></footer>
       </main>
     </div>
+    {tourStep !== null && <Tour step={tourStep} onStep={goTour} onClose={closeTour} />}
+    {tourStep === null && invite && <TourInvite onStart={startTour} onDismiss={dismissInvite} />}
   </div>;
 }

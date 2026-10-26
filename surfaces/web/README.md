@@ -28,6 +28,32 @@ final whistle opens full time, and an unreadable `t` or `lang` is ignored. A lin
 without `lang` opens in the browser's language.
 Navigating between routes keeps the current clock.
 
+## Guided tour
+
+**Take the tour**, in the match header on every route, walks a judge arriving
+cold through six stops (`src/Tour.tsx`). Each step moves the replay itself, sets
+the route, clock and tab, leaves the step's deep link in the address bar, rings
+the area it is about and gives one line of explanation:
+
+| Step | Opens | Highlights |
+|---|---|---|
+| The 68' card | `#/fan?t=68:00` | the current card and How we know |
+| The 70' correction | `#/fan?t=70:00`, Earlier cards open | the withdrawn card and the press card under it |
+| Ask anything, live | `#/fan?t=76:00`, Ask open | the rail, with "Is Ambrel tiring since minute 60?" typed in for the judge to send |
+| The investigation | `#/analyst?t=68:00`, the 63' case | its funnel |
+| The scoreboard | the Evaluation tab | the scoreboard |
+| The producer's call | `#/broadcast?t=70:30` | the pending withdrawal cue |
+
+The card has Back, Next (Finish on the last step) and Close; Escape closes it
+and returns focus to the button, and the arrow keys step through it. It is a
+non-modal dialog: the ring and the dimming never take the pointer, so the page
+stays usable, and nothing of the tour renders when it is closed. On a phone the
+card sits at the bottom of the screen and each step scrolls its area to the
+top. A first visit shows a small invitation; starting the tour or choosing Not
+now is remembered in `localStorage` (`proofline.tour`), read and written inside
+`try`, so a browser that blocks storage just sees the invitation again.
+`scripts/record_beats.mjs` marks it seen so no clip shows it.
+
 ## Run and regenerate
 
 Use the Python environment in this worktree. From the repository root:

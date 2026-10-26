@@ -1,4 +1,4 @@
-import type { CSSProperties } from 'react';
+import type { CSSProperties, Ref } from 'react';
 import type { ReplayData } from './data';
 import type { Locale } from './i18n';
 import { clockAt, formatClock, scoreAt } from './replay';
@@ -7,9 +7,10 @@ import { Crest, Icon, useText } from './ui';
 export interface Jump { key: string; at: number }
 
 /** Score, clock, the replay timeline and its moment chips: the one clock every route shares. */
-export function MatchHeader({ data, elapsed, playing, speed, jumps, onToggle, onReset, onSeek, onJump, onSpeed, onLocale }: {
+export function MatchHeader({ data, elapsed, playing, speed, jumps, onToggle, onReset, onSeek, onJump, onSpeed, onLocale, onTour, tourRef }: {
   data: ReplayData; elapsed: number; playing: boolean; speed: number; jumps: Jump[];
   onToggle: () => void; onReset: () => void; onSeek: (at: number) => void; onJump: (at: number) => void; onSpeed: (speed: number) => void; onLocale: (locale: Locale) => void;
+  onTour?: () => void; tourRef?: Ref<HTMLButtonElement>;
 }) {
   const { text, locale } = useText();
   const { firstHalfSeconds: firstHalf, duration } = data.timeline;
@@ -27,6 +28,7 @@ export function MatchHeader({ data, elapsed, playing, speed, jumps, onToggle, on
       </div>
       <div className="scorebug-clock"><time>{shown}</time><span>{text(full ? 'match.full' : clock.period === 1 ? 'match.half1' : 'match.half2')}</span></div>
       <div className="header-tools">
+        {onTour && <button type="button" className="tour-button" ref={tourRef} onClick={onTour}><Icon name="tour" size={15} />{text('tour.start')}</button>}
         <span className="replay-badge" title={text('fixture.notice')}><i />{text('replay.badge')}<span className="badge-detail"> · {text('replay.noModels')}</span></span>
         <label className="locale-picker"><Icon name="globe" size={16} /><span className="sr-only">{text('language')}</span>
           <select value={locale} onChange={e => onLocale(e.target.value as Locale)}><option value="en">{text('locale.en')}</option><option value="es">{text('locale.es')}</option></select></label>

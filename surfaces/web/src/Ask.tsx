@@ -97,11 +97,15 @@ export function LiveProgress({ job, elapsedMs }: { job: LiveJob; elapsedMs?: num
 
 type LiveProblem = { reason: string; values: Record<string, string | number> };
 
-export function Ask({ answers, data, elapsed, onSeek }: {
-  answers: Answer[]; data: ReplayData; elapsed: number; onSeek: (at: number) => void;
+/** A question put in the box for the viewer to send (the tour's); `n` changes with each new draft. */
+export interface Draft { text: string; n: number }
+
+export function Ask({ answers, data, elapsed, onSeek, draft }: {
+  answers: Answer[]; data: ReplayData; elapsed: number; onSeek: (at: number) => void; draft?: Draft;
 }) {
   const { text, locale } = useText();
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState(draft?.text ?? '');
+  useEffect(() => { if (draft) setQuery(draft.text); }, [draft]);
   const [selected, setSelected] = useState<string>();
   const [unknown, setUnknown] = useState(false);
   const [live, setLive] = useState<LiveJob>();

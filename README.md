@@ -6,7 +6,7 @@
 
 Built for the Microsoft × Premier League "Inside the Game" Developer Hackathon, category **Best Enterprise Solution**. Every club, player and competition is fictional, and all match data is synthetic.
 
-For broadcasters and clubs that cannot afford a confident wrong claim on air: every number is recomputed and every sentence verified before it airs, a producer approves what goes on screen, published claims are corrected when the data changes, and every step leaves an audit trail.
+For broadcasters and clubs that cannot afford a confident wrong claim on air: every number is recomputed, and every claim is checked against the facts by an independent Verifier before it airs, a producer approves what goes on screen, published claims are corrected when the data changes, and every step leaves an audit trail.
 
 **Public link (no sign-in):** https://nice-coast-044d8740f.5.azurestaticapps.net. It replays a recorded match, and answers any typed question about it live, in Azure.
 
@@ -26,7 +26,7 @@ Proofline splits the job: **statistics decides what is real; agents decide why.*
 - **Three specialist agents** (tactics, physical, game state) propose causes. Each one pre-registers, as numbers, what its cause would predict. Code runs the tests with the State Builder's tools, which our MCP server serves, and agents never compute a statistic.
 - **They cross-examine each other.** Each surviving cause is challenged by the other agents with counter-tests they design. Code refuses unfair tests and scores the rest.
 - **It keeps watching when the evidence can't decide.** If two causes still fit, the card says so. Each side then pre-registers a decisive test for the next 15 minutes. Code settles it then and publishes the result as a new revision.
-- **An independent Verifier checks everything first.** It recomputes every number from the exact events it came from. It also checks every sentence against the facts, at the wording the evidence allows. Nothing reaches a fan, analyst or overlay without it.
+- **An independent Verifier checks everything first.** It recomputes every number from the exact events it came from. It also checks every English sentence against the facts, at the wording the evidence allows. No model writes what a viewer reads: templates fill it in from the checked facts, in English and Spanish alike, and the Spanish numbers are checked the same way. Nothing reaches a fan, analyst or overlay without it.
 - **It corrects itself.** When the feed amends events, the Correction Watcher finds every card that used them. It re-verifies each one, then revises or withdraws it on every surface. Earlier revisions stay visible.
 
 ![Proofline's architecture: code gates what is real, the Why Engine's agents explain it, the Verifier checks it, and the surfaces show it](docs/images/architecture.png)
@@ -253,7 +253,7 @@ Matches come from a possession-chain simulator ([`engine/`](engine/)) driven by 
 - **The multi-agent split is not where the gain comes from.** Three specialists measured the same as one agent running the same design.
 - **Runs vary.** The same moment can get different explanations on different runs (see [Which take is shown](#see-it)).
 - **A cause can survive on evidence unrelated to the change it explains.** The 62' flank card explains a shift the feed error invented with "Harbour City chasing the result". That cause survived only because Harbour City's pressing really did rise. The correction withdraws the card at 70'.
-- **The Verifier's semantic check uses the agents' model.** It is gpt-5-mini with its own prompt and none of their context. Phi-4, the other model family we could deploy, tied on the seeded suite but rejected a sound demo card. The check judges the English sentences. Spanish sentences get the deterministic number check, not the semantic one.
+- **The Verifier's semantic check uses the agents' model.** It is gpt-5-mini with its own prompt and none of their context. Phi-4, the other model family we could deploy, tied on the seeded suite but rejected a sound demo card. The check judges the English sentences. Spanish sentences get the deterministic number check, not the semantic one; they come from the same templates as the English, never from a model, so what goes unchecked is our translation of those templates.
 - **Some things changed after the freeze.** Viewer wording for follow-ups, and the Verifier's instructions about that wording, changed after the held-out runs. So did the surfaces and the evaluation's reporting: intervals, paired comparisons, and applying the frozen not-observable flags to questions. No agent prompt, test rule or workflow changed. The held-out cards were narrated and verified with the earlier wording.
 - **Live questions take time and share a budget.** A real investigation takes one to three minutes. A day's questions share a budget of model tokens, about 300 full investigations, and no viewer may spend more than a fifth of it. Recorded questions answer instantly.
 

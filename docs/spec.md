@@ -168,7 +168,7 @@ The Insight Card is the single unit of truth every surface renders. The example 
 
 **Key fields**
 - `case_outcome` — `explained`, `other` (real effect, cause outside the taxonomy) or `none` (no clear cause). A `none` card carries only change propositions and a templated claim; the fan surface renders it as a "No clear cause — normal variation" card with no model call.
-- `propositions` — the structured claims. Semantic verification checks every sentence in every variant against these. The primary cause lives **only** here, as the attribution proposition with `role: primary`; the Evaluator, Verifier and Narrator all read it from the same place. No numeric shares.
+- `propositions` — the structured claims. Semantic verification checks every English sentence in every variant against these; the Spanish variants, filled from the same templates, get the number check. The primary cause lives **only** here, as the attribution proposition with `role: primary`; the Evaluator, Verifier and Narrator all read it from the same place. No numeric shares.
 - `support_level` — `strong`, `moderate` or `weak`, from deterministic rules (§9.2). `language_level` derives from it.
 - `depends_on` — references to evidence sets. Each tool call stores the event IDs and versions it read once; a dependency index maps every event ID to the evidence sets and cards that used it, so the Correction Watcher finds dependents with one indexed lookup.
 - `investigation.recovered_from_checkpoint` — true when an agent failed and the case resumed; shown on the console.

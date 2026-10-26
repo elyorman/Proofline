@@ -204,4 +204,8 @@ describe('replay gating for the fan view', () => {
     expect([after?.id, after?.status]).toEqual(['ins-m01-057-shape_change', 'withdrawn']);
     expect(latestCard([], 2700)).toBeUndefined();
   });
+  it('leads with a settled follow-up over a new card of the same moment', () => {
+    const at83 = latestCard(visibleCards(cards, 2700 + 38 * 60 + 30, 2700), 2700);
+    expect([at83?.id, at83?.revision]).toEqual(['ins-m01-063-pressure_shift', 2]);
+  });
 });

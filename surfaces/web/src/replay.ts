@@ -126,10 +126,14 @@ export function visibleCards(cards: InsightCard[], elapsed: number, firstHalfSec
     firstDisplay.get(b.id)! - firstDisplay.get(a.id)!);
 }
 
-/** The card whose current revision was shown most recently; ties keep `visibleCards` order. */
+/** The card whose current revision was shown most recently. At the same moment a revision (a
+ * card the viewer already read, settled or corrected) leads a new card; other ties keep `visibleCards` order. */
 export function latestCard(cards: InsightCard[], firstHalfSeconds: number): InsightCard | undefined {
-  return cards.reduce<InsightCard | undefined>((best, card) => !best
-    || displayElapsed(card, firstHalfSeconds) > displayElapsed(best, firstHalfSeconds) ? card : best, undefined);
+  return cards.reduce<InsightCard | undefined>((best, card) => {
+    if (!best) return card;
+    const [at, bestAt] = [displayElapsed(card, firstHalfSeconds), displayElapsed(best, firstHalfSeconds)];
+    return at > bestAt || (at === bestAt && (card.revision ?? 1) > (best.revision ?? 1)) ? card : best;
+  }, undefined);
 }
 
 const DEAD_BALL = new Set(['goal', 'foul', 'set_piece', 'substitution']);

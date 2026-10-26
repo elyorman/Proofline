@@ -10,7 +10,7 @@ For broadcasters and clubs that cannot afford a confident wrong claim on air: ev
 
 **Public link (no sign-in):** https://nice-coast-044d8740f.5.azurestaticapps.net. It replays a recorded match, and answers any typed question about it live, in Azure.
 
-**Demo video (1:58, narrated and captioned):** https://youtu.be/Sk1aiQug0s0
+**Demo video (1:58, narrated and captioned):** https://youtu.be/WNjWErmdaMw
 
 ![The fan view at 68:00: the pitch, the verified card with How we know, and the momentum and control-vs-chaos strip](docs/images/fan.png)
 

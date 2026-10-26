@@ -13,20 +13,22 @@ mkdirSync(outDir, { recursive: true });
 // On a desktop screen each route fits the viewport and long content scrolls inside its panel,
 // so scrollBy names the panel it scrolls (`in`); without one it scrolls the page.
 const BEATS = {
-  '01-fan-68': [{ go: '#/fan?t=67:48&lang=es' }, { wait: 1500 }, { click: '.play-button' }, { wait: 13500 },
-    { click: '.play-button' }, { wait: 1200 }, { clickText: 'Toda la evidencia' }, { wait: 800 },
+  // Opens in Spanish while the voice says "your language", and switches to English before the
+  // card lands, so a judge can read it.
+  '01-fan-68': [{ go: '#/fan?t=67:48&lang=es' }, { wait: 1500 }, { click: '.play-button' }, { wait: 7000 },
+    { select: 'select:has(option[value="es"])', value: 'en' }, { wait: 6500 },
+    { click: '.play-button' }, { wait: 1200 }, { clickText: 'All evidence' }, { wait: 800 },
     { scrollBy: 260, over: 1500, in: '.fan-now' }, { wait: 4500 }],
   '02-investigation': [{ go: '#/analyst?t=68:00&lang=en' }, { wait: 2500 }, { scrollTo: '.specialist-columns' },
     { wait: 3500 }, { scrollBy: 700, over: 4000, in: '.case-body' }, { wait: 1500 }, { scrollTo: '.cross-examinations' }, { wait: 3000 },
     { scrollBy: 600, over: 3000, in: '.case-body' }, { wait: 2500 }],
-  '03-correction': [{ go: '#/fan?t=69:52&lang=es' }, { wait: 1200 }, { click: '#rail-tab-earlier' }, { click: '.play-button' }, { wait: 9500 },
-    // The cue feed is in the broadcast's language (English), so the studio is shown in it too.
+  '03-correction': [{ go: '#/fan?t=69:52&lang=en' }, { wait: 1200 }, { click: '#rail-tab-earlier' }, { click: '.play-button' }, { wait: 9500 },
     { click: '.play-button' }, { wait: 4500 }, { hash: '#/broadcast?t=70:30&lang=en', settle: 2500 },
     { clickText: 'Approve' },{ wait: 2500 }, { click: 'a[href="#/overlay"]' }, { wait: 5000 }],
-  '04-followup-83': [{ go: '#/fan?t=82:55&lang=es' }, { wait: 1200 }, { click: '.play-button' }, { wait: 6500 },
+  '04-followup-83': [{ go: '#/fan?t=82:55&lang=en' },{ wait: 1200 }, { click: '.play-button' }, { wait: 6500 },
     { click: '.play-button' }, { wait: 5500 }],
-  '05-live-ask': [{ go: '#/fan?t=76:00&lang=es' }, { wait: 1500 }, { scrollTo: '.ask-panel' }, { wait: 1200 },
-    { type: '.ask-form input', text: '¿Se está quedando sin fuerzas Ambrel?' }, { wait: 700 }, { submit: '.ask-form input' },
+  '05-live-ask': [{ go: '#/fan?t=76:00&lang=en' }, { wait: 1500 }, { scrollTo: '.ask-panel' }, { wait: 1200 },
+    { type: '.ask-form input', text: 'Is Ambrel sprinting less since 70?' }, { wait: 700 }, { submit: '.ask-form input' },
     { until: '!!document.querySelector(".ask-panel .recorded-answer") || !!document.querySelector(".ask-panel .unknown-question")', timeout: 90000 },
     { wait: 800 }, { scrollTo: '.live-progress' }, { wait: 5500 }],
   '06-scoreboard': [{ go: '#/analyst?t=68:00&lang=en' }, { wait: 2000 }, { click: '#tab-evaluation' }, { wait: 1500 },
@@ -90,6 +92,9 @@ async function record(out, steps) {
         await sleep(step.delay ?? 55);
       }
     }
+    else if (step.select) await evaluate(`(() => { const select = document.querySelector(${JSON.stringify(step.select)});
+      Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, 'value').set.call(select, ${JSON.stringify(step.value)});
+      select.dispatchEvent(new Event('change', { bubbles: true })); })()`);
     else if (step.submit) await evaluate(`document.querySelector(${JSON.stringify(step.submit)})?.closest('form').requestSubmit()`);
     else if (step.scrollTo) { await evaluate(`document.querySelector(${JSON.stringify(step.scrollTo)})?.scrollIntoView({ block: ${JSON.stringify(step.block ?? 'start')}, behavior: 'smooth' })`); await sleep(900); }
     else if (step.scrollBy) {

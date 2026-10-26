@@ -28,6 +28,9 @@ OUT = ROOT / "runs" / "video"
 VOICE = os.getenv("PROOFLINE_VOICE", "en-GB-OllieMultilingualNeural")
 LEAD, GAP, TAIL = 0.35, 0.3, 0.6  # seconds of silence before, between and after sentences
 SIZE = "1920:1080"
+# Characters that fit one caption line. The installed libass boxes each line of a caption
+# separately, so a caption that wrapped showed two boxes of different widths.
+LINE = 84
 
 # What each beat of the script shows; its words come from the script itself.
 PICTURES = {
@@ -341,6 +344,19 @@ def narration(beat: Beat, target: Path) -> None:
     )
 
 
+def lines(text: str) -> list[str]:
+    """Text in pieces that each fit one caption line: broken at the clause nearest its middle,
+    else before the nearest "and" or "than", else at the nearest word."""
+    if len(text) <= LINE:
+        return [text]
+    for pattern in (r"[,;:] ", r" (?=(?:and|than) )", r" "):
+        cuts = [m.end() for m in re.finditer(pattern, text) if 12 <= m.end() <= len(text) - 12]
+        if cuts:
+            cut = min(cuts, key=lambda i: abs(i - len(text) / 2))
+            return lines(text[:cut].strip()) + lines(text[cut:].strip())
+    return [text]
+
+
 def stamp(t: float) -> str:
     ms = int(round(t * 1000))
     return f"{ms // 3_600_000:02d}:{ms // 60_000 % 60:02d}:{ms // 1000 % 60:02d},{ms % 1000:03d}"
@@ -392,8 +408,12 @@ def main() -> int:
         )
         at = start + LEAD
         for sentence, length in zip(beat.sentences, beat.lengths, strict=True):
-            captions.append((at, at + length, sentence))
-            at += length + GAP
+            pieces = lines(sentence)  # each on screen for its share of the sentence's speech
+            for piece in pieces:
+                span = length * len(piece) / sum(map(len, pieces))
+                captions.append((at, at + span, piece))
+                at += span
+            at += GAP
         segments.append(segment)
         start += beat.duration
         print(f"{beat.name:22s} {beat.duration:5.1f}s ({kind})")

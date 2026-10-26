@@ -8,7 +8,7 @@ import { t, type Locale } from './i18n';
 import { Insight } from './Insights';
 import { Leaders } from './Leaders';
 import { PersistenceView } from './Investigation';
-import { SectionTitle, useText } from './ui';
+import { useText } from './ui';
 
 export function questionLabel(answer: Answer, locale: Locale): string {
   const label = t(locale, `ask.question.${answer.question.question_id}`);
@@ -109,6 +109,11 @@ export function Ask({ answers, data, elapsed, onSeek }: {
   const [problem, setProblem] = useState<LiveProblem>();
   const following = useRef<AbortController | undefined>(undefined);
   useEffect(() => () => following.current?.abort(), []);
+  const results = useRef<HTMLDivElement>(null);
+  const [reveal, setReveal] = useState(0);
+  useEffect(() => {
+    if (reveal) results.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }, [reveal]);
   const inputId = useId();
   const answer = answers.find(answer => answer.question.question_id === selected);
   const available = answer && elapsed >= elapsedAt(answer.question.asked_at, data.timeline.firstHalfSeconds);
@@ -121,6 +126,7 @@ export function Ask({ answers, data, elapsed, onSeek }: {
   const now = useNow(busy);
   function submit(event: FormEvent) {
     event.preventDefault();
+    setReveal(n => n + 1);
     const found = recordedAnswer(query, answers);
     if (found) { choose(found, query); return; }
     if (busy) return;
@@ -136,25 +142,30 @@ export function Ask({ answers, data, elapsed, onSeek }: {
         following.current = control;
         setStartedAt(Date.now());
         setLive(job);
+        setReveal(n => n + 1);
         return followLive(job, setLive, { signal: control.signal });
       })
       .catch(error => setProblem(error instanceof LiveRefused && error.reason !== 'unconfigured'
         ? { reason: error.reason, values: { seconds: error.retryAfterS ?? 60, detail: error.detail ?? '' } }
         : { reason: 'unavailable', values: {} }));
   }
-  return <section className="panel ask-panel">
-    <SectionTitle title={text('ask.title')} sub={text('ask.replayOnly')} />
+  // The host (a rail or console tab) names the panel; the answer is brought into view when asked for.
+  return <section className="ask-panel">
     <form onSubmit={submit} className="ask-form"><label htmlFor={inputId}>{text('ask.label')}</label>
       <div><input id={inputId} value={query} onChange={event => setQuery(event.target.value)} placeholder={text('ask.placeholder')} maxLength={300} required /><button className="button primary" type="submit" disabled={busy}>{text(busy ? 'ask.live.busy' : 'ask.submit')}</button></div>
     </form>
-    <div className="question-chips" aria-label={text('ask.suggestions')}>{answers.slice().sort((a, b) => a.question.question_id.localeCompare(b.question.question_id)).map(answer => <button key={`${answer.question.question_id}-${answer.variant}`} onClick={() => choose(answer, questionLabel(answer, locale))} aria-pressed={selected === answer.question.question_id}>
+    <p className="ask-note">{text('ask.replayOnly')}</p>
+    <h3 className="ask-chips-title">{text('ask.suggestions')}</h3>
+    <div className="question-chips" role="group" aria-label={text('ask.suggestions')}>{answers.slice().sort((a, b) => a.question.question_id.localeCompare(b.question.question_id)).map(answer => <button key={`${answer.question.question_id}-${answer.variant}`} type="button" onClick={() => { choose(answer, questionLabel(answer, locale)); setReveal(n => n + 1); }} aria-pressed={selected === answer.question.question_id}>
       {questionLabel(answer, locale)}<time>{formatClock(answer.question.asked_at)}</time>
     </button>)}</div>
-    {unknown && <div className="unknown-question" role="status"><p>{text('ask.liveRequired')}</p><button className="button" disabled>{text('live')}</button></div>}
-    {problem && <div className="unknown-question" role="status"><p>{text(`ask.live.error.${problem.reason}`, problem.values)}</p></div>}
-    {live && <LiveProgress job={live} elapsedMs={startedAt === undefined ? undefined : Math.max(0, now - startedAt)} />}
-    {live?.status === 'done' && live.answer && <AnswerView answer={live.answer as Answer} data={data} live elapsed={Math.max(elapsed, elapsedAt(live.question.asked_at, data.timeline.firstHalfSeconds))} />}
-    {answer && available && <AnswerView answer={answer} data={data} elapsed={elapsed} />}
-    {answer && !available && <p className="muted ask-time-note">{text('ask.future', { clock: formatClock(answer.question.asked_at) })}</p>}
+    <div className="ask-results" ref={results}>
+      {unknown && <div className="unknown-question" role="status"><p>{text('ask.liveRequired')}</p><button className="button" disabled>{text('live')}</button></div>}
+      {problem && <div className="unknown-question" role="status"><p>{text(`ask.live.error.${problem.reason}`, problem.values)}</p></div>}
+      {live && <LiveProgress job={live} elapsedMs={startedAt === undefined ? undefined : Math.max(0, now - startedAt)} />}
+      {live?.status === 'done' && live.answer && <AnswerView answer={live.answer as Answer} data={data} live elapsed={Math.max(elapsed, elapsedAt(live.question.asked_at, data.timeline.firstHalfSeconds))} />}
+      {answer && available && <AnswerView answer={answer} data={data} elapsed={elapsed} />}
+      {answer && !available && <p className="muted ask-time-note">{text('ask.future', { clock: formatClock(answer.question.asked_at) })}</p>}
+    </div>
   </section>;
 }

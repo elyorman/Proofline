@@ -17,7 +17,7 @@ export function Broadcast({ data, elapsed, cues, cards, decisions, onDecide, onR
   const published = publishedCues(cues, cards, elapsed, firstHalf);
   const effective = applyDecisions(published, decisions, elapsed, firstHalf);
   const active = visibleCues(effective, elapsed, firstHalf, data.timeline.events);
-  return <div className="broadcast-layout"><div>
+  return <div className="broadcast-layout"><section className="broadcast-monitor" aria-label={text('broadcast.monitor')}>
     <SectionTitle title={text('broadcast.monitor')} sub={text('broadcast.monitor.sub')} />
     <div className="program-monitor"><Pitch data={data} elapsed={elapsed} ambient={ambient} />
       <ProgramOverlay cues={active} />
@@ -25,7 +25,8 @@ export function Broadcast({ data, elapsed, cues, cards, decisions, onDecide, onR
     <section className="panel producer-log"><SectionTitle title={text('broadcast.log')}><button className="text-button" onClick={onReset} disabled={!decisions.length}>{text('broadcast.reset')}</button></SectionTitle>
       {decisions.length ? <ol>{decisions.filter(d => d.at <= elapsed).slice().reverse().map((decision, i) => <li key={i}><span>{text('broadcast.log.entry', { clock: formatClock(clockAt(decision.at, firstHalf)), action: text(`status.${decision.status}`) })}</span><code>{decision.cueId}</code></li>)}</ol> : <p className="muted padded">{text('broadcast.log.empty')}</p>}
     </section>
-  </div><section className="panel cue-queue"><SectionTitle title={text('broadcast.queue')} sub={text('broadcast.local')} />
+  </section><section className="panel cue-queue"><SectionTitle title={text('broadcast.queue')} sub={text('broadcast.local')} />
+    <div className="cue-list">
     {!effective.length && <Empty title={text('broadcast.queue.empty')} />}
     {effective.slice().reverse().map(cue => {
       const start = cueStart(cue, firstHalf, data.timeline.events);
@@ -42,5 +43,6 @@ export function Broadcast({ data, elapsed, cues, cards, decisions, onDecide, onR
         <div className="cue-controls">{(['approved', 'held', 'killed'] as const).map((status, i) => <button key={status} className={i === 0 ? 'button primary' : 'button'} disabled={terminal || cue.status === status} onClick={() => onDecide({ cueId: cue.cue_id, at: elapsed, status })}>{text(['broadcast.approve', 'broadcast.hold', 'broadcast.kill'][i])}</button>)}</div>
       </article>;
     })}
+    </div>
   </section></div>;
 }

@@ -170,19 +170,36 @@ export function InsightRow({ card, onOpen, mode = 'casual', fresh = false, viewe
 
 const FRESH_SECONDS = 180;
 
-export function Insights({ cards, onOpen, mode, full, elapsed = Infinity, firstHalf = 0, viewer }: {
+interface InsightsProps {
   cards: InsightCard[]; onOpen: (id: string) => void; mode: string; full: boolean; elapsed?: number; firstHalf?: number; viewer?: Viewer;
-}) {
-  const { text } = useText();
-  // The latest update leads, so a correction is seen; the rest keep visibleCards order.
+}
+
+/** The latest update leads, so a correction is seen; the rest keep visibleCards order. */
+export function splitCards(cards: InsightCard[], firstHalf: number) {
   const now = latestCard(cards, firstHalf);
-  const earlier = cards.filter(card => card !== now);
-  return <aside className="insights-column">
-    {now ? <NowCard card={now} onOpen={onOpen} mode={mode} full={full} viewer={viewer} />
-      : <div className="panel now-empty"><Empty title={text('insights.empty')} body={text('insights.empty.sub')} /></div>}
-    {earlier.length > 0 && <section className="earlier" aria-label={text('now.earlier')}><h3>{text('now.earlier')}</h3>
-      {earlier.map(card => <InsightRow key={card.id} card={card} onOpen={onOpen} mode={mode} viewer={viewer}
-        fresh={elapsed - displayElapsed(card, firstHalf) < FRESH_SECONDS} />)}
-    </section>}
-  </aside>;
+  return { now, earlier: cards.filter(card => card !== now) };
+}
+
+export const isFresh = (card: InsightCard, elapsed: number, firstHalf: number) => elapsed - displayElapsed(card, firstHalf) < FRESH_SECONDS;
+
+export function NowSlot({ cards, onOpen, mode, full, firstHalf = 0, viewer }: InsightsProps) {
+  const { text } = useText();
+  const { now } = splitCards(cards, firstHalf);
+  // Keyed by card and revision, so a new current card fades in rather than swapping in place.
+  return now ? <NowCard key={`${now.id}@${now.revision ?? 1}`} card={now} onOpen={onOpen} mode={mode} full={full} viewer={viewer} />
+    : <div className="panel now-empty"><Empty title={text('insights.empty')} body={text('insights.empty.sub')} /></div>;
+}
+
+export function EarlierCards({ cards, onOpen, mode, elapsed = Infinity, firstHalf = 0, viewer, heading = true }: InsightsProps & { heading?: boolean }) {
+  const { text } = useText();
+  const { earlier } = splitCards(cards, firstHalf);
+  if (!earlier.length) return heading ? null : <p className="muted rail-empty">{text('rail.earlier.empty')}</p>;
+  return <section className="earlier" aria-label={text('now.earlier')}>{heading && <h3>{text('now.earlier')}</h3>}
+    {earlier.map(card => <InsightRow key={card.id} card={card} onOpen={onOpen} mode={mode} viewer={viewer}
+      fresh={isFresh(card, elapsed, firstHalf)} />)}
+  </section>;
+}
+
+export function Insights(props: InsightsProps) {
+  return <aside className="insights-column"><NowSlot {...props} /><EarlierCards {...props} /></aside>;
 }

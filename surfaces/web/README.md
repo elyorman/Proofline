@@ -104,12 +104,32 @@ the numbers the UI states come from it.
   kicks, cards, substitutions, half-time and full time, and standout passes,
   from the EN/ES templates in `ambient/i18n/`.
 
+## Layout
+
+On a desktop screen (900 px wide or more, and at least 560 px tall) every
+route fits the viewport with no page scroll; long content scrolls inside its own
+panel. The match header and timeline stay on top.
+
+- **Fan:** the pitch over the momentum and control-vs-chaos strip on the left;
+  on the right, the current card with How we know (up to about two thirds of
+  the height, then it scrolls) over a tabbed rail: **Ask Proofline** (first, and
+  open by default), **Earlier cards** (with a count, and a dot while one is
+  fresh), **Feed** (the ticker) and **Numbers** (the match in numbers, leaders
+  and the last ten minutes). Every rail panel stays mounted, so a live question
+  keeps running behind another tab.
+- **Analyst:** the case list, scrolling on its own, beside the selected case,
+  whose tabs are Investigation, Case file, Verification, History, Evaluation and
+  **Ask Proofline**; the Ask Proofline button under the case list opens that tab.
+- **Broadcast:** the program preview and the local decision log beside the cue
+  queue, which scrolls. **Overlay:** the program monitor, sized to the screen.
+
+Below 900 px the page scrolls naturally and stacks: on the fan view, pitch,
+current card, ambient strip, then the rail. Short desktop screens (up to 820 px
+tall) use tighter type so How we know stays in view.
+
 ## Views and demo beats
 
-- **Fan companion (`#/fan`).** The first screen holds the match header, the
-  live pitch, the current card and the ambient strip; Ask, the ticker, the
-  numbers and recent activity follow. On a phone the order is header, pitch,
-  current card, ambient strip, earlier cards, then the rest. The pitch shows
+- **Fan companion (`#/fan`).** The pitch shows
   the last 25 seconds of play by both teams. Player Focus highlights the
   followed player's events and names them, and says when they last touched the
   ball; it never empties the pitch. Cards appear at `published_at`, falling
@@ -117,14 +137,13 @@ the numbers the UI states come from it.
   fast-lane records; detection time never publishes a card. The current card
   is the one whose current revision appeared last, with How we know at a
   glance: its first two recorded numbers against their baselines, and the
-  causes ruled out. The other cards follow in their usual order, newest first,
-  as compact rows that open to the same evidence. At 68:00 the press
-  explanation leads; at 70:00 the flank card's withdrawal leads and the press
-  explanation follows it untouched. All evidence and checks, rejected
-  alternatives and the case file stay one tap away.
-- **Ask Proofline (fan and console).** Rendered below each route's main
-  content: under the first screen on the fan view, under the case list and
-  investigation on the console. Five localized suggestion chips jump to
+  causes ruled out. The other cards are under Earlier cards in their usual
+  order, newest first, as compact rows that open to the same evidence. At 68:00
+  the press explanation leads; at 70:00 the flank card's withdrawal leads and
+  the press explanation heads Earlier cards, untouched. All evidence and
+  checks, rejected alternatives and the case file stay one tap away.
+- **Ask Proofline (fan and console).** The first tab of the fan view's rail,
+  and a tab of the console's case pane. Five localized suggestion chips jump to
   the recorded question time. The response uses the narrator's locale, explains
   the premise in plain words, shows code's measured premise test and, when
   explained, the verified card with How we know, shown from the minute the
@@ -167,8 +186,11 @@ the numbers the UI states come from it.
   remain inspectable under Preview fields, explicitly separate from on-air
   output; no cue or airing time is fabricated.
 
-All views were checked in Chrome at 1440×900 and with phone emulation at 360,
-390 and 430 px, with no horizontal scroll. Check phone widths with device
+All views were checked in Chrome at 1280×720, 1440×900 and 1920×1080, where
+`document.documentElement.scrollHeight` equals the window height, and with
+phone emulation at 360, 390 and 430 px, with no horizontal scroll.
+`scripts/record_beats.mjs` scrolls the panels it films (`in`), since the page
+itself no longer scrolls on a desktop screen. Check phone widths with device
 emulation (DevTools, or the DevTools protocol's
 `Emulation.setDeviceMetricsOverride`): headless Chrome's `--window-size=390,844`
 renders a 500 px-wide viewport, its minimum window width, and crops it, which

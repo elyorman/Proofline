@@ -58,7 +58,7 @@ No sign-in is needed. The replay starts paused at 68:00, viewed as a Northvale f
 2. **The correction**, at https://nice-coast-044d8740f.5.azurestaticapps.net/#/fan?t=70:00&lang=en.
    - The feed corrects Northvale's coordinates, and the right-flank card is withdrawn in place.
    - At 77' and 83' the follow-ups settle.
-3. **Ask Proofline** (fan view, below the cards).
+3. **Ask Proofline** (fan view, the first tab under the current card; also a tab of the analyst console).
    - The five suggestions replay recorded answers.
    - Then type your own question about the match so far, in the second half. It is answered live in Azure, and you can watch the stages:
      - "Is Ambrel running out of legs?" at 76:00 is turned away in seconds.

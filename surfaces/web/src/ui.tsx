@@ -45,6 +45,8 @@ const icons = {
   globe: <><circle cx="12" cy="12" r="9" /><ellipse cx="12" cy="12" rx="4" ry="9" /><path d="M3 12h18" /></>,
   info: <><circle cx="12" cy="12" r="9" /><path d="M12 11v6m0-10v1" /></>,
   close: <path d="m6 6 12 12M6 18 18 6" />,
+  ask: <><path d="M4 5h16v11H9l-5 4z" /><path d="M8.5 10.5h.01M12 10.5h.01M15.5 10.5h.01" strokeWidth="2.4" /></>,
+  tour: <><circle cx="12" cy="12" r="9" /><path d="m15.5 8.5-2 5-5 2 2-5z" /></>,
 } as const;
 
 export function Icon({ name, size = 20 }: { name: keyof typeof icons; size?: number }) {
@@ -57,6 +59,26 @@ export function Crest({ code, away = false, small = false }: { code: string; awa
 
 export function SectionTitle({ title, sub, children }: { title: string; sub?: string; children?: ReactNode }) {
   return <div className="section-heading"><div><h2>{title}</h2>{sub && <p>{sub}</p>}</div>{children}</div>;
+}
+
+export interface TabSpec { id: string; label: ReactNode; className?: string }
+
+/** An ARIA tab list: arrow keys, Home and End move between tabs. Tab `x` controls `${prefix}panel-x`. */
+export function TabList({ tabs, selected, onSelect, label, prefix = '', className = '' }: {
+  tabs: TabSpec[]; selected: string; onSelect: (id: string) => void; label: string; prefix?: string; className?: string;
+}) {
+  const ids = tabs.map(tab => tab.id);
+  return <div className={`tabs ${className}`} role="tablist" aria-label={label}>{tabs.map(tab =>
+    <button id={`${prefix}tab-${tab.id}`} aria-controls={`${prefix}panel-${tab.id}`} role="tab" type="button" key={tab.id}
+      aria-selected={selected === tab.id} tabIndex={selected === tab.id ? 0 : -1} className={tab.className}
+      onClick={() => onSelect(tab.id)} onKeyDown={event => {
+        if (!['ArrowRight', 'ArrowLeft', 'Home', 'End'].includes(event.key)) return;
+        event.preventDefault();
+        const index = event.key === 'Home' ? 0 : event.key === 'End' ? ids.length - 1
+          : (ids.indexOf(tab.id) + (event.key === 'ArrowRight' ? 1 : -1) + ids.length) % ids.length;
+        onSelect(ids[index]);
+        document.getElementById(`${prefix}tab-${ids[index]}`)?.focus();
+      }}>{tab.label}</button>)}</div>;
 }
 
 export function Empty({ title, body }: { title: string; body?: string }) {

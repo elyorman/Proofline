@@ -3,7 +3,7 @@ import type { InsightCard } from './types/insight-card';
 import { Evidence, useCardText } from './Insights';
 import { displayTime, formatClock } from './replay';
 import { comparisonFiles, isStandInCard } from './fixtures';
-import { Empty, Icon, SectionTitle, useText } from './ui';
+import { Empty, Icon, SectionTitle, TabList, useText } from './ui';
 import { InvestigationCompare } from './InvestigationCompare';
 import type { CaseFile } from './types/case-file';
 import { RevisionDiff } from './RevisionDiff';
@@ -110,32 +110,38 @@ export function VerificationPanel({ card }: { card: InsightCard }) {
   </>;
 }
 
-export function Analyst({ cards, allRevisions, selected, onSelect, amendments = [], files = [] }: {
+export const CASE_TABS = ['investigation', 'overview', 'verification', 'history', 'evaluation', 'ask'] as const;
+export type CaseTab = (typeof CASE_TABS)[number];
+
+export function Analyst({ cards, allRevisions, selected, onSelect, amendments = [], files = [], tab: shown, onTab, ask }: {
   cards: InsightCard[]; allRevisions: InsightCard[]; selected: string; onSelect: (id: string) => void; amendments?: EventAmendment[]; files?: CaseFile[];
+  tab?: CaseTab; onTab?: (tab: CaseTab) => void; ask?: ReactNode;
 }) {
   const { text } = useText();
   const cardText = useCardText();
-  const [tab, setTab] = useState('investigation');
+  const [own, setOwn] = useState<CaseTab>('investigation');
+  const tab = shown ?? own;
+  const setTab = onTab ?? setOwn;
   const file = files.find(f => f.case.case_id === selected || f.case.card_id === selected)
     ?? (!cards.some(c => c.id === selected) ? files.at(-1) : undefined);
   const card = file ? allRevisions.filter(c => c.case_id === file.case.case_id).at(-1)
     : cards.find(c => c.id === selected) ?? (!files.length ? cards[0] : undefined);
-  const tabs = ['investigation', 'overview', 'verification', 'history', 'evaluation'];
+  const tabs = CASE_TABS.filter(name => name !== 'ask' || ask).map(name => name === 'ask'
+    ? { id: name, className: 'tab-ask', label: <><Icon name="ask" size={14} />{text('ask.title')}</> }
+    : { id: name, label: text(`case.${name}`) });
   return <div className="analyst-layout"><aside className="panel case-list"><SectionTitle title={text('case.list')} />
-    {files.slice().reverse().map(f => <button className={`case-row ${f === file ? 'selected' : ''}`} key={`${f.case.case_id}-${f.variant}`} onClick={() => onSelect(f.case.case_id)} aria-pressed={f === file}><span className="case-time">{formatClock(f.case.window.end)}</span><strong>{f.case.triggers[0].subject}</strong><span>{f.case.case_id}</span><small className="status">{text(`outcome.${f.ranking.outcome}`)}</small></button>)}
-    {cards.length ? cards.filter(c => displayTime(c) && !files.some(f => f.case.case_id === c.case_id)).map(c => <button key={c.id} className={`case-row ${c.id === card?.id ? 'selected' : ''}`} onClick={() => onSelect(c.id)} aria-pressed={c.id === card?.id}>
-      <span className="case-time">{formatClock(displayTime(c)!)}</span><strong>{c.subject.team}</strong><span>{cardText(c)}</span><small className={`status ${c.status === 'withdrawn' ? 'warn' : ''}`}>{text(`status.${c.status}`)}</small>
-    </button>) : <p className="muted padded">{text('case.empty')}</p>}
-    <div className="live-box"><button disabled className="button"><Icon name="play" size={14} />{text('live')}</button><p>{text('live.unavailable')}</p></div>
+    <div className="case-rows">
+      {files.slice().reverse().map(f => <button className={`case-row ${f === file ? 'selected' : ''}`} key={`${f.case.case_id}-${f.variant}`} onClick={() => onSelect(f.case.case_id)} aria-pressed={f === file}><span className="case-time">{formatClock(f.case.window.end)}</span><strong>{f.case.triggers[0].subject}</strong><span>{f.case.case_id}</span><small className="status">{text(`outcome.${f.ranking.outcome}`)}</small></button>)}
+      {cards.length ? cards.filter(c => displayTime(c) && !files.some(f => f.case.case_id === c.case_id)).map(c => <button key={c.id} className={`case-row ${c.id === card?.id ? 'selected' : ''}`} onClick={() => onSelect(c.id)} aria-pressed={c.id === card?.id}>
+        <span className="case-time">{formatClock(displayTime(c)!)}</span><strong>{c.subject.team}</strong><span>{cardText(c)}</span><small className={`status ${c.status === 'withdrawn' ? 'warn' : ''}`}>{text(`status.${c.status}`)}</small>
+      </button>) : <p className="muted padded">{text('case.empty')}</p>}
+    </div>
+    <div className="live-box">{ask
+      ? <button className="button primary" onClick={() => setTab('ask')}><Icon name="ask" size={14} />{text('ask.title')}</button>
+      : <button disabled className="button"><Icon name="play" size={14} />{text('live')}</button>}<p>{text('live.unavailable')}</p></div>
   </aside><section className="panel case-content">
-    <div className="tabs" role="tablist" aria-label={text('case.overview')}>{tabs.map(name => <button id={`tab-${name}`} aria-controls={`panel-${name}`} role="tab" aria-selected={tab === name} tabIndex={tab === name ? 0 : -1} key={name} onClick={() => setTab(name)} onKeyDown={event => {
-      if (['ArrowRight', 'ArrowLeft', 'Home', 'End'].includes(event.key)) {
-        event.preventDefault();
-        const index = event.key === 'Home' ? 0 : event.key === 'End' ? tabs.length - 1 : (tabs.indexOf(name) + (event.key === 'ArrowRight' ? 1 : -1) + tabs.length) % tabs.length;
-        setTab(tabs[index]); document.getElementById(`tab-${tabs[index]}`)?.focus();
-      }
-    }}>{text(`case.${name}`)}</button>)}</div>
-    <div className="case-body" id={`panel-${tab}`} role="tabpanel" aria-labelledby={`tab-${tab}`} tabIndex={0}>
+    <TabList tabs={tabs} selected={tab} onSelect={id => setTab(id as CaseTab)} label={text('case.overview')} />
+    {tab !== 'ask' && <div className="case-body" key={tab} id={`panel-${tab}`} role="tabpanel" aria-labelledby={`tab-${tab}`} tabIndex={0}>
       {tab === 'evaluation' ? <Scoreboard /> : tab === 'investigation' ? (file ? <InvestigationCompare key={file.case.case_id} file={file} card={card} candidates={comparisonFiles} onScoreboard={() => setTab('evaluation')} /> : <Empty title={text('inv.noFile')} />) : !card ? <Empty title={text('case.empty')} /> : <>
         <div className="case-heading"><span className="eyebrow">{text(isStandInCard(card) ? 'fixture.short' : 'record.backend')} · {text('insights.revision', { number: card.revision ?? 1 })}</span>
           <h2>{cardText(card, 'analyst') ?? text('insights.noVariant')}</h2><code>{card.case_id}</code>
@@ -145,6 +151,8 @@ export function Analyst({ cards, allRevisions, selected, onSelect, amendments = 
         {tab === 'verification' && <VerificationPanel card={card} />}
         {tab === 'history' && <><RevisionDiff card={card} snapshots={allRevisions} amendments={amendments} /><RevisionHistory card={card} snapshots={allRevisions} /></>}
       </>}
-    </div>
+    </div>}
+    {/* Ask stays mounted behind the other tabs, so a live question keeps running. */}
+    {ask && <div className="case-body ask-body" id="panel-ask" role="tabpanel" aria-labelledby="tab-ask" tabIndex={0} hidden={tab !== 'ask'}>{ask}</div>}
   </section></div>;
 }

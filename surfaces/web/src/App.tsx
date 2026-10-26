@@ -1,13 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Ask } from './Ask';
-import { Analyst } from './Analyst';
+import { Analyst, type CaseTab } from './Analyst';
 import { AmbientStrip, Ticker } from './Ambient';
 import { Broadcast } from './Broadcast';
+import { FanRail, type RailTab } from './FanRail';
 import { Overlay } from './Overlay';
 import { loadReplay, type ReplayData } from './data';
 import { cards, cues, profile, amendments, caseFiles, answers, ambient } from './fixtures';
 import { browserLocale, type Locale } from './i18n';
-import { Insights } from './Insights';
+import { EarlierCards, NowSlot, isFresh, splitCards } from './Insights';
 import { MatchHeader } from './MatchHeader';
 import { Activity, Pitch, involves } from './Pitch';
 import { Leaders } from './Leaders';
@@ -37,6 +38,8 @@ function Workspace({ setLocale }: { setLocale: (locale: Locale) => void }) {
   const [player, setPlayer] = useState(profile.favorite_players?.[0] ?? '');
   const [selected, setSelected] = useState(pressureCard?.id ?? '');
   const [decisions, setDecisions] = useState<ProducerDecision[]>([]);
+  const [railTab, setRailTab] = useState<RailTab>('ask');
+  const [caseTab, setCaseTab] = useState<CaseTab>('investigation');
 
   useEffect(() => {
     if (!data) return;
@@ -101,7 +104,10 @@ function Workspace({ setLocale }: { setLocale: (locale: Locale) => void }) {
   const publishedRevisions = cards.filter(c => displayElapsed(c, firstHalf) <= elapsed);
   const stats = data.teams.map(team => teamStats(delivered.map(d => d.event), team.name));
   const roster = data.teams.find(team => team.name === favorite)?.players ?? data.teams[0].players;
-  const openCase = (id: string) => { setSelected(id); location.hash = '/analyst'; };
+  const openCase = (id: string) => { setSelected(id); setCaseTab('investigation'); location.hash = '/analyst'; };
+  const viewer = { club: favorite, player: mode === 'player' ? player : undefined, playerName: roster.find(p => p.id === player)?.name };
+  const cardProps = { cards: currentCards, onOpen: openCase, mode, full, elapsed, firstHalf, viewer };
+  const { earlier } = splitCards(currentCards, firstHalf);
   const seek = (at: number) => {
     const target = Math.max(0, Math.min(data.timeline.duration, at));
     setElapsed(target);
@@ -138,20 +144,21 @@ function Workspace({ setLocale }: { setLocale: (locale: Locale) => void }) {
         {route !== 'fan' && <div className="page-title"><h1>{text(`nav.${route}`)}</h1><p>{text(`page.${route}.sub`)}</p></div>}
         {route === 'fan' && <ViewBoundary key="fan"><h1 className="sr-only">{text('nav.fan')}</h1><div className="fan-grid">
           <div className="fan-pitch"><Pitch data={data} elapsed={elapsed} player={mode === 'player' ? player : undefined} ambient={ambient} footer={focusBar}>{modes}</Pitch></div>
-          <div className="fan-now"><Insights cards={currentCards} onOpen={openCase} mode={mode} full={full} elapsed={elapsed} firstHalf={firstHalf}
-            viewer={{ club: favorite, player: mode === 'player' ? player : undefined, playerName: roster.find(p => p.id === player)?.name }} /></div>
+          <div className="fan-now"><NowSlot {...cardProps} /></div>
           <div className="fan-ambient"><AmbientStrip feed={ambient} data={data} elapsed={elapsed} /></div>
-          <div className="fan-more">
-            {ask}
-            <div className="fan-panels">
-              <Ticker feed={ambient} data={data} elapsed={elapsed} />
+          <FanRail tab={railTab} onTab={setRailTab} earlier={earlier.length} fresh={earlier.some(card => isFresh(card, elapsed, firstHalf))} panels={{
+            ask,
+            earlier: <EarlierCards {...cardProps} heading={false} />,
+            feed: <Ticker feed={ambient} data={data} elapsed={elapsed} limit={40} />,
+            numbers: <>
               <section className="panel stats-panel"><SectionTitle title={text('stats')} sub={text('stats.sub')} /><div className="stats-team-head"><span>{data.teams[0].code}</span><span>{data.teams[1].code}</span></div>{(['passes', 'accuracy', 'shots', 'pressures'] as const).map(key => <div className="stat-row" key={key}><strong>{stats[0][key] === null ? '—' : num(stats[0][key], key === 'accuracy')}</strong><span>{text(`stats.${key}`)}</span><strong>{stats[1][key] === null ? '—' : num(stats[1][key], key === 'accuracy')}</strong></div>)}</section>
-              <Activity data={data} elapsed={elapsed} />
               <Leaders data={data} elapsed={elapsed} />
-            </div>
-          </div>
+              <Activity data={data} elapsed={elapsed} />
+            </>,
+          }} />
         </div></ViewBoundary>}
-        {route === 'analyst' && <ViewBoundary key="analyst"><Analyst cards={currentCards} allRevisions={publishedRevisions} selected={selected} onSelect={setSelected} amendments={amendments} files={caseFiles.filter(f => elapsedAt(f.case.window.end, firstHalf) <= elapsed)} /><div className="below-fold">{ask}</div></ViewBoundary>}
+        {route === 'analyst' && <ViewBoundary key="analyst"><Analyst cards={currentCards} allRevisions={publishedRevisions} selected={selected} onSelect={setSelected} amendments={amendments} files={caseFiles.filter(f => elapsedAt(f.case.window.end, firstHalf) <= elapsed)}
+          tab={caseTab} onTab={setCaseTab} ask={ask} /></ViewBoundary>}
         {route === 'broadcast' && <ViewBoundary key="broadcast"><Broadcast data={data} elapsed={elapsed} cues={cues} cards={cards} decisions={decisions} ambient={ambient} onDecide={decision => setDecisions(previous => [...previous, decision])} onReset={() => setDecisions([])} /></ViewBoundary>}
         {route === 'overlay' && <ViewBoundary key="overlay"><Overlay data={data} elapsed={elapsed} cards={cards} cues={cues} decisions={decisions} ambient={ambient} /></ViewBoundary>}
         <footer className="workspace-footer"><span>{text('brand.name')}</span><p>{text('nav.about')}</p><span>{data.matchId} · {text('fixture')}</span></footer>

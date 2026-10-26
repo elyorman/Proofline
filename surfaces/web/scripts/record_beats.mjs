@@ -10,14 +10,16 @@ import { join, resolve } from 'node:path';
 const [base, out, ...only] = process.argv.slice(2);
 const outDir = resolve(out);  // ffmpeg's concat list resolves frame paths against its own folder
 mkdirSync(outDir, { recursive: true });
+// On a desktop screen each route fits the viewport and long content scrolls inside its panel,
+// so scrollBy names the panel it scrolls (`in`); without one it scrolls the page.
 const BEATS = {
   '01-fan-68': [{ go: '#/fan?t=67:48&lang=es' }, { wait: 1500 }, { click: '.play-button' }, { wait: 13500 },
     { click: '.play-button' }, { wait: 1200 }, { clickText: 'Toda la evidencia' }, { wait: 800 },
-    { scrollBy: 260, over: 1500 }, { wait: 4500 }],
+    { scrollBy: 260, over: 1500, in: '.fan-now' }, { wait: 4500 }],
   '02-investigation': [{ go: '#/analyst?t=68:00&lang=en' }, { wait: 2500 }, { scrollTo: '.specialist-columns' },
-    { wait: 3500 }, { scrollBy: 700, over: 4000 }, { wait: 1500 }, { scrollTo: '.cross-examinations' }, { wait: 3000 },
-    { scrollBy: 600, over: 3000 }, { wait: 2500 }],
-  '03-correction': [{ go: '#/fan?t=69:52&lang=es' }, { wait: 1200 }, { click: '.play-button' }, { wait: 9500 },
+    { wait: 3500 }, { scrollBy: 700, over: 4000, in: '.case-body' }, { wait: 1500 }, { scrollTo: '.cross-examinations' }, { wait: 3000 },
+    { scrollBy: 600, over: 3000, in: '.case-body' }, { wait: 2500 }],
+  '03-correction': [{ go: '#/fan?t=69:52&lang=es' }, { wait: 1200 }, { click: '#rail-tab-earlier' }, { click: '.play-button' }, { wait: 9500 },
     { click: '.play-button' }, { wait: 4500 }, { hash: '#/broadcast?t=70:30&lang=es', settle: 2500 },
     { clickText: 'Aprobar' }, { wait: 2500 }, { click: 'a[href="#/overlay"]' }, { wait: 5000 }],
   '04-followup-83': [{ go: '#/fan?t=82:50&lang=es' }, { wait: 1200 }, { click: '.play-button' }, { wait: 11500 },
@@ -27,7 +29,7 @@ const BEATS = {
     { until: '!!document.querySelector(".ask-panel .recorded-answer") || !!document.querySelector(".ask-panel .unknown-question")', timeout: 90000 },
     { wait: 800 }, { scrollTo: '.live-progress' }, { wait: 5500 }],
   '06-scoreboard': [{ go: '#/analyst?t=68:00&lang=en' }, { wait: 2000 }, { click: '#tab-evaluation' }, { wait: 1500 },
-    { scrollTo: '.scoreboard' }, { wait: 2500 }, { scrollBy: 900, over: 5000 }, { wait: 2500 }],
+    { scrollTo: '.scoreboard' }, { wait: 2500 }, { scrollBy: 900, over: 5000, in: '.case-body' }, { wait: 2500 }],
 };
 
 for (const [name, steps] of Object.entries(BEATS)) {
@@ -89,7 +91,8 @@ async function record(out, steps) {
     else if (step.scrollTo) { await evaluate(`document.querySelector(${JSON.stringify(step.scrollTo)})?.scrollIntoView({ block: ${JSON.stringify(step.block ?? 'start')}, behavior: 'smooth' })`); await sleep(900); }
     else if (step.scrollBy) {
       const n = Math.max(1, Math.round((step.over ?? 2000) / 40));
-      for (let i = 0; i < n; i++) { await evaluate(`window.scrollBy(0, ${step.scrollBy / n})`); await sleep(40); }
+      const target = step.in ? `document.querySelector(${JSON.stringify(step.in)})` : 'window';
+      for (let i = 0; i < n; i++) { await evaluate(`${target}?.scrollBy(0, ${step.scrollBy / n})`); await sleep(40); }
     }
     else if (step.until) {
       const end = Date.now() + (step.timeout ?? 60000);

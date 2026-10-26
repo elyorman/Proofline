@@ -53,10 +53,18 @@ describe('recorded questions', () => {
     for (const answer of answers.filter(a => a.outcome === 'premise_false')) {
       const html = render(<AnswerView answer={answer} data={data} elapsed={6000} />);
       expect(html).toContain('Premise did not hold');
-      expect(html).toContain('Faded');
+      expect(html).toMatch(/Faded|Went the other way/);
       expect(html).not.toContain('insight-card');
       if (answer.question.question_id === 'q4') expect(html).toContain('Ambrel');
     }
+  });
+  it('says a premise that moved past the bar the opposite way went the other way, not that it faded', () => {
+    // The recorded defence question: the premise is a fall in sprints; they rose +2.07 sd.
+    const other = answers.find(a => a.outcome === 'premise_false' && (a.premise_test?.sigmas ?? 0) >= 1.5)!;
+    const html = render(<AnswerView answer={other} data={data} elapsed={6000} />);
+    expect(html).toContain('Went the other way');
+    expect(html).not.toContain('Faded');
+    expect(render(<AnswerView answer={other} data={data} elapsed={6000} />, 'es')).toContain('Fue al contrario');
   });
   it('says a premise with no measurement could not be tested, not that it faded', () => {
     const untested = structuredClone(answers.find(a => a.outcome === 'premise_false')!);

@@ -7,12 +7,18 @@ function WindowText({ window }: { window: Prediction['window'] }) {
   return <>{formatClock(window.start)}–{formatClock(window.end)}</>;
 }
 
+const PERSIST_SD = 1.5;  // agents/confirm.py: the bar a change must clear, either way
+
+/** A change that did not hold: past the bar the other way, or faded short of it. */
+const missed = (item: Persistence) => item.sigmas != null
+  && (item.direction === 'up' ? item.sigmas <= -PERSIST_SD : item.sigmas >= PERSIST_SD) ? 'inv.reversed' : 'inv.faded';
+
 export function PersistenceView({ item, label }: { item: Persistence; label?: string }) {
   const { text, metric, num } = useText();
   return <article className={`persistence ${item.holds ? 'held' : 'faded'}`}>
     <strong>{label ?? item.subject} · {text(`metric.${item.metric}`)}</strong>
     <p><WindowText window={item.window} /> · {item.sigmas == null ? <b>{text('inv.untested')}</b>
-      : <><b>{text('inv.sd', { value: num(item.sigmas) })}</b> · {text(item.holds ? 'inv.held' : 'inv.faded')}</>}</p>
+      : <><b>{text('inv.sd', { value: num(item.sigmas) })}</b> · {text(item.holds ? 'inv.held' : missed(item))}</>}</p>
     <p>{item.value == null ? text('value.unset') : metric(item.metric, item.value)} · {text('case.baseline')}: {item.baseline == null ? text('value.unset') : metric(item.metric, item.baseline)}</p>
     <p className="recorded-reason">{item.reason}</p>
     {item.tool_call_id && <code>{item.tool_call_id}</code>}

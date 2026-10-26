@@ -1,5 +1,5 @@
 // Render a page to a PNG at an exact size over the DevTools protocol (Chrome's own
-// --screenshot mode crops the bottom of the page).
+// --screenshot mode crops the bottom of the page). Below 600 px wide it emulates a phone.
 //   node --experimental-websocket surfaces/web/scripts/snap.mjs <url> <out.png> [width] [height]
 import { spawn } from 'node:child_process';
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
@@ -22,9 +22,13 @@ await new Promise(r => ws.addEventListener('open', r));
 let id = 0; const pending = new Map();
 ws.addEventListener('message', e => { const m = JSON.parse(e.data); if (m.id) pending.get(m.id)?.(m); });
 const send = (method, params = {}) => new Promise(r => { const n = ++id; pending.set(n, r); ws.send(JSON.stringify({ id: n, method, params })); });
-await send('Emulation.setDeviceMetricsOverride', { width: Number(width), height: Number(height), deviceScaleFactor: 1, mobile: false });
+const phone = Number(width) < 600;
+await send('Page.enable');
+await send('Emulation.setDeviceMetricsOverride', { width: Number(width), height: Number(height), deviceScaleFactor: phone ? 2 : 1, mobile: phone });
+// The replay's first-visit tour invitation would otherwise sit in every picture.
+await send('Page.addScriptToEvaluateOnNewDocument', { source: "try { localStorage.setItem('proofline.tour', 'seen'); } catch {}" });
 await send('Page.navigate', { url });
-await sleep(1500);
+await sleep(url.startsWith('http') ? 6000 : 1500);
 const shot = await send('Page.captureScreenshot', { format: 'png' });
 writeFileSync(out, Buffer.from(shot.result.data, 'base64'));
 ws.close(); chrome.kill();

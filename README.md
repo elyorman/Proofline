@@ -141,7 +141,7 @@ The [public link](https://nice-coast-044d8740f.5.azurestaticapps.net) replays on
 
 | A typed question, investigated live | ...and answered, with its verified card |
 |---|---|
-| ![Live stages: the Lead's premise and code's test reached, the specialists next](docs/images/live-stages.png) | ![The live answer: every stage reached, the premise test and the verified card; this run named Harbour City chasing the result, not the planted press](docs/images/live-answer.png) |
+| ![Live stages: the Lead's premise, code's test of it, the specialists' pre-registered causes and code's tests reached, with notes](docs/images/live-stages.png) | ![The live answer: the verified card, then the premise it tested; this run named the deliberate press and left two causes open until 83'](docs/images/live-answer.png) |
 | **Each specialist's pre-registered causes, tested by code** | **The 70' feed correction withdraws a card in place** |
 | ![The Analyst Console: Tactics, Physical and Game state columns with code's verdicts](docs/images/investigation.png) | ![The fan view at 70:00 with the withdrawn card and its evidence](docs/images/correction.png) |
 

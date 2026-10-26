@@ -6,9 +6,10 @@ layer computed from the match's events. It starts paused at 68:00 with the
 Studio profile, a Northvale fan following Ambrel, in the browser's language:
 Spanish when `navigator.language` starts with `es`, otherwise English. The fan
 companion, analyst console, broadcast studio and overlay share one replay clock,
-shown in the sticky match header on every route, beside a small badge that says
-this is a recorded replay with no live model calls. No runtime path calls a
-model.
+shown in the sticky match header on every route, beside a small badge saying
+this is a recorded replay whose typed questions are answered live. The replay
+itself calls no model; only a typed question that no recording holds goes to
+the live API (see Live questions below).
 
 ## Deep links
 

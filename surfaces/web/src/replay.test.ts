@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { activityAt, applyDecisions, buildTimeline, clockAt, displayTime, elapsedAt, formatClock, knownAt, latestCard, linkedElapsed, parseClock, parseLink, scoreAt, teamStats, variantText, visibleCards, visibleCues, pitchPoint } from './replay';
 import { cards, cues } from './fixtures';
-import { catalogs, metricNumber, t } from './i18n';
+import { browserLocale, catalogs, metricNumber, t } from './i18n';
 import type { Event } from './types/event';
 import type { Metric } from './types/insight-card';
 
@@ -179,6 +179,10 @@ describe('deep links', () => {
     expect(parseLink('#/overlay')).toEqual({ route: 'overlay' });
     expect(parseLink('')).toEqual({ route: 'fan' });
     expect(parseLink('#/nowhere?t=soon&lang=fr')).toEqual({ route: 'fan' });
+  });
+  it('opens in the browser language when the link names none: Spanish for any Spanish, else English', () => {
+    for (const spanish of ['es', 'es-ES', 'es-419', 'ES-mx']) expect(browserLocale(spanish)).toBe('es');
+    for (const other of ['en-US', 'en', 'fr-FR', 'pt-BR', 'eu', '', undefined]) expect(browserLocale(other)).toBe('en');
   });
   it('lands a linked clock inside the replay', () => {
     const timeline = timelineWithEnds([]);

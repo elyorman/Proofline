@@ -6,7 +6,7 @@ import { Broadcast } from './Broadcast';
 import { Overlay } from './Overlay';
 import { loadReplay, type ReplayData } from './data';
 import { cards, cues, profile, amendments, caseFiles, answers, ambient } from './fixtures';
-import type { Locale } from './i18n';
+import { browserLocale, type Locale } from './i18n';
 import { Insights } from './Insights';
 import { MatchHeader } from './MatchHeader';
 import { Activity, Pitch, involves } from './Pitch';
@@ -19,7 +19,7 @@ const flankCard = cards.find(card => card.moment_type === 'shape_change' && card
 const withdrawal = cards.find(card => card.status === 'withdrawn');
 
 export default function App() {
-  const [locale, setLocale] = useState<Locale>(() => parseLink(location.hash).locale ?? (profile.language === 'es' ? 'es' : 'en'));
+  const [locale, setLocale] = useState<Locale>(() => parseLink(location.hash).locale ?? browserLocale(navigator.language));
   return <LocaleContext.Provider value={locale}><Workspace setLocale={setLocale} /></LocaleContext.Provider>;
 }
 

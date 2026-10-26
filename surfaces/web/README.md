@@ -3,7 +3,8 @@
 The web app plays the complete recorded Studio ledger: verified cards, fast-lane
 goals, case files, revisions, amendments and producer cues, plus the ambient
 layer computed from the match's events. It starts paused at 68:00 with the
-Studio profile: a Northvale fan reading Spanish and following Ambrel. The fan
+Studio profile, a Northvale fan following Ambrel, in the browser's language:
+Spanish when `navigator.language` starts with `es`, otherwise English. The fan
 companion, analyst console, broadcast studio and overlay share one replay clock,
 shown in the sticky match header on every route, beside a small badge that says
 this is a recorded replay with no live model calls. No runtime path calls a
@@ -23,7 +24,8 @@ A URL can open any route at a clock, paused, and in a language:
 
 `t` takes every clock form the match uses (`70:00`, `45+2:10`, `90+3`, or a bare
 minute). A first-half clock never spills into the second half, a clock past the
-final whistle opens full time, and an unreadable `t` or `lang` is ignored.
+final whistle opens full time, and an unreadable `t` or `lang` is ignored. A link
+without `lang` opens in the browser's language.
 Navigating between routes keeps the current clock.
 
 ## Run and regenerate

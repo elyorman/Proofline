@@ -542,6 +542,11 @@ const es: Record<keyof typeof en, string> = {
 
 export const catalogs = { en, es };
 
+/** The language a link without `lang` opens in: Spanish for a Spanish browser, otherwise English. */
+export function browserLocale(language: string | undefined): Locale {
+  return language?.trim().toLowerCase().startsWith('es') ? 'es' : 'en';
+}
+
 export function t(locale: Locale, key: string, values: Record<string, string | number> = {}): string {
   const catalog: Record<string, string> = catalogs[locale] ?? catalogs.en;
   const fallback = key.includes('.') ? key.slice(key.indexOf('.') + 1) : key;

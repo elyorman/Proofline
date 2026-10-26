@@ -121,7 +121,7 @@ Microsoft Foundry's built-in evaluators read every card revision the demo take p
 
 ## See it
 
-The [public link](https://nice-coast-044d8740f.5.azurestaticapps.net) replays one recorded match, m01 (Harbour City v Northvale), on a shared clock. It starts at 68:00, viewed as a Northvale fan reading Spanish; the language switch is in the top bar. The replay calls no model. A typed question no recording holds goes to the live API in Azure.
+The [public link](https://nice-coast-044d8740f.5.azurestaticapps.net) replays one recorded match, m01 (Harbour City v Northvale), on a shared clock. It starts at 68:00, viewed as a Northvale fan, in your browser's language (Spanish or English); the language switch is in the top bar. The replay calls no model. A typed question no recording holds goes to the live API in Azure.
 
 - **Fan (`#/fan`).**
   - **The cards:**

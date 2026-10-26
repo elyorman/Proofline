@@ -250,8 +250,15 @@ equal `ambient/` over the freshly built match. Web tests cover clock and
 verification guards, revisions, cue controls, localized questions, case-file
 investigations, comparison pairing, deep links, the ambient strip and ticker
 (nothing shown before its clock, EN and ES), the pitch (both teams, the followed
-player, ambient tags, labels that never overlap) and the current card. No
-dependencies were added.
+player, ambient tags, labels that never overlap), the current card, the
+language a link without `lang` opens in, the investigation funnel's counts, the
+live question's timer, the fan rail and console tabs (every panel mounted), and
+the tour (its steps, its prefilled question going live, its card placement and
+its storage, including storage that throws). No dependencies were added.
+
+On a phone every control is at least 32 px to tap, and the pitch caption keeps
+a fixed height, so playing the clock never reflows the page; on a desktop
+screen nothing outside the panels moves while it plays.
 
 ## Boundaries
 

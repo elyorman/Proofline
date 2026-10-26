@@ -102,7 +102,8 @@ function Workspace({ setLocale }: { setLocale: (locale: Locale) => void }) {
 
   const delivered = useMemo(() => data?.timeline.events.filter(e => e.at <= elapsed) ?? [], [data, elapsed]);
   if (!data) return <main className="load-screen"><div className="wordmark">{text('brand.wordmark')}<span>↗</span></div>
-    {error ? <><h1>{text('error.title')}</h1><p>{text('error.body')}</p><button className="button primary" onClick={() => setAttempt(n => n + 1)}>{text('error.retry')}</button></> : <p role="status">{text('loading')}</p>}
+    {error ? <><h1>{text('error.title')}</h1><p>{text('error.body')}</p><button className="button primary" onClick={() => setAttempt(n => n + 1)}>{text('error.retry')}</button></>
+      : <><span className="load-bars" aria-hidden="true"><i /><i /><i /></span><p role="status">{text('loading')}</p></>}
   </main>;
 
   const firstHalf = data.timeline.firstHalfSeconds;

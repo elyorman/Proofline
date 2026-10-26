@@ -4,7 +4,7 @@ Everything the project page needs: the pitch, the description, and testing instr
 
 - **Public link (no sign-in):** https://nice-coast-044d8740f.5.azurestaticapps.net
 - **Repository:** https://github.com/elyorman/Proofline
-- **Video:** added after recording
+- **Video:** https://youtu.be/Sk1aiQug0s0
 - **Category:** Best Enterprise Solution
 
 ## Elevator pitch

@@ -10,6 +10,8 @@ For broadcasters and clubs that cannot afford a confident wrong claim on air: ev
 
 **Public link (no sign-in):** https://nice-coast-044d8740f.5.azurestaticapps.net. It replays a recorded match, and answers any typed question about it live, in Azure.
 
+**Demo video (1:58, narrated and captioned):** https://youtu.be/Sk1aiQug0s0
+
 ![The fan view at 68:00: the pitch, the verified card with How we know, and the momentum and control-vs-chaos strip](docs/images/fan.png)
 
 **A two-minute tour:** [the 68' card and its evidence](https://nice-coast-044d8740f.5.azurestaticapps.net/#/fan?t=68:00&lang=en) · [the 70' correction](https://nice-coast-044d8740f.5.azurestaticapps.net/#/fan?t=70:00&lang=en) · [the agents' investigation](https://nice-coast-044d8740f.5.azurestaticapps.net/#/analyst?t=68:00&lang=en) · then type your own question in Ask Proofline, under the current card, and watch it answered live. Step-by-step testing instructions are in [`docs/submission.md`](docs/submission.md#testing-instructions-for-judges).

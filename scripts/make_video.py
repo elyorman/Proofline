@@ -4,9 +4,10 @@ The narration is the script's own words, spoken by an Azure AI Speech neural voi
 environment's AI Services account, with the developer's Entra ID (no keys). Each sentence is
 synthesised on its own, so the captions are timed to the audio exactly. The pictures are the
 clips `make video-clips` records from the public link, the recovery command's real output in a
-terminal frame, a title card and the architecture picture.
+terminal frame, the Proofline mark and the architecture picture. The captions are burned in, so
+no caption file sits beside the video for a player to load and show twice.
 
-    make video          # runs/video/proofline-demo.mp4 and proofline-demo.srt
+    make video          # runs/video/proofline-demo.mp4
 """
 
 import hashlib
@@ -25,7 +26,7 @@ from azure.identity import DefaultAzureCredential
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "runs" / "video"
 VOICE = os.getenv("PROOFLINE_VOICE", "en-GB-OllieMultilingualNeural")
-LEAD, GAP, TAIL = 0.35, 0.3, 0.7  # seconds of silence before, between and after sentences
+LEAD, GAP, TAIL = 0.35, 0.3, 0.6  # seconds of silence before, between and after sentences
 SIZE = "1920:1080"
 
 # What each beat of the script shows; its words come from the script itself.
@@ -162,6 +163,9 @@ h1 {{ font: 400 76px Georgia, serif; margin: 0 0 30px; letter-spacing: -1px; }}
 h1.dim {{ color: #6f8a7b; }} p {{ font-size: 34px; color: #d7ec9c; margin: 0; }}
 .mark {{ position: absolute; left: 150px; top: 110px; font: 600 30px "DejaVu Sans";
   color: #d7ec9c; }}
+.mark.big {{ position: static; align-self: center; font-size: 132px; letter-spacing: -3px; }}
+.eyebrow {{ font: 600 24px "DejaVu Sans"; letter-spacing: 4px; text-transform: uppercase;
+  color: #d7ec9c; margin: 0 0 24px; }}
 pre {{ font: 21px/1.55 "DejaVu Sans Mono", monospace; color: #dbe7d6; white-space: pre-wrap;
   margin: 0; }}
 .term {{ background: #0c1712; border-radius: 14px; padding: 40px 46px;
@@ -171,14 +175,10 @@ pre {{ font: 21px/1.55 "DejaVu Sans Mono", monospace; color: #dbe7d6; white-spac
 
 
 def title_frames(work: Path) -> list[Path]:
-    first = '<div class="mark">proofline&#8599;</div><h1>Every broadcast has the stats.</h1>'
-    both = first + "<p>Nobody can tell you why the game just changed, and stand behind it.</p>"
-    out = []
-    for name, body in (("title-a", first), ("title-b", both)):
-        page = work / f"{name}.html"
-        page.write_text(FRAME.format(body=body))
-        out.append(snap(page, work / f"{name}.png"))
-    return out
+    """The mark alone: the captions carry the opening lines, so the card does not repeat them."""
+    page = work / "title.html"
+    page.write_text(FRAME.format(body='<div class="mark big">proofline&#8599;</div>'))
+    return [snap(page, work / "title.png")]
 
 
 def terminal_frames(work: Path) -> list[Path]:
@@ -221,7 +221,9 @@ def terminal_frames(work: Path) -> list[Path]:
     full = prompt + "\n" + "\n".join(map(shown, lines))
     for name, body in (("terminal-a", prompt), ("terminal-b", full)):
         page = work / f"{name}.html"
-        page.write_text(FRAME.format(body=f'<div class="term"><pre>{body}</pre></div>'))
+        # The stopped agent is the test itself; the label keeps its output from reading as a crash.
+        label = '<div class="eyebrow">Recovery test</div>'
+        page.write_text(FRAME.format(body=f'{label}<div class="term"><pre>{body}</pre></div>'))
         out.append(snap(page, work / f"{name}.png"))
     return out
 
@@ -412,7 +414,7 @@ def main() -> int:
         "copy",
         str(joined),
     )
-    srt = OUT / "proofline-demo.srt"
+    srt = work / "captions.srt"
     cues = enumerate(captions, 1)
     srt.write_text(
         "".join(f"{i}\n{stamp(a)} --> {stamp(b)}\n{text}\n\n" for i, (a, b, text) in cues)
@@ -450,7 +452,7 @@ def main() -> int:
         )
         + "\n"
     )
-    print(f"{final}: {start:.1f} s, captions {srt.name}")
+    print(f"{final}: {start:.1f} s, captions burned in")
     return 0 if start <= 120 else 1
 
 

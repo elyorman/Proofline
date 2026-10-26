@@ -1,4 +1,5 @@
 import type { CaseFile, Prediction, ToolCall, Persistence } from './types/case-file';
+import type { InsightCard } from './types/insight-card';
 import { formatClock } from './replay';
 import { useText, SectionTitle } from './ui';
 
@@ -40,15 +41,97 @@ function ToolMeasurement({ call }: { call?: ToolCall }) {
   </div>;
 }
 
-export function Investigation({ file }: { file: CaseFile }) {
+type ExamResult = 'holds' | 'weakened' | 'refuted';
+// result is serialized by the backend; its validation-mode schema omits it.
+const examResult = (exam: CaseFile['cross_examinations'][number]) => (exam as typeof exam & { result?: ExamResult }).result;
+
+export interface Funnel {
+  agents: CaseFile['agents'];
+  registered: number;
+  refused: number;
+  tested: number;
+  kept: number;
+  failed: number;
+  counter: Record<ExamResult, number> & { unrun: number };
+  outcome: CaseFile['ranking']['outcome'];
+  primary?: { id: string; cause?: string };
+  verdict?: string;
+  support?: string | null;
+}
+
+/** The investigation at a glance, tallied from what the case file recorded: the causes
+ * registered, code's verdicts on them and the counter-tests' recorded results. The Verifier's
+ * verdict comes from the case's own card, when one was published. Nothing is re-scored. */
+export function caseFunnel(file: CaseFile, card?: InsightCard): Funnel | undefined {
+  if (!file.agents.length) return undefined;
+  const results = file.cross_examinations.map(examResult);
+  const tally = (result: ExamResult) => results.filter(r => r === result).length;
+  const primary = file.ranking.primary;
+  const verification = card?.case_id === file.case.case_id ? card.verification : undefined;
+  return {
+    agents: file.agents,
+    registered: file.hypotheses.length,
+    refused: file.refused.length,
+    tested: file.tests.length,
+    kept: file.tests.filter(t => t.outcome === 'supported').length,
+    failed: file.tests.filter(t => t.outcome === 'failed').length,
+    counter: { holds: tally('holds'), weakened: tally('weakened'), refuted: tally('refuted'), unrun: file.unrun.length },
+    outcome: file.ranking.outcome,
+    ...(primary ? { primary: { id: primary, cause: file.hypotheses.find(h => h.hypothesis_id === primary)?.taxonomy } } : {}),
+    ...(verification ? { verdict: verification.status, support: verification.support_level } : {}),
+  };
+}
+
+const share = (part: number, whole: number) => `${whole > 0 ? part / whole * 100 : 0}%`;
+
+export function CaseFunnel({ funnel: f }: { funnel: Funnel }) {
+  const { text, num } = useText();
+  const exams = f.counter.holds + f.counter.weakened + f.counter.refuted;
+  return <section className="case-funnel" aria-label={text('funnel.title')}>
+    <ol>
+      <li className="funnel-step">
+        <span className="funnel-label">{text('funnel.registered')}</span>
+        <b>{num(f.registered)}</b>
+        <span className="funnel-bar" aria-hidden="true"><i style={{ width: share(f.registered, f.registered) }} /></span>
+        <small>{f.agents.map(agent => text(`case.role.${agent}`)).join(' · ')}</small>
+        {f.refused > 0 && <small>{text('funnel.refused', { count: num(f.refused) })}</small>}
+      </li>
+      <li className="funnel-step">
+        <span className="funnel-label">{text('funnel.kept')}</span>
+        <b>{text('funnel.of', { kept: num(f.kept), tested: num(f.tested) })}</b>
+        <span className="funnel-bar" aria-hidden="true"><i style={{ width: share(f.kept, f.registered) }} /></span>
+        <small>{text('funnel.failed', { count: num(f.failed) })}</small>
+      </li>
+      <li className="funnel-step">
+        <span className="funnel-label">{text('funnel.counter')}</span>
+        <span className="funnel-counts">{(['holds', 'weakened', 'refuted'] as const).map(result =>
+          <span key={result} className={result}><b>{num(f.counter[result])}</b>{text(`exam.${result}`)}</span>)}</span>
+        <span className="funnel-bar" aria-hidden="true">{(['holds', 'weakened', 'refuted'] as const).map(result =>
+          <i key={result} className={result} style={{ width: share(f.counter[result], exams) }} />)}</span>
+        {f.counter.unrun > 0 && <small>{text('funnel.unrun', { count: num(f.counter.unrun) })}</small>}
+      </li>
+      <li className="funnel-step funnel-outcome">
+        <span className="funnel-label">{text('funnel.outcome')}</span>
+        <strong>{f.primary ? text('funnel.primary', { outcome: text(`outcome.${f.outcome}`), cause: f.primary.cause ? text(`cause.${f.primary.cause}`) : f.primary.id })
+          : text(`outcome.${f.outcome}`)}</strong>
+        {f.verdict && <span className={`status ${f.verdict === 'rejected' ? 'warn' : ''}`}>
+          {text('funnel.verifier', { verdict: text(`status.${f.verdict}`) })}{f.support ? ` · ${text(`support.${f.support}`)}` : ''}</span>}
+      </li>
+    </ol>
+  </section>;
+}
+
+export function Investigation({ file, card }: { file: CaseFile; card?: InsightCard }) {
   const { text, metric, num } = useText();
   const anchor = (id: string) => `hyp-${file.variant}-${file.case.case_id}-${id}`;
   const actors = [...new Set([...file.agents, ...file.refused.map(r => r.agent)])];
   const teams = [...new Set((file.case.both_teams ?? []).map(r => r.subject))];
+  const funnel = caseFunnel(file, card);
   return <section className="investigation-view" data-case-id={file.case.case_id}>
     <div className="investigation-heading"><span className="eyebrow">{text('inv.recorded')}</span><h2>{file.case.case_id}</h2>
       <p>{text('inv.detected', { clock: file.case.detected_at ? formatClock(file.case.detected_at) : text('value.unset') })} · {text('case.window')}: <WindowText window={file.case.window} /></p>
     </div>
+    {funnel && <CaseFunnel funnel={funnel} />}
     <SectionTitle title={text('inv.confirmation')} />
     {file.confirmation?.map((item, i) => <PersistenceView key={`${item.tool_call_id}-${i}`} item={item} />)}
     {!file.agents.length && <p className="notice-inline">{text('inv.noAgents')}</p>}
@@ -72,8 +155,7 @@ export function Investigation({ file }: { file: CaseFile }) {
     <SectionTitle title={text('case.crossExam')} />
     <div className="cross-examinations">{file.cross_examinations.map((exam, i) => {
       const target = file.hypotheses.find(h => h.hypothesis_id === exam.hypothesis_id);
-      // result is serialized by the backend; its validation-mode schema omits it.
-      const result = (exam as typeof exam & { result?: string }).result;
+      const result = examResult(exam);
       return <article key={`${exam.tool_call_id}-${i}`} className={`cross-exam ${result ?? ''}`}>
         <div className="challenge-edge"><strong>{text(`case.role.${exam.challenger}`)}</strong><span aria-hidden="true">→</span><button onClick={() => document.getElementById(anchor(exam.hypothesis_id))?.scrollIntoView({ block: 'center' })}><strong>{target ? text(`case.role.${target.agent}`) : exam.hypothesis_id}</strong><code>{exam.hypothesis_id}</code></button></div>
         <span className="status">{text(exam.corollary ? 'inv.corollary' : 'inv.control')}</span>

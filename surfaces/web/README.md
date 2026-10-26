@@ -142,7 +142,13 @@ the numbers the UI states come from it.
   nothing.
 - **Investigation (`#/analyst`).** The case list and the investigation open the
   console; Evaluation is a tab. Select any recorded case, including the faded
-  51-minute detection. Confirmation, both teams' readings, agent columns,
+  51-minute detection. Each investigation opens with a funnel tallied from its
+  case file: the causes the specialists pre-registered, how many code's tests
+  kept, the counter-tests' recorded results (held, weakened, refuted, and those
+  refused or not measurable), and the outcome with its primary cause and the
+  Verifier's verdict and support from the case's own card. It counts recorded
+  verdicts and re-scores nothing; a faded case has no funnel. Confirmation, both
+  teams' readings, agent columns,
   pre-registered predictions, test verdicts, refusals, directed counter-tests,
   synthesis and checkpoints come from its case file. Challenge buttons scroll
   to the target hypothesis. The tool-call log is collapsed initially. Overview,

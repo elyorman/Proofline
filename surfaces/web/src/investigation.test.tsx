@@ -1,11 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { Investigation } from './Investigation';
-import { caseFiles } from './fixtures';
+import { Investigation, caseFunnel } from './Investigation';
+import { caseFiles, cards } from './fixtures';
 import { LocaleContext } from './ui';
+import type { InsightCard } from './types/insight-card';
 
 const hero = caseFiles.find(f => f.case.case_id === 'case-m01-063-pressure_shift')!;
-const render = (file = hero) => renderToStaticMarkup(<LocaleContext.Provider value="en"><Investigation file={file} /></LocaleContext.Provider>);
+const heroCard = cards.find(c => c.id === 'ins-m01-063-pressure_shift' && c.revision === 1)!;
+const render = (file = hero, card?: InsightCard) => renderToStaticMarkup(<LocaleContext.Provider value="en"><Investigation file={file} card={card} /></LocaleContext.Provider>);
 
 describe('recorded investigation', () => {
   it('shows the confirmation window and both-team readings from the file', () => {
@@ -55,6 +57,40 @@ describe('recorded investigation', () => {
     recovered.case.checkpoints![0].agents_failed = ['physical'];
     expect(render(recovered)).toContain('Failed agents');
     expect(render(recovered)).toContain('Yes');
+  });
+  it('sums the investigation up in a funnel tallied from the recorded file and its card', () => {
+    expect(caseFunnel(hero, heroCard)).toEqual({
+      agents: ['tactics', 'physical', 'game_state'], registered: 6, refused: 0, tested: 6, kept: 3, failed: 3,
+      counter: { holds: 1, weakened: 2, refuted: 0, unrun: 2 }, outcome: 'explained',
+      primary: { id: 'hyp-tactics-01', cause: 'tactical.press_intensity_up' }, verdict: 'passed', support: 'strong',
+    });
+    const html = render(hero, heroCard);
+    expect(html).toContain('The investigation at a glance');
+    expect(html).toContain('3 of 6');
+    expect(html).toContain('Failed their own prediction: 3');
+    expect(html).toContain('Refused or not measurable: 2');
+    expect(html).toContain('<strong>Explained: Press stepped up</strong>');
+    expect(html).toContain('Verifier: Passed · Strong');
+    const spanish = renderToStaticMarkup(<LocaleContext.Provider value="es"><Investigation file={hero} card={heroCard} /></LocaleContext.Provider>);
+    expect(spanish).toContain('3 de 6');
+    expect(spanish).toContain('Verificador: Aprobado · Fuerte');
+    expect(spanish).toContain('Presión intensificada');
+  });
+  it('reads every funnel count from the recorded verdicts, and the verdict only from this case\'s card', () => {
+    const changed = structuredClone(hero);
+    changed.tests[0].outcome = 'failed';
+    (changed.cross_examinations[1] as { result?: string }).result = 'refuted';
+    changed.refused = [{ agent: 'physical', cause: 'physical.unit_fatigue', metric: 'xg', subject: 'Harbour City', reason: 'not measurable' }];
+    changed.unrun = [];
+    changed.ranking = { ...changed.ranking, outcome: 'none', primary: null };
+    expect(caseFunnel(changed)).toMatchObject({ kept: 2, failed: 4, refused: 1, counter: { holds: 0, weakened: 2, refuted: 1, unrun: 0 }, outcome: 'none' });
+    expect(caseFunnel(changed)).not.toHaveProperty('primary');
+    expect(caseFunnel(hero)).not.toHaveProperty('verdict');
+    expect(caseFunnel(hero, cards.find(c => c.case_id !== hero.case.case_id && c.verification))).not.toHaveProperty('verdict');
+    expect(render(hero)).not.toContain('Verifier:');
+    const faded = caseFiles.find(f => f.agents.length === 0)!;
+    expect(caseFunnel(faded)).toBeUndefined();
+    expect(render(faded)).not.toContain('case-funnel');
   });
   it('shows faded cases without inventing an investigation and lists unrun reasons', () => {
     const faded = caseFiles.find(f => f.agents.length === 0)!;

@@ -61,7 +61,7 @@ No sign-in is needed. The replay starts paused at 68:00, viewed as a Northvale f
 3. **Ask Proofline** (fan view, the first tab under the current card; also a tab of the analyst console).
    - The five suggestions replay recorded answers.
    - Then type your own question about the match so far, in the second half. It is answered live in Azure, and you can watch the stages:
-     - "Is Ambrel sprinting less since 70?" at 76:00 is turned away in seconds: his sprints fell, but not beyond ordinary play.
+     - "Why is Harbour City's defence tiring since 58?" at 68:00 is turned away in seconds: their defence is sprinting more, not less.
      - "Why have Harbour City been pressing so high since 58?" at 68:00 runs the full investigation in one to three minutes.
    - Ask as many as you like, one at a time. A generous daily budget only stops a single visitor from scripting through it.
 4. **Analyst console**, at https://nice-coast-044d8740f.5.azurestaticapps.net/#/analyst?t=68:00&lang=en.

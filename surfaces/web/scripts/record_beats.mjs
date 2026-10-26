@@ -27,8 +27,9 @@ const BEATS = {
     { clickText: 'Approve' },{ wait: 2500 }, { click: 'a[href="#/overlay"]' }, { wait: 5000 }],
   '04-followup-83': [{ go: '#/fan?t=82:55&lang=en' },{ wait: 1200 }, { click: '.play-button' }, { wait: 6500 },
     { click: '.play-button' }, { wait: 5500 }],
-  '05-live-ask': [{ go: '#/fan?t=76:00&lang=en' }, { wait: 1500 }, { scrollTo: '.ask-panel' }, { wait: 1200 },
-    { type: '.ask-form input', text: 'Is Ambrel sprinting less since 70?' }, { wait: 700 }, { submit: '.ask-form input' },
+  // A premise the data contradicts outright: Harbour City's defence sprints more since 58', not less.
+  '05-live-ask': [{ go: '#/fan?t=68:00&lang=en' }, { wait: 1500 }, { scrollTo: '.ask-panel' }, { wait: 1200 },
+    { type: '.ask-form input', text: "Why is Harbour City's defence tiring since 58?" }, { wait: 700 }, { submit: '.ask-form input' },
     { until: '!!document.querySelector(".ask-panel .recorded-answer") || !!document.querySelector(".ask-panel .unknown-question")', timeout: 90000 },
     { wait: 800 }, { scrollTo: '.live-progress' }, { wait: 5500 }],
   '06-scoreboard': [{ go: '#/analyst?t=68:00&lang=en' }, { wait: 2000 }, { click: '#tab-evaluation' }, { wait: 1500 },

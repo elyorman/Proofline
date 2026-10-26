@@ -42,8 +42,15 @@ export function Scoreboard() {
     <tbody>{rows(runs).map(r => <tr key={r.id}><th>{text(`sb.variant.${r.variant}`)}</th><td>{label(r)}</td>
       {metrics.map(m => <td key={m}>{estimate(locale, r.metrics.find(e => e.name === m))}</td>)}</tr>)}</tbody>
   </table></div>;
+  // The README's headline leads here too: viewer questions, the Verifier, then detected moments
+  // and every paired difference.
   return <section className="scoreboard">
     <p className="muted">{text('sb.source')}</p>
+    {scoreboard.questions.length > 0 && <><h3 id="sb-questions">{text('sb.questions')}</h3>{table(scoreboard.questions, QUESTION_METRICS)}</>}
+    {scoreboard.seeded.length > 0 && <><h3>{text('sb.verifier')}</h3><div className="table-scroll"><table>
+      <thead><tr><th>{text('sb.model')}</th><th>{text('sb.catch_rate')}</th><th>{text('sb.false_rejection_rate')}</th></tr></thead>
+      <tbody>{scoreboard.seeded.map(s => <tr key={s.id}><th>{s.model_id ?? '—'}</th><td>{estimate(locale, s.catch_rate)}</td><td>{estimate(locale, s.false_rejection_rate)}</td></tr>)}</tbody>
+    </table></div></>}
     <h3>{text('sb.cases')}</h3>
     {scoreboard.detector.length ? table(scoreboard.detector, CASE_METRICS) : <p className="muted">{text('sb.none')}</p>}
     {scoreboard.comparisons.length > 0 && <><h3>{text('sb.comparisons')}</h3><div className="table-scroll"><table>
@@ -51,10 +58,5 @@ export function Scoreboard() {
       <tbody>{[...scoreboard.comparisons].sort((a, b) => a.id.localeCompare(b.id)).map(c => c.differences.map(d => <tr key={`${c.id}-${d.name}`}>
         <th>{text(`sb.variant.${c.variant_a}`)} − {text(`sb.variant.${c.variant_b}`)}</th><td>{label(c)}</td><td>{text(`sb.m.${d.name}`)}</td><td>{estimate(locale, d, true)}</td>
       </tr>))}</tbody></table></div></>}
-    {scoreboard.questions.length > 0 && <><h3>{text('sb.questions')}</h3>{table(scoreboard.questions, QUESTION_METRICS)}</>}
-    {scoreboard.seeded.length > 0 && <><h3>{text('sb.verifier')}</h3><div className="table-scroll"><table>
-      <thead><tr><th>{text('sb.model')}</th><th>{text('sb.catch_rate')}</th><th>{text('sb.false_rejection_rate')}</th></tr></thead>
-      <tbody>{scoreboard.seeded.map(s => <tr key={s.id}><th>{s.model_id ?? '—'}</th><td>{estimate(locale, s.catch_rate)}</td><td>{estimate(locale, s.false_rejection_rate)}</td></tr>)}</tbody>
-    </table></div></>}
   </section>;
 }

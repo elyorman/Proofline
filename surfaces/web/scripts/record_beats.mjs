@@ -29,7 +29,7 @@ const BEATS = {
     { until: '!!document.querySelector(".ask-panel .recorded-answer") || !!document.querySelector(".ask-panel .unknown-question")', timeout: 90000 },
     { wait: 800 }, { scrollTo: '.live-progress' }, { wait: 5500 }],
   '06-scoreboard': [{ go: '#/analyst?t=68:00&lang=en' }, { wait: 2000 }, { click: '#tab-evaluation' }, { wait: 1500 },
-    { scrollTo: '.scoreboard' }, { wait: 2500 }, { scrollBy: 900, over: 5000, in: '.case-body' }, { wait: 2500 }],
+    { scrollTo: '#sb-questions' }, { wait: 6000 }, { scrollBy: 500, over: 3500, in: '.case-body' }, { wait: 2000 }],
 };
 
 for (const [name, steps] of Object.entries(BEATS)) {

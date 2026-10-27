@@ -1,6 +1,6 @@
 # CLAUDE.md — Proofline
 
-Proofline is a multi-agent match-intelligence engine for live football, built solo for the Microsoft × Premier League "Inside the Game" hackathon. Submission closes 27 October 2026 11:59 pm Pacific; the public link must stay up through 10 November. The full spec is `docs/spec.md`; read it before any non-trivial change. This file is the operating manual for working in this repo.
+Proofline is a multi-agent match-intelligence engine for live football, built solo for the Microsoft "Inside the Game" hackathon. Submission closes 27 October 2026 11:59 pm Pacific; the public link must stay up through 10 November. The full spec is `docs/spec.md`; read it before any non-trivial change. This file is the operating manual for working in this repo.
 
 ## The one-line mission
 

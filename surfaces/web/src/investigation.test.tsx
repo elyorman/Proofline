@@ -94,7 +94,7 @@ describe('recorded investigation', () => {
   });
   it('shows faded cases without inventing an investigation and lists unrun reasons', () => {
     const faded = caseFiles.find(f => f.agents.length === 0)!;
-    expect(render(faded)).toContain('Faded');
+    expect(render(faded)).toContain('Within ordinary play');
     expect(render(faded)).toContain('No agents were asked');
     expect(render(faded)).not.toContain('hypothesis-card');
     const unrun = structuredClone(hero);

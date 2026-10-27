@@ -53,7 +53,7 @@ describe('recorded questions', () => {
     for (const answer of answers.filter(a => a.outcome === 'premise_false')) {
       const html = render(<AnswerView answer={answer} data={data} elapsed={6000} />);
       expect(html).toContain('Premise did not hold');
-      expect(html).toMatch(/Faded|Went the other way/);
+      expect(html).toMatch(/Within ordinary play|Went the other way/);
       expect(html).not.toContain('insight-card');
       if (answer.question.question_id === 'q4') expect(html).toContain('Ambrel');
     }
@@ -63,7 +63,7 @@ describe('recorded questions', () => {
     const other = answers.find(a => a.outcome === 'premise_false' && (a.premise_test?.sigmas ?? 0) >= 1.5)!;
     const html = render(<AnswerView answer={other} data={data} elapsed={6000} />);
     expect(html).toContain('Went the other way');
-    expect(html).not.toContain('Faded');
+    expect(html).not.toContain('Within ordinary play');
     expect(render(<AnswerView answer={other} data={data} elapsed={6000} />, 'es')).toContain('Fue al contrario');
   });
   it('says a premise with no measurement could not be tested, not that it faded', () => {
@@ -73,7 +73,7 @@ describe('recorded questions', () => {
     expect(html).toContain('Could not be tested');
     expect(html).toContain('Not tested');
     expect(html).not.toContain('Premise did not hold');
-    expect(html).not.toContain('Faded');
+    expect(html).not.toContain('Within ordinary play');
     expect(render(<AnswerView answer={untested} data={data} elapsed={6000} />, 'es')).toContain('No se pudo comprobar');
   });
   it('requires explained, verified and clock-available cards', () => {

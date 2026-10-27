@@ -28,7 +28,7 @@ describe('faithful card rendering', () => {
     expect(html).toContain(metricNumber('es', evidence.metric, evidence.value));
     for (const alternative of press.rejected_alternatives!) {
       expect(html).toContain(render(<p>{alternative.reason}</p>));
-      expect(html).toContain(alternative.taxonomy);
+      expect(html).toContain(t('es', `cause.${alternative.taxonomy}`));  // named, not its raw id
     }
     expect(html).not.toContain('Fatigue is the sample alternative');
     expect(html).not.toContain('Moderate support');

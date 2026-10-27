@@ -15,7 +15,7 @@ export function RejectedAlternatives({ card }: { card: InsightCard }) {
   return <section className="alternatives">
     <h3>{text('insights.alternative')}</h3>
     {card.rejected_alternatives.map((alternative, index) => <article className="alternative" key={`${alternative.hypothesis_id}-${index}`}>
-      <strong>{alternative.taxonomy}</strong>
+      <strong>{text(`cause.${alternative.taxonomy}`)}</strong>
       <p>{alternative.reason}</p>
       <dl className="card-facts">
         <div><dt>{text('case.hypothesis')}</dt><dd><code>{alternative.hypothesis_id}</code></dd></div>
@@ -32,7 +32,7 @@ export function Evidence({ card }: { card: InsightCard }) {
   const { text, metric } = useText();
   return <div className="evidence-body">
     {!card.evidence?.length ? <p className="muted">{text('insights.noEvidence')}</p> : card.evidence.map((e, index) => <div className="evidence-metric" key={`${e.tool_call_id}-${index}`}>
-      <div><strong>{text(`metric.${e.metric}`)}</strong><span>{e.subject}</span></div>
+      <div><strong>{text(`metric.${e.metric}`)}</strong><span>{subjectLabel(e.subject, text)}</span></div>
       <div className="before-after">
         <div><span>{text(`baseline.${e.baseline.window}`)}</span><strong>{metric(e.metric, e.baseline.value)}</strong></div>
         <Icon name="arrow" size={18} />
@@ -58,7 +58,7 @@ export function Insight({ card, onOpen, mode = 'casual' }: { card: InsightCard; 
   if (!at) return null;
   return <article className={`insight-card ${withdrawn ? 'withdrawn' : ''} ${keyEvent ? 'key-event' : ''}`} aria-labelledby={labelId}>
     <div className="insight-top">
-      <span className="card-kind"><Icon name={withdrawn ? 'reset' : 'evidence'} size={15} />{text(isStandInCard(card) ? 'fixture.short' : 'record.backend')}</span>
+      <span className="card-kind"><Icon name={withdrawn ? 'reset' : 'evidence'} size={15} />{text(cardKind(card))}</span>
       <time>{formatClock(at)}</time>
     </div>
     <p className="insight-team">{card.subject.team}<span> · {text('insights.revision', { number: card.revision ?? 1 })}</span></p>
@@ -79,6 +79,10 @@ type Text = (key: string, values?: Record<string, string | number>) => string;
 const UNITS = ['defence', 'midfield', 'attack'];
 
 /** "Harbour City.attack" reads "Harbour City · attack"; teams and player ids stay as recorded. */
+/** What kind of card it is: only a verified revision is called verified; a withdrawal and a goal alert say so. */
+export const cardKind = (card: InsightCard) => isStandInCard(card) ? 'fixture.short'
+  : card.status === 'withdrawn' ? 'record.withdrawn' : card.lane === 'fast' ? 'record.fast' : 'record.backend';
+
 export function subjectLabel(subject: string, text: Text) {
   const dot = subject.lastIndexOf('.');
   const unit = subject.slice(dot + 1);
@@ -136,7 +140,7 @@ export function NowCard({ card, onOpen, mode = 'casual', full = false, viewer }:
   const withdrawn = card.status === 'withdrawn';
   return <article className={`now-card ${withdrawn ? 'withdrawn' : ''} ${card.lane === 'fast' ? 'key-event' : ''}`} aria-labelledby={labelId}>
     <div className="now-top"><span className="now-label"><i />{text(full ? 'recap' : (card.revision ?? 1) > 1 ? 'now.revised' : 'now')}</span>
-      <span className="card-kind"><Icon name={withdrawn ? 'reset' : 'evidence'} size={14} />{text(isStandInCard(card) ? 'fixture.short' : 'record.backend')}</span>
+      <span className="card-kind"><Icon name={withdrawn ? 'reset' : 'evidence'} size={14} />{text(cardKind(card))}</span>
       <time>{formatClock(at)}</time></div>
     <p className="insight-team">{card.subject.team}<span> · {text('insights.revision', { number: card.revision ?? 1 })}</span><Relevance card={card} viewer={viewer} /></p>
     <h3 id={labelId}>{cardText(card, mode === 'data' ? 'analyst' : 'casual') ?? text('insights.noVariant')}</h3>

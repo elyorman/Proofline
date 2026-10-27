@@ -76,7 +76,7 @@ describe('the current card', () => {
     expect(html).toContain('Harbour City · ataque');
     expect(html).toContain('Cansancio de una línea');
     expect(html).toContain('Proteger la ventaja');
-    expect(html.match(/Cansancio de una línea/g)).toHaveLength(1);
+    expect(html.match(/Cansancio de una línea/g)).toHaveLength(2);  // once in How we know, once in the full evidence
   });
   it('names every taxonomy cause in both languages', () => {
     const causes = ['tactical.press_intensity_up', 'tactical.press_intensity_down', 'tactical.block_deeper',

@@ -22,7 +22,7 @@ export interface TourStep {
 export const TOUR_STEPS: TourStep[] = [
   { id: 'card', route: 'fan', clock: '68:00', targets: ['.fan-now'], rail: 'ask' },
   { id: 'correction', route: 'fan', clock: '70:00', targets: ['.fan-now', '.fan-rail'], rail: 'earlier' },
-  { id: 'ask', route: 'fan', clock: '76:00', targets: ['.fan-rail'], rail: 'ask', draft: true },
+  { id: 'ask', route: 'fan', clock: '68:00', targets: ['.fan-rail'], rail: 'ask', draft: true },
   { id: 'investigation', route: 'analyst', clock: '68:00', targets: ['.case-funnel'], caseTab: 'investigation' },
   { id: 'scoreboard', route: 'analyst', clock: '68:00', targets: ['.scoreboard'], caseTab: 'evaluation' },
   { id: 'cue', route: 'broadcast', clock: '70:30', targets: ['.cue-queue .cue-card'] },

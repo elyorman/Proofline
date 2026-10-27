@@ -14,7 +14,7 @@ const render = (node: ReactNode, locale: Locale = 'en') =>
 describe('the guided tour', () => {
   it('walks the card, the correction, Ask, the investigation, the scoreboard and the pending cue', () => {
     expect(TOUR_STEPS.map(s => [s.id, s.route, s.clock])).toEqual([
-      ['card', 'fan', '68:00'], ['correction', 'fan', '70:00'], ['ask', 'fan', '76:00'],
+      ['card', 'fan', '68:00'], ['correction', 'fan', '70:00'], ['ask', 'fan', '68:00'],
       ['investigation', 'analyst', '68:00'], ['scoreboard', 'analyst', '68:00'], ['cue', 'broadcast', '70:30'],
     ]);
     expect(TOUR_STEPS.map(s => s.rail ?? s.caseTab ?? null)).toEqual(['ask', 'earlier', 'ask', 'investigation', 'evaluation', null]);
@@ -27,10 +27,12 @@ describe('the guided tour', () => {
       }
     }
   });
-  it('prefills a question no recording holds, so sending it goes live', () => {
+  it('prefills a question no recording holds, whose premise the data plainly contradicts', () => {
+    // At 68:00 Harbour City's defence sprints more than in the first half, not less.
+    expect(TOUR_STEPS.find(step => step.draft)?.clock).toBe('68:00');
     for (const locale of ['en', 'es'] as const) {
       const draft = t(locale, 'tour.draft');
-      expect(draft).toMatch(/Ambrel/);
+      expect(draft).toMatch(/Harbour City/);
       expect(recordedAnswer(draft, answers)).toBeUndefined();
     }
   });

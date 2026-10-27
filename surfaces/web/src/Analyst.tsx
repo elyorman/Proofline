@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from 'react';
 import type { InsightCard } from './types/insight-card';
-import { Evidence, useCardText } from './Insights';
+import { cardKind, Evidence, useCardText } from './Insights';
 import { displayTime, formatClock } from './replay';
 import { comparisonFiles, isStandInCard } from './fixtures';
 import { Empty, Icon, SectionTitle, TabList, useText } from './ui';
@@ -144,7 +144,7 @@ export function Analyst({ cards, allRevisions, selected, onSelect, amendments = 
     {tab !== 'ask' && <div className="case-body" key={tab} id={`panel-${tab}`} role="tabpanel" aria-labelledby={`tab-${tab}`} tabIndex={0}>
       {tab === 'evaluation' ? <Scoreboard /> : tab === 'investigation' ? (file ? <InvestigationCompare key={file.case.case_id} file={file} card={card} candidates={comparisonFiles} onScoreboard={() => setTab('evaluation')} />
         : card ? <Empty title={text('inv.noFile')} /> : <Empty title={text('case.empty')} body={text('insights.empty.sub')} />) : !card ? <Empty title={text('case.empty')} /> : <>
-        <div className="case-heading"><span className="eyebrow">{text(isStandInCard(card) ? 'fixture.short' : 'record.backend')} · {text('insights.revision', { number: card.revision ?? 1 })}</span>
+        <div className="case-heading"><span className="eyebrow">{text(cardKind(card))} · {text('insights.revision', { number: card.revision ?? 1 })}</span>
           <h2>{cardText(card, 'analyst') ?? text('insights.noVariant')}</h2><code>{card.case_id}</code>
           <p className="case-outcome">{text('case.outcome')}: {text(`outcome.${card.case_outcome}`)}</p>
         </div>

@@ -1,5 +1,6 @@
 import type { CaseFile, Prediction, ToolCall, Persistence } from './types/case-file';
 import type { InsightCard } from './types/insight-card';
+import { subjectLabel } from './Insights';
 import { formatClock } from './replay';
 import { useText, SectionTitle } from './ui';
 
@@ -16,7 +17,7 @@ const missed = (item: Persistence) => item.sigmas != null
 export function PersistenceView({ item, label }: { item: Persistence; label?: string }) {
   const { text, metric, num } = useText();
   return <article className={`persistence ${item.holds ? 'held' : 'faded'}`}>
-    <strong>{label ?? item.subject} · {text(`metric.${item.metric}`)}</strong>
+    <strong>{label ?? subjectLabel(item.subject, text)} · {text(`metric.${item.metric}`)}</strong>
     <p><WindowText window={item.window} /> · {item.sigmas == null ? <b>{text('inv.untested')}</b>
       : <><b>{text('inv.sd', { value: num(item.sigmas) })}</b> · {text(item.holds ? 'inv.held' : missed(item))}</>}</p>
     <p>{item.value == null ? text('value.unset') : metric(item.metric, item.value)} · {text('case.baseline')}: {item.baseline == null ? text('value.unset') : metric(item.metric, item.baseline)}</p>

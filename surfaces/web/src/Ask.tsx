@@ -1,8 +1,8 @@
-import { useEffect, useId, useRef, useState, type FormEvent } from 'react';
+import { useEffect, useId, useRef, useState, useSyncExternalStore, type FormEvent } from 'react';
 import type { Answer } from './types/answer';
 import type { LiveJob } from './types/live-job';
 import type { ReplayData } from './data';
-import { askLive, followLive, LIVE_API, LiveRefused } from './live';
+import { askLive, followLive, LIVE_API, LiveRefused, liveState } from './live';
 import { clockAt, displayElapsed, elapsedAt, formatClock } from './replay';
 import { t, type Locale } from './i18n';
 import { Insight } from './Insights';
@@ -44,6 +44,7 @@ export function AnswerView({ answer, data, elapsed, live = false }: { answer: An
     <span className="eyebrow">{text(live ? 'ask.live.answeredAt' : 'ask.recordedAt', { clock: formatClock(answer.question.asked_at) })}</span>
     <span className="status">{text(answer.outcome === 'premise_false' && answer.premise_test && answer.premise_test.sigmas == null ? 'answer.untested' : `answer.${answer.outcome}`)}</span>
     <h3>{answer.text[locale] ?? answer.text.en}</h3>
+    {answer.outcome === 'explained' && <p className="muted ask-run-note">{text('ask.ownRun')}</p>}
     <h4>{text('ask.premise')}</h4>
     {premise ? <p>{text(`ask.premise.${premise.direction}`, { subject, metric: text(`metric.${premise.metric}`), clock: formatClock(premise.since) })}</p> : <p>{text('ask.noPremise')}</p>}
     {answer.outcome === 'unanswerable' && <p className="muted ask-hint">{text('ask.hint')}</p>}
@@ -108,11 +109,11 @@ export function Ask({ answers, data, elapsed, onSeek, draft }: {
   useEffect(() => { if (draft) setQuery(draft.text); }, [draft]);
   const [selected, setSelected] = useState<string>();
   const [unknown, setUnknown] = useState(false);
-  const [live, setLive] = useState<LiveJob>();
-  const [startedAt, setStartedAt] = useState<number>();
+  // Shared by every Ask panel and outliving them, so changing route or tab keeps the question.
+  const { job: live, startedAt } = useSyncExternalStore(liveState.subscribe, liveState.get, liveState.get);
   const [problem, setProblem] = useState<LiveProblem>();
-  const following = useRef<AbortController | undefined>(undefined);
-  useEffect(() => () => following.current?.abort(), []);
+  // One live question at a time: a second click while it runs must not abandon it.
+  const busy = live?.status === 'queued' || live?.status === 'running';
   const results = useRef<HTMLDivElement>(null);
   const [reveal, setReveal] = useState(0);
   useEffect(() => {
@@ -122,11 +123,10 @@ export function Ask({ answers, data, elapsed, onSeek, draft }: {
   const answer = answers.find(answer => answer.question.question_id === selected);
   const available = answer && elapsed >= elapsedAt(answer.question.asked_at, data.timeline.firstHalfSeconds);
   function choose(answer: Answer, label: string) {
-    setQuery(label); setSelected(answer.question.question_id); setUnknown(false); setLive(undefined); setProblem(undefined);
+    setQuery(label); setSelected(answer.question.question_id); setUnknown(false); setProblem(undefined);
+    if (!busy) liveState.set({});
     onSeek(elapsedAt(answer.question.asked_at, data.timeline.firstHalfSeconds));
   }
-  // One live question at a time: a second click while it runs must not abandon it.
-  const busy = live?.status === 'queued' || live?.status === 'running';
   const now = useNow(busy);
   function submit(event: FormEvent) {
     event.preventDefault();
@@ -135,23 +135,23 @@ export function Ask({ answers, data, elapsed, onSeek, draft }: {
     if (found) { choose(found, query); return; }
     if (busy) return;
     setSelected(undefined); setProblem(undefined);
-    if (!LIVE_API) { setLive(undefined); setUnknown(true); return; }
+    if (!LIVE_API) { liveState.set({}); setUnknown(true); return; }
     setUnknown(false);
     const asked = clockAt(elapsed, data.timeline.firstHalfSeconds);
     if (asked.period !== 2) { setProblem({ reason: 'first_half', values: {} }); return; }
     askLive({ match_id: data.matchId, asked_at: asked, text: query.trim(), locale })
       .then(job => {
-        following.current?.abort();  // only an admitted question replaces the one shown
-        const control = new AbortController();
-        following.current = control;
-        setStartedAt(Date.now());
-        setLive(job);
+        liveState.set({ job, startedAt: Date.now() });  // only an admitted question replaces the one shown
         setReveal(n => n + 1);
-        return followLive(job, setLive, { signal: control.signal });
+        return followLive(job, next => liveState.set({ ...liveState.get(), job: next }));
       })
-      .catch(error => setProblem(error instanceof LiveRefused && error.reason !== 'unconfigured'
-        ? { reason: error.reason, values: { seconds: error.retryAfterS ?? 60, detail: error.detail ?? '' } }
-        : { reason: 'unavailable', values: {} }));
+      .catch(error => {
+        const { job } = liveState.get();  // a job the poll lost ends as failed, freeing the box
+        if (job?.status === 'queued' || job?.status === 'running') liveState.set({ ...liveState.get(), job: { ...job, status: 'failed', error: 'lost' } });
+        setProblem(error instanceof LiveRefused && error.reason !== 'unconfigured'
+          ? { reason: error.reason, values: { seconds: error.retryAfterS ?? 60, detail: error.detail ?? '' } }
+          : { reason: 'unavailable', values: {} });
+      });
   }
   // The host (a rail or console tab) names the panel; the answer is brought into view when asked for.
   return <section className="ask-panel">

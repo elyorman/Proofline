@@ -116,7 +116,7 @@ h1 { font-family: Georgia, "Times New Roman", serif; font-weight: 400; letter-sp
 .tabs.rail-tabs .rail-tab-ask { color: #2a5a3c; font-weight: 650; }
 .tabs.rail-tabs .rail-tab-ask[aria-selected="true"] { background: #e3efd2; }
 .tab-count { min-width: 18px; padding: 1px 5px; border-radius: 999px; background: #edf2e5; color: #5a7350; font-size: 10px; font-weight: 600; text-align: center; font-variant-numeric: tabular-nums; }
-.tab-dot { width: 6px; height: 6px; border-radius: 50%; background: #6fa463; box-shadow: 0 0 0 3px #6fa46326; }
+.tab-dot { flex-shrink: 0; width: 6px; height: 6px; border-radius: 50%; background: #6fa463; box-shadow: 0 0 0 3px #6fa46326; }
 .rail-panel { padding: 14px 16px 16px; animation: panel-in .18s ease-out; }
 .rail-panel:focus-visible { outline-offset: -2px; }
 .rail-panel .panel { border: 0; border-radius: 0; box-shadow: none; }
@@ -351,6 +351,8 @@ h1 { font-family: Georgia, "Times New Roman", serif; font-weight: 400; letter-sp
   .sidebar nav a { padding: 8px; }
 }
 .table-scroll { overflow-x: auto; }
+/* Cells wrap between words only: the card styles let text break anywhere, which split "System" into "Sys tem" on a phone. */
+.table-scroll th, .table-scroll td { overflow-wrap: normal; }
 .revision-diff { margin-bottom: 30px; font-size: 12px; line-height: 1.8; }
 .revision-diff h4 { margin: 18px 0 8px; }
 table { border-collapse: collapse; width: 100%; font-size: 11px; }

@@ -20,6 +20,8 @@ const csp = [
   "frame-ancestors 'none'",
 ].join('; ');
 const config = {
+  // The match's event file is JSON lines; served as JSON it is compressed (about 1 MB to 90 KB).
+  mimeTypes: { '.jsonl': 'application/json' },
   globalHeaders: {
     'Content-Security-Policy': csp,
     'X-Frame-Options': 'DENY',

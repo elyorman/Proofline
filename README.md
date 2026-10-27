@@ -8,9 +8,9 @@ Built for the Microsoft × Premier League "Inside the Game" Developer Hackathon,
 
 For broadcasters and clubs that cannot afford a confident wrong claim on air: every number is recomputed, and every claim is checked against the facts by an independent Verifier before it airs, a producer approves what goes on screen, published claims are corrected when the data changes, and every step leaves an audit trail.
 
-**Public link (no sign-in):** https://nice-coast-044d8740f.5.azurestaticapps.net. It replays a recorded match, and answers any typed question about it live, in Azure.
+**Public link (no sign-in):** https://nice-coast-044d8740f.5.azurestaticapps.net. It replays a recorded match, and from the second half on it answers any typed question about the match live, in Azure.
 
-**Demo video (1:58, narrated and captioned):** https://youtu.be/7w808hNQ2TA
+**Demo video (1:59, narrated and captioned):** https://youtu.be/7w808hNQ2TA
 
 ![The fan view at 68:00: the pitch, the verified card with How we know, and the momentum and control-vs-chaos strip](docs/images/fan.png)
 
@@ -22,11 +22,11 @@ A live stats feed can tell you that Harbour City's pressing has jumped since 58'
 
 Proofline splits the job: **statistics decides what is real; agents decide why.**
 
-- **Code decides whether a change is real** before any model sees it. Every change is measured against the normal variation of a season of simulated matches. A viewer's question is checked the same way. Asked "Why is Harbour City's defence tiring?", Proofline answers "it isn't, beyond ordinary play" when the numbers say so.
+- **Code decides whether a change is real** before any model sees it. Every change is measured against the normal variation of a season of simulated matches. A viewer's question is checked the same way. Asked "Why is Harbour City's defence tiring?", Proofline answers that it went the other way: their defence is sprinting more than in the first half.
 - **Three specialist agents** (tactics, physical, game state) propose causes. Each one pre-registers, as numbers, what its cause would predict. Code runs the tests with the State Builder's tools, which our MCP server serves, and agents never compute a statistic.
 - **They cross-examine each other.** Each surviving cause is challenged by the other agents with counter-tests they design. Code refuses unfair tests and scores the rest.
 - **It keeps watching when the evidence can't decide.** If two causes still fit, the card says so. Each side then pre-registers a decisive test for the next 15 minutes. Code settles it then and publishes the result as a new revision.
-- **An independent Verifier checks everything first.** It recomputes every number from the exact events it came from. It also checks every English sentence against the facts, at the wording the evidence allows. No model writes what a viewer reads: templates fill it in from the checked facts, in English and Spanish alike, and the Spanish numbers are checked the same way. Nothing reaches a fan, analyst or overlay without it.
+- **An independent Verifier checks everything first.** It recomputes every number from the exact events it came from. It also checks every English sentence against the facts, at the wording the evidence allows. No model writes a card or an answer: templates fill them in from the checked facts, in English and Spanish alike, and the Spanish numbers are checked the same way. Nothing reaches a fan, analyst or overlay without the Verifier, except goal alerts, which state only the event. The one model text a viewer sees unchecked is the Lead's one-line reading of a live question, shown as its progress.
 - **It corrects itself.** When the feed amends events, the Correction Watcher finds every card that used them. It re-verifies each one, then revises or withdraws it on every surface. Earlier revisions stay visible.
 
 ![Proofline's architecture: code gates what is real, the Why Engine's agents explain it, the Verifier checks it, and the surfaces show it](docs/images/architecture.png)
@@ -59,7 +59,7 @@ flowchart LR
 
 ## What we measured
 
-All results come from a held-out split, scored against sealed ground truth. It was run once, after the agents were frozen at git tag `agents-frozen`; the run was resumed once, after a machine reboot. A CI guard keeps product code from reading the ground truth. Every figure below is quoted from a record in [`eval/records/`](eval/records/), and CI fails if this README quotes a figure no record holds. The [full scoreboard](docs/scoreboard.md), with every interval, is in `docs/`.
+All results come from a held-out split, scored against sealed ground truth. It was run once, after the agents were frozen at git tag `agents-frozen`; the run was resumed once, after a machine reboot. A CI guard keeps product code from reading the ground truth. Every rate, difference and interval below is quoted from a record in [`eval/records/`](eval/records/), and CI fails if this README quotes one that no record holds. The [full scoreboard](docs/scoreboard.md), with every interval, is in `docs/`.
 
 Three variants ran on the same model (gpt-5-mini) with the same tools and tool budget:
 
@@ -119,7 +119,7 @@ Code's own checks catch the wrong numbers. Only the semantic check catches a wro
 
 ### An outside judge
 
-Microsoft Foundry's built-in evaluators read every card revision the demo take published, in both languages, and the answers that turned a premise away. Each text is judged against the same facts our Verifier saw ([`eval/foundry/demo-take.json`](eval/foundry/demo-take.json), from [`eval/foundry_evals.py`](eval/foundry_evals.py)). All 28 texts pass relevance and coherence, 27 pass fluency, and 23 pass groundedness. Four of the five it marks weakly grounded are the settled 63' card, in every version: casual and analyst, English and Spanish. The fifth is the first 63' card in Spanish, a language our own semantic check does not read. An earlier run flagged the settled card's "the numbers still fit all three", which claimed more than the follow-up found; the card now says no check had told the causes apart, and the judge still marks it weakly grounded. The judge is itself a model, so its verdicts vary a little between runs.
+Microsoft Foundry's built-in evaluators read every verified card revision the demo take published, in both languages, and the answers that turned a premise away. Each text is judged against the same facts our Verifier saw ([`eval/foundry/demo-take.json`](eval/foundry/demo-take.json), from [`eval/foundry_evals.py`](eval/foundry_evals.py)). All 28 texts pass relevance and coherence, 27 pass fluency, and 23 pass groundedness. Four of the five it marks weakly grounded are the settled 63' card, in every version: casual and analyst, English and Spanish. The fifth is the first 63' card in Spanish, a language our own semantic check does not read. An earlier run flagged the settled card's "the numbers still fit all three", which claimed more than the follow-up found; the card now says no check had told the causes apart, and the judge still marks it weakly grounded. The judge is itself a model, so its verdicts vary a little between runs.
 
 ## See it
 
@@ -133,7 +133,7 @@ The [public link](https://nice-coast-044d8740f.5.azurestaticapps.net) replays on
     - **77' and 83':** the follow-ups settle, saying honestly that no check told the causes apart.
   - **How we know** on any card shows its evidence, the causes it ruled out and its revisions.
   - **Ask Proofline** plays five recorded questions. Two have false premises and are turned away; one ("Who will win?") is declined.
-  - **Type any other question** about the match so far, in English or Spanish, and it is answered live. The Lead's premise, code's test, the three agents and the Verifier run in Azure, and each stage appears as it is reached. A false premise is answered in seconds; a real investigation takes one to three minutes. Each viewer asks one question at a time, and a day's questions share a budget of model tokens that no single viewer may use more than a fifth of.
+  - **Type any other question** about the match so far, at a minute in the second half, in English or Spanish, and it is answered live. The Lead's premise, code's test, the three agents and the Verifier run in Azure, and each stage appears as it is reached. A false premise is answered in seconds; a real investigation takes one to three minutes. Each viewer asks one question at a time, and a day's questions share a budget of model tokens that no single viewer may use more than a fifth of.
 - **Analyst (`#/analyst`).** The full case file for every case:
   - **Investigation:** each agent's pre-registered predictions, tool calls, counter-tests, refusals, synthesis and checkpoints.
   - **Verification and revision history:** the Verifier's results and the amendment's diff.
@@ -187,7 +187,7 @@ make stream-m01                                            # the match through E
 uv run uvicorn surfaces.api.app:create --factory --port 8000  # the live API locally, against the same Azure resources
 ```
 
-**Reproduce the evaluation:** the commands are in [`docs/scoreboard.md`](docs/scoreboard.md), beside every record.
+**Reproduce the evaluation:** the commands that produced every record are in [`docs/scoreboard.md`](docs/scoreboard.md).
 
 ## Best Enterprise Solution, clause by clause
 
@@ -195,7 +195,7 @@ uv run uvicorn surfaces.api.app:create --factory --port 8000  # the live API loc
 |---|---|
 | Path to enterprise adoption | One command (`azd up`) provisions everything into a customer's own Azure subscription, keyless, from Bicep; the event contract ([`docs/event.schema.json`](docs/event.schema.json)) is where a data provider's feed plugs in. See [Path to production](#path-to-production). |
 | Reliability | Statistics decides what is real before any model runs. Against a plain tool-using agent on held-out questions, Proofline cut false causes and turned away almost every false premise ([What we measured](#what-we-measured)). The Verifier caught seeded false claims and rejected no untouched card; a failed agent is retried from its stage's checkpoint. |
-| Transparency | Every card carries How we know: its numbers, their baselines, the causes ruled out and every revision. The analyst console shows each agent's pre-registered predictions, code's verdicts and the Verifier's checks. Every evaluation is published, including where three agents did no better than one, and CI fails if the README quotes a number no record holds. |
+| Transparency | Every card carries How we know: its numbers, their baselines, the causes ruled out and every revision. The analyst console shows each agent's pre-registered predictions, code's verdicts and the Verifier's checks. Every evaluation is published, including where three agents did no better than one, and CI fails if the README quotes a rate or interval no record holds. |
 | Controls | Nothing reaches a viewer without the Verifier. Broadcast cues wait for a producer to approve, hold or kill them. Corrections revise or withdraw a card on every surface that showed it, and history is never erased. The live API caps spend per viewer and per day. |
 | Long-term business impact | One verified insight serves three products: a fan companion in the viewer's language, an analyst console and a broadcast cue feed. A retraction costs a broadcaster more than a delay; Proofline would rather say "not clear yet" than guess, and says so on air. |
 
@@ -203,13 +203,13 @@ uv run uvicorn surfaces.api.app:create --factory --port 8000  # the live API loc
 
 What it takes to run Proofline on a real match, and what it costs. These are true today or one step away.
 
-- **A real feed.** A provider's events plug in through the event contract ([`contracts/event.py`](contracts/event.py)), streamed through Event Hubs into the Cosmos DB ledger as the demo match is (`make stream-m01`). An adapter maps the provider's event names to ours. Amended events arrive as versions, which the Correction Watcher already handles.
+- **A real feed.** A provider's events plug in through the event contract ([`contracts/event.py`](contracts/event.py)), streamed through Event Hubs into the Cosmos DB ledger as the demo match is (`make stream-m01`). An adapter maps the provider's event names to ours. The Correction Watcher already revises and withdraws cards when events are amended; carrying amendments on the Event Hubs feed is still to build.
 - **Tracking data.** The feed today carries events and sprints, not player tracking. Tracking would add distance, speed and team shape: new State Builder metrics and tools for the agents, with the same verification.
 - **Cost.** The held-out records count the model's tokens. A full match's detected moments took about 37,000 tokens on average across 40 matches ([record](eval/records/batch-A-715af4adadbb1553-wilson.json)), and a viewer's question about 12,000 across 80 ([record](eval/records/questions-heldout-A-99e67b73770ed5b8.json)), on gpt-5-mini. The live API's daily token budget caps what viewers can spend.
-- **Human approval.** Broadcast cues wait for a producer; correction cues are raised automatically for approval. Fan and analyst surfaces show only verified cards.
-- **Deployment.** `azd up` into the customer's own subscription, keyless throughout: managed identity and roles, no secrets, security headers on the public site.
+- **Human approval.** Broadcast cues wait for a producer; correction cues are raised automatically for approval. Fan and analyst surfaces show only verified cards, besides goal alerts that state the event itself.
+- **Deployment.** `azd up` into the customer's own subscription, keyless throughout: managed identity and roles, no stored secrets (the Static Web Apps deploy token is read at deploy time), security headers on the public site.
 - **Governance.** The Cosmos DB ledger keeps every version of every event, every live answer's cards and an audit record per question. Application Insights holds a trace of every live run. The evaluation records and CI keep every published claim honest.
-- **Still to build for production:** durable checkpoints and idempotent writes, a multi-replica API, and the Correction Watcher on the Cosmos change feed ([`docs/backlog.md`](docs/backlog.md)).
+- **Still to build for production:** durable checkpoints and idempotent writes, a multi-replica API, amendments on the Event Hubs feed, and the Correction Watcher on the Cosmos change feed ([`docs/backlog.md`](docs/backlog.md)).
 
 ## How the agents work together
 
@@ -225,9 +225,9 @@ What it takes to run Proofline on a real match, and what it costs. These are tru
 
 | Technology | What it does here | Evidence |
 |---|---|---|
-| Microsoft Foundry | Hosts the gpt-5-mini deployment that every role runs on: specialists, Lead, plain agent and the Verifier's semantic check. It also hosts Phi-4, measured as the Verifier in the comparison above, and its built-in evaluators judge the demo take's text. | [`infra/resources.bicep`](infra/resources.bicep), [`agents/llm.py`](agents/llm.py), [`agents/verifier/semantic.py`](agents/verifier/semantic.py), [`eval/foundry_evals.py`](eval/foundry_evals.py); deployments read back in [`docs/azure-mcp.md`](docs/azure-mcp.md) |
+| Microsoft Foundry | Hosts the gpt-5-mini deployment that every role runs on: specialists, Lead, plain agent and the Verifier's semantic check. It also hosts Phi-4, measured as the Verifier in the comparison above, and its built-in evaluators judge the demo take's text. | [`infra/resources.bicep`](infra/resources.bicep), [`agents/llm.py`](agents/llm.py), [`agents/verifier/semantic.py`](agents/verifier/semantic.py), [`eval/foundry_evals.py`](eval/foundry_evals.py); the gpt-5-mini deployment read back in [`docs/azure-mcp.md`](docs/azure-mcp.md) |
 | Microsoft Agent Framework | The Why Engine workflow (parallel specialists → code tests → cross-examination → synthesis), checkpointed after every stage. Every model call goes through an Agent Framework agent on the Foundry chat client, with Entra ID. Its OpenTelemetry instrumentation traces every live run. | [`orchestration/workflow.py`](orchestration/workflow.py), [`tests/test_why_engine_workflow.py`](tests/test_why_engine_workflow.py) |
-| Custom MCP server | The State Builder's tools (`metric`, `baseline`, `game_state`), refusing minutes that have not been played yet. Any MCP client can reach it over stdio (`python -m tools_server.server`); the agents and the plain agent call the same server's tools in-process. | [`tools_server/server.py`](tools_server/server.py), [`tests/test_tools_server.py`](tests/test_tools_server.py) |
+| Custom MCP server | The State Builder's tools (`metric`, `baseline`, `game_state`), refusing minutes that have not been played yet. Any MCP client can reach it over stdio (`uv run python -m tools_server.server --data data --match m01 --as-of 63:00`); the agents and the plain agent call the same server's tools in-process. | [`tools_server/server.py`](tools_server/server.py), [`tests/test_tools_server.py`](tests/test_tools_server.py) |
 | Azure MCP Server | Read-only checks of the deployments, roles and stored records during the build | [`docs/azure-mcp.md`](docs/azure-mcp.md) |
 | Container Apps, Container Registry | The live API ([`surfaces/api/`](surfaces/api/)) runs the product's question path in Azure: one always-on replica, reaching Foundry and Cosmos DB with its managed identity. azd builds the image and the app pulls it with the same identity. | [`surfaces/api/app.py`](surfaces/api/app.py), [`surfaces/api/Dockerfile`](surfaces/api/Dockerfile), [`tests/test_live_api.py`](tests/test_live_api.py) |
 | Application Insights | Receives the OpenTelemetry trace of every live question, through Agent Framework's instrumentation; each job reports its trace id | [`surfaces/api/app.py`](surfaces/api/app.py) |
@@ -254,7 +254,7 @@ Matches come from a possession-chain simulator ([`engine/`](engine/)) driven by 
 - **Runs vary.** The same moment can get different explanations on different runs (see [Which take is shown](#see-it)).
 - **A cause can survive on evidence unrelated to the change it explains.** The 62' flank card explains a shift the feed error invented with "Harbour City chasing the result". That cause survived only because Harbour City's pressing really did rise. The correction withdraws the card at 70'.
 - **The Verifier's semantic check uses the agents' model.** It is gpt-5-mini with its own prompt and none of their context. Phi-4, the other model family we could deploy, tied on the seeded suite but rejected a sound demo card. The check judges the English sentences. Spanish sentences get the deterministic number check, not the semantic one; they come from the same templates as the English, never from a model, so what goes unchecked is our translation of those templates.
-- **Some things changed after the freeze.** Viewer wording for follow-ups, and the Verifier's instructions about that wording, changed after the held-out runs. So did the answer to a premise code could not test (too few events, say): it said "not beyond ordinary play", and now says Proofline can't tell; outcomes and scores are unchanged. So did the surfaces and the evaluation's reporting: intervals, paired comparisons, and applying the frozen not-observable flags to questions. No agent prompt, test rule or workflow changed. The held-out cards were narrated and verified with the earlier wording.
+- **Some things changed after the freeze.** Viewer wording for follow-ups, and the Verifier's instructions about that wording, changed after the held-out runs. So did the answer to a premise code could not test (too few events, say): it said "not beyond ordinary play", and now says Proofline can't tell; outcomes and scores are unchanged. So did the surfaces and the evaluation's reporting: intervals, paired comparisons, and applying the frozen not-observable flags to questions. No agent prompt or test rule changed. The workflow gained progress reports for the live page, and the Lead gained one check: a question that names no team, unit or player to test is declined instead of failing. The held-out cards were narrated and verified with the earlier wording.
 - **Live questions take time and share a budget.** A real investigation takes one to three minutes. A day's questions share a budget of model tokens, about 300 full investigations, and no viewer may spend more than a fifth of it. Recorded questions answer instantly.
 
 ## Full scoreboard

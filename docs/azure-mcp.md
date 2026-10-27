@@ -36,7 +36,7 @@ On 22 October 2026, Azure CLI confirmed the subscription bills in KRW. The month
 
 ## 23 October 2026: gate 2, a scripted match through Event Hubs into Cosmos
 
-`proofline-engine clock` replayed m01 (seed 4434) onto the `match-events` hub as run `gate2-1792733237`; `proofline ingest` read it, wrote the ledger and ran the detector a minute at a time. Both used the developer's Entra ID credential; no keys. The Azure MCP Server then read the result back from Cosmos DB.
+`proofline-engine clock` replayed m01 (seed 4434) onto the `match-events` hub as run `gate2-1792733237`; `proofline ingest` read it, wrote the ledger and ran the detector a minute at a time. Both used the developer's Entra ID credential; no keys. The Azure MCP Server then read the result back from Cosmos DB. (m01 had 2963 events then; the sprint fix of 24 October, in DATASET.md, regenerated it with 2974, which is what the replay and the live API use now.)
 
 | # | Tool and command | Purpose | Result |
 |---|---|---|---|

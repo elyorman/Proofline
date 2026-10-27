@@ -22,7 +22,7 @@ A stats feed can tell you a team's pressing jumped after 58'. It cannot tell you
 - **Code decides what is real.** A detected change must stay beyond normal variation for five more minutes. A viewer's question is turned into one measurable premise and tested the same way. "Is Ambrel tiring?" gets "not beyond ordinary play" when the numbers say so.
 - **Specialist agents decide why, and code scores them.** Tactics, Physical and Game-State each register causes in their own domain, with predictions in numbers, before any tool runs. Code runs every test through the State Builder's tools. The agents then cross-examine each other's survivors with counter-tests they design, and code refuses unfair ones. A synthesis step ranks what survived.
 - **It keeps watching when the evidence can't decide.** If two causes still fit, the card says so. Each side bets on the next 15 minutes, and code settles the bet in a new revision.
-- **Nothing reaches a viewer unverified.** The Verifier recomputes every number from the exact events it came from and checks every English sentence against the facts at the wording the evidence allows. No model writes what a viewer reads: templates fill it in from the checked facts, in English and Spanish alike, and the Spanish numbers are checked the same way.
+- **Nothing reaches a viewer unverified.** The Verifier recomputes every number from the exact events it came from and checks every English sentence against the facts at the wording the evidence allows. No model writes a card or an answer: templates fill them in from the checked facts, in English and Spanish alike, and the Spanish numbers are checked the same way.
 - **It corrects itself.** When the feed amends events, the Correction Watcher finds every dependent card and revises or withdraws it on the fan view, the analyst console and the broadcast cue feed. History stays visible.
 - **One verified insight, three experiences.** A fan view in English or Spanish around your club and player, with a live pitch, momentum and control-vs-chaos. An analyst console with the full case file. Broadcast cues with approve, hold and kill.
 - **Ask anything, live.** A typed question no recording holds runs through the real agents in Azure, and the page shows each stage as it is reached.
@@ -36,7 +36,7 @@ A stats feed can tell you a team's pressing jumped after 58'. It cannot tell you
 - **Application Insights:** a trace of every live question, with the workflow, each agent and every model call.
 - **Event Hubs and Cosmos DB:** the match feed and the ledger of events, cases, cards and audit records.
 - **Static Web Apps:** the public replay.
-- **azd, Bicep and GitHub Actions:** one-command provisioning and CI that fails if the README quotes a number no evaluation record holds.
+- **azd, Bicep and GitHub Actions:** one-command provisioning and CI that fails if the README quotes a rate or interval no evaluation record holds.
 
 ### What we measured
 

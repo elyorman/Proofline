@@ -1,4 +1,4 @@
-# Demo script (1:58)
+# Demo script (1:59)
 
 Recorded from the public replay at 1080p, narrated, captioned, no music, fictional names only. One continuous match clock stays visible. Every beat comes from the one Studio take the surfaces show (the README's "Which take is shown"); the recovery beat replays that take's own recordings in a terminal.
 

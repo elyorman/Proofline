@@ -13,6 +13,7 @@ question cannot make Proofline say anything the Verifier did not pass.
 """
 
 import asyncio
+import json
 import logging
 import os
 import time
@@ -41,8 +42,12 @@ from orchestration.question import run_question
 from tools_server.server import DirectorySource
 
 MATCHES = {"m01"}  # the matches the public link replays
-DAILY_TOKENS = 15_000_000  # all viewers' questions in a UTC day: about 300 full investigations
+# All viewers' questions in a UTC day: about 90 full investigations. Low enough that a budget
+# drained every day until judging ends stays within what the subscription has left.
+DAILY_TOKENS = 5_000_000
 VIEWER_SHARE = 0.2  # no one viewer spends more than this share of a day's budget
+FAILED_TOKENS = 60_000  # a failed question's calls are not all reported: charge one investigation
+MAX_BODY = 4096  # bytes: a question is far smaller; anything larger is refused before it is read
 AT_ONCE = 2  # questions answered at the same time
 WAITING = 8  # questions that may wait behind them
 JOB_TIMEOUT_S = 420  # a full investigation takes one to three minutes
@@ -102,11 +107,15 @@ class Service:
     tasks: set[asyncio.Task] = field(default_factory=set)
     match_end: dict[str, tuple[int, int]] = field(default_factory=dict)
 
-    def admit(self, viewer: str, now: float) -> tuple[int, dict[str, Any]] | None:
-        """Why a question may not run now, or None when it may."""
+    def roll(self, now: float) -> None:
+        """A new UTC day starts the budget over."""
         today = time.strftime("%Y-%m-%d", time.gmtime(now))
         if today != self.day:
             self.day, self.spent, self.spent_by = today, 0, {}
+
+    def admit(self, viewer: str, now: float) -> tuple[int, dict[str, Any]] | None:
+        """Why a question may not run now, or None when it may."""
+        self.roll(now)
         if self.spent >= self.daily_tokens:
             return 429, {"error": "daily", "detail": "today's live budget is spent"}
         if self.spent_by.get(viewer, 0) >= self.daily_tokens * VIEWER_SHARE:
@@ -121,7 +130,7 @@ class Service:
     def charge(self, job: Job) -> None:
         """What a finished question spent, against the day and its viewer."""
         a = job.answer
-        cost = (a.input_tokens + a.output_tokens) if a else 0
+        cost = (a.input_tokens + a.output_tokens) if a else FAILED_TOKENS
         self.spent += cost
         self.spent_by[job.viewer] = self.spent_by.get(job.viewer, 0) + cost
 
@@ -217,10 +226,28 @@ def _viewer(request: Request) -> str:
     return forwarded.split(",")[-1].strip() or (request.client.host if request.client else "?")
 
 
+class TooLarge(ValueError):
+    pass
+
+
+async def _body(request: Request) -> Any:
+    """The request's JSON, refused unread when it is larger than a question needs: a huge body
+    read whole could exhaust the container's memory and restart it."""
+    declared = request.headers.get("content-length", "")
+    if declared.isdigit() and int(declared) > MAX_BODY:
+        raise TooLarge("request too large")
+    data = bytearray()
+    async for chunk in request.stream():
+        data += chunk
+        if len(data) > MAX_BODY:
+            raise TooLarge("request too large")
+    return json.loads(data)
+
+
 def build(service: Service, origins: list[str]) -> Starlette:
     async def ask(request: Request) -> JSONResponse:
         try:
-            body = await request.json()
+            body = await _body(request)
             question = Question(
                 question_id="pending",  # minted once the question is admitted
                 match_id=body.get("match_id", ""),
@@ -228,7 +255,9 @@ def build(service: Service, origins: list[str]) -> Starlette:
                 text=str(body.get("text", "")).strip(),
                 locale=body.get("locale", "en"),
             )
-        except (ValueError, ValidationError, AttributeError) as exc:
+        except TooLarge as exc:
+            return JSONResponse({"error": "invalid", "detail": str(exc)}, status_code=413)
+        except (ValueError, ValidationError, AttributeError, RecursionError) as exc:
             detail = exc.errors()[0]["msg"] if isinstance(exc, ValidationError) else str(exc)
             return JSONResponse({"error": "invalid", "detail": detail[:200]}, status_code=422)
         if question.match_id not in MATCHES:
@@ -256,6 +285,7 @@ def build(service: Service, origins: list[str]) -> Starlette:
         return JSONResponse(job.view(job_id).model_dump(mode="json"))
 
     async def health(_: Request) -> JSONResponse:
+        service.roll(time.time())
         running = sum(j.status in ("queued", "running") for j in service.jobs.values())
         return JSONResponse(
             {

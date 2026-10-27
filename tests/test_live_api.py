@@ -16,7 +16,7 @@ from engine.io import write_match
 from engine.script import load_script
 from engine.sim import MatchSim
 from ledger.store import MemoryLedger
-from surfaces.api.app import Job, Service, build
+from surfaces.api.app import FAILED_TOKENS, Job, Service, build
 from tools_server.server import DirectorySource
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -130,6 +130,30 @@ def test_a_question_must_be_about_the_replayed_match_and_after_half_time(data):
         assert client.post("/api/questions", json=body).status_code == 422
         assert client.get("/api/questions/nope").status_code == 404
     assert service.spent == 0 and not service.jobs
+
+
+def test_a_request_larger_than_a_question_is_refused_unread(data):
+    service = _service(data, [])
+    with TestClient(build(service, [])) as client:
+        huge = client.post("/api/questions", content=b'{"text": "' + b"x" * 10_000 + b'"}')
+        assert huge.status_code == 413
+        nested = client.post("/api/questions", content=b"[" * 2000 + b"]" * 2000)
+        assert nested.status_code == 422  # too deep to parse, refused rather than a server error
+    assert not service.jobs
+
+
+def test_a_failed_question_is_charged_and_the_day_rolls_over_when_read(data):
+    def down():
+        raise RuntimeError("Foundry is down")
+
+    service = Service(source=DirectorySource(data), ledger=None, models=down, ids=iter(["f1"]))
+    with TestClient(build(service, [])) as client:
+        _ask(client, "Why are they pressing so high since 58?", locale="en", viewer="9.9.9.9")
+        assert _settled(client, "f1").status == "failed"
+        # its calls' usage is lost with the failure, so it costs about one investigation
+        assert service.spent == service.spent_by["9.9.9.9"] == FAILED_TOKENS
+        service.day = "2000-01-01"  # the budget a new day starts with shows before anyone asks
+        assert client.get("/api/health").json()["spent_today"] == 0
 
 
 def test_a_job_has_an_answer_exactly_when_it_is_done():

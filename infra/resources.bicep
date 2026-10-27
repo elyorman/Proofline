@@ -26,7 +26,7 @@ param verifierCapacity int = 20
 param apiImage string = ''
 
 @description('Model tokens all viewers\' live questions may spend in a UTC day (about 300 full investigations)')
-param dailyTokens int = 15000000
+param dailyTokens int = 5000000
 
 // Built-in role definition ids
 var roles = {

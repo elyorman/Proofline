@@ -19,7 +19,7 @@ A stats feed can tell you a team's pressing jumped after 58'. It cannot tell you
 
 ### What Proofline does
 
-- **Code decides what is real.** A detected change must stay beyond normal variation for five more minutes. A viewer's question is turned into one measurable premise and tested the same way. "Is Ambrel tiring?" gets "not beyond ordinary play" when the numbers say so.
+- **Code decides what is real.** A detected change must stay beyond normal variation for five more minutes. A viewer's question is turned into one measurable premise and tested the same way. "Why is Harbour City's defence tiring?" gets "the other way": their defence is sprinting more than in the first half.
 - **Specialist agents decide why, and code scores them.** Tactics, Physical and Game-State each register causes in their own domain, with predictions in numbers, before any tool runs. Code runs every test through the State Builder's tools. The agents then cross-examine each other's survivors with counter-tests they design, and code refuses unfair ones. A synthesis step ranks what survived.
 - **It keeps watching when the evidence can't decide.** If two causes still fit, the card says so. Each side bets on the next 15 minutes, and code settles the bet in a new revision.
 - **Nothing reaches a viewer unverified.** The Verifier recomputes every number from the exact events it came from and checks every English sentence against the facts at the wording the evidence allows. No model writes a card or an answer: templates fill them in from the checked facts, in English and Spanish alike, and the Spanish numbers are checked the same way.

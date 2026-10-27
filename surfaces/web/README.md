@@ -40,7 +40,7 @@ the area it is about and gives one line of explanation:
 |---|---|---|
 | The 68' card | `#/fan?t=68:00` | the current card and How we know |
 | The 70' correction | `#/fan?t=70:00`, Earlier cards open | the withdrawn card and the press card under it |
-| Ask anything, live | `#/fan?t=76:00`, Ask open | the rail, with "Is Ambrel tiring since minute 60?" typed in for the judge to send |
+| Ask anything, live | `#/fan?t=68:00`, Ask open | the rail, with "Is Harbour City's defence tiring since 58?" typed in for the judge to send |
 | The investigation | `#/analyst?t=68:00`, the 63' case | its funnel |
 | The scoreboard | the Evaluation tab | the scoreboard |
 | The producer's call | `#/broadcast?t=70:30` | the pending withdrawal cue |

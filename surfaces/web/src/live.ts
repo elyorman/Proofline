@@ -36,16 +36,36 @@ export function askLive(question: { match_id: string; asked_at: MatchClock; text
   }, api, fetcher);
 }
 
+const MISSES = 4;  // failed polls in a row before the job is given up: a blip is ridden out
+
 /** Polls a job until it is done or failed, reporting every new state. */
 export async function followLive(job: LiveJob, onUpdate: (job: LiveJob) => void,
   { api = LIVE_API, fetcher = fetch, intervalMs = 1500, signal }: { api?: string; fetcher?: Fetch; intervalMs?: number; signal?: AbortSignal } = {},
 ): Promise<LiveJob> {
   let current = job;
+  let misses = 0;
   while (current.status === 'queued' || current.status === 'running') {
     await new Promise(resolve => setTimeout(resolve, intervalMs));
     if (signal?.aborted) return current;
-    current = await call(`/api/questions/${encodeURIComponent(current.job_id)}`, undefined, api, fetcher);
+    try {
+      current = await call(`/api/questions/${encodeURIComponent(current.job_id)}`, undefined, api, fetcher);
+    } catch (error) {
+      if (++misses > MISSES) throw error;
+      continue;
+    }
+    misses = 0;
     onUpdate(current);
   }
   return current;
 }
+
+/** The viewer's one live question, kept outside any panel: changing route or tab must not lose
+ * it while the API still counts it as theirs. */
+export interface LiveState { job?: LiveJob; startedAt?: number }
+let shared: LiveState = {};
+const listeners = new Set<() => void>();
+export const liveState = {
+  get: (): LiveState => shared,
+  set(next: LiveState) { shared = next; listeners.forEach(listener => listener()); },
+  subscribe(listener: () => void) { listeners.add(listener); return () => { listeners.delete(listener); }; },
+};

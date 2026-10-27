@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { askLive, followLive, LiveRefused } from './live';
+import { askLive, followLive, liveState, LiveRefused } from './live';
 import type { LiveJob } from './types/live-job';
 
 const question = { question_id: 'live-1', match_id: 'm01', asked_at: { period: 2 as const, minute: 68, second: 0 }, text: 'Why now?', locale: 'en' as const };
@@ -19,6 +19,24 @@ describe('the live API client', () => {
     const ended = await followLive(started, j => seen.push(j.status), { api: 'https://api.example', fetcher, intervalMs: 0 });
     expect(seen).toEqual(['running', 'failed']);
     expect(ended.error).toBe('Timeout');
+  });
+
+  it('rides out a failed poll or two, but gives up on a job the API has lost', async () => {
+    const blip = [reply(502, {}), reply(200, job('running')), reply(502, {}), reply(200, { ...job('done'), answer: {} })];
+    const ended = await followLive(job('queued'), () => {}, { api: 'https://api.example', fetcher: (async () => blip.shift()!) as typeof fetch, intervalMs: 0 });
+    expect(ended.status).toBe('done');
+    const lost = followLive(job('running'), () => {}, { api: 'https://api.example', fetcher: (async () => reply(404, { error: 'unknown job' })) as typeof fetch, intervalMs: 0 });
+    await expect(lost).rejects.toMatchObject({ reason: 'unavailable' });
+  });
+
+  it('keeps the live question outside any one panel, so changing route does not lose it', () => {
+    liveState.set({ job: job('running'), startedAt: 1 });
+    const seen: (string | undefined)[] = [];
+    const stop = liveState.subscribe(() => seen.push(liveState.get().job?.status));
+    liveState.set({ ...liveState.get(), job: job('done') });
+    stop();
+    liveState.set({});
+    expect(seen).toEqual(['done']);
   });
 
   it('turns every refusal into its own reason, and needs an API to ask at all', async () => {

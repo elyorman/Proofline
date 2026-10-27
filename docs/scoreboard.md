@@ -4,17 +4,45 @@ Every evaluation record in [`eval/records/`](../eval/records/), rendered by `uv 
 
 ## Reproduce it
 
-These make live model calls; the held-out split is meant to be run once.
+These make live model calls; the held-out split is meant to be run once. Each scoring command writes its record to `eval/records/`; each one runs twice, at the first answer and with `--after-follow-up`.
 
 ```bash
+# Held-out feeds, generated once the agents were frozen
 uv run proofline-engine suite --suite planted --split heldout
 uv run proofline-engine suite --suite decoys --split heldout
 make heldout-feeds
-uv run proofline batch --data data/heldout --variant A --out runs/held
-uv run python -m eval --runs runs/held --split heldout --variant A --after-follow-up
+R="--model-id gpt-5-mini --record-dir eval/records"
+
+# Detected moments: three agents (A) and one agent (B), then the paired differences
+for v in A B; do uv run proofline batch --data data/heldout --variant $v --out runs/held; done
+for f in "" --after-follow-up; do
+  for v in A B; do uv run python -m eval --runs runs/held --split heldout --variant $v $R $f; done
+  for m in planted_recall cause_precision; do
+    uv run python -m eval --runs runs/held --split heldout --compare A B --metric $m $R $f
+  done
+done
+
+# Viewer questions: A, B and the plain tool-using agent (P), then every pair
 uv run python -m eval.questions make --split heldout --out runs/held/questions.jsonl
-uv run proofline questions --data data/heldout --questions runs/held/questions.jsonl --variant P --out runs/held/q
-uv run python -m eval.questions score --runs runs/held/q --split heldout --compare A P --metric false_claims_per_question
+for v in A B P; do
+  uv run proofline questions --data data/heldout --questions runs/held/questions.jsonl --variant $v --out runs/held/q
+done
+Q="--runs runs/held/q --split heldout --questions runs/held/questions.jsonl --tool-call-budget 16 $R"
+for f in "" --after-follow-up; do
+  for v in A B P; do uv run python -m eval.questions score $Q --variant $v $f; done
+  for pair in "A P" "A B" "B P"; do
+    for m in true_premise_accuracy false_premise_rejection false_claims_per_question claim_precision; do
+      uv run python -m eval.questions score $Q --compare $pair --metric $m $f
+    done
+  done
+done
+
+# The Verifier on seeded false claims: a dev batch with its exchanges recorded (we used seven
+# dev matches), then the seeded suite; for Phi-4, set AZURE_VERIFIER_DEPLOYMENT=Phi-4 and --model-id Phi-4
+uv run proofline batch --data data/dev --variant A --out runs/seeded-src --record runs/seeded-src/exchanges-A
+uv run python -m eval seeded --runs runs/seeded-src --data data/dev --exchanges runs/seeded-src/exchanges-A \
+  --variant A --split dev --record runs/seeded/gpt-5-mini --limit 10 $R
+
 make scoreboard
 ```
 

@@ -66,6 +66,7 @@ uv run python -m eval --runs runs/dev --split dev --variant A       # score a ba
 azd deploy api                            # build the live API's image and roll it out to the Container App
 uv run uvicorn surfaces.api.app:create --factory --port 8000   # the live API locally (needs the azd env values)
 make deploy-web                           # the replay on Static Web Apps, pointed at the live API
+make check-live                           # the public link as a judge uses it: replay files, API health, one live question (.github/workflows/live.yml runs it daily)
 make video-clips                          # the demo video's on-screen beats as silent 1080p clips of the public link, into runs/video/ (asks one live question)
 make scoreboard                           # after any new record in eval/records: rewrite docs/scoreboard.md and the console's fixture (CI checks that block and every figure the README quotes)
 azd up                                    # provision + deploy everything

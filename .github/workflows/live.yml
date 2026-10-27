@@ -1,0 +1,19 @@
+name: Live check
+
+# Once a day while judging runs: the public link and the live API, used the way a judge
+# uses them (scripts/check_live.py). A failed run emails the repository owner.
+on:
+  schedule:
+    - cron: "17 23 * * *"
+  workflow_dispatch:
+
+jobs:
+  live:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - run: >-
+          python3 scripts/check_live.py
+          --web https://nice-coast-044d8740f.5.azurestaticapps.net
+          --api https://ca-api-4qt5j5ijyione.niceisland-5f5bb554.eastus2.azurecontainerapps.io

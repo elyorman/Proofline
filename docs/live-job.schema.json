@@ -843,7 +843,7 @@
         },
         "note": {
           "default": "",
-          "description": "what code recorded at that stage",
+          "description": "what that stage recorded: the Lead's own reading of the question when framed, else what code measured or decided",
           "title": "Note",
           "type": "string"
         }

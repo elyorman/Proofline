@@ -1,6 +1,7 @@
-"""The Verifier's semantic check (spec §9.2): a model from a different family from the
-agents' reads only the card's propositions, evidence and text, and says whether each
-sentence follows at the card's language level, flagging any overstatement."""
+"""The Verifier's semantic check (spec §9.2): gpt-5-mini, the agents' model, with its own
+prompt and none of their context, reads only the card's propositions, evidence and English
+text, and says whether each sentence follows at the card's language level, flagging any
+overstatement."""
 
 import json
 

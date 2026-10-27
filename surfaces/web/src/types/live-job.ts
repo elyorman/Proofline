@@ -15,7 +15,7 @@ export type Stage = "framed" | "premise" | "preregistered" | "tested" | "cross_e
  */
 export type AtMs = number;
 /**
- * what code recorded at that stage
+ * what that stage recorded: the Lead's own reading of the question when framed, else what code measured or decided
  */
 export type Note = string;
 export type Stages = LiveStage[];

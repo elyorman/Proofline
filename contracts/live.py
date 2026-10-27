@@ -28,7 +28,11 @@ class LiveStage(BaseModel):
 
     stage: LiveStageName
     at_ms: int = Field(ge=0, description="wall clock when it was reached")
-    note: str = Field(default="", description="what code recorded at that stage")
+    note: str = Field(
+        default="",
+        description="what that stage recorded: the Lead's own reading of the question when "
+        "framed, else what code measured or decided",
+    )
 
 
 class LiveJob(BaseModel):
